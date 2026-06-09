@@ -62,7 +62,11 @@ private[internal] object WebSocketHelpers {
             .get[`Sec-WebSocket-Key`]
             .liftTo[F](new RuntimeException("Sec-WebSocket-Key header not found"))
             .map(_.hashString)
-          isValid <- validateServerHandshake(res, secWebSocketKeyString)
+          offeredSubprotocols = request.headers
+            .get[`Sec-WebSocket-Protocol`]
+            .map(_.values.toList.toSet)
+            .getOrElse(Set.empty[String])
+          isValid <- validateServerHandshake(res, secWebSocketKeyString, offeredSubprotocols)
           _ <- isValid.liftTo[F]
           negotiatedSubprotocol = res.headers.get[`Sec-WebSocket-Protocol`]
         } yield res.attributes.lookup(webSocketKey).map(_ -> negotiatedSubprotocol)
@@ -94,14 +98,32 @@ private[internal] object WebSocketHelpers {
   def validateServerHandshake[F[_]](
       response: Response[F],
       secWebSocketKey: String,
+      offeredSubprotocols: Set[String],
   )(implicit F: MonadThrow[F]): F[Either[ServerHandshakeError, Unit]] =
     for {
       secWebSocketAccept <- serverHandshake(response).pure[F]
       correctSecWebSocketAccept <- clientHandshake(secWebSocketKey)
       validated = secWebSocketAccept.flatMap(s =>
-        if (s == correctSecWebSocketAccept) Either.unit else Left(InvalidSecWebSocketAccept)
+        if (s == correctSecWebSocketAccept)
+          validateNegotiatedSubprotocol(response, offeredSubprotocols)
+        else Left(InvalidSecWebSocketAccept)
       )
     } yield validated
+
+  /** RFC 6455 §4.1: the client must fail the connection when the server selects
+    * a subprotocol that the client did not offer. The server may select at most one.
+    */
+  private def validateNegotiatedSubprotocol[F[_]](
+      response: Response[F],
+      offeredSubprotocols: Set[String],
+  ): Either[ServerHandshakeError, Unit] =
+    response.headers.get[`Sec-WebSocket-Protocol`] match {
+      case None => Either.unit
+      case Some(`Sec-WebSocket-Protocol`(NonEmptyList(subprotocol, Nil)))
+          if offeredSubprotocols.contains(subprotocol) =>
+        Either.unit
+      case Some(_) => Left(InvalidSubprotocol)
+    }
 
   private[this] val magic = ByteVector.view(Rfc6455.handshakeMagicBytes)
 
@@ -157,5 +179,10 @@ private[internal] object WebSocketHelpers {
       extends ServerHandshakeError(
         Status.BadRequest,
         "Sec-WebSocket-Accept does not correspond to the Sec-WebSocket-Key",
+      )
+  case object InvalidSubprotocol
+      extends ServerHandshakeError(
+        Status.BadRequest,
+        "Sec-WebSocket-Protocol does not match a subprotocol offered by the client",
       )
 }

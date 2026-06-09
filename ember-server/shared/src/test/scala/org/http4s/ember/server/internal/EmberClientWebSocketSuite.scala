@@ -78,6 +78,10 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
               .map(p => Headers(`Sec-WebSocket-Protocol`(p.values.head)))
               .getOrElse(Headers.empty)
           wsBuilder.withHeaders(responseHeaders).build(Stream.empty, _.void)
+        case GET -> Root / "ws-subprotocol-wrong" =>
+          wsBuilder
+            .withHeaders(Headers(`Sec-WebSocket-Protocol`("unoffered")))
+            .build(Stream.empty, _.void)
       }
       .orNotFound
   }
@@ -382,6 +386,23 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       wsClient
         .connect(wsRequest)
         .use(conn => IO(assertEquals(conn.subprotocol, None)))
+  }
+
+  fixture.test("fail the connection when the server selects a subprotocol that was not offered") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-subprotocol-wrong"))
+        .withHeaders(Headers(`Sec-WebSocket-Protocol`("v4.channel.k8s.io")))
+
+      wsClient
+        .connect(wsRequest)
+        .use(_ => IO.unit)
+        .attempt
+        .map(attempt =>
+          assertEquals(
+            attempt.left.map(_.getMessage),
+            Left("Sec-WebSocket-Protocol does not match a subprotocol offered by the client"),
+          )
+        )
   }
 
 

@@ -38,6 +38,7 @@ class WebSocketHelpersSuite extends Http4sSuite {
                 Headers(`Sec-WebSocket-Accept`(hashBytes), upgradeWebSocket, connectionUpgrade)
               ),
             hashString,
+            Set.empty,
           )
         } yield result
       ).map(result => assertEquals(result, Left(InvalidStatus)))
@@ -56,6 +57,7 @@ class WebSocketHelpersSuite extends Http4sSuite {
                 Headers(`Sec-WebSocket-Accept`(hashBytes), connectionUpgrade)
               ),
             hashString,
+            Set.empty,
           )
         } yield result
       ).map(result => assertEquals(result, Left(UpgradeRequired)))
@@ -74,6 +76,7 @@ class WebSocketHelpersSuite extends Http4sSuite {
                 Headers(`Sec-WebSocket-Accept`(hashBytes), upgradeWebSocket)
               ),
             hashString,
+            Set.empty,
           )
         } yield result
       ).map(result => assertEquals(result, Left(UpgradeRequired)))
@@ -91,6 +94,7 @@ class WebSocketHelpersSuite extends Http4sSuite {
                 Headers(connectionUpgrade, upgradeWebSocket)
               ),
             hashString,
+            Set.empty,
           )
         } yield result
       ).map(result => assertEquals(result, Left(SecWebSocketAcceptNotFound)))
@@ -116,6 +120,7 @@ class WebSocketHelpersSuite extends Http4sSuite {
                   Headers(`Sec-WebSocket-Accept`(hashBytes1), connectionUpgrade, upgradeWebSocket)
                 ),
               hashString2,
+              Set.empty,
             )
           } yield result
         ).map(result => assertEquals(result, Left(InvalidSecWebSocketAccept)))
@@ -134,9 +139,106 @@ class WebSocketHelpersSuite extends Http4sSuite {
                 Headers(`Sec-WebSocket-Accept`(hashBytes), connectionUpgrade, upgradeWebSocket)
               ),
             hashString,
+            Set.empty,
           )
         } yield result
       ).map(result => assertEquals(result, Right(())))
+    }
+  }
+
+  test("Accept server handshake response with a subprotocol offered by the client") {
+    forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
+      val hashString = secWebSocketKey.hashString
+      (
+        for {
+          hashBytes <- clientHandshake[IO](hashString)
+          result <- validateServerHandshake(
+            Response[IO](Status.SwitchingProtocols)
+              .withHeaders(
+                Headers(
+                  `Sec-WebSocket-Accept`(hashBytes),
+                  connectionUpgrade,
+                  upgradeWebSocket,
+                  `Sec-WebSocket-Protocol`("soap"),
+                )
+              ),
+            hashString,
+            Set("soap", "wamp"),
+          )
+        } yield result
+      ).map(result => assertEquals(result, Right(())))
+    }
+  }
+
+  test("Invalidate server handshake response with a subprotocol the client did not offer") {
+    forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
+      val hashString = secWebSocketKey.hashString
+      (
+        for {
+          hashBytes <- clientHandshake[IO](hashString)
+          result <- validateServerHandshake(
+            Response[IO](Status.SwitchingProtocols)
+              .withHeaders(
+                Headers(
+                  `Sec-WebSocket-Accept`(hashBytes),
+                  connectionUpgrade,
+                  upgradeWebSocket,
+                  `Sec-WebSocket-Protocol`("soap"),
+                )
+              ),
+            hashString,
+            Set("wamp"),
+          )
+        } yield result
+      ).map(result => assertEquals(result, Left(InvalidSubprotocol)))
+    }
+  }
+
+  test("Invalidate server handshake response with a subprotocol when none was offered") {
+    forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
+      val hashString = secWebSocketKey.hashString
+      (
+        for {
+          hashBytes <- clientHandshake[IO](hashString)
+          result <- validateServerHandshake(
+            Response[IO](Status.SwitchingProtocols)
+              .withHeaders(
+                Headers(
+                  `Sec-WebSocket-Accept`(hashBytes),
+                  connectionUpgrade,
+                  upgradeWebSocket,
+                  `Sec-WebSocket-Protocol`("soap"),
+                )
+              ),
+            hashString,
+            Set.empty,
+          )
+        } yield result
+      ).map(result => assertEquals(result, Left(InvalidSubprotocol)))
+    }
+  }
+
+  test("Invalidate server handshake response with multiple subprotocols") {
+    forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
+      val hashString = secWebSocketKey.hashString
+      (
+        for {
+          hashBytes <- clientHandshake[IO](hashString)
+          result <- validateServerHandshake(
+            Response[IO](Status.SwitchingProtocols)
+              .withHeaders(
+                Headers(
+                  `Sec-WebSocket-Accept`(hashBytes),
+                  connectionUpgrade,
+                  upgradeWebSocket,
+                  `Sec-WebSocket-Protocol`("soap", "wamp"),
+                )
+              ),
+            hashString,
+            Set("soap", "wamp"),
+          )
+        } yield result
+      ).map(result => assertEquals(result, Left(InvalidSubprotocol)))
     }
   }
 }
