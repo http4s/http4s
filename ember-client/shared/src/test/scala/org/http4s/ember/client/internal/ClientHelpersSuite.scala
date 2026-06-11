@@ -263,6 +263,28 @@ class ClientHelpersSuite extends Http4sSuite {
     } yield testResult
   }
 
+  test(
+    "Postprocess response should reuse when body is partially consumed and exact drain limit can be read within timeout"
+  ) {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      body = Stream.emit('.'.toByte).repeat.take(1024).covary[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](body = body),
+        IO.pure(None), // body not consumed by user
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
+      )
+      testResult <- reuse.get.map(r => assertEquals(r, Reusable.Reuse))
+    } yield testResult
+  }
+
   test("Postprocess response should not reuse when body exceeds drain limit") {
     for {
       nextBytes <- Ref[IO].of(Array.emptyByteArray)

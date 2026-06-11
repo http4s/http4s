@@ -234,11 +234,11 @@ private[client] object ClientHelpers {
         case None =>
           F.timeout(
             resp.body
-              .take(maxDrainBytes)
+              .take(maxDrainBytes + 1)
               .compile
               .count
               .flatMap { count =>
-                if (count < maxDrainBytes) {
+                if (count <= maxDrainBytes) {
                   startNextRead *>
                     canBeReused.set(Reusable.Reuse)
                 } else F.unit
