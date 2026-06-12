@@ -86,28 +86,35 @@ class VirtualHostSuite extends Http4sSuite {
     VirtualHost.subdomain(routesA, "routesA", None)
   ).orNotFound
 
-  test("Subdomain should not match exact") {
+  test("subdomain should not match exact") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("routesA"))
 
     vhostSubdomain(req).map(_.status).assertEquals(NotFound)
   }
 
-  test("Subdomain should match prefix") {
+  test("subdomain should match prefix") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("www.routesA"))
 
     vhostSubdomain(req).flatMap(_.as[String]).assertEquals("routesA")
   }
 
-  test("Subdomain should not match suffix") {
+  test("subdomain should not match suffix") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("routesA.service"))
 
     vhostSubdomain(req).map(_.status).assertEquals(NotFound)
   }
 
-  test("Subdomain should not match prefix without dot") {
+  test("subdomain should not match prefix and suffix") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("www.routesA.service"))
+
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
+  }
+
+  test("subdomain should not match prefix without dot") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("not-routesA"))
 

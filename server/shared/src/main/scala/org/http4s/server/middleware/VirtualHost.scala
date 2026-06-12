@@ -63,15 +63,16 @@ object VirtualHost {
     */
   def subdomain[F[_], G[_]](
       http: Http[F, G],
-      requestHost: String,
+      domain: String,
       port: Option[Int] = None,
   ): HostService[F, G] = {
-    val lowerCaseRequestHost = requestHost.toLowerCase(Locale.ROOT)
-    val suffix = "." + lowerCaseRequestHost
+    val lowerCaseDomain = "." + domain.toLowerCase(Locale.ROOT)
 
     HostService(
       http,
-      h => h.host.toLowerCase(Locale.ROOT).endsWith(suffix) && (port.isEmpty || port == h.port),
+      h =>
+        h.host.toLowerCase(Locale.ROOT).endsWith(lowerCaseDomain) &&
+          (port.isEmpty || port == h.port),
     )
   }
 
@@ -80,7 +81,7 @@ object VirtualHost {
     * given. If the port is not given, it is ignored.
     */
   @deprecated(
-    message = "Use VirtualHost.belongsToDomain or VirtualHost.matches instead",
+    message = "Use VirtualHost.subdomain or VirtualHost.matches instead",
     since = "0.23.35",
   )
   def wildcard[F[_], G[_]](
