@@ -42,6 +42,10 @@ import org.http4s.util.SizedSeq0
   */
 object Metrics {
 
+  // The fromInt can't fail, but being more safe than adding a yolo here.
+  // 499 is used as "client closed request" code in nginx, which seems the closest thing.
+  val CanceledStatus: Status = Status.fromInt(499).getOrElse(Status.InternalServerError)
+
   private[this] final case class MetricsEntry(
       method: Method,
       startTime: Long,
@@ -171,16 +175,13 @@ object Metrics {
           case (Outcome.Succeeded(_), Some(status)) => recordTotal(status)
 
           case (Outcome.Errored(e), None) =>
-            // If an error occurred, and the status is empty, this means
-            // the error occurred before the routes could generate a response.
-            ops.recordHeadersTime(
-              metrics.method,
-              totalTime,
-              metrics.classifier,
-              customLabelValues,
-            ) *>
-              recordAbnormal(Error(e)) *>
-              errorResponseHandler(e).traverse_(recordTotal)
+            // The error occurred before the routes produced a response, so no response headers were emitted.
+            // Do not call recordHeadersTime because doing so would pollute the headers histogram with samples
+            // that don't correspond to a real header-send. Fall back to InternalServerError when the user-supplied
+            // handler returns None so errored requests are never silently dropped from the counter.
+            recordAbnormal(Error(e)) *> recordTotal(
+              errorResponseHandler(e).getOrElse(Status.InternalServerError)
+            )
 
           case (Outcome.Errored(e), Some(status)) =>
             // If an error occurred, but the status is non-empty, this means
@@ -189,7 +190,11 @@ object Metrics {
             // so we do not need to invoke it here.
             recordAbnormal(Abnormal(e)) *> recordTotal(status)
 
-          case (Outcome.Canceled(), _) => recordAbnormal(Canceled)
+          case (Outcome.Canceled(), maybeStatus) =>
+            // Record the cancellation as an abnormal termination, and also bump the request counter so canceled
+            // requests appear in `request_count_total`. Prefer the real status from `maybeStatus`, but if that's not set
+            // we use CanceledStatus is used when the body had not started.
+            recordAbnormal(Canceled) *> recordTotal(maybeStatus.getOrElse(Metrics.CanceledStatus))
         }
       }
     }(C)(
