@@ -49,17 +49,17 @@ object VirtualHost {
       http: Http[F, G],
       requestHost: String,
       port: Option[Int] = None,
-  ): HostService[F, G] =
+  ): HostService[F, G] = {
+    val lowerCaseHost = requestHost.toLowerCase(Locale.ROOT)
     HostService(
       http,
-      h =>
-        h.host.toLowerCase(Locale.ROOT) == requestHost.toLowerCase(Locale.ROOT) &&
-          (port.isEmpty || port == h.port),
+      h => h.host.toLowerCase(Locale.ROOT) == lowerCaseHost && (port.isEmpty || port == h.port),
     )
+  }
 
-  /** Create a [[HostService]] that will match if the host string in * "." + requestHost,
+  /** Create a [[HostService]] that will match if the host string in `"." + domain``,
     * discounting case, and matches the port, if the port is given. If the port
-    * is not given, it is ignored.
+    * is not given, it is ignored. It will *not* match `domain` alone, only a subdomain.
     */
   def subdomain[F[_], G[_]](
       http: Http[F, G],
