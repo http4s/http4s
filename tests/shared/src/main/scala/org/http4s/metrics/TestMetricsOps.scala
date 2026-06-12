@@ -23,7 +23,7 @@ import org.http4s.Status
 
 object TestMetricsOps {
 
-  case class State(
+  final case class State(
       active: Long,
       headersTime: List[(Method, Long, Option[String])],
       totalTime: List[(Method, Status, Long, Option[String])],
