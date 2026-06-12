@@ -23,6 +23,7 @@ import cats.data.Kleisli
 import org.http4s.Status.BadRequest
 import org.http4s.Status.NotFound
 import org.http4s.headers.Host
+
 import java.util.Locale
 
 /** Middleware for virtual host mapping
@@ -56,12 +57,11 @@ object VirtualHost {
           (port.isEmpty || port == h.port),
     )
 
-  /** Create a [[HostService]] that will match if the host string equals
-    * `requestHost` or the host string ends in "." + requestHost, discounting
-    * case, and matches the port, if the port is * given. If the port is not
-    * given, it is ignored.
+  /** Create a [[HostService]] that will match if the host string in * "." + requestHost,
+    * discounting case, and matches the port, if the port is given. If the port
+    * is not given, it is ignored.
     */
-  def belongsToDomain[F[_], G[_]](
+  def subdomain[F[_], G[_]](
       http: Http[F, G],
       requestHost: String,
       port: Option[Int] = None,
@@ -71,12 +71,7 @@ object VirtualHost {
 
     HostService(
       http,
-      h => {
-        val lowerCaseHost = h.host.toLowerCase(Locale.ROOT)
-
-        (lowerCaseHost == lowerCaseRequestHost || lowerCaseHost.endsWith(suffix)) &&
-        (port.isEmpty || port == h.port)
-      },
+      h => h.host.toLowerCase(Locale.ROOT).endsWith(suffix) && (port.isEmpty || port == h.port),
     )
   }
 

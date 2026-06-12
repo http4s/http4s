@@ -82,36 +82,36 @@ class VirtualHostSuite extends Http4sSuite {
     vhostExact(req).map(_.status).assertEquals(NotFound)
   }
 
-  private val vhostBelongsToDomain = VirtualHost(
-    VirtualHost.belongsToDomain(routesA, "routesA", None)
+  private val vhostSubdomain = VirtualHost(
+    VirtualHost.subdomain(routesA, "routesA", None)
   ).orNotFound
 
-  test("belongsToDomain should match exact") {
+  test("Subdomain should not match exact") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("routesA"))
 
-    vhostBelongsToDomain(req).flatMap(_.as[String]).assertEquals("routesA")
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
   }
 
-  test("belongsToDomain should match prefix") {
+  test("Subdomain should match prefix") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("www.routesA"))
 
-    vhostBelongsToDomain(req).flatMap(_.as[String]).assertEquals("routesA")
+    vhostSubdomain(req).flatMap(_.as[String]).assertEquals("routesA")
   }
 
-  test("belongsToDomain should not match suffix") {
+  test("Subdomain should not match suffix") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("routesA.service"))
 
-    vhostBelongsToDomain(req).map(_.status).assertEquals(NotFound)
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
   }
 
-  test("belongsToDomain should not match prefix without dot") {
+  test("Subdomain should not match prefix without dot") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("not-routesA"))
 
-    vhostBelongsToDomain(req).map(_.status).assertEquals(NotFound)
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
   }
 
   @annotation.nowarn("cat=deprecation")
