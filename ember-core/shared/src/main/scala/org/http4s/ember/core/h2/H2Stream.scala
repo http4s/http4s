@@ -19,6 +19,7 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.data._
 import cats.effect._
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
 import fs2.concurrent.Channel
@@ -85,8 +86,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
           .foreach(c => sendData(c.toByteVector, endStream = false))
           .compile
           .drain >> sendData(ByteVector.empty, endStream = true).whenA(noTrailers)
-      sendBody.onError { case _ =>
-        rstStream(H2Error.InternalError)
+      sendBody.guaranteeCase {
+        case Outcome.Errored(_) => rstStream(H2Error.InternalError)
+        case Outcome.Canceled() => rstStream(H2Error.Cancel)
+        case Outcome.Succeeded(_) => Applicative[F].unit
       }
     }
   }
@@ -350,25 +353,45 @@ private[h2] class H2Stream[F[_]: Concurrent](
   }
 
   def rstStream(error: H2Error): F[Unit] = {
-    val rst = error.toRst(id)
-    for {
-      s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-      _ <- enqueue.offer(Chunk.singleton(rst))
-      _ <- s.cancelWith(s"Sending RstStream, cancelling: $rst")
-      _ <- onClosed
-    } yield ()
+    import H2Stream.RstAction
+    state
+      .modify[RstAction[F]] { s =>
+        s.state match {
+          case StreamState.Closed =>
+            (s, RstAction.AlreadyClosed[F]())
+          case StreamState.Idle =>
+            // Defensive: never emit RST on an Idle stream (RFC 9113 §5.4.2).
+            // Mark closed locally and run cleanup; do not enqueue a frame.
+            (s.copy(state = StreamState.Closed), RstAction.SkipFrame(s))
+          case _ =>
+            (s.copy(state = StreamState.Closed), RstAction.Send(s))
+        }
+      }
+      .flatMap {
+        case RstAction.AlreadyClosed() =>
+          Applicative[F].unit
+        case RstAction.SkipFrame(prev) =>
+          prev.cancelWith(s"Closing stream $id without sending RstStream") *> onClosed
+        case RstAction.Send(prev) =>
+          val rst = error.toRst(id)
+          enqueue.offer(Chunk.singleton(rst)) *>
+            prev.cancelWith(s"Sending RstStream, cancelling: $rst") *>
+            onClosed
+      }
   }
 
   // Broadcast Frame
   // Will eventually allow us to know we can retry if we are above the processed window declared
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
+    _ <- s.cancelSignal.complete(H2Error.fromInt(goAway.errorCode).getOrElse(H2Error.InternalError))
     _ <- s.cancelWith(s"Received GoAway, cancelling: $goAway")
     _ <- onClosed
   } yield ()
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
+    _ <- s.cancelSignal.complete(H2Error.fromInt(rst.value).getOrElse(H2Error.Cancel))
     _ <- s.cancelWith(s"Received RstStream, cancelling: $rst")
     _ <- onClosed
   } yield ()
@@ -415,6 +438,23 @@ private[h2] class H2Stream[F[_]: Concurrent](
 }
 
 private[h2] object H2Stream {
+
+  /** Decision returned by the atomic state transition in [[H2Stream.rstStream]].
+    *
+    *  - [[RstAction.AlreadyClosed]]: stream was already `Closed`; no-op.
+    *  - [[RstAction.SkipFrame]]: stream was `Idle`; transition to `Closed` and
+    *    run cleanup, but do not enqueue an RST_STREAM frame (RFC 9113 §5.4.2
+    *    forbids RST on idle streams).
+    *  - [[RstAction.Send]]: stream was active; transition to `Closed`, enqueue
+    *    the RST_STREAM frame, and run cleanup.
+    */
+  private[h2] sealed trait RstAction[F[_]]
+  private[h2] object RstAction {
+    final case class AlreadyClosed[F[_]]() extends RstAction[F]
+    final case class SkipFrame[F[_]](prev: State[F]) extends RstAction[F]
+    final case class Send[F[_]](prev: State[F]) extends RstAction[F]
+  }
+
   final case class State[F[_]](
       state: StreamState,
       writeWindow: Int,
@@ -425,6 +465,11 @@ private[h2] object H2Stream {
       trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
       readBuffer: Channel[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
+      // Completed when the peer aborts the stream (RST_STREAM or stream-level
+      // GOAWAY). Used by the server-side opt-in cancel-on-peer-reset feature
+      // to interrupt in-flight route execution. Idempotent — multiple completes
+      // are silently ignored. Carries the H2 error code observed from the peer.
+      cancelSignal: Deferred[F, H2Error],
   ) {
     override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"

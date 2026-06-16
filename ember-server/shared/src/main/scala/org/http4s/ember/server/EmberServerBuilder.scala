@@ -56,6 +56,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val logger: Logger[F],
     private val unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
+    private val http2CancelOnPeerReset: Boolean,
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
 ) { self =>
@@ -81,6 +82,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       logger: Logger[F] = self.logger,
       unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)] = self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
+      http2CancelOnPeerReset: Boolean = self.http2CancelOnPeerReset,
       requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
         self.maxHeaderSizeErrorHandler,
@@ -103,6 +105,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       logger = logger,
       unixSocketConfig = unixSocketConfig,
       enableHttp2 = enableHttp2,
+      http2CancelOnPeerReset = http2CancelOnPeerReset,
       requestLineParseErrorHandler = requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
     )
@@ -193,6 +196,17 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
+  /** When `true` and HTTP/2 is enabled, an inbound `RST_STREAM` (or stream-level
+    * `GOAWAY`) from the peer cancels the in-flight route-handler fiber for that
+    * stream. When `false` (default), the route runs to completion and its
+    * response is silently discarded after the stream has been reset.
+    *
+    * Defaults to `false` to preserve existing behavior. Opt in to surface
+    * client-side cancellations as fiber cancellations on the server.
+    */
+  def withHttp2CancelOnPeerReset(b: Boolean): EmberServerBuilder[F] =
+    copy(http2CancelOnPeerReset = b)
+
   // If used will bind to UnixSocket
   @deprecated("Use overload that doesn't take a UnixSockets[F]", "0.23.34")
   def withUnixSocketConfig(
@@ -268,6 +282,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               logger,
               wsBuilder.webSocketKey,
               enableHttp2,
+              http2CancelOnPeerReset,
               requestLineParseErrorHandler,
               maxHeaderSizeErrorHandler,
             )
@@ -296,6 +311,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             logger,
             wsBuilder.webSocketKey,
             enableHttp2,
+            http2CancelOnPeerReset,
             requestLineParseErrorHandler,
             maxHeaderSizeErrorHandler,
           )
@@ -332,6 +348,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       logger = defaultLogger[F],
       unixSocketConfig = None,
       enableHttp2 = false,
+      http2CancelOnPeerReset = false,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
     )

@@ -76,6 +76,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
+      http2CancelOnPeerReset: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
   )(implicit F: Async[F], F2: Network[F]): Stream[F, Nothing] = {
@@ -109,6 +110,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       createRequestVault = true,
       webSocketKey,
       enableHttp2 = enableHttp2,
+      http2CancelOnPeerReset = http2CancelOnPeerReset,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
     )
@@ -135,6 +137,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
+      http2CancelOnPeerReset: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
   ): Stream[F, Nothing] = {
@@ -173,6 +176,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       createRequestVault = false,
       webSocketKey,
       enableHttp2 = enableHttp2,
+      http2CancelOnPeerReset = http2CancelOnPeerReset,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
     )
@@ -200,6 +204,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
+      http2CancelOnPeerReset: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
   ): Stream[F, Nothing] = {
@@ -224,6 +229,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           httpApp,
                           H2Frame.Settings.ConnectionSettings.default,
                           logger,
+                          cancelOnPeerReset = http2CancelOnPeerReset,
                         )
                     )
                     .drain
@@ -245,6 +251,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   webSocketKey,
                   ByteVector.empty,
                   enableHttp2,
+                  http2CancelOnPeerReset,
                   requestLineParseErrorHandler,
                   maxHeaderSizeErrorHandler,
                 ).drain
@@ -269,6 +276,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           webSocketKey,
                           bv, // Pass read bytes we thought might be the prelude
                           enableHttp2,
+                          http2CancelOnPeerReset,
                           requestLineParseErrorHandler,
                           maxHeaderSizeErrorHandler,
                         ).drain
@@ -280,6 +288,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                               httpApp,
                               H2Frame.Settings.ConnectionSettings.default,
                               logger,
+                              cancelOnPeerReset = http2CancelOnPeerReset,
                             )
                           )
                           .drain
@@ -300,6 +309,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       webSocketKey,
                       ByteVector.empty,
                       enableHttp2,
+                      http2CancelOnPeerReset,
                       requestLineParseErrorHandler,
                       maxHeaderSizeErrorHandler,
                     ).drain
@@ -446,6 +456,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       initialBuffer: ByteVector,
       enableHttp2: Boolean,
+      http2CancelOnPeerReset: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
   ): Stream[F, Nothing] = {
@@ -534,6 +545,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           logger,
                           settings,
                           newReq.some,
+                          cancelOnPeerReset = http2CancelOnPeerReset,
                         )
                         .use(_ => Async[F].never[Unit])
                         .as(None)

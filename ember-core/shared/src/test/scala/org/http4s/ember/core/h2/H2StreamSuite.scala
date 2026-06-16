@@ -47,6 +47,7 @@ class H2StreamSuite extends Http4sSuite {
       resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
       trailers <- Deferred[IO, Either[Throwable, Headers]]
       readBuffer <- Channel.unbounded[IO, Either[Throwable, ByteVector]]
+      cancelSignal <- Deferred[IO, H2Error]
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
@@ -59,6 +60,7 @@ class H2StreamSuite extends Http4sSuite {
           trailers = trailers,
           readBuffer = readBuffer,
           contentLengthCheck = None,
+          cancelSignal = cancelSignal,
         )
       )
       hpack <- Hpack.create[IO]
@@ -87,6 +89,7 @@ class H2StreamSuite extends Http4sSuite {
       resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
       trailers <- Deferred[IO, Either[Throwable, Headers]]
       readBuffer <- Channel.unbounded[IO, Either[Throwable, ByteVector]]
+      cancelSignal <- Deferred[IO, H2Error]
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
@@ -99,6 +102,7 @@ class H2StreamSuite extends Http4sSuite {
           trailers = trailers,
           readBuffer = readBuffer,
           contentLengthCheck = None,
+          cancelSignal = cancelSignal,
         )
       )
       hpack <- Hpack.create[IO]
@@ -337,6 +341,103 @@ class H2StreamSuite extends Http4sSuite {
       _ <- IO(assertFrame(lastChunk, "", endStream = true))
       _ <- fiber.joinWithNever
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
+    } yield ()
+  }
+
+  test("H2Stream rstStream is idempotent: second call does not enqueue another frame") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      _ <- stream.rstStream(H2Error.Cancel)
+      _ <- stream.rstStream(H2Error.Cancel)
+      all <- queue.tryTakeN(None)
+      frames = all.flatMap(_.toList)
+      rsts = frames.collect { case r: H2Frame.RstStream => r }
+      _ <- IO(assertEquals(rsts.size, 1))
+      _ <- IO(assertEquals(rsts.head.identifier, stream.id))
+      _ <- IO(assertEquals(rsts.head.value: Int, H2Error.Cancel.value))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
+    } yield ()
+  }
+
+  test("H2Stream rstStream skips frame on Idle stream (RFC 9113 §5.4.2)") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Idle))
+      _ <- stream.rstStream(H2Error.Cancel)
+      all <- queue.tryTakeN(None)
+      frames = all.flatMap(_.toList)
+      rsts = frames.collect { case r: H2Frame.RstStream => r }
+      _ <- IO(assertEquals(rsts.size, 0))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
+    } yield ()
+  }
+
+  test("H2Stream sendMessageBody cancellation emits RST_STREAM(CANCEL)") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      started <- Deferred[IO, Unit]
+      bodyStream =
+        Stream.exec(started.complete(()).void) ++ Stream.eval(IO.never[Byte]).drain
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`).withBodyStream(bodyStream)
+      fiber <- stream.sendMessageBody(resp).start
+      _ <- started.get
+      _ <- fiber.cancel
+      all <- queue.tryTakeN(None)
+      frames = all.flatMap(_.toList)
+      rsts = frames.collect { case r: H2Frame.RstStream => r }
+      _ <- IO(assertEquals(rsts.size, 1))
+      _ <- IO(assertEquals(rsts.head.value: Int, H2Error.Cancel.value))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
+    } yield ()
+  }
+
+  test("H2Stream sendMessageBody error emits RST_STREAM(INTERNAL_ERROR)") {
+    val boom = new RuntimeException("boom")
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      bodyStream = Stream.raiseError[IO](boom)
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`).withBodyStream(bodyStream)
+      outcome <- stream.sendMessageBody(resp).attempt
+      _ <- IO(assertEquals(outcome.left.map(_.getMessage), Left("boom")))
+      all <- queue.tryTakeN(None)
+      frames = all.flatMap(_.toList)
+      rsts = frames.collect { case r: H2Frame.RstStream => r }
+      _ <- IO(assertEquals(rsts.size, 1))
+      _ <- IO(assertEquals(rsts.head.value: Int, H2Error.InternalError.value))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
+    } yield ()
+  }
+
+  test("H2Stream receiveRstStream populates cancelSignal with parsed error") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, _) = sq
+      rst = H2Frame.RstStream(stream.id, H2Error.Cancel.value)
+      _ <- stream.receiveRstStream(rst)
+      signal <- stream.state.get.flatMap(_.cancelSignal.tryGet)
+      _ <- IO(assertEquals(signal, Some(H2Error.Cancel: H2Error)))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
+    } yield ()
+  }
+
+  test("H2Stream receiveGoAway populates cancelSignal with parsed error") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, _) = sq
+      goAway = H2Frame.GoAway(
+        identifier = 0,
+        lastStreamId = 0,
+        errorCode = H2Error.NoError.value,
+        additionalDebugData = None,
+      )
+      _ <- stream.receiveGoAway(goAway)
+      signal <- stream.state.get.flatMap(_.cancelSignal.tryGet)
+      _ <- IO(assertEquals(signal, Some(H2Error.NoError: H2Error)))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
     } yield ()
   }
 }
