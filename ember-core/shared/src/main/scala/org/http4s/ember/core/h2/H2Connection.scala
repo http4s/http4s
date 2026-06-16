@@ -540,8 +540,8 @@ private[h2] class H2Connection[F[_]](
           state.update(s => s.copy(closed = true))
       case Outcome.Errored(e) =>
         logger.error(e)(s"ReadLoop has errored") >>
-          state.update(s => s.copy(closed = true)) >>
-          goAway(H2Error.InternalError)
+          goAway(H2Error.InternalError) >>
+          state.update(s => s.copy(closed = true))
 
       case _ => state.update(s => s.copy(closed = true))
     }
