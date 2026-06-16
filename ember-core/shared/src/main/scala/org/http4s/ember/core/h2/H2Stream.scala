@@ -41,6 +41,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     connectionType: H2Connection.ConnectionType,
     val remoteSettings: F[H2Frame.Settings.ConnectionSettings],
     val state: Ref[F, H2Stream.State[F]],
+    val cancelSignal: Deferred[F, H2Error],
     val hpack: Hpack[F],
     val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
     val onClosed: F[Unit],
@@ -384,14 +385,16 @@ private[h2] class H2Stream[F[_]: Concurrent](
   // Will eventually allow us to know we can retry if we are above the processed window declared
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    _ <- s.cancelSignal.complete(H2Error.fromInt(goAway.errorCode).getOrElse(H2Error.InternalError))
+    _ <- cancelSignal
+      .complete(H2Error.fromInt(goAway.errorCode).getOrElse(H2Error.InternalError))
+      .whenA(goAway.errorCode != H2Error.NoError.value)
     _ <- s.cancelWith(s"Received GoAway, cancelling: $goAway")
     _ <- onClosed
   } yield ()
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    _ <- s.cancelSignal.complete(H2Error.fromInt(rst.value).getOrElse(H2Error.Cancel))
+    _ <- cancelSignal.complete(H2Error.fromInt(rst.value).getOrElse(H2Error.Cancel))
     _ <- s.cancelWith(s"Received RstStream, cancelling: $rst")
     _ <- onClosed
   } yield ()
@@ -465,11 +468,6 @@ private[h2] object H2Stream {
       trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
       readBuffer: Channel[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
-      // Completed when the peer aborts the stream (RST_STREAM or stream-level
-      // GOAWAY). Used by the server-side opt-in cancel-on-peer-reset feature
-      // to interrupt in-flight route execution. Idempotent — multiple completes
-      // are silently ignored. Carries the H2 error code observed from the peer.
-      cancelSignal: Deferred[F, H2Error],
   ) {
     override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"

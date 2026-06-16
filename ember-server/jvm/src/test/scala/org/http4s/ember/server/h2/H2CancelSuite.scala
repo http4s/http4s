@@ -25,18 +25,22 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 
+import scala.concurrent.duration._
+
 class H2CancelSuite extends Http4sSuite {
 
-  def runScenario(cancelOnPeerReset: Boolean): IO[(Boolean, Boolean)] =
+  def runScenario(cancelOnPeerReset: Boolean): IO[(Boolean, Boolean)] = {
+    val routeDuration: FiniteDuration = 500.milli
+
     for {
       routeStarted <- Deferred[IO, Unit]
-      finishRoute <- Deferred[IO, Unit]
       cancelObserved <- Deferred[IO, Unit]
       routeCompleted <- Deferred[IO, Unit]
 
       app = HttpRoutes
         .of[IO] { case GET -> Root / "slow" =>
-          (routeStarted.complete(()).void *> finishRoute.get *>
+          (routeStarted.complete(()).void *>
+            IO.sleep(routeDuration) *>
             routeCompleted.complete(()).void)
             .onCancel(cancelObserved.complete(()).void)
             .as(Response[IO](Status.Ok))
@@ -52,25 +56,30 @@ class H2CancelSuite extends Http4sSuite {
         .withHttpApp(app)
         .build
         .use { server =>
-          EmberClientBuilder.default[IO].withHttp2.build.use { client =>
-            val uri = Uri.unsafeFromString(s"http://${server.addressIp4s}/slow")
-            val req = Request[IO](Method.GET, uri)
-              .withAttribute(Http2PriorKnowledge, ())
+          EmberClientBuilder
+            .default[IO]
+            .withHttp2
+            .build
+            .use { client =>
+              val uri = Uri.unsafeFromString(s"http://${server.addressIp4s}/slow")
+              val req = Request[IO](Method.GET, uri)
+                .withAttribute(Http2PriorKnowledge, ())
 
-            client.run(req).use(_ => IO.never[Unit]).start.flatMap { fiber =>
-              for {
-                _ <- routeStarted.get
-                _ <- fiber.cancel
-                _ <-
-                  if (cancelOnPeerReset) cancelObserved.get
-                  else finishRoute.complete(()).void *> routeCompleted.get
-                cancel <- cancelObserved.tryGet
-                done <- routeCompleted.tryGet
-              } yield (cancel.isDefined, done.isDefined)
+              client.run(req).use(_ => IO.never[Unit]).start.flatMap { fiber =>
+                for {
+                  _ <- routeStarted.get
+                  _ <- fiber.cancel
+                  _ <-
+                    if (cancelOnPeerReset) cancelObserved.get
+                    else routeCompleted.get
+                  cancel <- cancelObserved.tryGet
+                  done <- routeCompleted.tryGet
+                } yield (cancel.isDefined, done.isDefined)
+              }
             }
-          }
         }
     } yield flags
+  }
 
   test("server runs route to completion when http2CancelOnPeerReset is false (default)") {
     runScenario(cancelOnPeerReset = false).map { case (cancel, done) =>

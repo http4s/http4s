@@ -173,10 +173,6 @@ private[ember] object H2Server {
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
       initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       initialRequest: Option[Request[fs2.Pure]] = None,
-      // When true, an inbound RST_STREAM (or stream-level GOAWAY) cancels the
-      // in-flight route-handler fiber for that stream. When false, the route
-      // runs to completion and its response is silently discarded after the
-      // stream has been reset.
       cancelOnPeerReset: Boolean = false,
   )(implicit F: Async[F]): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
@@ -308,7 +304,7 @@ private[ember] object H2Server {
           } yield ()
         _ <-
           if (cancelOnPeerReset)
-            stream.state.get.flatMap(_.cancelSignal.get).race(respond).void
+            stream.cancelSignal.get.race(respond).void
           else respond
       } yield ()
     }

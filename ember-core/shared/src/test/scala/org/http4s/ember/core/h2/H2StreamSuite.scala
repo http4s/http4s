@@ -60,7 +60,6 @@ class H2StreamSuite extends Http4sSuite {
           trailers = trailers,
           readBuffer = readBuffer,
           contentLengthCheck = None,
-          cancelSignal = cancelSignal,
         )
       )
       hpack <- Hpack.create[IO]
@@ -72,6 +71,7 @@ class H2StreamSuite extends Http4sSuite {
         H2Connection.ConnectionType.Server,
         IO.pure(config),
         state,
+        cancelSignal,
         hpack,
         outgoing,
         IO.unit,
@@ -102,7 +102,6 @@ class H2StreamSuite extends Http4sSuite {
           trailers = trailers,
           readBuffer = readBuffer,
           contentLengthCheck = None,
-          cancelSignal = cancelSignal,
         )
       )
       hpack <- Hpack.create[IO]
@@ -114,6 +113,7 @@ class H2StreamSuite extends Http4sSuite {
         H2Connection.ConnectionType.Client,
         IO.pure(config),
         state,
+        cancelSignal,
         hpack,
         enqueue,
         IO.unit,
@@ -418,13 +418,30 @@ class H2StreamSuite extends Http4sSuite {
       (stream, _) = sq
       rst = H2Frame.RstStream(stream.id, H2Error.Cancel.value)
       _ <- stream.receiveRstStream(rst)
-      signal <- stream.state.get.flatMap(_.cancelSignal.tryGet)
+      signal <- stream.cancelSignal.tryGet
       _ <- IO(assertEquals(signal, Some(H2Error.Cancel: H2Error)))
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
     } yield ()
   }
 
-  test("H2Stream receiveGoAway populates cancelSignal with parsed error") {
+  test("H2Stream receiveGoAway with error completes cancelSignal with parsed error") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, _) = sq
+      goAway = H2Frame.GoAway(
+        identifier = 0,
+        lastStreamId = 0,
+        errorCode = H2Error.ProtocolError.value,
+        additionalDebugData = None,
+      )
+      _ <- stream.receiveGoAway(goAway)
+      signal <- stream.cancelSignal.tryGet
+      _ <- IO(assertEquals(signal, Some(H2Error.ProtocolError: H2Error)))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
+    } yield ()
+  }
+
+  test("H2Stream receiveGoAway with NO_ERROR does not complete cancelSignal") {
     for {
       sq <- streamAndQueue(defaultSettings)
       (stream, _) = sq
@@ -435,8 +452,8 @@ class H2StreamSuite extends Http4sSuite {
         additionalDebugData = None,
       )
       _ <- stream.receiveGoAway(goAway)
-      signal <- stream.state.get.flatMap(_.cancelSignal.tryGet)
-      _ <- IO(assertEquals(signal, Some(H2Error.NoError: H2Error)))
+      signal <- stream.cancelSignal.tryGet
+      _ <- IO(assertEquals(signal, None))
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Closed)
     } yield ()
   }

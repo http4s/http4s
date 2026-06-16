@@ -196,10 +196,12 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
-  /** When `true` and HTTP/2 is enabled, an inbound `RST_STREAM` (or stream-level
-    * `GOAWAY`) from the peer cancels the in-flight route-handler fiber for that
-    * stream. When `false` (default), the route runs to completion and its
-    * response is silently discarded after the stream has been reset.
+  /** When `true` and HTTP/2 is enabled, an inbound `RST_STREAM` from the peer,
+    * or a connection-level `GOAWAY` with an error, cancels the in-flight
+    * route-handler fiber for the affected stream. A graceful `GOAWAY(NO_ERROR)`
+    * (RFC 9113 §6.8) does not trigger cancellation. When `false` (default),
+    * the route runs to completion and its response is silently discarded after
+    * the stream has been reset.
     *
     * Defaults to `false` to preserve existing behavior. Opt in to surface
     * client-side cancellations as fiber cancellations on the server.

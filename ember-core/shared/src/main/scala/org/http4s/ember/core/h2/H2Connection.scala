@@ -82,7 +82,6 @@ private[h2] class H2Connection[F[_]](
         trailers,
         body,
         None,
-        cancelSignal,
       )
     )
     stream = new H2Stream(
@@ -91,6 +90,7 @@ private[h2] class H2Connection[F[_]](
       connectionType,
       state.get.map(_.remoteSettings),
       refState,
+      cancelSignal,
       hpack,
       outgoing,
       closedStreams.offer(id),
@@ -120,7 +120,6 @@ private[h2] class H2Connection[F[_]](
         trailers,
         body,
         None,
-        cancelSignal,
       )
     )
     stream = new H2Stream(
@@ -129,6 +128,7 @@ private[h2] class H2Connection[F[_]](
       connectionType,
       state.get.map(_.remoteSettings),
       refState,
+      cancelSignal,
       hpack,
       outgoing,
       closedStreams.offer(id),
@@ -540,8 +540,8 @@ private[h2] class H2Connection[F[_]](
           state.update(s => s.copy(closed = true))
       case Outcome.Errored(e) =>
         logger.error(e)(s"ReadLoop has errored") >>
-          goAway(H2Error.InternalError) >>
-          state.update(s => s.copy(closed = true))
+          state.update(s => s.copy(closed = true)) >>
+          goAway(H2Error.InternalError)
 
       case _ => state.update(s => s.copy(closed = true))
     }
