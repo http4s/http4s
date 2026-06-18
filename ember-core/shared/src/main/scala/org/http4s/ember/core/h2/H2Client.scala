@@ -214,23 +214,12 @@ private[ember] class H2Client[F[_]](
       )
 
     def clearClosed(h2: H2Connection[F]): F[Unit] =
-      // For each closed-stream id, wait `ClosedStreamGracePeriod` before
-      // removing the entry from `mapRef`. This absorbs late frames from the
-      // peer (DATA in flight when we sent RST, etc.) which would otherwise be
-      // surfaced as stale-stream protocol violations.
-      // Inner streams run as scope-owned worker fibers under
-      // `parJoin(maxConcurrentStreams)` — no `.start`-fork, no leak, real
-      // concurrency cap. Client-side filter to odd ids preserved (only
-      // client-initiated streams live in the client's `mapRef`).
       Stream
         .fromQueueUnterminated(h2.closedStreams)
-        .map { i =>
-          Stream.eval(
-            (Temporal[F].sleep(H2Connection.ClosedStreamGracePeriod) >>
-              h2.mapRef.update(m => m - i)).whenA(i % 2 != 0)
-          )
+        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency) { i =>
+          (Temporal[F].sleep(H2Connection.ClosedStreamGracePeriod) >>
+            h2.mapRef.update(m => m - i)).whenA(i % 2 != 0)
         }
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
         .compile
         .drain
 
