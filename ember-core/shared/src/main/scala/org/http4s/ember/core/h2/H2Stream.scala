@@ -353,33 +353,28 @@ private[h2] class H2Stream[F[_]: Concurrent](
     }
   }
 
-  def rstStream(error: H2Error): F[Unit] = {
-    import H2Stream.RstAction
-    state
-      .modify[RstAction[F]] { s =>
-        s.state match {
-          case StreamState.Closed =>
-            (s, RstAction.AlreadyClosed[F]())
-          case StreamState.Idle =>
-            // Defensive: never emit RST on an Idle stream (RFC 9113 §5.4.2).
-            // Mark closed locally and run cleanup; do not enqueue a frame.
-            (s.copy(state = StreamState.Closed), RstAction.SkipFrame(s))
-          case _ =>
-            (s.copy(state = StreamState.Closed), RstAction.Send(s))
-        }
-      }
-      .flatMap {
-        case RstAction.AlreadyClosed() =>
-          Applicative[F].unit
-        case RstAction.SkipFrame(prev) =>
-          prev.cancelWith(s"Closing stream $id without sending RstStream") *> onClosed
-        case RstAction.Send(prev) =>
+  def rstStream(error: H2Error): F[Unit] =
+    state.flatModify { s =>
+      s.state match {
+        case StreamState.Closed =>
+          (s, Applicative[F].unit)
+        case StreamState.Idle =>
+          // Defensive: never emit RST on an Idle stream (RFC 9113 §5.4.2).
+          // Mark closed locally and run cleanup; do not enqueue a frame.
+          (
+            s.copy(state = StreamState.Closed),
+            s.cancelWith(s"Closing stream $id without sending RstStream") *> onClosed,
+          )
+        case _ =>
           val rst = error.toRst(id)
-          enqueue.offer(Chunk.singleton(rst)) *>
-            prev.cancelWith(s"Sending RstStream, cancelling: $rst") *>
-            onClosed
+          (
+            s.copy(state = StreamState.Closed),
+            enqueue.offer(Chunk.singleton(rst)) *>
+              s.cancelWith(s"Sending RstStream, cancelling: $rst") *>
+              onClosed,
+          )
       }
-  }
+    }
 
   // Broadcast Frame
   // Will eventually allow us to know we can retry if we are above the processed window declared
@@ -441,22 +436,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
 }
 
 private[h2] object H2Stream {
-
-  /** Decision returned by the atomic state transition in [[H2Stream.rstStream]].
-    *
-    *  - [[RstAction.AlreadyClosed]]: stream was already `Closed`; no-op.
-    *  - [[RstAction.SkipFrame]]: stream was `Idle`; transition to `Closed` and
-    *    run cleanup, but do not enqueue an RST_STREAM frame (RFC 9113 §5.4.2
-    *    forbids RST on idle streams).
-    *  - [[RstAction.Send]]: stream was active; transition to `Closed`, enqueue
-    *    the RST_STREAM frame, and run cleanup.
-    */
-  private[h2] sealed trait RstAction[F[_]]
-  private[h2] object RstAction {
-    final case class AlreadyClosed[F[_]]() extends RstAction[F]
-    final case class SkipFrame[F[_]](prev: State[F]) extends RstAction[F]
-    final case class Send[F[_]](prev: State[F]) extends RstAction[F]
-  }
 
   final case class State[F[_]](
       state: StreamState,
