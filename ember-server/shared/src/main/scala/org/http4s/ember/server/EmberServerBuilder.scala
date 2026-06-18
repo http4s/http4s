@@ -244,7 +244,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def build: Resource[F, Server] =
     for {
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
-      shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
+      shutdown <- Resource.eval(Shutdown[F](shutdownTimeout, logger))
       wsBuilder <- Resource.eval(WebSocketBuilder2[F])
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(

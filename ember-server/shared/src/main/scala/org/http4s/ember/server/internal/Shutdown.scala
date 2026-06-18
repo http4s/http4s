@@ -16,6 +16,7 @@
 
 package org.http4s.ember.server.internal
 
+import _root_.org.typelevel.log4cats.Logger
 import cats.effect._
 import cats.effect.implicits._
 import cats.syntax.all._
@@ -36,14 +37,16 @@ private[server] abstract class Shutdown[F[_]] {
 
 private[server] object Shutdown {
 
-  def apply[F[_]](timeout: Duration)(implicit F: Temporal[F]): F[Shutdown[F]] =
+  def apply[F[_]](timeout: Duration, logger: Logger[F])(implicit F: Temporal[F]): F[Shutdown[F]] =
     timeout match {
       case fi: FiniteDuration =>
-        if (fi.length == 0) immediateShutdown else timedShutdown(timeout)
-      case _ => timedShutdown(timeout)
+        if (fi.length == 0) immediateShutdown else timedShutdown(timeout, logger)
+      case _ => timedShutdown(timeout, logger)
     }
 
-  private def timedShutdown[F[_]](timeout: Duration)(implicit F: Temporal[F]): F[Shutdown[F]] = {
+  private def timedShutdown[F[_]](timeout: Duration, logger: Logger[F])(implicit
+      F: Temporal[F]
+  ): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {
@@ -60,7 +63,13 @@ private[server] object Shutdown {
                 F.unit
               } else {
                 timeout match {
-                  case fi: FiniteDuration => unblockFinish.get.timeoutTo(fi, F.unit)
+                  case fi: FiniteDuration =>
+                    logger.info(
+                      s"The server's graceful shutdown is prevented by ${active} connections. " +
+                        s"Shutdown will be enforced in ${fi.toMillis} milliseconds. To reduce this timeout, use " +
+                        ".withShutdownTimeout(<duration>) method on the EmberServerBuilder"
+                    ) *>
+                      unblockFinish.get.timeoutTo(fi, F.unit)
                   case _ => unblockFinish.get
                 }
               }
