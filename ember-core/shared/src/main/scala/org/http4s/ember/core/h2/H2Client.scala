@@ -202,7 +202,7 @@ private[ember] class H2Client[F[_]](
       } yield new H2Connection(
         socketAdd,
         H2Connection.ConnectionType.Client,
-        Duration.Inf,
+        idleTimeout,
         idleTimeout,
         localSettings,
         ref,
