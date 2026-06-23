@@ -90,11 +90,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1781531207,
-        "narHash": "sha256-rZKx58CHL6iuBBids64n8OTk1S6/JdrnN4gJYuhn1cc=",
+        "lastModified": 1782176829,
+        "narHash": "sha256-iVBZAkKuXt9Hr6k6BOjS8hAVy2VrSCD+l/nB/lMiQ1c=",
         "owner": "typelevel",
         "repo": "typelevel-nix",
-        "rev": "c6a694aae59a084551cc04fd948a9543af611789",
+        "rev": "f93480571ec0aac0c991266d267d2276007582e3",
         "type": "github"
       },
       "original": {
