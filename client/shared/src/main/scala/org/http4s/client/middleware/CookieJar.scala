@@ -184,8 +184,14 @@ object CookieJar {
 
   private[middleware] def extractFromResponseCookie(
       m: Map[CookieKey, CookieValue]
-  )(c: ResponseCookie, httpDate: HttpDate, uri: Uri): Map[CookieKey, CookieValue] =
-    c.domain.orElse(uri.host.map(_.value)) match {
+  )(c: ResponseCookie, httpDate: HttpDate, uri: Uri): Map[CookieKey, CookieValue] = {
+    val storedDomain = c.domain match {
+      case Some(d) =>
+        if (uri.host.exists(domainMatches(_, d))) Some(d) else None
+      case None =>
+        uri.host.map(_.value)
+    }
+    storedDomain match {
       case Some(domainS) =>
         val key = CookieKey(c.name, domainS, c.path)
         val newCookie = c.copy(domain = domainS.some)
@@ -195,6 +201,7 @@ object CookieJar {
       case None => // Ignore Cookies We Can't get a domain for
         m
     }
+  }
 
   private[middleware] def responseCookieToRequestCookie(r: ResponseCookie): RequestCookie =
     RequestCookie(r.name, r.content)

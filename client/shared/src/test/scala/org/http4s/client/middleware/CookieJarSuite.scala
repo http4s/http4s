@@ -189,4 +189,38 @@ class CookieJarSuite extends Http4sSuite {
     val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"), path = Some("/admin"))
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
+
+  test("set-cookie should reject a Domain not authoritative for the response host") {
+    val cookie = ResponseCookie("SESSION", "attacker", domain = Some("example.com"))
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://evil.test/")
+    assert(result.isEmpty)
+  }
+
+  test("set-cookie should reject a Domain when the response has no host") {
+    val cookie = ResponseCookie("SESSION", "attacker", domain = Some("bank.example"))
+    val result = CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"/relative/path")
+    assert(result.isEmpty)
+  }
+
+  test("set-cookie should accept a Domain the response host is a subdomain of") {
+    val cookie = ResponseCookie("SESSION", "ok", domain = Some("example.com"))
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://api.example.com/")
+    assertEquals(result.keySet.map(_.domain), Set("example.com"))
+  }
+
+  test("set-cookie should accept an exact Domain match") {
+    val cookie = ResponseCookie("SESSION", "ok", domain = Some("example.com"))
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://example.com/")
+    assertEquals(result.keySet.map(_.domain), Set("example.com"))
+  }
+
+  test("set-cookie should default a missing Domain to the response host") {
+    val cookie = ResponseCookie("SESSION", "ok", domain = None)
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://example.com/")
+    assertEquals(result.keySet.map(_.domain), Set("example.com"))
+  }
 }
