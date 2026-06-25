@@ -22,6 +22,8 @@ import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
 
+import java.util.Locale
+
 /** Algebra for Interfacing with the Cookie Jar.
   * Allows manual intervention and eviction.
   */
@@ -197,24 +199,39 @@ object CookieJar {
   private[middleware] def responseCookieToRequestCookie(r: ResponseCookie): RequestCookie =
     RequestCookie(r.name, r.content)
 
+  private def domainMatches(host: Uri.Host, cookieDomain: String): Boolean = {
+    val requestHost = host.value.toLowerCase(Locale.ROOT)
+    val domain = cookieDomain.toLowerCase(Locale.ROOT).stripPrefix(".")
+    domain.nonEmpty && {
+      host match {
+        case _: Uri.Ipv4Address | _: Uri.Ipv6Address =>
+          requestHost == domain
+        case _: Uri.RegName =>
+          requestHost == domain || requestHost.endsWith("." + domain)
+      }
+    }
+  }
+
+  private def pathMatches(requestPath: Uri.Path, cookiePath: String): Boolean = {
+    val requestPathStr = if (requestPath.isEmpty) "/" else requestPath.renderString
+    (requestPathStr == cookiePath) ||
+    (requestPathStr.startsWith(cookiePath) &&
+      (cookiePath.endsWith("/") || requestPathStr.charAt(cookiePath.length) == '/'))
+  }
+
   private[middleware] def cookieAppliesToRequest[N[_]](
       r: Request[N],
       c: ResponseCookie,
   ): Boolean = {
-    val domainApplies = c.domain.exists(s =>
-      r.uri.host.forall { authority =>
-        authority.renderString.contains(s)
-      }
-    )
-    val pathApplies = c.path.forall(s => r.uri.path.renderString.contains(s))
-
-    val secureSatisfied =
+    def domainApplies =
+      c.domain.exists(s => r.uri.host.exists(host => domainMatches(host, s)))
+    def pathApplies = c.path.forall(s => pathMatches(r.uri.path, s))
+    def secureSatisfied =
       if (c.secure)
         r.uri.scheme.exists { scheme =>
           scheme === Uri.Scheme.https
         }
       else true
-
     domainApplies && pathApplies && secureSatisfied
   }
 
