@@ -190,7 +190,7 @@ private[ember] class H2Client[F[_]](
           defaultSettings.initialWindowSize,
           localSettings.initialWindowSize,
         )
-        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+        queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
         hpack <- Hpack.create[F](
           localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
         )
