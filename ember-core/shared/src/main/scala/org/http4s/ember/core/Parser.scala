@@ -25,6 +25,7 @@ import org.http4s._
 import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
+import java.nio.charset.StandardCharsets
 import scala.annotation.switch
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
@@ -73,11 +74,17 @@ private[ember] object Parser {
     private[this] final val transferEncodingS = "Transfer-Encoding"
     private[this] final val chunkedS = "chunked"
 
+    sealed trait Progress
+    object Progress {
+      case object InProgress extends Progress
+      case object Complete extends Progress
+      final case class Errored(cause: Throwable) extends Progress
+    }
+
     final case class ParserState(
         idx: Int,
         state: Boolean,
-        throwable: Option[Throwable],
-        complete: Boolean,
+        progress: Progress,
         chunked: Boolean,
         contentLength: Option[Long],
         headers: List[Header.Raw],
@@ -89,8 +96,7 @@ private[ember] object Parser {
       def initial: ParserState = ParserState(
         idx = 0,
         state = false,
-        throwable = None,
-        complete = false,
+        progress = Progress.InProgress,
         chunked = false,
         contentLength = None,
         headers = List.empty,
@@ -104,8 +110,7 @@ private[ember] object Parser {
     ): F[Either[ParserState, HeaderP]] = {
       var idx: Int = s.idx
       var state = s.state
-      var throwable: Throwable = s.throwable.orNull
-      var complete = s.complete
+      var progress: Progress = s.progress
       var chunked: Boolean = s.chunked
       var contentLength: Option[Long] = s.contentLength
 
@@ -114,26 +119,30 @@ private[ember] object Parser {
       var start: Int = s.start
       val upperBound = Math.min(message.size - 1, maxHeaderSize)
 
-      while (!complete && idx <= upperBound) {
+      while (progress == Progress.InProgress && idx <= upperBound) {
         if (!state) {
           message(idx) match {
             case ':' =>
               state = true // set state to check for header value
-              name = new String(message, start, idx - start) // extract name string
+              name = new String(message, start, idx - start, StandardCharsets.ISO_8859_1)
               start = idx + 1 // advance past colon for next start
             case '\r' if start == idx => // proceed
-            case '\n' if idx > 0 && message(idx - 1) == cr => complete = true
+            case '\n' if idx > 0 && message(idx - 1) == cr => progress = Progress.Complete
             case c if c <= 0x20 | c == 0x7f =>
-              throwable = InvalidHeaderWhitespace
-              complete = true
+              progress = Progress.Errored(InvalidHeaderWhitespace)
             case _ => // proceed
           }
         } else {
           val current = message(idx)
           // If crlf is next we have completed the header value
           if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
-            // extract header value, trim leading and trailing whitespace
-            val hValue = new String(message, start, idx - start - 1).trim
+            // RFC 9110 5.5: field values are octets, historically ISO-8859-1.
+            // Decoding with the platform charset (UTF-8) would let multi-byte
+            // sequences become single non-ASCII codepoints that
+            // equalsIgnoreCase then Unicode-case-folds (e.g. U+212A KELVIN
+            // SIGN -> 'k'), bypassing the framing-header checks below.
+            val hValue =
+              new String(message, start, idx - start - 1, StandardCharsets.ISO_8859_1).trim
 
             val hName = name // copy var to val
             name = null // set name back to null
@@ -142,14 +151,22 @@ private[ember] object Parser {
               try contentLength = hValue.toLong.some
               catch {
                 case scala.util.control.NonFatal(e) =>
-                  throwable = e
-                  complete = true
+                  progress = Progress.Errored(e)
               }
             } else if (
               hName
                 .equalsIgnoreCase(transferEncodingS)
             ) { // Check if this is Transfer-encoding
-              chunked = hValue.contains(chunkedS)
+              // RFC 9112 7: transfer-coding names are case-insensitive.
+              // RFC 9112 6.1: a server SHOULD reject any transfer coding it
+              // does not understand. Ember implements only chunked, so any
+              // other token (in any Transfer-Encoding field-line) is a framing
+              // ambiguity and a request-smuggling differential.
+              val codings = hValue.split(',')
+              if (codings.isEmpty || codings.exists(c => !c.trim.equalsIgnoreCase(chunkedS)))
+                progress = Progress.Errored(UnsupportedTransferEncoding)
+              else
+                chunked = true
             }
             start = idx + 1 // Next Start is after the CRLF
             headers = newHeader :: headers // Add Header
@@ -159,27 +176,30 @@ private[ember] object Parser {
         idx += 1 // Single Advance Every Iteration
       }
 
-      if (throwable != null) {
-        F.raiseError(ParseHeadersError(throwable))
-      } else if (!complete) {
-        ParserState(
-          idx,
-          state,
-          Option(throwable),
-          complete,
-          chunked,
-          contentLength,
-          headers,
-          Option(name),
-          start,
-        ).asLeft.pure[F]
-      } else {
-        HeaderP(Headers(headers.reverse), chunked, contentLength, idx).asRight.pure[F]
+      progress match {
+        case Progress.Errored(e) =>
+          F.raiseError(ParseHeadersError(e))
+        case Progress.InProgress =>
+          ParserState(
+            idx,
+            state,
+            progress,
+            chunked,
+            contentLength,
+            headers,
+            Option(name),
+            start,
+          ).asLeft.pure[F]
+        case Progress.Complete =>
+          HeaderP(Headers(headers.reverse), chunked, contentLength, idx).asRight.pure[F]
       }
     }
 
     case object InvalidHeaderWhitespace extends Exception with NoStackTrace {
       override val getMessage = "InvalidHeaderWhitespace"
+    }
+    case object UnsupportedTransferEncoding extends Exception with NoStackTrace {
+      override val getMessage = "UnsupportedTransferEncoding"
     }
     final case class ParseHeadersError(cause: Throwable)
         extends Exception(

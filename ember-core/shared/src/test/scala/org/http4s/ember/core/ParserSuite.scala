@@ -708,4 +708,36 @@ class ParsingSuite extends Http4sSuite {
         .intercept[EmberException.MessageTooLong]
     }
   }
+
+  test("HeaderP should accept only 'chunked' Transfer-Encoding, case-insensitively") {
+    def parse(headers: String) = {
+      val raw = Helpers.httpifyString(s"$headers\n\n")
+        .getBytes(java.nio.charset.StandardCharsets.UTF_8)
+      Parser.HeaderP.parse[IO](raw, 4096, Parser.HeaderP.ParserState.initial)
+    }
+    def chunked(headers: String) = parse(headers).map {
+      case Right(h) => h.chunked
+      case Left(_) => fail("incomplete header section")
+    }
+    for {
+      _ <- chunked("Transfer-Encoding: chunked").assertEquals(true)
+      _ <- chunked("Transfer-Encoding: Chunked").assertEquals(true)
+      _ <- chunked("Transfer-Encoding: CHUNKED").assertEquals(true)
+      _ <- chunked("Transfer-Encoding: chunked\nTransfer-Encoding: chunked").assertEquals(true)
+      _ <- List(
+        "Transfer-Encoding: notchunked",
+        "Transfer-Encoding: gzip, chunked",
+        "Transfer-Encoding: chunked, gzip",
+        "Transfer-Encoding: identity\nTransfer-Encoding: chunked",
+        "Transfer-Encoding: chunked\nTransfer-Encoding: identity",
+        // U+212A KELVIN SIGN Unicode-case-folds to 'k'; on the wire (UTF-8)
+        // it is bytes E2 84 AA, which must not be decoded as a single char.
+        "Transfer-Encoding: chunKed",
+      ).traverse_ { h =>
+        interceptMessageIO[ParseHeadersError](
+          "Encountered Error Attempting to Parse Headers - UnsupportedTransferEncoding"
+        )(parse(h))
+      }
+    } yield ()
+  }
 }
