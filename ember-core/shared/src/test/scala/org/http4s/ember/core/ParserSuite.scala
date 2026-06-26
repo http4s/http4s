@@ -711,7 +711,8 @@ class ParsingSuite extends Http4sSuite {
 
   test("HeaderP should accept only 'chunked' Transfer-Encoding, case-insensitively") {
     def parse(headers: String) = {
-      val raw = Helpers.httpifyString(s"$headers\n\n")
+      val raw = Helpers
+        .httpifyString(s"$headers\n\n")
         .getBytes(java.nio.charset.StandardCharsets.UTF_8)
       Parser.HeaderP.parse[IO](raw, 4096, Parser.HeaderP.ParserState.initial)
     }
@@ -739,5 +740,14 @@ class ParsingSuite extends Http4sSuite {
         )(parse(h))
       }
     } yield ()
+  }
+
+  test("Request.parser should reject Transfer-Encoding combined with Content-Length") {
+    val raw = "POST / HTTP/1.1\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+    Helpers.taking[IO, Byte](Stream.chunk(Chunk.array(raw.getBytes()))).flatMap { take =>
+      interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - ContentLengthAndTransferEncoding"
+      )(Parser.Request.parser[IO](4096)(Array.emptyByteArray, take))
+    }
   }
 }

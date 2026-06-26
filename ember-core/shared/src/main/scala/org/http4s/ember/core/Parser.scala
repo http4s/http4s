@@ -201,6 +201,9 @@ private[ember] object Parser {
     case object UnsupportedTransferEncoding extends Exception with NoStackTrace {
       override val getMessage = "UnsupportedTransferEncoding"
     }
+    case object ContentLengthAndTransferEncoding extends Exception with NoStackTrace {
+      override val getMessage = "ContentLengthAndTransferEncoding"
+    }
     final case class ParseHeadersError(cause: Throwable)
         extends Exception(
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
@@ -363,6 +366,13 @@ private[ember] object Parser {
           httpVersion = prelude.version,
           headers = headerP.headers,
         )
+
+        _ <-
+          if (headerP.chunked && headerP.contentLength.isDefined)
+            F.raiseError[Unit](
+              HeaderP.ParseHeadersError(HeaderP.ContentLengthAndTransferEncoding)
+            )
+          else F.unit
 
         request <-
           if (headerP.chunked) {
