@@ -22,6 +22,7 @@ import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s._
+import org.http4s.internal.CharPredicate
 import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
@@ -148,11 +149,25 @@ private[ember] object Parser {
             name = null // set name back to null
             val newHeader = Header.Raw(CIString(hName), hValue) // create header
             if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
-              try contentLength = hValue.toLong.some
-              catch {
-                case scala.util.control.NonFatal(e) =>
-                  progress = Progress.Errored(e)
-              }
+              if (hValue.isEmpty || !hValue.forall(CharPredicate.Digit))
+                // RFC 9110 8.6: Content-Length = 1*DIGIT. Anything else (sign
+                // prefix, hex, whitespace, list) is a framing ambiguity and
+                // must be rejected to prevent request smuggling.
+                progress = Progress.Errored(InvalidContentLength)
+              else
+                try {
+                  val len = hValue.toLong
+                  if (contentLength.exists(_ != len))
+                    // RFC 9112 6.3: differing Content-Length values are an
+                    // unrecoverable framing error; a repeated identical value
+                    // MAY be collapsed to one.
+                    progress = Progress.Errored(DuplicateContentLength)
+                  else
+                    contentLength = Some(len)
+                } catch {
+                  case scala.util.control.NonFatal(_) =>
+                    progress = Progress.Errored(InvalidContentLength)
+                }
             } else if (
               hName
                 .equalsIgnoreCase(transferEncodingS)
@@ -197,6 +212,12 @@ private[ember] object Parser {
 
     case object InvalidHeaderWhitespace extends Exception with NoStackTrace {
       override val getMessage = "InvalidHeaderWhitespace"
+    }
+    case object DuplicateContentLength extends Exception with NoStackTrace {
+      override val getMessage = "DuplicateContentLength"
+    }
+    case object InvalidContentLength extends Exception with NoStackTrace {
+      override val getMessage = "InvalidContentLength"
     }
     case object UnsupportedTransferEncoding extends Exception with NoStackTrace {
       override val getMessage = "UnsupportedTransferEncoding"

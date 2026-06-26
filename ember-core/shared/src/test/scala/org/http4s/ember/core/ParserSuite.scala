@@ -750,4 +750,23 @@ class ParsingSuite extends Http4sSuite {
       )(Parser.Request.parser[IO](4096)(Array.emptyByteArray, take))
     }
   }
+
+  test("HeaderP should reject a Content-Length that is not 1*DIGIT") {
+    def parse(headers: String) = {
+      val raw = Helpers.httpifyString(s"$headers\n\n")
+      Parser.HeaderP.parse[IO](raw.getBytes(), 4096, Parser.HeaderP.ParserState.initial)
+    }
+    List("-1", "+0", "", "1 0", "1e3", "0x10", "9" * 30).traverse_ { v =>
+      interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - InvalidContentLength"
+      )(parse(s"Content-Length: $v"))
+    } *>
+      interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - DuplicateContentLength"
+      )(parse("Content-Length: 1\nContent-Length: 2")) *>
+      parse("Content-Length: 5\nContent-Length: 5").map {
+        case Right(h) => assertEquals(h.contentLength, Some(5L))
+        case Left(_) => fail("incomplete header section")
+      }
+  }
 }
