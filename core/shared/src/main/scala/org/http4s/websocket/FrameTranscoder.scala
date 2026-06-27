@@ -55,7 +55,12 @@ private[http4s] object FrameTranscoder {
     else if (len == 126) (in.get(2) << 8 & 0xff00) | (in.get(3) & 0xff)
     else if (len == 127) {
       val l = in.getLong(2)
-      if (l > Integer.MAX_VALUE) throw new FrameTranscoder.TranscodeError("Frame is too long")
+      // RFC6455 §5.2: the payload length should be interpreted as a 64-bit
+      // unsigned int, but we read it into a 64-bit signed Long and then
+      // truncate into a 32-bit signed Int.  That's fine for reasonable
+      // values, but can result in a negative
+      if (java.lang.Long.compareUnsigned(l, Int.MaxValue) > 0)
+        throw new FrameTranscoder.TranscodeError("Frame is too long")
       else l.toInt
     } else throw new FrameTranscoder.TranscodeError("Length error")
   }

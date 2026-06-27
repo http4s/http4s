@@ -142,4 +142,14 @@ class WebSocketSuite extends Http4sSuite {
     assertEquals(msg, msg2)
   }
 
+  test("decode should reject a frame declaring a negative 64-bit length") {
+    // 0x82 = FIN
+    // 0x7f = Length-code: length is 64 bits
+    // 0xFFFFFFFFFFFFFFF6 = -10
+    val negativeLengthFrame = ByteVector(
+      0x82, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf6,
+    ).toArray
+    intercept[FrameTranscoder.TranscodeError](decode(negativeLengthFrame, isClient = false))
+  }
+
 }
