@@ -249,6 +249,7 @@ private[ember] object H2Server {
     def processCreatedStream(
         h2: H2Connection[F],
         streamIx: Int,
+        maxStreams: Semaphore[F],
     ): F[Unit] = {
       def fulfillPushPromises(resp: Response[F]): F[Unit] = {
         def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
@@ -286,22 +287,32 @@ private[ember] object H2Server {
         }
       }
 
-      for {
-        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
-        req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
-        resp <- httpApp(req)
-        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
-        _ <- fulfillPushPromises(resp)
-        _ <- stream.sendMessageBody(resp) // Initial Resp Body
-        _ <- stream.sendTrailerHeaders(resp)
-      } yield ()
+      h2.mapRef.get.map(_.get(streamIx)).map(_.get).flatMap { stream =>
+        val permit =
+          if (streamIx % 2 != 0) maxStreams.tryPermit else Resource.pure[F, Boolean](true)
+
+        permit.use {
+          case true =>
+            for {
+              req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+              resp <- httpApp(req)
+              _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
+              _ <- fulfillPushPromises(resp)
+              _ <- stream.sendMessageBody(resp) // Initial Resp Body
+              _ <- stream.sendTrailerHeaders(resp)
+              _ <- h2.mapRef.update(_ - streamIx) // Remove stream from map on normal termination
+            } yield ()
+
+          case false => stream.rstStream(H2Error.RefusedStream)
+        }
+      }
     }
 
-    def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
+    def processCreatedStreams(h2: H2Connection[F], maxStreams: Semaphore[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
-          processCreatedStream(h2, i)
+        .parEvalMapUnbounded(i =>
+          processCreatedStream(h2, i, maxStreams)
             .handleErrorWith {
               case e: CancellationException =>
                 logger.debug(e)("Stream canceled before processing")
@@ -326,8 +337,11 @@ private[ember] object H2Server {
       _ <- Resource.eval(
         initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
+      maxStreams <- Resource.eval(
+        Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)
+      )
       _ <- clearClosedStreams(h2).background
-      _ <- processCreatedStreams(h2).background
+      _ <- processCreatedStreams(h2, maxStreams).background
       _ <- Resource.eval(
         h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )
