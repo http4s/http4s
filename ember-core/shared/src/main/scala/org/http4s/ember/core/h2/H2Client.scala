@@ -216,8 +216,10 @@ private[ember] class H2Client[F[_]](
     def clearClosed(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.closedStreams)
-        .repeat
-        .foreach(i => if (i % 2 != 0) h2.mapRef.update(m => m - i) else F.unit)
+        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency) { i =>
+          (Temporal[F].sleep(H2Connection.ClosedStreamGracePeriod) >>
+            h2.mapRef.update(m => m - i)).whenA(i % 2 != 0)
+        }
         .compile
         .drain
 
@@ -294,13 +296,27 @@ private[ember] class H2Client[F[_]](
         )
       )
       // Stream Order Must Be Correct, so we must grab the global lock
-      stream <- Resource.make(
+      stream <- Resource.makeCase(
         connection.streamCreateAndHeaders.use(_ =>
           connection.initiateLocalStream.flatMap(stream =>
             stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
           )
         )
-      )(stream => connection.mapRef.update(m => m - stream.id))
+      ) { (stream, exitCase) =>
+        // Propagate local cancellation/error to the peer as RST_STREAM.
+        // `rstStream` is idempotent: if the stream is already Closed (e.g. peer
+        // sent RST, or the inner `sendMessageBody` finalizer already RST'd
+        // because the background body-send fiber was canceled/errored), this
+        // becomes a no-op. The two emission points cover disjoint failure
+        // domains separated by `.background` below.
+        // Stream removal from `connection.mapRef` is delegated to the
+        // connection's `clearClosed` pump via the `onClosed` hook.
+        exitCase match {
+          case Resource.ExitCase.Canceled => stream.rstStream(H2Error.Cancel)
+          case Resource.ExitCase.Errored(_) => stream.rstStream(H2Error.InternalError)
+          case Resource.ExitCase.Succeeded => Applicative[F].unit
+        }
+      }
       _ <- (stream.sendMessageBody(req) >> stream.sendTrailerHeaders(req)).background
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp

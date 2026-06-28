@@ -27,6 +27,8 @@ import fs2.io.net.Socket
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
+import scala.concurrent.duration._
+
 import H2Frame.Settings.SettingsInitialWindowSize
 
 private[h2] class H2Connection[F[_]](
@@ -68,6 +70,7 @@ private[h2] class H2Connection[F[_]](
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
     body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    cancelSignal <- Deferred[F, H2Error]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -87,6 +90,7 @@ private[h2] class H2Connection[F[_]](
       connectionType,
       state.get.map(_.remoteSettings),
       refState,
+      cancelSignal,
       hpack,
       outgoing,
       closedStreams.offer(id),
@@ -104,6 +108,7 @@ private[h2] class H2Connection[F[_]](
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
     body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    cancelSignal <- Deferred[F, H2Error]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -123,6 +128,7 @@ private[h2] class H2Connection[F[_]](
       connectionType,
       state.get.map(_.remoteSettings),
       refState,
+      cancelSignal,
       hpack,
       outgoing,
       closedStreams.offer(id),
@@ -544,6 +550,15 @@ private[h2] class H2Connection[F[_]](
 }
 
 private[h2] object H2Connection {
+
+  /** How long after a stream transitions to Closed we keep its entry in
+    *  `mapRef` to gracefully absorb late frames from the peer (e.g. DATA
+    *  arriving after we sent RST_STREAM). After this window the entry is
+    *  removed and any further frames for that id are treated as
+    *  protocol-level stale-frame conditions per RFC 9113 §5.1.
+    */
+  val ClosedStreamGracePeriod: FiniteDuration = 1.second
+
   final case class State[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: Int,

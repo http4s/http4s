@@ -173,6 +173,7 @@ private[ember] object H2Server {
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
       initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       initialRequest: Option[Request[fs2.Pure]] = None,
+      cancelOnPeerReset: Boolean = false,
   )(implicit F: Async[F]): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
 
@@ -227,14 +228,10 @@ private[ember] object H2Server {
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.closedStreams)
-        .map(i =>
-          Stream.eval(
-            // Max Time After Close We Will Still Accept Messages
-            (Temporal[F].sleep(1.seconds) >>
-              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
-          )
-        )
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency) { i =>
+          Temporal[F].sleep(H2Connection.ClosedStreamGracePeriod) >>
+            h2.mapRef.update(m => m - i)
+        }
         .compile
         .drain
 
@@ -281,11 +278,24 @@ private[ember] object H2Server {
       for {
         stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
         req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
-        resp <- httpApp(req)
-        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
-        _ <- fulfillPushPromises(resp)
-        _ <- stream.sendMessageBody(resp) // Initial Resp Body
-        _ <- stream.sendTrailerHeaders(resp)
+        // When opt-in cancel-on-peer-reset is enabled, race the response
+        // pipeline against the per-stream `cancelSignal` (completed by
+        // `receiveRstStream`/`receiveGoAway`). On peer abort, the route
+        // fiber is canceled — its finalizers run, the stream is already
+        // Closed (state-machine-wise) so any RST emitted from canceled
+        // body sends is a no-op via `RstAction.AlreadyClosed`.
+        respond =
+          for {
+            resp <- httpApp(req)
+            _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
+            _ <- fulfillPushPromises(resp)
+            _ <- stream.sendMessageBody(resp) // Initial Resp Body
+            _ <- stream.sendTrailerHeaders(resp)
+          } yield ()
+        _ <-
+          if (cancelOnPeerReset)
+            stream.cancelSignal.get.race(respond).void
+          else respond
       } yield ()
     }
 
