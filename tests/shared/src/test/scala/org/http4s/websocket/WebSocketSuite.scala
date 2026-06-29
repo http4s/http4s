@@ -35,11 +35,19 @@ class WebSocketSuite extends Http4sSuite {
 
   private def helloTxt = intArrayOps(Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f)).map(_.toByte)
 
-  def decode(msg: Array[Byte], isClient: Boolean): WebSocketFrame =
-    new FrameTranscoder(isClient).bufferToFrame(ByteBuffer.wrap(msg))
+  def decode(
+      msg: Array[Byte],
+      isClient: Boolean,
+      maxFrameSize: Int = DefaultMaxMessageSize,
+  ): WebSocketFrame =
+    new FrameTranscoder(isClient, maxFrameSize).bufferToFrame(ByteBuffer.wrap(msg))
 
-  def encode(msg: WebSocketFrame, isClient: Boolean): Array[Byte] = {
-    val msgs = new FrameTranscoder(isClient).frameToBuffer(msg)
+  def encode(
+      msg: WebSocketFrame,
+      isClient: Boolean,
+      maxFrameSize: Int = DefaultMaxMessageSize,
+  ): Array[Byte] = {
+    val msgs = new FrameTranscoder(isClient, maxFrameSize).frameToBuffer(msg)
     val sz = msgs.foldLeft(0)((c, i) => c + i.remaining())
     val b = ByteBuffer.allocate(sz)
     msgs.foreach(b.put)
@@ -152,4 +160,11 @@ class WebSocketSuite extends Http4sSuite {
     intercept[FrameTranscoder.TranscodeError](decode(negativeLengthFrame, isClient = false))
   }
 
+  test("decode rejects a frame whose declared length exceeds maxFrameSize") {
+    // 0x82 = FIN
+    // 0x7e = Length-code: length is 16 bits
+    // 0x00c8 = 200
+    val frame = ByteVector(0x82, 0x7e, 0x00, 0xc8).toArray
+    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
+  }
 }

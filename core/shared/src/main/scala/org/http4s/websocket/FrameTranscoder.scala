@@ -65,7 +65,7 @@ private[http4s] object FrameTranscoder {
     } else throw new FrameTranscoder.TranscodeError("Length error")
   }
 
-  private def getMsgLength(in: ByteBuffer) = {
+  private def getMsgLength(in: ByteBuffer, maxFrameSize: Int) = {
     var totalLen = 2
     if ((in.get(1) & MASK) != 0) totalLen += 4
 
@@ -77,15 +77,23 @@ private[http4s] object FrameTranscoder {
     if (in.remaining < totalLen)
       -1
     else {
-      totalLen += bodyLength(in)
-
+      val payloadLen = bodyLength(in)
+      if (payloadLen > maxFrameSize) {
+        throw new FrameTranscoder.TranscodeError(
+          s"Frame length $payloadLen exceeds limit of $maxFrameSize bytes"
+        )
+      }
+      totalLen += payloadLen
       if (in.remaining < totalLen) -1
       else totalLen
     }
   }
 }
 
-class FrameTranscoder(val isClient: Boolean) {
+class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
+  @deprecated("Preserved for binary compatibility; uses default maxFrameSize", "0.23.35")
+  def this(isClient: Boolean) = this(isClient, DefaultMaxMessageSize)
+
   def frameToBuffer(in: WebSocketFrame): Array[ByteBuffer] = {
     var size = 2
 
@@ -161,7 +169,7 @@ class FrameTranscoder(val isClient: Boolean) {
     * @return optional message if enough data was available
     */
   def bufferToFrame(in: ByteBuffer): WebSocketFrame =
-    if (in.remaining < 2 || FrameTranscoder.getMsgLength(in) < 0)
+    if (in.remaining < 2 || FrameTranscoder.getMsgLength(in, maxFrameSize) < 0)
       null
     else {
       val opcode = in.get(0) & OP_CODE

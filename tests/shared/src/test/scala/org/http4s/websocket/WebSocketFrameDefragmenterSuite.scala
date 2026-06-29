@@ -16,9 +16,11 @@
 
 package org.http4s.websocket
 
+import cats.effect.IO
 import cats.effect.SyncIO
 import fs2.Stream
 import org.http4s.Http4sSuite
+import org.http4s.websocket.DefaultMaxMessageSize
 import org.http4s.websocket.WebSocketFrame.Binary
 import org.http4s.websocket.WebSocketFrame.Close
 import org.http4s.websocket.WebSocketFrame.Continuation
@@ -39,7 +41,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
           Ping(utf8Bytes"ping"),
           Close(utf8Bytes"close"),
         )
-        .through(defragFragment[SyncIO])
+        .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -62,7 +64,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
           Continuation(utf8Bytes"l", last = false),
           Continuation(utf8Bytes"o", last = true),
         )
-        .through(defragFragment[SyncIO])
+        .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -82,7 +84,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
           Continuation(utf8Bytes"l", last = false),
           Continuation(utf8Bytes"d", last = true),
         )
-        .through(defragFragment[SyncIO])
+        .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -104,7 +106,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
           Continuation(utf8Bytes"a", last = false),
           Continuation(utf8Bytes"z", last = true),
         )
-        .through(defragFragment[SyncIO])
+        .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -135,7 +137,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
           Continuation(utf8Bytes"r", last = true),
           Close(utf8Bytes"close"),
         )
-        .through(defragFragment[SyncIO])
+        .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList
@@ -170,7 +172,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
         Text("text1", last = false),
         Text("text2", last = true),
       )
-      .through(defragFragment)
+      .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -196,7 +198,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
         Continuation(utf8Bytes"text3", last = false),
         Close(utf8Bytes"close"),
       )
-      .through(defragFragment)
+      .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -223,7 +225,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
         Continuation(utf8Bytes"illegal continuation", last = true),
         Text("text2", last = true),
       )
-      .through(defragFragment)
+      .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -249,7 +251,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
         Continuation(utf8Bytes"l", last = false),
         Continuation(utf8Bytes"o", last = true),
       )
-      .through(defragFragment)
+      .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -277,7 +279,7 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
         Continuation(utf8Bytes"l", last = false),
         Continuation(utf8Bytes"o", last = true),
       )
-      .through(defragFragment)
+      .through(defragFragment[SyncIO](DefaultMaxMessageSize.toLong))
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -290,4 +292,31 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
 
   }
 
+  test("WebSocketFrameDefragmenter should fail when a reassembled message exceeds the maximum") {
+    val stream: Stream[IO, WebSocketFrame] = Stream
+      .apply(
+        Text("aaaa", last = false),
+        Continuation(utf8Bytes"bbbb", last = false),
+        Continuation(utf8Bytes"cccc", last = true),
+      )
+      .through(defragFragment[IO](8L))
+
+    interceptIO[WebSocketFrameDefragmenter.MessageTooLong](
+      stream.compile.toList
+    )
+  }
+
+  test("WebSocketFrameDefragmenter should fail when buffered fragments exceed the maximum") {
+    val stream: Stream[IO, WebSocketFrame] = Stream
+      .apply(
+        Text("aaaa", last = false),
+        Continuation(utf8Bytes"bbbb", last = false),
+        Continuation(utf8Bytes"cccc", last = false),
+      )
+      .through(defragFragment[IO](8L))
+
+    interceptIO[WebSocketFrameDefragmenter.MessageTooLong](
+      stream.compile.toList
+    )
+  }
 }

@@ -51,7 +51,8 @@ import java.nio.ByteBuffer
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
 
-private[internal] object WebSocketHelpers {
+private[internal] class WebSocketHelpers(maxFrameSize: Int) {
+  import WebSocketHelpers._
 
   private[this] val supportedWebSocketVersion = 13L
 
@@ -105,7 +106,8 @@ private[internal] object WebSocketHelpers {
     }
   }
 
-  private[this] val nonClientTranscoder = new FrameTranscoder(isClient = false)
+  private[this] val nonClientTranscoder =
+    new FrameTranscoder(isClient = false, maxFrameSize = maxFrameSize)
 
   private def runConnection[F[_]](
       socket: Socket[F],
@@ -271,7 +273,9 @@ private[internal] object WebSocketHelpers {
         Stream.chunk(bytes) ++ readStream(read)
       case None => Stream.empty
     }
+}
 
+object WebSocketHelpers {
   sealed abstract class Close
   case object Open extends Close
   case object PeerClosed extends Close
