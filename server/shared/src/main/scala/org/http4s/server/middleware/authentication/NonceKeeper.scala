@@ -95,7 +95,7 @@ private[authentication] class NonceKeeper(
         case null => NonceKeeper.StaleReply
         case n: Nonce =>
           if (nc > n.nc) {
-            n.nc = n.nc + 1
+            n.nc = nc
             NonceKeeper.OKReply
           } else
             NonceKeeper.BadNCReply

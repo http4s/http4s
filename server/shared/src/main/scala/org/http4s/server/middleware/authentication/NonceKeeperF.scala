@@ -136,7 +136,7 @@ private[authentication] class NonceKeeperF[F[_]](
           case n: NonceF[F] =>
             n.nc.modify { lastNc =>
               if (nc > lastNc) {
-                (lastNc + 1, NonceKeeper.OKReply)
+                (nc, NonceKeeper.OKReply)
               } else
                 (lastNc, NonceKeeper.BadNCReply)
             }

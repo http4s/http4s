@@ -62,4 +62,45 @@ class NonceKeeperFSuite extends Http4sSuite {
       }
     }
   }
+
+  test("rejects replays of accepted nc") {
+    NonceKeeperF[IO](
+      staleTimeout = 1.hour,
+      nonceCleanupInterval = 1.hour,
+      bits = 16,
+      maxNonces = 1000000,
+    ).flatMap { keeper =>
+      for {
+        data <- keeper.newNonce()
+        fresh <- keeper.receiveNonce(data, 1)
+        replay <- keeper.receiveNonce(data, 1)
+      } yield {
+        assertEquals(fresh, NonceKeeper.OKReply)
+        assertEquals(replay, NonceKeeper.BadNCReply)
+      }
+    }
+  }
+
+  test("rejects going backward after replay") {
+    NonceKeeperF[IO](
+      staleTimeout = 1.hour,
+      nonceCleanupInterval = 1.hour,
+      bits = 16,
+      maxNonces = 1000000,
+    ).flatMap { keeper =>
+      for {
+        data <- keeper.newNonce()
+        fresh <- keeper.receiveNonce(data, 1)
+        twoStepsForward <- keeper.receiveNonce(data, 3)
+        replay <- keeper.receiveNonce(data, 3)
+        oneStepBack <- keeper.receiveNonce(data, 2)
+      } yield {
+        assertEquals(fresh, NonceKeeper.OKReply)
+        assertEquals(twoStepsForward, NonceKeeper.OKReply)
+        assertEquals(replay, NonceKeeper.BadNCReply)
+        assertEquals(oneStepBack, NonceKeeper.BadNCReply)
+      }
+    }
+  }
+
 }
