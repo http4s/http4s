@@ -297,13 +297,23 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
       optH2 <- (if (enableHttp2) tlsContextOptWithDefault else None).traverse { context =>
+        val enablePushPromise =
+          if (pushPromiseSupport.isDefined) default.enablePush
+          else
+            H2Frame.Settings.SettingsEnablePush(isEnabled = false)
+
+        val settings = default.copy(
+          enablePush = enablePushPromise,
+          maxHeaderListSize =
+            Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxResponseHeaderSize)),
+        )
+
         H2Client.impl[F](
           pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
           context,
           logger,
-          if (pushPromiseSupport.isDefined) default
-          else
-            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(isEnabled = false)),
+          idleConnectionTime,
+          settings,
           checkEndpointIdentification,
           serverNameIndication,
         )

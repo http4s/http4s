@@ -203,6 +203,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
   ): Stream[F, Nothing] = {
+    val h2FrameSettings = H2Frame.Settings.ConnectionSettings.default
+      .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -222,7 +225,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         .fromSocket[F](
                           socket,
                           httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
+                          requestHeaderReceiveTimeout,
+                          idleTimeout,
+                          h2FrameSettings,
                           logger,
                         )
                     )
@@ -278,7 +283,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                             H2Server.fromSocket[F](
                               socket,
                               httpApp,
-                              H2Frame.Settings.ConnectionSettings.default,
+                              requestHeaderReceiveTimeout,
+                              idleTimeout,
+                              h2FrameSettings,
                               logger,
                             )
                           )
@@ -456,6 +463,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
+
+    val h2FrameSettings = H2Frame.Settings.ConnectionSettings.default
+      .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
+
     Stream
       .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
         val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
@@ -530,7 +541,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         .fromSocket(
                           socket,
                           httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
+                          requestHeaderReceiveTimeout,
+                          idleTimeout,
+                          h2FrameSettings,
                           logger,
                           settings,
                           newReq.some,

@@ -31,6 +31,8 @@ import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
+import java.util.concurrent.CancellationException
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
@@ -168,6 +170,8 @@ private[ember] object H2Server {
   def fromSocket[F[_]](
       socket: Socket[F],
       httpApp: HttpApp[F],
+      receiveHeadersTimeout: Duration,
+      idleTimeout: Duration,
       localSettings: H2Frame.Settings.ConnectionSettings,
       logger: Logger[F],
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
@@ -201,7 +205,9 @@ private[ember] object H2Server {
         localSettings.initialWindowSize,
       )
       queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
-      hpack <- Hpack.create[F]
+      hpack <- Hpack.create[F](
+        localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
+      )
       settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
       streamCreationLock <- Semaphore[F](1)
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
@@ -210,6 +216,8 @@ private[ember] object H2Server {
     } yield new H2Connection(
       socket.peerAddress,
       H2Connection.ConnectionType.Server,
+      receiveHeadersTimeout,
+      idleTimeout,
       localSettings,
       ref,
       stateRef,
@@ -294,7 +302,14 @@ private[ember] object H2Server {
         .fromQueueUnterminated(h2.createdStreams)
         .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
           processCreatedStream(h2, i)
-            .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))
+            .handleErrorWith {
+              case e: CancellationException =>
+                logger.debug(e)("Stream canceled before processing")
+              case e: TimeoutException =>
+                logger.debug(e)("Connection timed out")
+              case e =>
+                logger.error(e)(s"Error while processing stream")
+            }
         )
         .compile
         .drain

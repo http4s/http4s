@@ -20,6 +20,7 @@ import cats.data._
 import cats.effect._
 import cats.effect.std._
 import cats.syntax.all._
+import org.http4s.ember.core.EmberException
 import scodec.bits._
 
 import java.io.ByteArrayOutputStream
@@ -31,34 +32,44 @@ private[h2] trait Hpack[F[_]] {
 }
 
 private[h2] object Hpack extends HpackPlatform {
-  def create[F[_]: Async]: F[Hpack[F]] = for {
+  def create[F[_]: Async](maxHeaderListSize: Int): F[Hpack[F]] = for {
     eLock <- Mutex[F]
     dLock <- Mutex[F]
     e <- Sync[F].delay(new Encoder(4096))
-    d <- Sync[F].delay(new Decoder(65536, 4096))
-  } yield new Impl(eLock, e, dLock, d)
+    d <- Sync[F].delay(new Decoder(maxHeaderListSize, 4096))
+  } yield new Impl(eLock, e, dLock, d, maxHeaderListSize.toLong)
 
   private class Impl[F[_]: Async](
       encodeLock: Mutex[F],
       tEncoder: Encoder,
       decodeLock: Mutex[F],
       tDecoder: Decoder,
+      maxHeaderListSize: Long,
   ) extends Hpack[F] {
     def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] =
       encodeLock.lock.surround(Hpack.encodeHeaders[F](tEncoder, headers.toList))
     def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
-      decodeLock.lock.surround(Hpack.decodeHeaders[F](tDecoder, bv))
+      decodeLock.lock.surround(Hpack.decodeHeaders[F](tDecoder, bv, maxHeaderListSize))
 
   }
 
   def decodeHeaders[F[_]: Sync](
       tDecoder: Decoder,
       bv: ByteVector,
+      maxHeaderListSize: Long,
   ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
+    var decodedSize = 0L
     val buffer = List.newBuilder[(String, String)]
     val is = bv.toInputStream
     val listener = new HeaderListener {
       def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit = {
+        // The HPACK decoder implementation does not track the 32 byte overhead, nor does it count
+        // indexed references. So we need to do the accounting ourselves.
+        decodedSize += name.length + value.length + 32 // + 32 per overhead in HTTP/2 spec
+        if (decodedSize > maxHeaderListSize) {
+          throw EmberException.MessageTooLong(maxHeaderListSize.toInt)
+        }
+
         buffer.+=(
           new String(name, StandardCharsets.ISO_8859_1) -> new String(
             value,
@@ -70,7 +81,11 @@ private[h2] object Hpack extends HpackPlatform {
     }
 
     tDecoder.decode(is, listener)
-    tDecoder.endHeaderBlock()
+    val truncated = tDecoder.endHeaderBlock()
+
+    if (truncated) {
+      throw EmberException.MessageTooLong(maxHeaderListSize.toInt)
+    }
 
     val decoded = buffer.result()
     NonEmptyList.fromListUnsafe(decoded)

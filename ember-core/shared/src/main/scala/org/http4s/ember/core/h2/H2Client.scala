@@ -67,6 +67,7 @@ Connection
 
  */
 private[ember] class H2Client[F[_]](
+    idleTimeout: Duration,
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
     connections: Ref[
@@ -190,7 +191,9 @@ private[ember] class H2Client[F[_]](
           localSettings.initialWindowSize,
         )
         queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
-        hpack <- Hpack.create[F]
+        hpack <- Hpack.create[F](
+          localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
+        )
         settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
         streamCreationLock <- cats.effect.std.Semaphore[F](1)
         // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
@@ -199,6 +202,8 @@ private[ember] class H2Client[F[_]](
       } yield new H2Connection(
         socketAdd,
         H2Connection.ConnectionType.Client,
+        Duration.Inf,
+        idleTimeout,
         localSettings,
         ref,
         stateRef,
@@ -317,6 +322,7 @@ private[ember] object H2Client {
       ) => F[Outcome[F, Throwable, Unit]],
       tlsContext: TLSContext[F],
       logger: Logger[F],
+      idleTimeout: Duration,
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
@@ -345,7 +351,7 @@ private[ember] object H2Client {
         .compile
         .drain
         .background
-      h2 = new H2Client(settings, tlsContext, mapH2, onPushPromise, logger)
+      h2 = new H2Client(idleTimeout, settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
       val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
