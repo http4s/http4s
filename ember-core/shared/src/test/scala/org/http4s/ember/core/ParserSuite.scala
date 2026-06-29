@@ -277,7 +277,7 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Request.parser should handle correct whitespace split across chunks") {
     val defaultMaxHeaderLength = 4096
     val raw1 = "POST /foo HTTP/1.1\r\nTransfer-Encoding: chunked\r\n"
-    val raw2 = "\r\n2\r\naa\r\n\r\n0\r\nTrailer: header\r"
+    val raw2 = "\r\n2\r\naa\r\n0\r\nTrailer: header\r"
     val raw3 = "\n\r\n"
 
     val byteStream: Stream[IO, Byte] =
@@ -305,7 +305,6 @@ class ParsingSuite extends Http4sSuite {
         "\r\n",
         "2\r\n",
         "aa\r\n",
-        "\r\n",
         "0\r\nTrailer: header\r\n",
         "a\r\n",
       )
@@ -768,5 +767,32 @@ class ParsingSuite extends Http4sSuite {
         case Right(h) => assertEquals(h.contentLength, Some(5L))
         case Left(_) => fail("incomplete header section")
       }
+  }
+
+  private def decodeChunked(body: String): IO[String] =
+    for {
+      trailers <- Deferred[IO, Headers]
+      rest <- Ref.of[IO, Option[Array[Byte]]](None)
+      out <- ChunkedEncoding
+        .decode[IO](body.getBytes(), IO.pure(None), 4096, 4096, trailers, rest)
+        .through(text.utf8.decode)
+        .compile
+        .string
+    } yield out
+
+  test("ChunkedEncoding.decode should reject chunk-size that is not 1*HEXDIG") {
+    List("+5", "-5", "0x5", " 5", "5 ").traverse_ { sz =>
+      decodeChunked(s"$sz\r\nhello\r\n0\r\n\r\n")
+        .intercept[EmberException.ChunkedEncodingError]
+    } *>
+      decodeChunked("5;ext=foo\r\nhello\r\n0\r\n\r\n").assertEquals("hello")
+  }
+
+  test("ChunkedEncoding.decode should require exactly one CRLF after chunk-data") {
+    decodeChunked("5\r\nhello0\r\n\r\n")
+      .intercept[EmberException.ChunkedEncodingError] *>
+      decodeChunked("5\r\nhello\r\n\r\n0\r\n\r\n")
+        .intercept[EmberException.ChunkedEncodingError] *>
+      decodeChunked("5\r\nhello\r\n0\r\n\r\n").assertEquals("hello")
   }
 }
