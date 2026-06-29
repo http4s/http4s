@@ -36,7 +36,7 @@ private[authentication] object NonceKeeper {
   *                     purposes anymore).
   * @param bits The number of random bits a nonce should consist of.
   */
-@deprecated("Side-effecting. Use NonceKeeperF.", "0.23.12")
+@deprecated("Side-effecting.  Use NonceKeeperF.", "0.23.12")
 private[authentication] class NonceKeeper(
     staleTimeout: Long,
     nonceCleanupInterval: Long,
@@ -59,7 +59,7 @@ private[authentication] class NonceKeeper(
       val it = nonces.values().iterator()
       @tailrec
       def dropStale(): Unit =
-        if (it.hasNext && staleTimeout > d - it.next().created.getTime) {
+        if (it.hasNext && d - it.next().created.getTime >= staleTimeout) {
           it.remove()
           dropStale()
         }
