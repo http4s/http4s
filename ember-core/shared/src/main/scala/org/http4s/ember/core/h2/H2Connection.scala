@@ -60,6 +60,13 @@ private[h2] class H2Connection[F[_]](
   private[this] val maxHeaderBlockSize: Long =
     localSettings.maxHeaderListSize.fold(65536L)(_.listSize.toLong)
 
+  // An unauthenticated peer can open streams without limit.  The 4x
+  // gives us slack to reap the closed streams in a graceful fashion,
+  // while giving a hard upper bound to protect the server or client
+  // in case of abuse.
+  private[this] val maxConcurrentRemoteStreams: Long =
+    localSettings.maxConcurrentStreams.maxConcurrency.intValue.toLong * 4L
+
   def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
       val highestIsEven = s.highestStream % 2 == 0
@@ -109,6 +116,13 @@ private[h2] class H2Connection[F[_]](
   } yield stream
 
   def initiateRemoteStreamById(id: Int): F[H2Stream[F]] = for {
+    openStreams <- mapRef.get.map(_.size)
+    _ <-
+      if (openStreams >= maxConcurrentRemoteStreams)
+        logger.debug(
+          s"Open remote streams ($openStreams) at concurrency ceiling: issuing GoAway"
+        ) >> goAway(H2Error.EnhanceYourCalm)
+      else F.unit
     t <- state.get.map(s => (s.remoteSettings, s.remoteHighestStream))
     (settings, _) = t
     writeBlock <- Deferred[F, Either[Throwable, Unit]]
