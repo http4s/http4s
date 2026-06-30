@@ -125,9 +125,10 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   def rawWebSocketServer(
       receivedFrames: Queue[IO, WebSocketFrame],
       sendOnOpen: List[WebSocketFrame],
-  ): Resource[IO, SocketAddress[IpAddress]] =
-    Network[IO].serverResource(address = Some(ip"127.0.0.1")).flatMap { case (address, sockets) =>
-      sockets
+  ): Resource[IO, SocketAddress[IpAddress]] = {
+    val address = SocketAddress(ip"127.0.0.1", port"0")
+    Network[IO].bind(address).flatMap { serverSocket =>
+      serverSocket.accept
         .foreach { socket =>
           for {
             requestHead <- readRequestHead(socket)
@@ -155,8 +156,9 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         .compile
         .drain
         .background
-        .as(address)
+        .as(serverSocket.address.asIpUnsafe)
     }
+  }
 
   private val secWebSocketKeyPattern = "(?i)Sec-WebSocket-Key:\\s*(\\S+)".r
 
@@ -279,7 +281,6 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-
   fixture.test("open and close high-level connection to server") {
     case (server, (_, wsClient), _) =>
       val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
@@ -393,6 +394,5 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           )
         )
   }
-
 
 }
