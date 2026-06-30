@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
+package org.http4s.h2
+
 import cats.effect._
-import io.circe._
-import org.http4s.circe.CirceEntityCodec._
-import org.http4s.client._
+import org.typelevel.vault._
 
-import scala.scalajs.js
-import scala.scalajs.js.annotation._
+object H2Keys {
 
-object Main extends IOApp.Simple {
-  def run: IO[Unit] = client.expect[Json]("https://www.boredapi.com/api/activity").void
+  /** Client Side Key To Try Http2-Prior-Knowledge
+    * which means immediately using http2 without any upgrade mechanism
+    * but is invalid if the receiving server does not support the
+    * mechanism.
+    */
+  val Http2PriorKnowledge: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
 
-  @JSGlobal("client")
-  @js.native
-  def client: Client[IO] = js.native
 }

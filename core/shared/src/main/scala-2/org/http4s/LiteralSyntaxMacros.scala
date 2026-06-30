@@ -24,7 +24,7 @@ object LiteralSyntaxMacros {
     def validate(c: Context)(s: String): Either[String, c.Expr[Uri]] = {
       import c.universe._
       Uri.fromString(s) match {
-        case Right(_) => Right(c.Expr(q"org.http4s.Uri.unsafeFromString($s)"))
+        case Right(_) => Right(c.Expr(q"_root_.org.http4s.Uri.unsafeFromString($s)"))
         case Left(parseError) => Left(s"invalid URI: ${parseError.details}")
       }
     }
@@ -34,7 +34,7 @@ object LiteralSyntaxMacros {
   object path extends Literally[Uri.Path] {
     def validate(c: Context)(s: String): Either[String, c.Expr[Uri.Path]] = {
       import c.universe._
-      Right(c.Expr(q"org.http4s.Uri.Path.unsafeFromString($s)"))
+      Right(c.Expr(q"_root_.org.http4s.Uri.Path.unsafeFromString($s)"))
     }
     def make(c: Context)(args: c.Expr[Any]*): c.Expr[Uri.Path] = apply(c)(args: _*)
   }
@@ -43,7 +43,7 @@ object LiteralSyntaxMacros {
     def validate(c: Context)(s: String): Either[String, c.Expr[Uri.Scheme]] = {
       import c.universe._
       Uri.Scheme.fromString(s) match {
-        case Right(_) => Right(c.Expr(q"org.http4s.Uri.Scheme.unsafeFromString($s)"))
+        case Right(_) => Right(c.Expr(q"_root_.org.http4s.Uri.Scheme.unsafeFromString($s)"))
         case Left(pf) => Left(s"invalid Scheme: ${pf.details}")
       }
     }
@@ -54,7 +54,7 @@ object LiteralSyntaxMacros {
     def validate(c: Context)(s: String): Either[String, c.Expr[MediaType]] = {
       import c.universe._
       MediaType.parse(s) match {
-        case Right(_) => Right(c.Expr(q"org.http4s.MediaType.unsafeParse($s)"))
+        case Right(_) => Right(c.Expr(q"_root_.org.http4s.MediaType.unsafeParse($s)"))
         case Left(pf) => Left(s"invalid MediaType: ${pf.details}")
       }
     }
@@ -65,7 +65,7 @@ object LiteralSyntaxMacros {
     def validate(c: Context)(s: String): Either[String, c.Expr[QValue]] = {
       import c.universe._
       QValue.fromString(s) match {
-        case Right(_) => Right(c.Expr(q"org.http4s.QValue.unsafeFromString($s)"))
+        case Right(_) => Right(c.Expr(q"_root_.org.http4s.QValue.unsafeFromString($s)"))
         case Left(pf) => Left(s"invalid QValue: ${pf.details}")
       }
     }

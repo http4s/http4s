@@ -62,9 +62,9 @@ private[http4s] trait ForwardedRenderers {
 
     override def render(writer: Writer, host: Host): writer.type = {
       host.host match {
-        case Uri.RegName(name) =>
+        case Uri.RegName(rname) =>
           // TODO: A workaround for #1651, remove when the former issue gets fixed.
-          writer << Uri.encode(name.toString, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
+          writer << Uri.encode(rname.toString, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
         case other =>
           writer << other
       }

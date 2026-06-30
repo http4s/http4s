@@ -19,13 +19,12 @@ package org.http4s
 import cats.Show
 import cats.parse.Parser
 import cats.parse.Rfc5234
-import org.http4s.EntityTag.Strong
-import org.http4s.EntityTag.Weakness
 import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
-final case class EntityTag(tag: String, weakness: Weakness = Strong) extends Renderable {
+final case class EntityTag(tag: String, weakness: EntityTag.Weakness = EntityTag.Strong)
+    extends Renderable {
   override def toString(): String =
     weakness match {
       case EntityTag.Weak => "W/\"" + tag + '"'

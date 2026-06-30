@@ -31,9 +31,9 @@ import java.util.Arrays
 
 class EntityDecoderSuite extends Http4sSuite {
   val `application/excel`: MediaType =
-    new MediaType("application", "excel", true, false, List("xls"))
+    new MediaType("application", "excel", compressible = true, binary = false, List("xls"))
   val `application/gnutar`: MediaType =
-    new MediaType("application", "gnutar", true, false, List("tar"))
+    new MediaType("application", "gnutar", compressible = true, binary = false, List("tar"))
   val `application/soap+xml`: MediaType =
     new MediaType("application", "soap+xml", MediaType.Compressible, MediaType.NotBinary)
   val `text/x-h` = new MediaType("text", "x-h")
@@ -204,7 +204,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
       .map(_.status)
       .value
-      .assertEquals(Right(Status.UnprocessableEntity))
+      .assertEquals(Right(Status.UnprocessableContent))
   }
 
   test("Not match invalid media type") {

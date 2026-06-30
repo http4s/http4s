@@ -90,7 +90,7 @@ object Status {
 
   @deprecated("Use fromInt(Int). This does not validate the code.", "0.22.6")
   def apply(code: Int): Status =
-    apply(code, "", true)
+    apply(code, "", isEntityAllowed = true)
 
   private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
@@ -216,7 +216,9 @@ object Status {
   val ExpectationFailed: Status = register(trust(417, "Expectation Failed"))
   val ImATeapot: Status = register(trust(418, "I'm A Teapot"))
   val MisdirectedRequest: Status = register(trust(421, "Misdirected Request"))
-  val UnprocessableEntity: Status = register(trust(422, "Unprocessable Entity"))
+  val UnprocessableContent: Status = register(trust(422, "Unprocessable Content"))
+  @deprecated("now called UnprocessableContent", since = "0.23.31")
+  val UnprocessableEntity: Status = UnprocessableContent
   val Locked: Status = register(trust(423, "Locked"))
   val FailedDependency: Status = register(trust(424, "Failed Dependency"))
   val TooEarly: Status = register(trust(425, "Too Early"))

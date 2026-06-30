@@ -33,7 +33,7 @@ class UseLiteralsSyntax extends SemanticRule("Http4sUseLiteralsSyntax") {
             List(lit @ Lit.String(_))
           ) =>
         Patch.replaceTree(t, s"path$lit") + importLiteralsIfNeeded
-      case t if t.syntax == """Uri.Path.unsafeFromString("foo/bar")""" => show(t)
+      case t if t.text == """Uri.Path.unsafeFromString("foo/bar")""" => show(t)
     }.asPatch
 
   val Uri_unsafeFromString_M = SymbolMatcher.exact("org/http4s/Uri.unsafeFromString().")

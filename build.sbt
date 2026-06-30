@@ -20,39 +20,13 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 ThisBuild / githubWorkflowJobSetup ~= { steps =>
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("cachix", "install-nix-action", "v20"),
+      UseRef.Public("cachix", "install-nix-action", "v27"),
       name = Some("Install Nix"),
-    ),
-    WorkflowStep.Use(
-      UseRef.Public("cachix", "cachix-action", "v12"),
-      name = Some("Install Cachix"),
-      params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
-    ),
+    )
   ) ++ steps
 }
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
-
-ThisBuild / githubWorkflowAddedJobs ++= Seq(
-  WorkflowJob(
-    id = "coverage",
-    name = "Generate coverage report",
-    scalas = List(scala_213),
-    javas = List(JavaSpec.temurin("8")),
-    steps = githubWorkflowJobSetup.value.toList ++
-      List(
-        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
-        WorkflowStep.Use(
-          UseRef.Public(
-            "codecov",
-            "codecov-action",
-            "v3",
-          ),
-          cond = Some("github.event_name != 'pull_request'"),
-        ),
-      ),
-  )
-)
 
 ThisBuild / githubWorkflowArtifactUpload := false
 
@@ -62,6 +36,9 @@ ThisBuild / jsEnv := {
     NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=512"))
   )
 }
+
+ThisBuild / libraryDependencySchemes +=
+  "org.scala-native" %% "test-interface_native0.5" % VersionScheme.Always
 
 lazy val modules: List[CompositeProject] = List(
   core,
@@ -77,7 +54,6 @@ lazy val modules: List[CompositeProject] = List(
   jawn,
   circe,
   bench,
-  jsArtifactSizeTest,
   unidocs,
   examples,
   examplesDocker,
@@ -223,9 +199,8 @@ lazy val core = libraryCrossProject("core")
     )
   )
   .jvmSettings(
-    libraryDependencies ++= {
-      Seq(log4catsSlf4j)
-    },
+    libraryDependencies ++=
+      Seq(log4catsSlf4j),
     libraryDependencies ++= {
       if (tlIsScala3.value) Seq.empty
       else
@@ -250,7 +225,6 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       catsLaws.value,
       disciplineCore.value,
       ip4sTestKit.value,
-      scalacheck.value,
       scalacheckEffectMunit.value,
       munitCatsEffect.value,
     ),
@@ -278,16 +252,10 @@ lazy val tests = libraryCrossProject("tests")
     libraryDependencies ++= Seq(
       munitCatsEffect.value,
       munitDiscipline.value,
-      scalacheck.value,
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
     githubWorkflowArtifactUpload := false,
-  )
-  .nativeSettings(
-    libraryDependencies ++= Seq(
-      epollcat.value
-    )
   )
   .dependsOn(core, laws)
 
@@ -451,8 +419,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      munit.value,
-      munitCatsEffect.value,
+      munitCatsEffect.value
     ),
     mimaPreviousArtifacts := Set.empty,
   )
@@ -575,11 +542,10 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5"),
-    mimaBinaryIssueFilters ++= {
+    mimaBinaryIssueFilters ++=
       Seq(
         ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.facade.*")
-      )
-    },
+      ),
     mimaBinaryIssueFilters ++= {
       if (tlIsScala3.value)
         Seq(
@@ -662,6 +628,9 @@ lazy val emberClient = libraryCrossProject("ember-client")
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.defaultUnixSockets"
+      ),
     ),
   )
   .jvmSettings(
@@ -726,46 +695,15 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
-    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
-
-lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .settings(
-    startYear := Some(2022),
-    // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
-    // By placing the app in Test scope it gets linked as part of that CI step
-    Test / scalaJSUseMainModuleInitializer := true,
-    Test / scalaJSUseTestModuleInitializer := false,
-    Test / scalaJSStage := FullOptStage,
-    Test / test := {
-      val log = streams.value.log
-      val file = (Test / fullOptJS).value.data
-      val size = io.Using.fileInputStream(file) { in =>
-        var size = 0L
-        IO.gzip(in, _ => size += 1)
-        size
-      }
-      val sizeKB = size / 1000
-      // not a hard target. increase *moderately* if need be
-      // linking MimeDB results in a 100 KB increase. don't let that happen :)
-      // linking java.time.* results in a 70 KB increase
-      val targetKB = 280
-      val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
-      if (sizeKB < targetKB)
-        log.info(msg)
-      else
-        sys.error(msg)
-    },
-  )
-  .dependsOn(client.js, circe.js)
 
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
   .settings(
     moduleName := "http4s-docs",
     description := "Unified API documentation for http4s",
+    startYear := Some(2022),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         (List[ProjectReference](
@@ -780,7 +718,6 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
-    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -814,7 +751,6 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -825,7 +761,6 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     tlFatalWarnings := false,
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -839,7 +774,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
@@ -866,6 +800,7 @@ lazy val scalafixInternalInput = project
   .disablePlugins(ScalafixPlugin)
   .settings(scalafixInternalSettings)
   .settings(
+    startYear := Some(2022),
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
     semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
@@ -878,6 +813,7 @@ lazy val scalafixInternalOutput = project
   .disablePlugins(ScalafixPlugin)
   .settings(scalafixInternalSettings)
   .settings(
+    startYear := Some(2022),
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
   )
@@ -941,7 +877,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.34").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },

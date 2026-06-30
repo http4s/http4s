@@ -21,7 +21,7 @@ import cats.parse.Parser
 import org.typelevel.ci._
 
 object `Set-Cookie` {
-  val name = ci"Set-Cookie"
+  val name: CIString = ci"Set-Cookie"
 
   def parse(s: String): ParseResult[`Set-Cookie`] =
     ParseResult.fromParser(parser, "Invalid Set-Cookie header")(s)

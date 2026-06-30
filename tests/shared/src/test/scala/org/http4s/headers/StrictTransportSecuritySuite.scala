@@ -127,19 +127,25 @@ class StrictTransportSecuritySuite extends HeaderLaws {
   test("parse should accept age") {
     assertEquals(
       `Strict-Transport-Security`.parse("max-age=31536000"),
-      Right(`Strict-Transport-Security`.unsafeFromDuration(365.days, false)),
+      Right(`Strict-Transport-Security`.unsafeFromDuration(365.days, includeSubDomains = false)),
     )
   }
   test("parse should accept age and subdomains") {
     assertEquals(
       `Strict-Transport-Security`.parse("max-age=31536000; includeSubDomains"),
-      Right(`Strict-Transport-Security`.unsafeFromDuration(365.days, true)),
+      Right(`Strict-Transport-Security`.unsafeFromDuration(365.days, includeSubDomains = true)),
     )
   }
   test("parse should accept age, subdomains and preload") {
     assertEquals(
       `Strict-Transport-Security`.parse("max-age=31536000; includeSubDomains; preload"),
-      Right(`Strict-Transport-Security`.unsafeFromDuration(365.days, true, true)),
+      Right(
+        `Strict-Transport-Security`.unsafeFromDuration(
+          365.days,
+          includeSubDomains = true,
+          preload = true,
+        )
+      ),
     )
   }
 }

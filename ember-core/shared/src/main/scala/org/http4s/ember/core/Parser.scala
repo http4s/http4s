@@ -26,6 +26,7 @@ import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
 import scala.annotation.switch
+import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
 
 private[ember] object Parser {
@@ -68,7 +69,6 @@ private[ember] object Parser {
   )
 
   object HeaderP {
-    private[this] final val colon = 58 // ':'
     private[this] final val contentLengthS = "Content-Length"
     private[this] final val transferEncodingS = "Transfer-Encoding"
     private[this] final val chunkedS = "chunked"
@@ -116,21 +116,17 @@ private[ember] object Parser {
 
       while (!complete && idx <= upperBound) {
         if (!state) {
-          val current = message(idx)
-          // if current index is colon our name is complete
-          if (current == colon) {
-            state = true // set state to check for header value
-            name = new String(message, start, idx - start) // extract name string
-            start = idx + 1 // advance past colon for next start
-
-            // TODO: This if clause may not be necessary since the header value parser trims
-            if (message.size > idx + 1 && message(idx + 1) == space) {
-              start += 1 // if colon is followed by space advance again
-              idx += 1 // double advance index here to skip the space
-            }
-            // double CRLF condition - Termination of headers
-          } else if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
-            complete = true // completed terminate loop
+          message(idx) match {
+            case ':' =>
+              state = true // set state to check for header value
+              name = new String(message, start, idx - start) // extract name string
+              start = idx + 1 // advance past colon for next start
+            case '\r' if start == idx => // proceed
+            case '\n' if idx > 0 && message(idx - 1) == cr => complete = true
+            case c if c <= 0x20 | c == 0x7f =>
+              throwable = InvalidHeaderWhitespace
+              complete = true
+            case _ => // proceed
           }
         } else {
           val current = message(idx)
@@ -182,6 +178,9 @@ private[ember] object Parser {
       }
     }
 
+    case object InvalidHeaderWhitespace extends Exception with NoStackTrace {
+      override val getMessage = "InvalidHeaderWhitespace"
+    }
     final case class ParseHeadersError(cause: Throwable)
         extends Exception(
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
@@ -373,6 +372,11 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent](maxHeaderSize: Int)(
         buffer: Array[Byte],
         read: Read[F],
+    ): F[(Response[F], Drain[F])] = parser[F](maxHeaderSize, discardBody = false)(buffer, read)
+
+    def parser[F[_]: Concurrent](maxHeaderSize: Int, discardBody: Boolean)(
+        buffer: Array[Byte],
+        read: Read[F],
     ): F[(Response[F], Drain[F])] = {
       // per https://httpwg.org/specs/rfc7230.html#rfc.section.3.3.3
       def expectNoBody(status: Status): Boolean =
@@ -406,7 +410,11 @@ private[ember] object Parser {
         )
 
         resp <-
-          if (headerP.chunked) {
+          if (discardBody) {
+            (baseResp -> none[Array[Byte]].pure[F]).pure[F]
+          } else if (expectNoBody(prelude.status)) {
+            (baseResp -> finalBuffer.some.pure[F]).pure[F]
+          } else if (headerP.chunked) {
             Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
               case (rest, trailers) =>
                 baseResp
@@ -417,8 +425,6 @@ private[ember] object Parser {
                   ) ->
                   rest.get
             }
-          } else if (expectNoBody(prelude.status)) {
-            (baseResp -> (Some(finalBuffer): Option[Array[Byte]]).pure[F]).pure[F]
           } else {
             headerP.contentLength
               .fold(Body.parseUnknownBody(finalBuffer, read))(
@@ -508,8 +514,8 @@ private[ember] object Parser {
                       complete = true
                     } else
                       throw e
-                  case Right(s) =>
-                    status = s
+                  case Right(st) =>
+                    status = st
                     complete = true
                 }
               }

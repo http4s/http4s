@@ -25,9 +25,8 @@ class ContentLengthSuite extends HeaderLaws {
 
   test("fromLong should reject negative lengths") {
     forAll { (length: Long) =>
-      length < 0 ==> {
+      length < 0 ==>
         `Content-Length`.fromLong(length).isLeft
-      }
     }
   }
   test("fromLong should accept non-negative lengths") {
@@ -40,17 +39,15 @@ class ContentLengthSuite extends HeaderLaws {
 
   test("fromString should reject negative lengths") {
     forAll { (length: Long) =>
-      length < 0 ==> {
+      length < 0 ==>
         `Content-Length`.parse(length.toString).isLeft
-      }
     }
   }
 
   test("fromString should reject non-numeric strings") {
     forAll { (s: String) =>
-      !s.matches("[0-9]+") ==> {
+      !s.matches("[0-9]+") ==>
         `Content-Length`.parse(s).isLeft
-      }
     }
   }
 
@@ -82,9 +79,8 @@ class ContentLengthSuite extends HeaderLaws {
   }
   test("modify should fail to update if the result is negative") {
     forAll { (length: Long) =>
-      length > 0 ==> {
+      length > 0 ==>
         `Content-Length`.zero.modify(_ - length).isEmpty
-      }
     }
   }
 }

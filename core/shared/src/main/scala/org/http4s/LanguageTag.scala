@@ -32,7 +32,7 @@ import org.http4s.util.Writer
 import scala.annotation.tailrec
 
 object LanguageTag {
-  val `*` : LanguageTag = LanguageTag("*", QValue.One)
+  val `*`: LanguageTag = LanguageTag("*", QValue.One)
 
   def apply(primaryTag: String, subTags: String*): LanguageTag =
     LanguageTag(primaryTag, QValue.One, subTags.toList)

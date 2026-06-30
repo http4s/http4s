@@ -209,9 +209,9 @@ package object internal extends InternalPlatform {
               case _ if result.isUnderflow =>
                 def flushLoop: Pull[F, String, Unit] =
                   (decoder.flush(charBuffer): @unchecked) match {
-                    case result if result.isUnderflow =>
+                    case r if r.isUnderflow =>
                       out
-                    case result if result.isOverflow =>
+                    case r if r.isOverflow =>
                       out >> flushLoop
                   }
                 flushLoop.as(None)

@@ -36,7 +36,7 @@ import org.typelevel.ci._
 object `If-None-Match` {
 
   /** Match any existing entity */
-  val `*` : `If-None-Match` = `If-None-Match`(None)
+  val `*`: `If-None-Match` = `If-None-Match`(None)
 
   def apply(first: EntityTag, rest: EntityTag*): `If-None-Match` =
     `If-None-Match`(Some(NonEmptyList.of(first, rest: _*)))

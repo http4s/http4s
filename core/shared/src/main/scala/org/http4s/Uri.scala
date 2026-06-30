@@ -654,13 +654,13 @@ object Uri extends UriPlatform {
           Unreserved ++ "!$&'()*+,;="
 
         private def encodeUsername(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-          encode(s, charset, false, SkipEncodeInUsername)
+          encode(s, charset, spaceIsPlus = false, SkipEncodeInUsername)
 
         private val SkipEncodeInPassword =
           SkipEncodeInUsername ++ ":"
 
         private def encodePassword(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-          encode(s, charset, false, SkipEncodeInPassword)
+          encode(s, charset, spaceIsPlus = false, SkipEncodeInPassword)
 
         def compare(x: UserInfo, y: UserInfo): Int = x.compareTo(y)
 
@@ -863,8 +863,16 @@ object Uri extends UriPlatform {
     def fromInet6Address(address: Inet6Address): Ipv6Address =
       apply(ip4s.Ipv6Address.fromInet6Address(address))
 
-    def fromShorts(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
-        : Ipv6Address = {
+    def fromShorts(
+        a: Short,
+        b: Short,
+        c: Short,
+        d: Short,
+        e: Short,
+        f: Short,
+        g: Short,
+        h: Short,
+    ): Ipv6Address = {
       val bb = ByteBuffer.allocate(16)
       bb.putShort(a)
       bb.putShort(b)
@@ -1064,7 +1072,7 @@ object Uri extends UriPlatform {
     UriCoding.Unreserved ++ ":@!$&'()*+,;="
 
   def pathEncode(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-    encode(s, charset, false, SkipEncodeInPath)
+    encode(s, charset, spaceIsPlus = false, SkipEncodeInPath)
 
   /** Percent-decodes a string.
     *

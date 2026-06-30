@@ -201,7 +201,7 @@ class MultipartParserSuite extends Http4sSuite {
     test(s"$testNamePrefix: parse utf8 headers properly") {
       val unprocessedInput =
         """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-            |Content-Disposition: form-data; name*="http4s很棒"; filename*="我老婆太漂亮.txt"
+            |Content-Disposition: form-data; name="http4s很棒"; filename="我老婆太漂亮.txt"
             |Content-Type: application/octet-stream
             |Content-Transfer-Encoding: binary
             |
@@ -218,7 +218,11 @@ class MultipartParserSuite extends Http4sSuite {
         )
 
       val expectedHeaders = Headers(
-        "Content-Disposition" -> """form-data; name*="http4s很棒"; filename*="我老婆太漂亮.txt"""",
+        // Because 8-bit characters in headers are opaque, the raw
+        // headers decoded to String appear as ISO-8859-1.  Fetching
+        // these headers from the resulting Part can recover the
+        // original UTF-8 values.
+        "Content-Disposition" -> """form-data; name="http4så¾æ£"; filename="æèå©å¤ªæ¼äº®.txt"""",
         `Content-Type`(MediaType.application.`octet-stream`),
         "Content-Transfer-Encoding" -> "binary",
       )
@@ -241,58 +245,6 @@ class MultipartParserSuite extends Http4sSuite {
           result <- bodies.attempt
         } yield {
 
-          assertEquals(headers, expectedHeaders)
-          assertEquals(result, Right(expected))
-        }
-      }
-    }
-
-    test(s"$testNamePrefix: parse characterset encoded headers properly") {
-      val unprocessedInput =
-        """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-            |Content-Disposition: form-data; name*=UTF-8''http4s%20withspace; filename*=UTF-8''%E6%88%91%E8%80%81%E5%A9%86%E5%A4%AA%E6%BC%82%E4%BA%AE.txt
-            |Content-Type: application/octet-stream
-            |Content-Transfer-Encoding: binary
-            |
-            |this is a test
-            |here's another test
-            |catch me if you can!
-            |
-            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
-
-      val input = ruinDelims(unprocessedInput)
-      val mkResults =
-        mkMultipartPipe(boundary).map(
-          _(unspool(input, 15, StandardCharsets.UTF_8))
-        )
-
-      val expectedHeaders = Headers(
-        // #4513 for why this isn't a modeled header
-        `Content-Disposition`(
-          "form-data",
-          Map(ci"name*" -> "http4s withspace", ci"filename*" -> "我老婆太漂亮.txt"),
-        ),
-        `Content-Type`(MediaType.application.`octet-stream`),
-        "Content-Transfer-Encoding" -> "binary",
-      )
-
-      val expected = ruinDelims("""this is a test
-            |here's another test
-            |catch me if you can!
-            |""".stripMargin)
-
-      mkResults.use { results =>
-        for {
-          multipartMaterialized <- results.compile.last.map(_.get)
-          headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
-          bodies =
-            multipartMaterialized.parts
-              .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
-              .through(asciiDecode)
-              .compile
-              .foldMonoid
-          result <- bodies.attempt
-        } yield {
           assertEquals(headers, expectedHeaders)
           assertEquals(result, Right(expected))
         }

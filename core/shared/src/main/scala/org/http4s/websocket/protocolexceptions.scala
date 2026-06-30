@@ -21,8 +21,10 @@ import fs2.io.net.ProtocolException
 
 final class ReservedOpcodeException(opcode: Int)
     extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")
+    with scala.util.control.NoStackTrace
 
 final class UnknownOpcodeException(opcode: Int)
     extends ProtocolException(
       s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode"
     )
+    with scala.util.control.NoStackTrace

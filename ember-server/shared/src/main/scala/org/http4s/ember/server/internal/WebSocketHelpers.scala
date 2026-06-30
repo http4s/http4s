@@ -28,7 +28,6 @@ import fs2.io.net._
 import org.http4s._
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.timeoutMaybe
-import org.http4s.headers.Connection
 import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.http4s.websocket.WebSocketCombinedPipe

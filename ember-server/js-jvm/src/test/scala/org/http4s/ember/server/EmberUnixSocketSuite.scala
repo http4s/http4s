@@ -18,13 +18,12 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s.UnixSocketAddress
 import fs2.io.file._
-import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.client.middleware.UnixSocket
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.ember.core.h2.H2Keys
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 
 import scala.concurrent.duration._
 
@@ -46,7 +45,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
       val server = setupServer(
         EmberServerBuilder
           .default[IO]
-          .withUnixSocketConfig(UnixSockets[IO], localSocket)
+          .withUnixSocketConfig(localSocket)
           .withShutdownTimeout(1.second)
           .withHttpApp(app)
       ).build
@@ -54,7 +53,6 @@ class EmberUnixSocketSuite extends Http4sSuite {
       val client = setupClient(
         EmberClientBuilder
           .default[IO]
-          .withUnixSockets(UnixSockets[IO])
       ).build.map(UnixSocket(localSocket))
 
       val request = setupRequest(Request[IO](Method.GET))
@@ -73,7 +71,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
   }
 
   test("http/2") {
-    run(_.withHttp2, _.withHttp2, _.withAttribute(H2Keys.Http2PriorKnowledge, ()))
+    run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
   }
 
 }

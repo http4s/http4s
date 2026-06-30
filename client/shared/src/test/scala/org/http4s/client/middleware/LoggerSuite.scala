@@ -40,7 +40,7 @@ class LoggerSuite extends Http4sSuite {
   private val expectedBody: String = "This is a test resource."
 
   private val responseLoggerClient =
-    ResponseLogger(true, true)(Client.fromHttpApp(testApp))
+    ResponseLogger(logHeaders = true, logBody = true)(Client.fromHttpApp(testApp))
 
   test("ResponseLogger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -53,7 +53,8 @@ class LoggerSuite extends Http4sSuite {
     res.assertEquals(expectedBody)
   }
 
-  private val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
+  private val requestLoggerClient =
+    RequestLogger.apply(logHeaders = true, logBody = true)(Client.fromHttpApp(testApp))
 
   test("RequestLogger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -69,7 +70,9 @@ class LoggerSuite extends Http4sSuite {
   private def configurableRequestLoggerClient(
       logBody: Boolean,
       logAction: Option[String => IO[Unit]],
-  ) = RequestLogger.apply[IO](true, logBody, logAction = logAction)(Client.fromHttpApp(testApp))
+  ) = RequestLogger.apply[IO](logHeaders = true, logBody = logBody, logAction = logAction)(
+    Client.fromHttpApp(testApp)
+  )
 
   test("RequestLogger should log a Get for all values of logBody") {
     forAllF { (logBody: Boolean) =>
@@ -94,7 +97,7 @@ class LoggerSuite extends Http4sSuite {
   }
 
   private val loggerApp =
-    Logger(true, true)(Client.fromHttpApp(testApp)).toHttpApp
+    Logger(logHeaders = true, logBody = true)(Client.fromHttpApp(testApp)).toHttpApp
 
   test("Logger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")

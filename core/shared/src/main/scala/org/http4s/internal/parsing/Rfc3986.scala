@@ -66,15 +66,14 @@ private[http4s] object Rfc3986 {
     unreserved.orElse(pctEncoded).orElse(subDelims).orElse(charIn(":@"))
 
   private val ipv4Bytes: Parser[(Byte, Byte, Byte, Byte)] = {
-    val decOctet = (char('1') ~ digit ~ digit).backtrack
-      .orElse(char('2') ~ charIn('0' to '4') ~ digit)
+    val decOctet = (char('1') ~ digit ~ digit).string.backtrack
+      .orElse((char('2') ~ charIn('0' to '4') ~ digit).string)
       .backtrack
-      .orElse(string("25") ~ charIn('0' to '5'))
+      .orElse((string("25") ~ charIn('0' to '5')).string)
       .backtrack
-      .orElse(charIn('1' to '9') ~ digit)
+      .orElse((charIn('1' to '9') ~ digit).string)
       .backtrack
-      .orElse(digit)
-      .string
+      .orElse(digit.string)
       .map(_.toInt.toByte)
       .backtrack
 

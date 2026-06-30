@@ -56,7 +56,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
             case StreamState.Idle =>
               for {
                 h <- hpack.encodeHeaders(headers)
-                frame = H2Frame.PushPromise(originating, true, id, h, None)
+                frame = H2Frame.PushPromise(originating, endHeaders = true, id, h, None)
                 _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
                 _ <- enqueue.offer(Chunk.singleton(frame))
               } yield ()
@@ -78,23 +78,17 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def sendMessageBody(mess: Message[F]): F[Unit] = {
     val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
     val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
-    maxFrameSize.flatMap(maxFrameSize =>
-      mess.body
-        .ifEmpty[F, Byte](
-          Stream.exec(sendData(ByteVector.empty, true).whenA(noTrailers))
-        )
-        .chunkLimit(maxFrameSize)
-        .zipWithNext
-        .foreach { case (c, nextChunk) =>
-          val isEndStream = nextChunk.isEmpty && noTrailers
-          sendData(c.toByteVector, isEndStream)
-        }
-        .compile
-        .drain
-        .onError { case _ =>
-          rstStream(H2Error.InternalError)
-        }
-    )
+    maxFrameSize.flatMap { maxFrameSize =>
+      val sendBody =
+        mess.body
+          .chunkLimit(maxFrameSize)
+          .foreach(c => sendData(c.toByteVector, endStream = false))
+          .compile
+          .drain >> sendData(ByteVector.empty, endStream = true).whenA(noTrailers)
+      sendBody.onError { case _ =>
+        rstStream(H2Error.InternalError)
+      }
+    }
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =
@@ -105,7 +99,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
           hs.headers
             .map(a => (a.name.toString.toLowerCase(), a.value, false))
             .toNel
-            .traverse_(sendHeaders(_, true))
+            .traverse_(sendHeaders(_, endStream = true))
         }
     }
 
@@ -116,7 +110,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
         case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
             StreamState.ReservedLocal =>
           hpack.encodeHeaders(headers).flatMap { bv =>
-            val f = H2Frame.Headers(id, None, endStream, true, bv, None)
+            val f = H2Frame.Headers(id, None, endStream, endHeaders = true, bv, None)
             enqueue.offer(Chunk.singleton(f))
           } <*
             state
@@ -130,7 +124,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                   case (StreamState.Open, true) => StreamState.HalfClosedLocal
                   case (StreamState.ReservedLocal, true) => StreamState.Closed
                   case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
-                  case (s, _) => s // Hopefully Impossible
+                  case (st, _) => st // Hopefully Impossible
                 }
                 (b.copy(state = newState), newState)
               }
@@ -145,14 +139,14 @@ private[h2] class H2Stream[F[_]: Concurrent](
     s.state match {
       case StreamState.Open | StreamState.HalfClosedRemote =>
         if (bv.size.toInt <= s.writeWindow && s.writeWindow > 0) {
-          enqueue.offer(Chunk.singleton(H2Frame.Data(id, bv, None, endStream))) >> {
+          enqueue.offer(Chunk.singleton(H2Frame.Data(id, bv, None, endStream))) >>
             state
               .modify { s =>
                 val newState = if (endStream) {
                   s.state match {
                     case StreamState.Open => StreamState.HalfClosedLocal
                     case StreamState.HalfClosedRemote => StreamState.Closed
-                    case state => state // Ruh-roh
+                    case st => st // Ruh-roh
                   }
                 } else s.state
                 (
@@ -164,7 +158,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
                 )
               }
               .flatMap(state => if (state == StreamState.Closed) onClosed else Applicative[F].unit)
-          }
         } else {
           if (s.writeWindow > 0) {
             state
@@ -174,7 +167,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                 (s.copy(writeWindow = s.writeWindow - head.size.toInt), (head, tail))
               }
               .flatMap { case (head, tail) =>
-                val frame = H2Frame.Data(id, head, None, false)
+                val frame = H2Frame.Data(id, head, None, endStream = false)
                 enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
               }
           } else s.writeBlock.get.rethrow >> sendData(bv, endStream)
@@ -239,7 +232,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h.toList).void
+                  case _ =>
+                    if (headers.endStream) s.readBuffer.close *> s.trailWith(h.toList).void
+                    else s.trailWith(h.toList).void
                 }
               case H2Connection.ConnectionType.Server =>
                 request.tryGet.flatMap {

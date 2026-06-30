@@ -39,7 +39,7 @@ class MessageSuite extends Http4sSuite {
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.server, Some(local))
     assertEquals(r.remote, Some(remote))
   }
@@ -52,14 +52,14 @@ class MessageSuite extends Http4sSuite {
 
   test("ConnectionInfo should be utilized to determine the address of server and remote") {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.serverAddr, Some(local.host))
     assertEquals(r.remoteAddr, Some(remote.host))
   }
 
   test("ConnectionInfo should be utilized to determine the port of server and remote") {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.serverPort, Some(local.port))
     assertEquals(r.remotePort, Some(remote.port))
   }
@@ -71,7 +71,7 @@ class MessageSuite extends Http4sSuite {
       NonEmptyList.of(Some(ipv4"192.168.1.1"), Some(ipv4"192.168.1.2"))
     val r = Request()
       .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.from, forwardedValues.head)
   }
 
@@ -79,7 +79,7 @@ class MessageSuite extends Http4sSuite {
     "ConnectionInfo should be utilized to determine the from value (remote value if X-Forwarded-For is not present)"
   ) {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.from, Option(remote.host))
   }
 

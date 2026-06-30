@@ -126,17 +126,21 @@ object ResponseCookie {
       (expires: HttpDate) => (cookie: ResponseCookie) => cookie.withExpires(expires)
     }
 
-    /* non-zero-digit    = %x31-39
-     *                   ; digits 1 through 9
+    /* digit    = %x30-39
+     *                   ; digits 0 through 9
      */
-    val nonZeroDigit = charIn(0x31.toChar to 0x39.toChar)
+    val zeroToNineDigit = charIn(0x30.toChar to 0x39.toChar)
 
     /* max-age-av        = "Max-Age=" non-zero-digit *DIGIT
      *                   ; In practice, both expires-av and max-age-av
      *                   ; are limited to dates representable by the
      *                   ; user agent.
+     *
+     * While RFC 6265 specifies non-zero digit in syntax it also mentions that
+     * Max-Age values of 0 or lower should immediately expire a cookie. For that reason, include
+     * zero in parsing so that they can be viewed and dealt with.
      */
-    val maxAgeAv = ignoreCase("Max-Age=") *> (nonZeroDigit ~ digit.rep0).string.map {
+    val maxAgeAv = ignoreCase("Max-Age=") *> (zeroToNineDigit ~ digit.rep0).string.map {
       (maxAge: String) => (cookie: ResponseCookie) => cookie.withMaxAge(maxAge.toLong)
     }
 

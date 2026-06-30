@@ -28,7 +28,6 @@ import org.http4s.Response
 import org.http4s.Status
 
 import scala.annotation.nowarn
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 
 /** Transform a service to reject any calls the go over a given rate.

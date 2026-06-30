@@ -30,7 +30,7 @@ import scala.scalajs.js
   */
 @js.native
 @nowarn212("cat=unused")
-private[http4s] trait ClientRequest extends js.Object with Writable {
+trait ClientRequest extends js.Object with Writable {
 
   protected[nodejs] def setHeader(name: String, value: js.Array[String]): Unit = js.native
 
@@ -50,7 +50,7 @@ private[http4s] trait ClientRequest extends js.Object with Writable {
     js.native
 }
 
-private[http4s] object ClientRequest {
+object ClientRequest {
 
   implicit def http4sNodeJsServerResponseOps(clientRequest: ClientRequest): ClientRequestOps =
     new ClientRequestOps(clientRequest)

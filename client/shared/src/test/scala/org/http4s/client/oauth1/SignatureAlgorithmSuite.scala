@@ -42,21 +42,41 @@ class SignatureAlgorithmSuite extends Http4sSuite {
     }
   }
 
-  test("HmacSha1 should generate valid signature") {
-    assertIO(HmacSha1.generate[IO](InputString, SecretKey), "jxlA9wGy7ywMXFH6gmOrGD8fVGo=")
+  test("HmacSha1 should generate valid Base64 signature") {
+    assertIO(HmacSha1.generateBase64[IO](InputString, SecretKey), "jxlA9wGy7ywMXFH6gmOrGD8fVGo=")
   }
 
-  test("HmacSha256 should generate valid signature") {
+  test("HmacSha256 should generate valid Base64 signature") {
     assertIO(
-      HmacSha256.generate[IO](InputString, SecretKey),
+      HmacSha256.generateBase64[IO](InputString, SecretKey),
       "J2LpHzGwjVR8x0ZbbNC2ehI3UwfBp4xu9SUNAVhXrrM=",
     )
   }
 
-  test("HmacSha512 should generate valid signature") {
+  test("HmacSha512 should generate valid Base64 signature") {
     assertIO(
-      HmacSha512.generate[IO](InputString, SecretKey),
+      HmacSha512.generateBase64[IO](InputString, SecretKey),
       "aa5p3aIHcy5525TKAn/y3tG+lwcSBtawNO4d6ScVAJf2/bsQ9uJxVzMQhA1I68rRuk0Jie/V39yUlTAoR1+1Sw==",
+    )
+  }
+  test("HmacSha1 should generate valid Hexadecimal signature") {
+    assertIO(
+      HmacSha1.generateHex[IO](InputString, SecretKey),
+      "8f1940f701b2ef2c0c5c51fa8263ab183f1f546a",
+    )
+  }
+
+  test("HmacSha256 should generate valid Hexadecimal signature") {
+    assertIO(
+      HmacSha256.generateHex[IO](InputString, SecretKey),
+      "2762e91f31b08d547cc7465b6cd0b67a12375307c1a78c6ef5250d015857aeb3",
+    )
+  }
+
+  test("HmacSha512 should generate valid Hexadecimal signature") {
+    assertIO(
+      HmacSha512.generateHex[IO](InputString, SecretKey),
+      "69ae69dda207732e79db94ca027ff2ded1be97071206d6b034ee1de927150097f6fdbb10f6e271573310840d48ebcad1ba4d0989efd5dfdc94953028475fb54b",
     )
   }
 

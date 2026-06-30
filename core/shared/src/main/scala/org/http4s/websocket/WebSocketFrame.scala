@@ -71,7 +71,7 @@ object WebSocketFrame {
   object Text {
     def apply(str: String, last: Boolean = true): Text = new StringText(str, last)
     def apply(data: ByteVector, last: Boolean): Text = new BinaryText(data, last)
-    def apply(data: ByteVector): Text = new BinaryText(data, true)
+    def apply(data: ByteVector): Text = new BinaryText(data, last = true)
     def unapply(txt: Text): Option[(String, Boolean)] = Some((txt.str, txt.last))
   }
 

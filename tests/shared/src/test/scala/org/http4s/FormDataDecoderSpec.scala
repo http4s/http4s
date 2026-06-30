@@ -77,7 +77,7 @@ class FormDataDecoderSpec extends Http4sSuite {
       assertEquals(
         fooMapper(Map("a" -> Chain("bar"), "b" -> Chain("false"))),
         Valid(
-          Foo("bar", false)
+          Foo("bar", b = false)
         ),
       )
     }
@@ -133,7 +133,7 @@ class FormDataDecoderSpec extends Http4sSuite {
             "f.b" -> Chain("true"),
           )
         ),
-        Valid(FooNested(Foo("bar", true), "ccc")),
+        Valid(FooNested(Foo("bar", b = true), "ccc")),
       )
     }
 
@@ -163,7 +163,7 @@ class FormDataDecoderSpec extends Http4sSuite {
             "f.b" -> Chain("true"),
           )
         ),
-        Valid(FooNestedOptional(Option(Foo("bar", true)), Option("ccc"))),
+        Valid(FooNestedOptional(Option(Foo("bar", b = true)), Option("ccc"))),
       )
     }
 
@@ -183,7 +183,7 @@ class FormDataDecoderSpec extends Http4sSuite {
             "fs[].b" -> Chain("false", "true"),
           )
         ),
-        Valid(FooList(List(Foo("f1", false), Foo("f2", true)), false)),
+        Valid(FooList(List(Foo("f1", b = false), Foo("f2", b = true)), d = false)),
       )
     }
 
@@ -196,7 +196,7 @@ class FormDataDecoderSpec extends Http4sSuite {
             "d" -> Chain("false")
           )
         ),
-        Valid(FooList(List.empty[Foo], false)),
+        Valid(FooList(List.empty[Foo], d = false)),
       )
     }
 

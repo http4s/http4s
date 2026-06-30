@@ -34,8 +34,8 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
-          Text("text", true),
-          Binary(utf8Bytes"binary", true),
+          Text("text", last = true),
+          Binary(utf8Bytes"binary", last = true),
           Ping(utf8Bytes"ping"),
           Close(utf8Bytes"close"),
         )
@@ -44,8 +44,8 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("text", true),
-        Binary(utf8Bytes"binary", true),
+        Text("text", last = true),
+        Binary(utf8Bytes"binary", last = true),
         Ping(utf8Bytes"ping"),
         Close(utf8Bytes"close"),
       ),
@@ -56,18 +56,18 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
-          Text("h", false),
-          Continuation(utf8Bytes"e", false),
-          Continuation(utf8Bytes"l", false),
-          Continuation(utf8Bytes"l", false),
-          Continuation(utf8Bytes"o", true),
+          Text("h", last = false),
+          Continuation(utf8Bytes"e", last = false),
+          Continuation(utf8Bytes"l", last = false),
+          Continuation(utf8Bytes"l", last = false),
+          Continuation(utf8Bytes"o", last = true),
         )
         .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("hello", true)
+        Text("hello", last = true)
       ),
     )
   }
@@ -76,18 +76,18 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
-          Binary(utf8Bytes"w", false),
-          Continuation(utf8Bytes"o", false),
-          Continuation(utf8Bytes"r", false),
-          Continuation(utf8Bytes"l", false),
-          Continuation(utf8Bytes"d", true),
+          Binary(utf8Bytes"w", last = false),
+          Continuation(utf8Bytes"o", last = false),
+          Continuation(utf8Bytes"r", last = false),
+          Continuation(utf8Bytes"l", last = false),
+          Continuation(utf8Bytes"d", last = true),
         )
         .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Binary(utf8Bytes"world", true)
+        Binary(utf8Bytes"world", last = true)
       ),
     )
   }
@@ -96,22 +96,22 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
-          Text("F", false),
-          Continuation(utf8Bytes"o", false),
-          Continuation(utf8Bytes"o", true),
-          Text("Bar", true),
-          Text("B", false),
-          Continuation(utf8Bytes"a", false),
-          Continuation(utf8Bytes"z", true),
+          Text("F", last = false),
+          Continuation(utf8Bytes"o", last = false),
+          Continuation(utf8Bytes"o", last = true),
+          Text("Bar", last = true),
+          Text("B", last = false),
+          Continuation(utf8Bytes"a", last = false),
+          Continuation(utf8Bytes"z", last = true),
         )
         .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("Foo", true),
-        Text("Bar", true),
-        Text("Baz", true),
+        Text("Foo", last = true),
+        Text("Bar", last = true),
+        Text("Baz", last = true),
       ),
     )
   }
@@ -120,19 +120,19 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
-          Text("F", false),
-          Continuation(utf8Bytes"o", false),
-          Continuation(utf8Bytes"o", false),
-          Continuation(utf8Bytes"o", true),
-          Binary(utf8Bytes"binary", true),
-          Text("some text", true),
+          Text("F", last = false),
+          Continuation(utf8Bytes"o", last = false),
+          Continuation(utf8Bytes"o", last = false),
+          Continuation(utf8Bytes"o", last = true),
+          Binary(utf8Bytes"binary", last = true),
+          Text("some text", last = true),
           Ping(utf8Bytes"ping"),
-          Binary(utf8Bytes"bin", false),
-          Continuation(utf8Bytes"Message", true),
+          Binary(utf8Bytes"bin", last = false),
+          Continuation(utf8Bytes"Message", last = true),
           Ping(utf8Bytes"ping"),
-          Text("B", false),
-          Continuation(utf8Bytes"a", false),
-          Continuation(utf8Bytes"r", true),
+          Text("B", last = false),
+          Continuation(utf8Bytes"a", last = false),
+          Continuation(utf8Bytes"r", last = true),
           Close(utf8Bytes"close"),
         )
         .through(defragFragment[SyncIO])
@@ -141,13 +141,13 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
       stream.compile.toList
         .unsafeRunSync(),
       List(
-        Text("Fooo", true),
-        Binary(utf8Bytes"binary", true),
-        Text("some text", true),
+        Text("Fooo", last = true),
+        Binary(utf8Bytes"binary", last = true),
+        Text("some text", last = true),
         Ping(utf8Bytes"ping"),
-        Binary(utf8Bytes"binMessage", true),
+        Binary(utf8Bytes"binMessage", last = true),
         Ping(utf8Bytes"ping"),
-        Text("Bar", true),
+        Text("Bar", last = true),
         Close(utf8Bytes"close"),
       ),
     )
@@ -167,16 +167,16 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     // and outputs the invalid sequence as it is.
     val stream: Stream[SyncIO, WebSocketFrame] = Stream
       .apply(
-        Text("text1", false),
-        Text("text2", true),
+        Text("text1", last = false),
+        Text("text2", last = true),
       )
       .through(defragFragment)
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("text1", false),
-        Text("text2", true),
+        Text("text1", last = false),
+        Text("text2", last = true),
       ),
     )
 
@@ -191,9 +191,9 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     // and outputs the invalid sequence as it is.
     val stream: Stream[SyncIO, WebSocketFrame] = Stream
       .apply(
-        Text("text1", false),
-        Continuation(utf8Bytes"text2", false),
-        Continuation(utf8Bytes"text3", false),
+        Text("text1", last = false),
+        Continuation(utf8Bytes"text2", last = false),
+        Continuation(utf8Bytes"text3", last = false),
         Close(utf8Bytes"close"),
       )
       .through(defragFragment)
@@ -201,9 +201,9 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("text1", false),
-        Continuation(utf8Bytes"text2", false),
-        Continuation(utf8Bytes"text3", false),
+        Text("text1", last = false),
+        Continuation(utf8Bytes"text2", last = false),
+        Continuation(utf8Bytes"text3", last = false),
         Close(utf8Bytes"close"),
       ),
     )
@@ -219,18 +219,18 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     // and outputs the invalid sequence as it is.
     val stream: Stream[SyncIO, WebSocketFrame] = Stream
       .apply(
-        Text("text1", true),
-        Continuation(utf8Bytes"illegal continuation", true),
-        Text("text2", true),
+        Text("text1", last = true),
+        Continuation(utf8Bytes"illegal continuation", last = true),
+        Text("text2", last = true),
       )
       .through(defragFragment)
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("text1", true),
-        Continuation(utf8Bytes"illegal continuation", true),
-        Text("text2", true),
+        Text("text1", last = true),
+        Continuation(utf8Bytes"illegal continuation", last = true),
+        Text("text2", last = true),
       ),
     )
 
@@ -243,22 +243,22 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     // and outputs the invalid sequence as it is.
     val stream: Stream[SyncIO, WebSocketFrame] = Stream
       .apply(
-        Continuation(utf8Bytes"h", false),
-        Continuation(utf8Bytes"e", false),
-        Continuation(utf8Bytes"l", false),
-        Continuation(utf8Bytes"l", false),
-        Continuation(utf8Bytes"o", true),
+        Continuation(utf8Bytes"h", last = false),
+        Continuation(utf8Bytes"e", last = false),
+        Continuation(utf8Bytes"l", last = false),
+        Continuation(utf8Bytes"l", last = false),
+        Continuation(utf8Bytes"o", last = true),
       )
       .through(defragFragment)
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Continuation(utf8Bytes"h", false),
-        Continuation(utf8Bytes"e", false),
-        Continuation(utf8Bytes"l", false),
-        Continuation(utf8Bytes"l", false),
-        Continuation(utf8Bytes"o", true),
+        Continuation(utf8Bytes"h", last = false),
+        Continuation(utf8Bytes"e", last = false),
+        Continuation(utf8Bytes"l", last = false),
+        Continuation(utf8Bytes"l", last = false),
+        Continuation(utf8Bytes"o", last = true),
       ),
     )
 
@@ -267,24 +267,24 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
   test("WebSocketFrameDefragmenter should defrag normal sequence after illegal sequence") {
     val stream: Stream[SyncIO, WebSocketFrame] = Stream
       .apply(
-        Text("text1", true),
+        Text("text1", last = true),
         // This frame is invalid
-        Continuation(utf8Bytes"illegal continuation", true),
+        Continuation(utf8Bytes"illegal continuation", last = true),
         // Sequece after here is valid
-        Text("h", false),
-        Continuation(utf8Bytes"e", false),
-        Continuation(utf8Bytes"l", false),
-        Continuation(utf8Bytes"l", false),
-        Continuation(utf8Bytes"o", true),
+        Text("h", last = false),
+        Continuation(utf8Bytes"e", last = false),
+        Continuation(utf8Bytes"l", last = false),
+        Continuation(utf8Bytes"l", last = false),
+        Continuation(utf8Bytes"o", last = true),
       )
       .through(defragFragment)
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Text("text1", true),
-        Continuation(utf8Bytes"illegal continuation", true),
-        Text("hello", true),
+        Text("text1", last = true),
+        Continuation(utf8Bytes"illegal continuation", last = true),
+        Text("hello", last = true),
       ),
     )
 

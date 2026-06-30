@@ -441,9 +441,8 @@ abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](
       params: Map[String, collection.Seq[String]]
   ): Some[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
-      params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
-        s =>
-          Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
+      params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) { s =>
+        Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
       }
     }
 }

@@ -22,7 +22,7 @@ import cats.syntax.all._
 import fs2.io.net._
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.ember.core.h2._
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 
 object EmberClientH2Example extends IOApp {
@@ -34,9 +34,8 @@ object EmberClientH2Example extends IOApp {
         Sync[F].delay(println(s"Push Promise: $req")) >>
           fResp
             .flatMap(resp =>
-              resp.bodyText.compile.string.flatMap(_ =>
-                Sync[F].delay(println(s"Push Promise Resp:($req, $resp)"))
-              )
+              resp.bodyText.compile.string
+                .flatMap(_ => Sync[F].delay(println(s"Push Promise Resp:($req, $resp)")))
             )
             .as(Outcome.succeeded(Applicative[F].unit))
     }
@@ -73,7 +72,7 @@ object EmberClientH2Example extends IOApp {
                   uri = uri"http://localhost:8080/trailers",
                   // uri = uri"https://www.nikkei.com/" // PUSH PROMISES
                 )
-                .withAttribute(H2Keys.Http2PriorKnowledge, ())
+                .withAttribute(Http2PriorKnowledge, ())
                 .putHeaders(Headers("trailers" -> "x-test-client"))
                 .withTrailerHeaders(Headers("x-test-client" -> "client-info").pure[F])
             )

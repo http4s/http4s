@@ -19,7 +19,6 @@ package org.http4s.headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.parse.Parser0
-import org.http4s.Header
 import org.http4s._
 import org.http4s.internal.parsing.CommonRules.headerRep1
 import org.http4s.internal.parsing.CommonRules.ows
