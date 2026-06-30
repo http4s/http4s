@@ -17,6 +17,7 @@
 package org.http4s.ember.client.internal
 
 import cats.effect.SyncIO
+import fs2.Chunk
 import fs2.io.net.Socket
 import org.typelevel.vault._
 
@@ -25,4 +26,11 @@ private[client] object WebSocketKey {
   private[this] val wsConnectionInternal: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
   def webSocketConnection[F[_]]: Key[Socket[F]] =
     wsConnectionInternal.asInstanceOf[Key[Socket[F]]]
+
+  /** Bytes already read off the socket past the HTTP 101 response, i.e. the beginning of the
+    * WebSocket stream that the server coalesced with the handshake response. These must be
+    * replayed by the WebSocket read loop, otherwise the frames they contain are lost.
+    */
+  val webSocketLeftover: Key[Chunk[Byte]] =
+    Key.newKey[SyncIO, Chunk[Byte]].unsafeRunSync()
 }

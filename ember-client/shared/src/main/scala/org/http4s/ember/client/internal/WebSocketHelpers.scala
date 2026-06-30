@@ -23,6 +23,7 @@ import cats.effect.Concurrent
 import cats.effect.MonadCancel
 import cats.effect.Resource
 import cats.syntax.all._
+import fs2.Chunk
 import fs2.io.net.Socket
 import org.http4s.Request
 import org.http4s.Status
@@ -50,9 +51,19 @@ private[internal] object WebSocketHelpers {
   val connectionUpgrade: Connection = Connection(NonEmptyList.of(upgradeCi))
   val upgradeWebSocket: Upgrade = Upgrade(webSocketProtocol)
 
+  /** The outcome of a successful WebSocket opening handshake: the underlying socket, any bytes
+    * the HTTP client already read past the 101 response (the start of the WebSocket stream, which
+    * must be replayed before reading more), and the subprotocol the server negotiated.
+    */
+  final case class WebSocketConnection[F[_]](
+      socket: Socket[F],
+      leftover: Chunk[Byte],
+      subprotocol: Option[`Sec-WebSocket-Protocol`],
+  )
+
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
       F: MonadCancel[F, Throwable]
-  ): Resource[F, Option[(Socket[F], Option[`Sec-WebSocket-Protocol`])]] = {
+  ): Resource[F, Option[WebSocketConnection[F]]] = {
     val webSocketKey = WebSocketKey.webSocketConnection[F]
     client
       .run(request)
@@ -69,7 +80,11 @@ private[internal] object WebSocketHelpers {
           isValid <- validateServerHandshake(res, secWebSocketKeyString, offeredSubprotocols)
           _ <- isValid.liftTo[F]
           negotiatedSubprotocol = res.headers.get[`Sec-WebSocket-Protocol`]
-        } yield res.attributes.lookup(webSocketKey).map(_ -> negotiatedSubprotocol)
+        } yield res.attributes.lookup(webSocketKey).map { socket =>
+          val leftover =
+            res.attributes.lookup(WebSocketKey.webSocketLeftover).getOrElse(Chunk.empty)
+          WebSocketConnection(socket, leftover, negotiatedSubprotocol)
+        }
       }
   }
 

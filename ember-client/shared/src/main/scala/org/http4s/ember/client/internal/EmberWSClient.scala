@@ -24,6 +24,7 @@ import cats.effect.kernel.Resource
 import cats.effect.std.Queue
 import cats.effect.std.SecureRandom
 import cats.syntax.all._
+import fs2.Stream
 import fs2.concurrent.Channel
 import org.http4s.Request
 import org.http4s._
@@ -69,18 +70,20 @@ private[client] object EmberWSClient {
             .withMethod(Method.GET)
             .withAttribute(WebSocketUpgradeIdentifier, ())
 
-          socketOption <- getSocket(emberClient, httpWSRequest)
-          socketAndSubprotocol <- socketOption
+          wsConnectionOption <- getSocket(emberClient, httpWSRequest)
+          wsConnection <- wsConnectionOption
             .liftTo[F](new RuntimeException("Not an Ember client"))
             .toResource
-          (socket, negotiatedSubprotocol) = socketAndSubprotocol
 
           closeFrameDeferred <- F.deferred[WebSocketFrame.Close].toResource
 
           clientReceiveQueue <- Queue.bounded[F, Option[WebSocketFrame]](100).toResource
           clientSendChannel <- Channel.bounded[F, WebSocketFrame](100).toResource
 
-          _ <- socket.reads
+          // Bytes the HTTP client already read off the socket past the 101 response
+          // (the start of the WebSocket stream) must be replayed before reading more,
+          // otherwise frames the server sent immediately after the handshake are lost.
+          _ <- (Stream.chunk(wsConnection.leftover) ++ wsConnection.socket.reads)
             .through(decodeFrames(true))
             .foreach {
               case f @ WebSocketFrame.Close(_) =>
@@ -114,7 +117,7 @@ private[client] object EmberWSClient {
             .background
 
           sendingFinished <- clientSendChannel.stream
-            .foreach(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
+            .foreach(f => frameToBytes(f, true).traverse_(c => wsConnection.socket.write(c)))
             .compile
             .drain
             .background
@@ -147,7 +150,7 @@ private[client] object EmberWSClient {
               evidence$1: cats.Foldable[G]
           ): F[Unit] = wsfs.traverse_(send(_))
           def subprotocol: Option[String] =
-            negotiatedSubprotocol.map(_.values.head)
+            wsConnection.subprotocol.map(_.values.head)
         }
       }
     }

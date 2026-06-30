@@ -20,6 +20,7 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 import com.comcast.ip4s.UnixSocketAddress
+import fs2.Chunk
 import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
@@ -28,6 +29,7 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.ProductId
 import org.http4s.Request
 import org.http4s.Response
+import org.http4s.Status
 import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
@@ -352,13 +354,25 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               case _ => Applicative[F].unit
             }
           }
+          // For a WebSocket upgrade the HTTP parser may have already read the first
+          // WebSocket bytes off the socket together with the 101 response; capture them
+          // (the parser's drain) so the WebSocket read loop can replay them.
+          wsLeftover <-
+            if (ws && responseResource._1.status == Status.SwitchingProtocols)
+              Resource.eval(responseResource._2)
+            else Resource.pure[F, Option[Array[Byte]]](None)
           _ <- Resource.eval(managed.canBeReused.set(Reusable.DontReuse))
         } yield
           if (ws)
-            responseResource._1.withAttribute(
-              WebSocketKey.webSocketConnection[F],
-              managed.value.keySocket.socket,
-            )
+            responseResource._1
+              .withAttribute(
+                WebSocketKey.webSocketConnection[F],
+                managed.value.keySocket.socket,
+              )
+              .withAttribute(
+                WebSocketKey.webSocketLeftover,
+                wsLeftover.fold(Chunk.empty[Byte])(Chunk.array(_)),
+              )
           else responseResource._1
 
       def unixSocketClient(
