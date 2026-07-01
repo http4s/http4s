@@ -148,9 +148,8 @@ private[client] object EmberWSClient {
               }
               EitherT(sent).getOrRaise(new RuntimeException("Connection already closed"))
             }
-          def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
-              evidence$1: cats.Foldable[G]
-          ): F[Unit] = wsfs.traverse_(send(_))
+          def sendMany[G[_]: cats.Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
+            wsfs.traverse_(send)
           def subprotocol: Option[String] =
             wsConnection.subprotocol.map(_.values.head)
         }
