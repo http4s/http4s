@@ -16,10 +16,8 @@
 
 package org.http4s.ember.client.internal
 
-import cats.Applicative
 import cats.MonadThrow
 import cats.data.NonEmptyList
-import cats.effect.Concurrent
 import cats.effect.MonadCancel
 import cats.effect.Resource
 import cats.syntax.all._
@@ -88,14 +86,13 @@ private[internal] object WebSocketHelpers {
       }
   }
 
-  def toWebSocketFrame[F[_]: Concurrent](wsFrame: WSFrame): F[WebSocketFrame] =
+  def toWebSocketFrame[F[_]](wsFrame: WSFrame)(implicit F: MonadThrow[F]): F[WebSocketFrame] =
     wsFrame match {
-      case WSFrame.Close(code, reason) =>
-        MonadThrow[F].fromEither(WebSocketFrame.Close(code, reason))
-      case WSFrame.Ping(data) => Applicative[F].pure(WebSocketFrame.Ping(data))
-      case WSFrame.Pong(data) => Applicative[F].pure(WebSocketFrame.Pong(data))
-      case WSFrame.Text(data, last) => Applicative[F].pure(WebSocketFrame.Text(data, last))
-      case WSFrame.Binary(data, last) => Applicative[F].pure(WebSocketFrame.Binary(data, last))
+      case WSFrame.Close(code, reason) => F.fromEither(WebSocketFrame.Close(code, reason))
+      case WSFrame.Ping(data) => F.pure(WebSocketFrame.Ping(data))
+      case WSFrame.Pong(data) => F.pure(WebSocketFrame.Pong(data))
+      case WSFrame.Text(data, last) => F.pure(WebSocketFrame.Text(data, last))
+      case WSFrame.Binary(data, last) => F.pure(WebSocketFrame.Binary(data, last))
     }
 
   def toWSFrame(wsf: WebSocketFrame): WSFrame =
