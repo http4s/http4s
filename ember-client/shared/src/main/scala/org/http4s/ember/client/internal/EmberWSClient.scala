@@ -44,7 +44,7 @@ private[client] object EmberWSClient {
       emberClient: Client[F]
   )(implicit F: Async[F]): F[WSClient[F]] =
     SecureRandom.javaSecuritySecureRandom[F].map { random =>
-      WSClient[F](respondToPings = false) { wsRequest =>
+      WSClient[F](respondToPings = true) { wsRequest =>
         for {
           randomByteArray <- Resource.eval(random.nextBytes(16))
 
