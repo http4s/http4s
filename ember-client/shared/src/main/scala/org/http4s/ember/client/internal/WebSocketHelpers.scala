@@ -150,30 +150,28 @@ private[internal] object WebSocketHelpers {
   } yield digest
 
   private def serverHandshake[F[_]](res: Response[F]): Either[ServerHandshakeError, ByteVector] = {
-    val status = res.status match {
+    val status: Either[ServerHandshakeError, Unit] = res.status match {
       case Status.SwitchingProtocols => Either.unit
       case _ => Left(InvalidStatus)
     }
 
-    val connection = res.headers.get[Connection] match {
+    val connection: Either[ServerHandshakeError, Unit] = res.headers.get[Connection] match {
       case Some(header) if header.hasUpgrade => Either.unit
       case _ => Left(UpgradeRequired)
     }
 
-    val upgrade = res.headers.get[Upgrade] match {
+    val upgrade: Either[ServerHandshakeError, Unit] = res.headers.get[Upgrade] match {
       case Some(header) if header.values.contains_(webSocketProtocol) => Either.unit
       case _ => Left(UpgradeRequired)
     }
 
-    val secWebSocketAcceptKey = res.headers.get[`Sec-WebSocket-Accept`] match {
-      case Some(header) => Right(header.hashedKey)
-      case None => Left(SecWebSocketAcceptNotFound)
-    }
+    val secWebSocketAcceptKey: Either[ServerHandshakeError, ByteVector] =
+      res.headers.get[`Sec-WebSocket-Accept`] match {
+        case Some(header) => Right(header.hashedKey)
+        case None => Left(SecWebSocketAcceptNotFound)
+      }
 
-    (status, connection, upgrade, secWebSocketAcceptKey).mapN {
-      case (_, _, _, secWebSocketAcceptKey) =>
-        secWebSocketAcceptKey
-    }
+    status *> connection *> upgrade *> secWebSocketAcceptKey
   }
 
   sealed abstract class ServerHandshakeError(val status: Status, val message: String)
