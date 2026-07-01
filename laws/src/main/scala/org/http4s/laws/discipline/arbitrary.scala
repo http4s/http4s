@@ -653,6 +653,15 @@ private[discipline] trait ArbitraryInstances {
         .map(`Sec-WebSocket-Key`(_))
     }
 
+  implicit val http4sTestingArbitraryForSecWebSocketProtocolHeader
+      : Arbitrary[`Sec-WebSocket-Protocol`] =
+    Arbitrary {
+      for {
+        head <- genToken
+        tail <- listOf(genToken)
+      } yield `Sec-WebSocket-Protocol`(NonEmptyList(head, tail))
+    }
+
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {

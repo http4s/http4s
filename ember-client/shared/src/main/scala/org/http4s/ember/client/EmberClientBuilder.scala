@@ -20,6 +20,7 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 import com.comcast.ip4s.UnixSocketAddress
+import fs2.Chunk
 import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
@@ -28,10 +29,14 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.ProductId
 import org.http4s.Request
 import org.http4s.Response
+import org.http4s.Status
 import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
+import org.http4s.client.websocket.WSClient
 import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.ember.client.internal.EmberWSClient
+import org.http4s.ember.client.internal.WebSocketKey
 import org.http4s.ember.core.h2.H2Client
 import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
@@ -261,7 +266,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       )
       .whenA(timeout.isFinite && timeout >= idleConnectionTime)
 
-  def build: Resource[F, Client[F]] =
+  private def buildHelper(ws: Boolean = false): Resource[F, Client[F]] =
     for {
       _ <- Resource.eval(verifyTimeoutRelations)
       tlsContextOptWithDefault <-
@@ -334,6 +339,13 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
             )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
+              // A successful WebSocket upgrade hijacks the raw socket, so the connection must
+              // not re-enter the HTTP pool. Skipping post-processing leaves it marked DontReuse
+              // (so the pool closes it) and ensures the parser's drain seeds only the WebSocket
+              // stream, never nextBytes for a reused HTTP connection.
+              case Resource.ExitCase.Succeeded
+                  if ws && response.status == Status.SwitchingProtocols =>
+                Applicative[F].unit
               case Resource.ExitCase.Succeeded =>
                 ClientHelpers.postProcessResponse(
                   request,
@@ -349,7 +361,27 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               case _ => Applicative[F].unit
             }
           }
-        } yield responseResource._1
+          (response, drain) = responseResource
+          // For a WebSocket upgrade the HTTP parser may have already read the first
+          // WebSocket bytes off the socket together with the 101 response; capture them
+          // (the parser's drain) so the WebSocket read loop can replay them.
+          wsLeftover <-
+            if (ws && response.status == Status.SwitchingProtocols)
+              Resource.eval(drain)
+            else Resource.pure[F, Option[Array[Byte]]](None)
+          _ <- Resource.eval(managed.canBeReused.set(Reusable.DontReuse))
+        } yield
+          if (ws)
+            response
+              .withAttribute(
+                WebSocketKey.webSocketConnection[F],
+                managed.value.keySocket.socket,
+              )
+              .withAttribute(
+                WebSocketKey.webSocketLeftover,
+                wsLeftover.fold(Chunk.empty[Byte])(Chunk.array(_)),
+              )
+          else response
 
       def unixSocketClient(
           request: Request[F],
@@ -398,6 +430,14 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
         new EmberClient(h2Client, pool)
       }
     }
+
+  def build: Resource[F, Client[F]] = buildHelper()
+
+  def buildWebSocket: Resource[F, (Client[F], WSClient[F])] =
+    for {
+      httpClient <- buildHelper(ws = true)
+      wsClient <- Resource.eval(EmberWSClient[F](httpClient))
+    } yield (httpClient, wsClient)
 }
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
