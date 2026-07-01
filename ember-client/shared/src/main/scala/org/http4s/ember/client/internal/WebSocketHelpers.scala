@@ -144,26 +144,32 @@ private[internal] object WebSocketHelpers {
   } yield digest
 
   private def serverHandshake[F[_]](res: Response[F]): Either[ServerHandshakeError, ByteVector] = {
-    val status: Either[ServerHandshakeError, Unit] = res.status match {
-      case Status.SwitchingProtocols => Either.unit
-      case _ => Left(InvalidStatus)
-    }
+    val status =
+      Either.cond[ServerHandshakeError, Unit](
+        test = res.status == Status.SwitchingProtocols,
+        right = (),
+        left = InvalidStatus,
+      )
 
-    val connection: Either[ServerHandshakeError, Unit] = res.headers.get[Connection] match {
-      case Some(header) if header.hasUpgrade => Either.unit
-      case _ => Left(UpgradeRequired)
-    }
+    val connection =
+      Either.cond(
+        test = res.headers.get[Connection].exists(_.hasUpgrade),
+        right = (),
+        left = UpgradeRequired,
+      )
 
-    val upgrade: Either[ServerHandshakeError, Unit] = res.headers.get[Upgrade] match {
-      case Some(header) if header.values.contains_(webSocketProtocol) => Either.unit
-      case _ => Left(UpgradeRequired)
-    }
+    val upgrade =
+      Either.cond(
+        test = res.headers.get[Upgrade].exists(_.values.contains_(webSocketProtocol)),
+        right = (),
+        left = UpgradeRequired,
+      )
 
-    val secWebSocketAcceptKey: Either[ServerHandshakeError, ByteVector] =
-      res.headers.get[`Sec-WebSocket-Accept`] match {
-        case Some(header) => Right(header.hashedKey)
-        case None => Left(SecWebSocketAcceptNotFound)
-      }
+    val secWebSocketAcceptKey =
+      res.headers
+        .get[`Sec-WebSocket-Accept`]
+        .map(_.hashedKey)
+        .toRight[ServerHandshakeError](SecWebSocketAcceptNotFound)
 
     status *> connection *> upgrade *> secWebSocketAcceptKey
   }
