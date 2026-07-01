@@ -37,6 +37,7 @@ import org.http4s.ember.core.WebSocketHelpers._
 import org.http4s.ember.core.h2.H2Keys.WebSocketUpgradeIdentifier
 import org.http4s.headers.`Sec-WebSocket-Key`
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
 import scodec.bits.ByteVector
 
 private[client] object EmberWSClient {
@@ -85,6 +86,7 @@ private[client] object EmberWSClient {
           // otherwise frames the server sent immediately after the handshake are lost.
           _ <- (Stream.chunk(wsConnection.leftover) ++ wsConnection.socket.reads)
             .through(decodeFrames(true))
+            .through(defragFragment)
             .foreach {
               case f @ WebSocketFrame.Close(_) =>
                 closeFrameDeferred

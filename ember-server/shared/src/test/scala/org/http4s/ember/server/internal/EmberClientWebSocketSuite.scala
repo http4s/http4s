@@ -347,6 +347,50 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       )
   }
 
+  test("reassemble a fragmented text message received across continuation frames") {
+    val fragments = List(
+      WebSocketFrame.Text("Hello ", last = false),
+      WebSocketFrame.Continuation(
+        ByteVector("world".getBytes(StandardCharsets.UTF_8)),
+        last = true,
+      ),
+    )
+    val resources = for {
+      receivedFrames <- Resource.eval(Queue.unbounded[IO, WebSocketFrame])
+      address <- rawWebSocketServer(receivedFrames, sendOnOpen = fragments)
+      clientAndWsClient <- EmberClientBuilder.default[IO].buildWebSocket
+    } yield (address, clientAndWsClient._2)
+
+    resources.use { case (address, wsClient) =>
+      wsClient
+        .connect(WSRequest(url(address)))
+        .use(_.receive)
+        .map(received => assertEquals(received, Some(WSFrame.Text("Hello world"))))
+    }
+  }
+
+  test("high-level connection reassembles a fragmented text message") {
+    val fragments = List(
+      WebSocketFrame.Text("Hello ", last = false),
+      WebSocketFrame.Continuation(
+        ByteVector("world".getBytes(StandardCharsets.UTF_8)),
+        last = true,
+      ),
+    )
+    val resources = for {
+      receivedFrames <- Resource.eval(Queue.unbounded[IO, WebSocketFrame])
+      address <- rawWebSocketServer(receivedFrames, sendOnOpen = fragments)
+      clientAndWsClient <- EmberClientBuilder.default[IO].buildWebSocket
+    } yield (address, clientAndWsClient._2)
+
+    resources.use { case (address, wsClient) =>
+      wsClient
+        .connectHighLevel(WSRequest(url(address)))
+        .use(_.receive)
+        .map(received => assertEquals(received, Some(WSFrame.Text("Hello world"))))
+    }
+  }
+
   fixture.test("low-level receiveStream terminates after the server closes") {
     case (server, (_, wsClient), _) =>
       val wsRequest = WSRequest(url(server.addressIp4s, "/ws-close"))
