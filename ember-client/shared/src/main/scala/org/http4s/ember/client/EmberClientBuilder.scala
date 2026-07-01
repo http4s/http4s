@@ -361,17 +361,18 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               case _ => Applicative[F].unit
             }
           }
+          (response, drain) = responseResource
           // For a WebSocket upgrade the HTTP parser may have already read the first
           // WebSocket bytes off the socket together with the 101 response; capture them
           // (the parser's drain) so the WebSocket read loop can replay them.
           wsLeftover <-
-            if (ws && responseResource._1.status == Status.SwitchingProtocols)
-              Resource.eval(responseResource._2)
+            if (ws && response.status == Status.SwitchingProtocols)
+              Resource.eval(drain)
             else Resource.pure[F, Option[Array[Byte]]](None)
           _ <- Resource.eval(managed.canBeReused.set(Reusable.DontReuse))
         } yield
           if (ws)
-            responseResource._1
+            response
               .withAttribute(
                 WebSocketKey.webSocketConnection[F],
                 managed.value.keySocket.socket,
@@ -380,7 +381,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                 WebSocketKey.webSocketLeftover,
                 wsLeftover.fold(Chunk.empty[Byte])(Chunk.array(_)),
               )
-          else responseResource._1
+          else response
 
       def unixSocketClient(
           request: Request[F],
