@@ -202,7 +202,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         for {
           _ <- conn.send(WSFrame.Text("hello"))
           received <- conn.receive
-        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
+        } yield assertEquals(received, Some(WSFrame.Text("hello")))
       )
   }
 
@@ -233,7 +233,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
             _ <- conn.send(WSFrame.Text("hello"))
             received <- conn.receive
             _ <- conn.send(WSFrame.Close(1000, ""))
-          } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
+          } yield assertEquals(received, Some(WSFrame.Text("hello")))
         )
   }
 
@@ -284,7 +284,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         received <- wsClient.connect(WSRequest(url(address))).use(_.receive)
         echoed <- receivedFrames.take
       } yield {
-        assertEquals(received, Some(WSFrame.Close(4001, "going away"): WSFrame))
+        assertEquals(received, Some(WSFrame.Close(4001, "going away")))
         assertEquals(echoed, serverClose: WebSocketFrame)
       }
     }
@@ -306,7 +306,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       wsClient
         .connect(WSRequest(url(address)))
         .use(_.receive)
-        .map(received => assertEquals(received, Some(WSFrame.Text("coalesced"): WSFrame)))
+        .map(received => assertEquals(received, Some(WSFrame.Text("coalesced"))))
     }
   }
 
@@ -401,7 +401,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         .map(frames =>
           assertEquals(
             frames,
-            List(WSFrame.Text("foo"): WSFrame, WSFrame.Close(1000, "")),
+            List(WSFrame.Text("foo"), WSFrame.Close(1000, "")),
           )
         )
   }
