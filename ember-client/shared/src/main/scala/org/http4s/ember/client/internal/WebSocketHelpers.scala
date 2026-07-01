@@ -110,20 +110,17 @@ private[internal] object WebSocketHelpers {
   /** Validate the opening handshake response from the server
     * https://datatracker.ietf.org/doc/html/rfc6455#page-6
     */
-  def validateServerHandshake[F[_]](
+  def validateServerHandshake[F[_]: MonadThrow](
       response: Response[F],
       secWebSocketKey: String,
       offeredSubprotocols: Set[String],
-  )(implicit F: MonadThrow[F]): F[Either[ServerHandshakeError, Unit]] =
-    for {
-      secWebSocketAccept <- serverHandshake(response).pure[F]
-      correctSecWebSocketAccept <- clientHandshake(secWebSocketKey)
-      validated = secWebSocketAccept.flatMap(s =>
-        if (s == correctSecWebSocketAccept)
-          validateNegotiatedSubprotocol(response, offeredSubprotocols)
+  ): F[Either[ServerHandshakeError, Unit]] =
+    clientHandshake(secWebSocketKey).map { expectedAccept =>
+      serverHandshake(response).flatMap { accept =>
+        if (accept == expectedAccept) validateNegotiatedSubprotocol(response, offeredSubprotocols)
         else Left(InvalidSecWebSocketAccept)
-      )
-    } yield validated
+      }
+    }
 
   /** RFC 6455 §4.1: the client must fail the connection when the server selects
     * a subprotocol that the client did not offer. The server may select at most one.
