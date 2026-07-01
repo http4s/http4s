@@ -125,6 +125,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   def rawWebSocketServer(
       receivedFrames: Queue[IO, WebSocketFrame],
       sendOnOpen: List[WebSocketFrame],
+      coalesceHandshake: Boolean = false,
   ): Resource[IO, SocketAddress[IpAddress]] = {
     val address = SocketAddress(ip"127.0.0.1", port"0")
     Network[IO].bind(address).flatMap { serverSocket =>
@@ -143,8 +144,16 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
                 "Upgrade: websocket\r\n" +
                 s"Sec-WebSocket-Accept: ${accept.toBase64}\r\n" +
                 "\r\n"
-            _ <- socket.write(Chunk.array(response.getBytes(StandardCharsets.UTF_8)))
-            _ <- sendOnOpen.traverse_(frame => frameToBytes(frame, false).traverse_(socket.write))
+            responseBytes = Chunk.array(response.getBytes(StandardCharsets.UTF_8))
+            openingFrameBytes = sendOnOpen.foldLeft(Chunk.empty[Byte])((acc, frame) =>
+              frameToBytes(frame, false).foldLeft(acc)(_ ++ _)
+            )
+            // When coalescing, write the handshake response and the first frames in a single
+            // write so they land in the same read on the client, exercising the path where the
+            // HTTP parser reads the start of the WebSocket stream together with the 101 response.
+            _ <-
+              if (coalesceHandshake) socket.write(responseBytes ++ openingFrameBytes)
+              else socket.write(responseBytes) *> socket.write(openingFrameBytes)
             _ <- socket.reads
               .through(decodeFrames[IO](false))
               .foreach(receivedFrames.offer)
@@ -278,6 +287,26 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         assertEquals(received, Some(WSFrame.Close(4001, "going away"): WSFrame))
         assertEquals(echoed, serverClose: WebSocketFrame)
       }
+    }
+  }
+
+  test("replay a frame coalesced with the 101 handshake response") {
+    val firstFrame = WebSocketFrame.Text("coalesced")
+    val resources = for {
+      receivedFrames <- Resource.eval(Queue.unbounded[IO, WebSocketFrame])
+      address <- rawWebSocketServer(
+        receivedFrames,
+        sendOnOpen = List(firstFrame),
+        coalesceHandshake = true,
+      )
+      clientAndWsClient <- EmberClientBuilder.default[IO].buildWebSocket
+    } yield (address, clientAndWsClient._2)
+
+    resources.use { case (address, wsClient) =>
+      wsClient
+        .connect(WSRequest(url(address)))
+        .use(_.receive)
+        .map(received => assertEquals(received, Some(WSFrame.Text("coalesced"): WSFrame)))
     }
   }
 

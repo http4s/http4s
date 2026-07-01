@@ -339,6 +339,13 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
             )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
+              // A successful WebSocket upgrade hijacks the raw socket, so the connection must
+              // not re-enter the HTTP pool. Skipping post-processing leaves it marked DontReuse
+              // (so the pool closes it) and ensures the parser's drain seeds only the WebSocket
+              // stream, never nextBytes for a reused HTTP connection.
+              case Resource.ExitCase.Succeeded
+                  if ws && response.status == Status.SwitchingProtocols =>
+                Applicative[F].unit
               case Resource.ExitCase.Succeeded =>
                 ClientHelpers.postProcessResponse(
                   request,
