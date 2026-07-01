@@ -96,8 +96,8 @@ private[client] object EmberWSClient {
                     F.unit,
                   )
               case f =>
-                closeFrameDeferred.tryGet.flatMap { x =>
-                  if (x.isDefined) F.unit else clientReceiveQueue.offer(Some(f))
+                closeFrameDeferred.tryGet.flatMap { closed =>
+                  clientReceiveQueue.offer(Some(f)).whenA(closed.isEmpty)
                 }
             }
             .compile
