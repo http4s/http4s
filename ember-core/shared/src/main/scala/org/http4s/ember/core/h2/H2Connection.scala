@@ -77,7 +77,7 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    body <- Channel.bounded[F, Either[Throwable, ByteVector]](128)
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -115,7 +115,7 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    body <- Channel.bounded[F, Either[Throwable, ByteVector]](128)
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
