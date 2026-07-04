@@ -19,7 +19,7 @@ package multipart
 
 import cats.Applicative
 import cats.Functor
-import cats.effect.Concurrent
+import cats.effect.kernel.Async
 import cats.syntax.foldable._
 import fs2.io.file.Files
 
@@ -170,7 +170,7 @@ object MultipartReceiver {
     *         map's key is the part name, and value is the decoded part, represented as
     *         either plain text or as a temporary file.
     */
-  def auto[F[_]: Concurrent: Files]: MultipartReceiver[F, Map[String, PartValue]] =
+  def auto[F[_]: Async: Files]: MultipartReceiver[F, Map[String, PartValue]] =
     new MultipartReceiver[F, Map[String, PartValue]] {
       type Partial = (String, PartValue)
       def decide(partHeaders: Headers): Option[PartReceiver[F, Partial]] =

@@ -17,11 +17,9 @@
 package org.http4s
 package multipart
 
-import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
-import org.http4s.EntityBody
 
 /** Generic representation of typical Multipart Part bodies, as either a string or a file path.
   * Produced by [[MultipartReceiver.auto]].
@@ -31,14 +29,14 @@ import org.http4s.EntityBody
   */
 sealed trait PartValue {
 
-  /** Returns a byte-stream representation of the part's body.
+  /** Returns the part's body representation.
     *
     * For `OfString` parts, the underlying string is piped through a UTF-8 encoder.
     * For `OfFile` parts, the underlying file's content will be read from disk.
     *
-    * @return The part's body as a stream of bytes
+    * @return The part's body representation
     */
-  def bytes[F[_]: Files]: EntityBody[F]
+  def entity[F[_]: Files]: Entity[F]
 
   /** Fold over the different PartValue subtypes to compute a value
     *
@@ -58,18 +56,18 @@ sealed trait PartValue {
     */
   def toPart[F[_]: Files](name: String, headers: Header.ToRaw*): Part[F] = fold(
     s => Part.formData(name, s, headers: _*),
-    (filename, _) => Part.fileData(name, filename, Entity.stream(bytes[F]), headers: _*),
+    (filename, _) => Part.fileData(name, filename, entity[F], headers: _*),
   )
 }
 object PartValue {
 
   final case class OfString(value: String) extends PartValue {
-    def bytes[F[_]: Files]: EntityBody[F] = fs2.text.utf8.encode[F](Stream.emit(value))
+    def entity[F[_]: Files]: Entity[F] = Entity.utf8String(value)
     def fold[A](onString: String => A, onFile: (String, Path) => A): A = onString(value)
   }
 
   final case class OfFile(filename: String, path: Path) extends PartValue {
-    def bytes[F[_]: Files]: EntityBody[F] = Files[F].readAll(path, 8192, Flags.Read)
+    def entity[F[_]: Files]: Entity[F] = Entity.stream(Files[F].readAll(path, 8192, Flags.Read))
     def fold[A](onString: String => A, onFile: (String, Path) => A): A =
       onFile(filename, path)
   }
