@@ -20,7 +20,6 @@ import cats.effect.IO
 import cats.effect.SyncIO
 import fs2.Stream
 import org.http4s.Http4sSuite
-import org.http4s.websocket.DefaultMaxMessageSize
 import org.http4s.websocket.WebSocketFrame.Binary
 import org.http4s.websocket.WebSocketFrame.Close
 import org.http4s.websocket.WebSocketFrame.Continuation
