@@ -74,7 +74,7 @@ trait SignatureAlgorithm {
     * @param secretKey The secret key
     * @return The base64-encoded output
     */
-  def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String]
+  def generate[F[_]: Async](input: String, secretKey: String): F[String]
 
   /** Apply the implementation's algorithm to the input
     *
@@ -131,7 +131,7 @@ object HmacSha1 extends SignatureAlgorithm {
   ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
 
-  override def generate[F[_]: MonadThrow](
+  override def generate[F[_]: Async](
       input: String,
       secretKey: String,
   ): F[String] =
@@ -149,7 +149,7 @@ object HmacSha256 extends SignatureAlgorithm {
       secretKey: String,
   ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
-  override def generate[F[_]: MonadThrow](
+  override def generate[F[_]: Async](
       input: String,
       secretKey: String,
   ): F[String] =
@@ -169,7 +169,7 @@ object HmacSha512 extends SignatureAlgorithm {
   ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
 
-  override def generate[F[_]: MonadThrow](
+  override def generate[F[_]: Async](
       input: String,
       secretKey: String,
   ): F[String] =

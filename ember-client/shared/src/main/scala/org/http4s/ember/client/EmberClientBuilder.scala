@@ -399,6 +399,10 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
         new EmberClient(h2Client, pool)
       }
     }
+
+  @deprecated("Unused.  Preserved for binary compatibility", "1.0.0-M47")
+  private[client] def defaultUnixSockets[G[_]: Async]: Option[UnixSockets[G]] =
+    None
 }
 
 object EmberClientBuilder {
