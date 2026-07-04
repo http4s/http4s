@@ -50,6 +50,7 @@ object Retry {
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
     create[F](policy, redactHeaderWhen)(client)
 
+  @annotation.nowarn("cat=deprecation")
   def create[F[_]: LoggerFactory](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

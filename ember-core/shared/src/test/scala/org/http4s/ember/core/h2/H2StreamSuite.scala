@@ -23,7 +23,9 @@ import cats.effect.Ref
 import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Chunk
+import fs2.Stream
 import fs2.concurrent.Channel
+import fs2.text.utf8
 import org.http4s.Headers
 import org.http4s.Http4sSuite
 import org.http4s.HttpVersion
@@ -265,7 +267,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       sq <- streamAndQueue(config)
-      (stream, queue) = sq
+      (stream, _) = sq
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
       _ <- stream.sendMessageBody(resp)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
@@ -277,7 +279,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       sq <- streamAndQueue(config)
-      (stream, queue) = sq
+      (stream, _) = sq
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
         .withTrailerHeaders(IO.pure(Headers("Trailer" -> "Expires")))
       _ <- stream.sendMessageBody(resp)
@@ -293,12 +295,48 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       sq <- streamAndQueue(config)
-      (stream, queue) = sq
+      (stream, _) = sq
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
         .withTrailerHeaders(IO.pure(Headers("Trailer" -> "Expires")))
         .withEntity("0" * frameSize * 2)
       _ <- stream.sendMessageBody(resp)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
+    } yield ()
+  }
+
+  test(
+    "H2Stream sendMessageBody should flush data without waiting for the next chunk"
+  ) {
+
+    def bodyStream(gate: Deferred[IO, Unit]): Stream[IO, Byte] =
+      Stream("hello").through(utf8.encode) ++
+        Stream.eval(gate.get).drain ++
+        Stream("world").through(utf8.encode)
+
+    def assertFrame(chunk: Chunk[H2Frame], expected: String, endStream: Boolean) = {
+      assert(chunk.size == 1)
+      val frame = chunk.collectFirst { case data: H2Frame.Data => data }.get
+
+      assertEquals(frame.data.decodeUtf8, Right(expected))
+      assertEquals(frame.endStream, endStream)
+    }
+
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      gate <- Deferred[IO, Unit]
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`).withBodyStream(bodyStream(gate))
+      fiber <- stream.sendMessageBody(resp).start
+      firstChunk <- queue.take
+      _ <- IO(assertFrame(firstChunk, "hello", endStream = false))
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
+      _ <- gate.complete(())
+      secondChunk <- queue.take
+      _ <- IO(assertFrame(secondChunk, "world", endStream = false))
+      lastChunk <- queue.take
+      _ <- IO(assertFrame(lastChunk, "", endStream = true))
+      _ <- fiber.joinWithNever
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
   }
 }

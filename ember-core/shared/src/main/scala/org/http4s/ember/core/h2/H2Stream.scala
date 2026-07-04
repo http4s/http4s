@@ -78,23 +78,17 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def sendMessageBody(mess: Message[F]): F[Unit] = {
     val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
     val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
-    maxFrameSize.flatMap(maxFrameSize =>
-      mess.body
-        .ifEmpty[F, Byte](
-          Stream.exec(sendData(ByteVector.empty, endStream = true).whenA(noTrailers))
-        )
-        .chunkLimit(maxFrameSize)
-        .zipWithNext
-        .foreach { case (c, nextChunk) =>
-          val isEndStream = nextChunk.isEmpty && noTrailers
-          sendData(c.toByteVector, isEndStream)
-        }
-        .compile
-        .drain
-        .onError { case _ =>
-          rstStream(H2Error.InternalError)
-        }
-    )
+    maxFrameSize.flatMap { maxFrameSize =>
+      val sendBody =
+        mess.body
+          .chunkLimit(maxFrameSize)
+          .foreach(c => sendData(c.toByteVector, endStream = false))
+          .compile
+          .drain >> sendData(ByteVector.empty, endStream = true).whenA(noTrailers)
+      sendBody.onError { case _ =>
+        rstStream(H2Error.InternalError)
+      }
+    }
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =
