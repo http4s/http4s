@@ -3,6 +3,48 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M47 (2026-07-06)
+
+This is a security hardening release that comes as a result of two independent scans.  Upgrades are strongly encouraged if you are:
+
+- Running Ember HTTP/2
+- Running behind an unhardened proxy
+- Exposing websocket endpoints to the public
+- Using `DigestAuth` or `FollowRedirect` middleware
+- Using `staticcontent` services
+
+Merges forward all changes in v0.23.24 and v0.23.35.  See those releases for detailed notes.
+
+## Security fixes
+
+* [`GHSA-crq5-92j2-j7wv`: ResourceService and Webjar Service path escape via percent-encoded separators](https://github.com/http4s/http4s/security/advisories/GHSA-crq5-92j2-j7wv)
+* [`GHSA-vmm3-xgcx-67hm`: Ember HTTP/2: Denial of Service via HPACK bomb](https://github.com/http4s/http4s/security/advisories/GHSA-vmm3-xgcx-67hm)
+* [`GHSA-cp4q-fqw9-4hf6`: Ember HTTP/2: unbounded continuation frame accumulation](https://github.com/http4s/http4s/security/advisories/GHSA-cp4q-fqw9-4hf6)
+* [`GHSA-p83c-4wj9-p6w9`: Ember Server accepts duplicate Content-Length headers](https://github.com/http4s/http4s/security/advisories/GHSA-p83c-4wj9-p6w9)
+* [`GHSA-jrpm-956j-96jg`: Ember chunk parser lenience (TE.TE request smuggling)](https://github.com/http4s/http4s/security/advisories/GHSA-jrpm-956j-96jg)
+* [`GHSA-grh8-3p95-f9rr`: CookieJar middleware matches by substring, leaking cookies cross-origin](https://github.com/http4s/http4s/security/advisories/GHSA-grh8-3p95-f9rr)
+* [`GHSA-wv64-j4fq-5f9x`: CookieJar middleware accepts arbitrary Set-Cookie domain](https://github.com/http4s/http4s/security/advisories/GHSA-wv64-j4fq-5f9x)
+* [`GHSA-8f3q-3jmv-7prw`: Ember HTTP/2: unbounded outbound frame queue](https://github.com/http4s/http4s/security/advisories/GHSA-8f3q-3jmv-7prw)
+* [`GHSA-2rgg-r783-mrx4`: FollowRedirect middleware leaks credentials over https->http same-authority redirect](https://github.com/http4s/http4s/security/advisories/GHSA-2rgg-r783-mrx4)
+* [`GHSA-7qh7-rghh-698h`: Set-Cookie rendering does not escape attribute delimiters](https://github.com/http4s/http4s/security/advisories/GHSA-7qh7-rghh-698h)
+* [`GHSA-3j86-pj9g-jchr`: WebSocket decoder accepts negative length, causing infinite decode loop](https://github.com/http4s/http4s/security/advisories/GHSA-3j86-pj9g-jchr)
+* [`GHSA-jrxx-w2m8-5hf5`: WebSocket decoder accepts unbounded message sizes](https://github.com/http4s/http4s/security/advisories/GHSA-jrxx-w2m8-5hf5)
+* [`GHSA-fm4g-76c9-7w69`: DigestAuth nonce map grows unbounded](https://github.com/http4s/http4s/security/advisories/GHSA-fm4g-76c9-7w69)
+* [`GHSA-9xww-74xv-gjfp`: DigestAuth allows replay of captured requestsDigestAuth allows replay of captured requests](https://github.com/http4s/http4s/security/advisories/GHSA-9xww-74xv-gjfp)
+* [`GHSA-9998-894r-fwvr`: Ember Transfer-Encoding value parsing (TE.CL / TE.0 request smuggling)](https://github.com/http4s/http4s/security/advisories/GHSA-9998-894r-fwvr)
+* [`GHSA-8h4c-x2wg-6xp8`: Ember accepts Transfer-Encoding combined with Content-Length (CL.TE request smuggling)](https://github.com/http4s/http4s/security/advisories/GHSA-8h4c-x2wg-6xp8)
+* [`GHSA-9vwc-pc8p-253q`: Ember HTTP/2: does not enforce SETTINGS_MAX_CONCURRENT_STREAMS](https://github.com/http4s/http4s/security/advisories/GHSA-9vwc-pc8p-253q)
+* [`GHSA-6m4x-pp6q-5jmm`: Ember HTTP/2: unbounded inbound body buffering](https://github.com/http4s/http4s/security/advisories/GHSA-6m4x-pp6q-5jmm)
+
+## Special thanks
+
+@rossabaker would like to thank:
+
+- @reardonj and @ERobertGII for their security analysis and mitigations
+- @samspills, @morgen-peschke, and @OddKristensen for reviewing the mitigations
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M46...v1.0.0-M47
+
 # v0.23.35 (2026-07-06)
 
 This is a security hardening release that comes as a result of two independent scans.  Upgrades are strongly encouraged if you are:
