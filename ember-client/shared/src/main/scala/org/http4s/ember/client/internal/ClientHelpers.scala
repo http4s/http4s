@@ -24,10 +24,10 @@ import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Async
 import cats.effect.kernel.Clock
-import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
+import cats.effect.kernel.Temporal
 import cats.effect.std.Hotswap
 import cats.effect.syntax.all._
 import cats.syntax.all._
@@ -48,6 +48,7 @@ import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool._
+import org.typelevel.log4cats.Logger
 
 import java.io.IOException
 import scala.concurrent.duration._
@@ -217,19 +218,35 @@ private[client] object ClientHelpers {
       nextBytes: Ref[F, Array[Byte]],
       canBeReused: Ref[F, Reusable],
       startNextRead: F[Unit],
-  )(implicit F: Concurrent[F]): F[Unit] =
-    drain.flatMap {
-      case Some(bytes) =>
-        val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
-        val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
-
-        if (requestClose || responseClose) F.unit
-        else
+      maxDrainBytes: Long,
+      drainTimeout: Duration,
+      logger: Logger[F],
+  )(implicit F: Temporal[F]): F[Unit] =
+    F.unlessA(
+      connectionFor(req.httpVersion, req.headers).hasClose ||
+        connectionFor(resp.httpVersion, resp.headers).hasClose
+    )(
+      drain.flatMap {
+        case Some(bytes) =>
           nextBytes.set(bytes) *>
             startNextRead *> // start the next read before returning to pool
             canBeReused.set(Reusable.Reuse) // now it is safe to mark as re-usable
-      case None => F.unit
-    }
+        case None =>
+          F.timeout(
+            resp.body
+              .take(maxDrainBytes + 1)
+              .compile
+              .count
+              .flatMap { count =>
+                if (count <= maxDrainBytes) {
+                  startNextRead *>
+                    canBeReused.set(Reusable.Reuse)
+                } else F.unit
+              },
+            drainTimeout,
+          ).handleErrorWith(e => logger.error(e)("Error draining response"))
+      }
+    )
 
   private def getAddress[F[_]: MonadThrow](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {

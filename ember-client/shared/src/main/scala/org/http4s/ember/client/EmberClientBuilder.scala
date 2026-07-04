@@ -61,6 +61,8 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
     ],
+    private val maxDrainBytes: Long,
+    private val drainTimeout: Duration,
 ) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
@@ -82,6 +84,8 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
       pushPromiseSupport: Option[
         (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
       ] = self.pushPromiseSupport,
+      maxDrainBytes: Long = self.maxDrainBytes,
+      drainTimeout: Duration = self.drainTimeout,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -100,6 +104,8 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
       retryPolicy = retryPolicy,
       enableHttp2 = enableHttp2,
       pushPromiseSupport = pushPromiseSupport,
+      maxDrainBytes = maxDrainBytes,
+      drainTimeout = drainTimeout,
     )
 
   /** Sets a custom `TLSContext`.
@@ -234,6 +240,19 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
   def withoutPushPromiseSupport: EmberClientBuilder[F] =
     copy(pushPromiseSupport = None)
 
+  /** Set the maximum number of bytes to attempt to drain after a response
+    * is completed while deciding whether the connection can be reused.
+    */
+  def withMaxDrainBytes(maxDrainBytes: Long): EmberClientBuilder[F] =
+    copy(maxDrainBytes = maxDrainBytes)
+
+  /** Set the maximum amount of time to read `maxDrainBytes` or reach the
+    * end of the response while deciding whether the connection
+    * can be reused.
+    */
+  def withDrainTimeout(drainTimeout: Duration): EmberClientBuilder[F] =
+    copy(drainTimeout = drainTimeout)
+
   private val verifyTimeoutRelations: F[Unit] =
     logger
       .warn(
@@ -324,6 +343,9 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
                   managed.value.nextBytes,
                   managed.canBeReused,
                   managed.value.startNextRead,
+                  maxDrainBytes,
+                  drainTimeout,
+                  logger,
                 )
               case _ => Applicative[F].unit
             }
@@ -399,6 +421,8 @@ object EmberClientBuilder {
       retryPolicy = Defaults.retryPolicy,
       enableHttp2 = false,
       pushPromiseSupport = None,
+      maxDrainBytes = 64L * 1024L,
+      drainTimeout = 5.seconds,
     )
 
   private object Defaults {
