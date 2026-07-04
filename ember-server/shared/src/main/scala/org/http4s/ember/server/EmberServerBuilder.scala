@@ -58,6 +58,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val enableHttp2: Boolean,
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+    private val maxWebSocketMessageSize: Int,
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -84,6 +85,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
         self.maxHeaderSizeErrorHandler,
+      maxWebSocketMessageSize: Int = self.maxWebSocketMessageSize,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -105,6 +107,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler = requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
+      maxWebSocketMessageSize = maxWebSocketMessageSize,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -241,11 +244,18 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   ): EmberServerBuilder[F] =
     copy(requestLineParseErrorHandler = requestLineParseErrorHandler)
 
+  def withMaxWebSocketMessageSize(maxWebSocketMessageSize: Int): EmberServerBuilder[F] =
+    copy(maxWebSocketMessageSize = maxWebSocketMessageSize)
+
   def build: Resource[F, Server] =
     for {
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      wsBuilder <- Resource.eval(WebSocketBuilder[F])
+      wsBuilder <- Resource.eval(
+        WebSocketBuilder[F].map(
+          _.withMaxMessageSize(maxWebSocketMessageSize.toLong)
+        )
+      )
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -270,6 +280,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               enableHttp2,
               requestLineParseErrorHandler,
               maxHeaderSizeErrorHandler,
+              maxWebSocketMessageSize,
             )
             .compile
             .drain
@@ -298,6 +309,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             enableHttp2,
             requestLineParseErrorHandler,
             maxHeaderSizeErrorHandler,
+            maxWebSocketMessageSize,
           )
           .compile
           .drain
@@ -334,6 +346,7 @@ object EmberServerBuilder {
       enableHttp2 = false,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
+      maxWebSocketMessageSize = org.http4s.websocket.DefaultMaxMessageSize,
     )
 
   private object Defaults {

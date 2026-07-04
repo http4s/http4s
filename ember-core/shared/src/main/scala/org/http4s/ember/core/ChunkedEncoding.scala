@@ -32,6 +32,7 @@ import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
+import org.http4s.internal.CharPredicate
 import org.http4s.internal.appendSanitized
 import scodec.bits.ByteVector
 
@@ -72,10 +73,7 @@ private[ember] object ChunkedEncoding {
             case Left(header) =>
               val nh = header ++ bv
               val endOfHeader = nh.indexOfSlice(crlf)
-              if (endOfHeader == 0)
-                // strip any leading crlf on header, as this starts with /r/n
-                go(expect, nh.drop(crlf.size))
-              else if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
+              if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](
                   EmberException.ChunkedEncodingError(
                     s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"
@@ -108,11 +106,27 @@ private[ember] object ChunkedEncoding {
                 Pull.output(Chunk.byteVector(bv)) >> go(Right(remains - bv.size), ByteVector.empty)
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
-                Pull.output(Chunk.byteVector(out)) >> go(Left(ByteVector.empty), next)
+                Pull.output(Chunk.byteVector(out)) >> requireCrlf(next)
               }
           }
       }
     }
+
+    // RFC 9112 7.1: chunk = chunk-size CRLF chunk-data CRLF
+    // The CRLF following chunk-data is mandatory; failing to enforce it allows
+    // a request-smuggling differential against strict upstream parsers.
+    def requireCrlf(buf: ByteVector): Pull[F, Byte, Unit] =
+      if (buf.size < crlf.size)
+        Pull.eval(read).flatMap {
+          case None => Pull.raiseError[F](EmberException.ReachedEndOfStream())
+          case Some(c) => requireCrlf(buf ++ c.toByteVector)
+        }
+      else if (buf.startsWith(crlf))
+        go(Left(ByteVector.empty), buf.drop(crlf.size))
+      else
+        Pull.raiseError[F](
+          EmberException.ChunkedEncodingError("Expected CRLF after chunk data")
+        )
 
     go(Left(ByteVector.empty), ByteVector.view(head)).stream
   }
@@ -197,10 +211,10 @@ private[ember] object ChunkedEncoding {
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
   private def readChunkedHeader(hdr: ByteVector): Option[Long] =
     hdr.decodeUtf8.toOption.flatMap { s =>
-      val parts = s.split(';') // lets ignore any extensions
-      if (parts.isEmpty) None
-      else
-        try Some(java.lang.Long.parseLong(parts(0).trim, 16))
+      val size = s.takeWhile(_ != ';') // ignore any chunk-ext
+      if (size.nonEmpty && size.forall(CharPredicate.HexDigit))
+        try Some(java.lang.Long.parseLong(size, 16))
         catch { case NonFatal(_) => None }
+      else None
     }
 }

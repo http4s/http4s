@@ -87,7 +87,10 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  @deprecated("Calling apply is side-effecting, please use applyF", "0.23.12")
+  @deprecated(
+    "Calling apply is side-effecting with an unbounded nonce cache.  Please use applyF.",
+    "0.23.12",
+  )
   def apply[F[_]: Sync, A](
       realm: String,
       store: String => F[Option[(A, String)]],
@@ -128,7 +131,7 @@ object DigestAuth {
     }
 
   @deprecated(
-    "Uses a side-effecting NonceKeeper. Use challenge(String, AuthStore, Blocker, Duration, Int, Int).",
+    "Uses a side-effecting NonceKeeper with an unbounded nonce cache.  Use challenge(String, AuthStore, Blocker, Duration, Int, Int).",
     "0.23.12",
   )
   private def challenge[F[_], A](
@@ -151,6 +154,10 @@ object DigestAuth {
     * Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     *
+    * Up to 1,000,000 nonces are cached before the oldest is evicted to prevent
+    * a denial of service attack.  Users who need more or fewer are invited to
+    * submit a pull request that factors this into a builder pattern.
+    *
     * @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
@@ -170,7 +177,7 @@ object DigestAuth {
   )(implicit
       F: Async[F]
   ): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
-    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits)
+    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits, 1000000)
       .map { nonceKeeper =>
         challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)
       }

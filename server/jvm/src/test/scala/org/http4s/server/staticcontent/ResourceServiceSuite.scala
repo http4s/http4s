@@ -91,14 +91,38 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     }
   }
 
+  test(
+    "Return a 400 if the request tries to escape the context, obscured by percent-encoded separators"
+  ) {
+    val relativePath = "..%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
   test("Return a 400 on path traversal, even if it's inside the context") {
     val relativePath = "testDir/../testresource.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
-
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
     IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
+  test(
+    "Return a 400 on path traversal, even if it's inside the context, obscured by percent-encoded separators"
+  ) {
+    val relativePath = "testDir/..%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
+  test("Return a 400 on a percent-encoded backslash for Windows safety") {
+    val relativePath = "testDir/..%5Ctestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test(

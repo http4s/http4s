@@ -80,6 +80,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+      maxWebSocketFrameSize: Int,
   )(implicit F: Async[F], F2: Network[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -113,6 +114,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
+      new WebSocketHelpers(maxWebSocketFrameSize),
     )
   }
 
@@ -139,6 +141,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+      maxWebSocketFrameSize: Int,
   ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
@@ -177,6 +180,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
+      new WebSocketHelpers(maxWebSocketFrameSize),
     )
   }
 
@@ -204,7 +208,11 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+      webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
+    val h2FrameSettings = H2Frame.Settings.ConnectionSettings.default
+      .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -224,7 +232,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         .fromSocket[F](
                           socket,
                           httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
+                          requestHeaderReceiveTimeout,
+                          idleTimeout,
+                          h2FrameSettings,
                           logger,
                         )
                     )
@@ -249,6 +259,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   enableHttp2,
                   requestLineParseErrorHandler,
                   maxHeaderSizeErrorHandler,
+                  webSocketHelpers,
                 ).drain
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
@@ -273,6 +284,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           enableHttp2,
                           requestLineParseErrorHandler,
                           maxHeaderSizeErrorHandler,
+                          webSocketHelpers,
                         ).drain
                       case Right(_) =>
                         Stream
@@ -280,7 +292,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                             H2Server.fromSocket[F](
                               socket,
                               httpApp,
-                              H2Frame.Settings.ConnectionSettings.default,
+                              requestHeaderReceiveTimeout,
+                              idleTimeout,
+                              h2FrameSettings,
                               logger,
                             )
                           )
@@ -304,6 +318,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       enableHttp2,
                       requestLineParseErrorHandler,
                       maxHeaderSizeErrorHandler,
+                      webSocketHelpers,
                     ).drain
                 }
             }
@@ -471,6 +486,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+      webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
@@ -479,6 +495,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
+
+    val h2FrameSettings = H2Frame.Settings.ConnectionSettings.default
+      .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
+
     Stream
       .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
         val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
@@ -518,7 +538,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               case Some(ctx) =>
                 drain.flatMap {
                   case Some(buffer) =>
-                    WebSocketHelpers
+                    webSocketHelpers
                       .upgrade(
                         socket,
                         req,
@@ -553,7 +573,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         .fromSocket(
                           socket,
                           httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
+                          requestHeaderReceiveTimeout,
+                          idleTimeout,
+                          h2FrameSettings,
                           logger,
                           settings,
                           newReq.some,
