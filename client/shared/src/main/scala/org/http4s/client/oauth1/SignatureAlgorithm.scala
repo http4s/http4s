@@ -68,13 +68,13 @@ trait SignatureAlgorithm {
     */
   def name: String
 
-  @annotation.nowarn("msg=deprecated")
-  def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
-    MonadThrow[F].catchNonFatal(generate(input, secretKey))
-
-  @deprecated("Use generate[F[_]: MonadThrow] instead", "0.22.5")
-  def generate(input: String, secretKey: String): String =
-    throw new NotImplementedError()
+  /** Apply the implementation's algorithm to the input
+    *
+    * @param input The input value
+    * @param secretKey The secret key
+    * @return The base64-encoded output
+    */
+  def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String]
 
   /** Apply the implementation's algorithm to the input
     *
