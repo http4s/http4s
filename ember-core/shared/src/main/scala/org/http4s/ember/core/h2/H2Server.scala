@@ -26,12 +26,13 @@ import cats.syntax.all._
 import fs2._
 import fs2.io.IOException
 import fs2.io.net._
-import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
+import java.util.concurrent.CancellationException
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
@@ -177,6 +178,8 @@ private[ember] object H2Server {
   def fromSocket[F[_]](
       socket: Socket[F],
       httpApp: HttpApp[F],
+      receiveHeadersTimeout: Duration,
+      idleTimeout: Duration,
       localSettings: H2Frame.Settings.ConnectionSettings,
       logger: Logger[F],
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
@@ -207,26 +210,26 @@ private[ember] object H2Server {
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
     def initH2Connection: F[H2Connection[F]] = for {
-      address <- socket.remoteAddress.attempt.map(
-        // TODO, only used for logging
-        _.leftMap(_ => UnixSocketAddress("unknown.sock"))
-      )
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
         initialRemoteSettings,
         defaultSettings.initialWindowSize,
         localSettings.initialWindowSize,
       )
-      queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
-      hpack <- Hpack.create[F]
+      queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
+      hpack <- Hpack.create[F](
+        localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
+      )
       settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
       streamCreationLock <- Semaphore[F](1)
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
       created <- cats.effect.std.Queue.unbounded[F, Int]
       closed <- cats.effect.std.Queue.unbounded[F, Int]
     } yield new H2Connection(
-      address,
+      socket.peerAddress,
       H2Connection.ConnectionType.Server,
+      receiveHeadersTimeout,
+      idleTimeout,
       localSettings,
       ref,
       stateRef,
@@ -258,6 +261,7 @@ private[ember] object H2Server {
     def processCreatedStream(
         h2: H2Connection[F],
         streamIx: Int,
+        maxStreams: Semaphore[F],
     ): F[Unit] = {
       def fulfillPushPromises(resp: Response[F]): F[Unit] = {
         def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
@@ -295,23 +299,40 @@ private[ember] object H2Server {
         }
       }
 
-      for {
-        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
-        req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
-        resp <- httpApp(req)
-        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
-        _ <- fulfillPushPromises(resp)
-        _ <- stream.sendMessageBody(resp) // Initial Resp Body
-        _ <- stream.sendTrailerHeaders(resp)
-      } yield ()
+      h2.mapRef.get.map(_.get(streamIx)).map(_.get).flatMap { stream =>
+        val permit =
+          if (streamIx % 2 != 0) maxStreams.tryPermit else Resource.pure[F, Boolean](true)
+
+        permit.use {
+          case true =>
+            for {
+              req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+              resp <- httpApp(req)
+              _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
+              _ <- fulfillPushPromises(resp)
+              _ <- stream.sendMessageBody(resp) // Initial Resp Body
+              _ <- stream.sendTrailerHeaders(resp)
+              _ <- h2.mapRef.update(_ - streamIx) // Remove stream from map on normal termination
+            } yield ()
+
+          case false => stream.rstStream(H2Error.RefusedStream)
+        }
+      }
     }
 
-    def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
+    def processCreatedStreams(h2: H2Connection[F], maxStreams: Semaphore[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
-          processCreatedStream(h2, i)
-            .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))
+        .parEvalMapUnbounded(i =>
+          processCreatedStream(h2, i, maxStreams)
+            .handleErrorWith {
+              case e: CancellationException =>
+                logger.debug(e)("Stream canceled before processing")
+              case e: TimeoutException =>
+                logger.debug(e)("Connection timed out")
+              case e =>
+                logger.error(e)(s"Error while processing stream")
+            }
         )
         .compile
         .drain
@@ -328,8 +349,11 @@ private[ember] object H2Server {
       _ <- Resource.eval(
         initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
+      maxStreams <- Resource.eval(
+        Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)
+      )
       _ <- clearClosedStreams(h2).background
-      _ <- processCreatedStreams(h2).background
+      _ <- processCreatedStreams(h2, maxStreams).background
       _ <- Resource.eval(
         h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )

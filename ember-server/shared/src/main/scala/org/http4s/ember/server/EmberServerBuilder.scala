@@ -26,8 +26,8 @@ import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
+import fs2.io.net.unixsocket.{UnixSocketAddress => OldUnixSocketAddress}
 import org.http4s._
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.server.internal.ServerHelpers
@@ -43,7 +43,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val port: Port,
     private val httpApp: WebSocketBuilder[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-    private val sgOpt: Option[SocketGroup[F]],
     private val connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
     private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
@@ -55,10 +54,11 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
-    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
+    private val unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+    private val maxWebSocketMessageSize: Int,
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -69,7 +69,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       port: Port = self.port,
       httpApp: WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
-      sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       connectionErrorHandler: PartialFunction[Throwable, F[Unit]] = self.connectionErrorHandler,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
@@ -81,19 +80,18 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger,
-      unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
-        self.unixSocketConfig,
+      unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)] = self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
       requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
         self.maxHeaderSizeErrorHandler,
+      maxWebSocketMessageSize: Int = self.maxWebSocketMessageSize,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
       port = port,
       httpApp = httpApp,
       tlsInfoOpt = tlsInfoOpt,
-      sgOpt = sgOpt,
       connectionErrorHandler = connectionErrorHandler,
       errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
@@ -109,6 +107,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler = requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
+      maxWebSocketMessageSize = maxWebSocketMessageSize,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -120,8 +119,9 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): EmberServerBuilder[F] =
     copy(httpApp = f)
 
+  @deprecated("Explicit socket groups are no longer supported", "0.23.34")
   def withSocketGroup(sg: SocketGroup[F]): EmberServerBuilder[F] =
-    copy(sgOpt = sg.pure[Option])
+    this
 
   def withTLS(
       tlsContext: TLSContext[F],
@@ -149,13 +149,17 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     copy(connectionErrorHandler = errorHandler)
 
   @deprecated("Use withErrorHandler - Do not allow the F to fail", "0.21.17")
-  def withOnError(onError: Throwable => Response[F]) =
+  def withOnError(onError: Throwable => Response[F]): EmberServerBuilder[F] =
     withErrorHandler { case e => onError(e).pure[F] }
 
-  def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
+  def withErrorHandler(
+      errorHandler: PartialFunction[Throwable, F[Response[F]]]
+  ): EmberServerBuilder[F] =
     copy(errorHandler = errorHandler)
 
-  def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
+  def withOnWriteFailure(
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
+  ): EmberServerBuilder[F] =
     copy(onWriteFailure = onWriteFailure)
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections", "0.22.3")
@@ -193,13 +197,28 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
+  @deprecated("Use overload that doesn't take a UnixSockets[F]", "0.23.34")
   def withUnixSocketConfig(
       unixSockets: UnixSockets[F],
-      unixSocketAddress: UnixSocketAddress,
+      unixSocketAddress: OldUnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true,
+  ): EmberServerBuilder[F] = {
+    val _ = unixSockets
+    copy(unixSocketConfig =
+      Some((UnixSocketAddress(unixSocketAddress.path), deleteIfExists, deleteOnClose))
+    )
+  }
+  def withUnixSocketConfig(
+      unixSocketAddress: UnixSocketAddress
   ): EmberServerBuilder[F] =
-    copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
+    withUnixSocketConfig(unixSocketAddress, true, true)
+  def withUnixSocketConfig(
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean,
+      deleteOnClose: Boolean,
+  ): EmberServerBuilder[F] =
+    copy(unixSocketConfig = Some((unixSocketAddress, deleteIfExists, deleteOnClose)))
   def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
 
@@ -225,12 +244,18 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   ): EmberServerBuilder[F] =
     copy(requestLineParseErrorHandler = requestLineParseErrorHandler)
 
+  def withMaxWebSocketMessageSize(maxWebSocketMessageSize: Int): EmberServerBuilder[F] =
+    copy(maxWebSocketMessageSize = maxWebSocketMessageSize)
+
   def build: Resource[F, Server] =
     for {
-      sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      wsBuilder <- Resource.eval(WebSocketBuilder[F])
+      wsBuilder <- Resource.eval(
+        WebSocketBuilder[F].map(
+          _.withMaxMessageSize(maxWebSocketMessageSize.toLong)
+        )
+      )
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -238,7 +263,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               host,
               port,
               additionalSocketOptions,
-              sg,
               httpApp(wsBuilder),
               tlsInfoOpt,
               ready,
@@ -256,17 +280,18 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               enableHttp2,
               requestLineParseErrorHandler,
               maxHeaderSizeErrorHandler,
+              maxWebSocketMessageSize,
             )
             .compile
             .drain
         )
-      ) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
+      ) { case (unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
           .unixSocketServer(
-            unixSockets,
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
+            additionalSocketOptions,
             httpApp(wsBuilder),
             tlsInfoOpt,
             ready,
@@ -284,6 +309,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             enableHttp2,
             requestLineParseErrorHandler,
             maxHeaderSizeErrorHandler,
+            maxWebSocketMessageSize,
           )
           .compile
           .drain
@@ -305,7 +331,6 @@ object EmberServerBuilder {
       port = Port.fromInt(Defaults.port).get,
       httpApp = _ => Defaults.httpApp[F],
       tlsInfoOpt = None,
-      sgOpt = None,
       connectionErrorHandler = Defaults.connectionErrorHandler[F],
       errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],
@@ -321,6 +346,7 @@ object EmberServerBuilder {
       enableHttp2 = false,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
+      maxWebSocketMessageSize = org.http4s.websocket.DefaultMaxMessageSize,
     )
 
   private object Defaults {
@@ -338,7 +364,7 @@ object EmberServerBuilder {
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
     def errorHandler[F[_]](implicit F: Applicative[F]): Throwable => F[Response[F]] = {
-      case (_: Throwable) =>
+      case _: Throwable =>
         F.pure(serverFailure)
     }
 

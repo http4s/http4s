@@ -16,12 +16,4 @@
 
 package org.http4s.ember.client
 
-import cats.effect.Async
-import fs2.io.net.unixsocket.UnixSockets
-
-private[client] trait EmberClientBuilderPlatform {
-
-  private[client] def defaultUnixSockets[F[_]: Async]: Option[UnixSockets[F]] =
-    Some(UnixSockets.forAsync)
-
-}
+private[client] trait EmberClientBuilderPlatform {}

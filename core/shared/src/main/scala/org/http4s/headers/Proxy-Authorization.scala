@@ -33,8 +33,13 @@ object `Proxy-Authorization` {
     import org.http4s.internal.parsing.AuthRules.credentials
     credentials.map(`Proxy-Authorization`(_))
   }
+
+  @deprecated("Use fromBasicCredentials", "0.23.33")
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
+
+  def fromBasicCredentials(basic: BasicCredentials): `Proxy-Authorization` =
+    `Proxy-Authorization`(Credentials.Token(AuthScheme.Basic, basic.token))
 
   def parse(s: String): ParseResult[`Proxy-Authorization`] =
     ParseResult.fromParser(parser, "Invalid Proxy-Authorization header")(s)

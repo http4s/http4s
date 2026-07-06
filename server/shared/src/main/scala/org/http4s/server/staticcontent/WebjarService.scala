@@ -75,6 +75,8 @@ class WebjarServiceBuilder[F[_]] private (
           .liftF(F.catchNonFatal {
             segments.foldLeft(Root) {
               case (_, "" | "." | "..") => throw BadTraversal
+              case (_, segment) if segment.contains("/") || segment.contains("\\") =>
+                throw BadTraversal
               case (path, segment) =>
                 path.resolve(segment)
             }

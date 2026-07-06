@@ -277,7 +277,7 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Request.parser should handle correct whitespace split across chunks") {
     val defaultMaxHeaderLength = 4096
     val raw1 = "POST /foo HTTP/1.1\r\nTransfer-Encoding: chunked\r\n"
-    val raw2 = "\r\n2\r\naa\r\n\r\n0\r\nTrailer: header\r"
+    val raw2 = "\r\n2\r\naa\r\n0\r\nTrailer: header\r"
     val raw3 = "\n\r\n"
 
     val byteStream: Stream[IO, Byte] =
@@ -305,7 +305,6 @@ class ParsingSuite extends Http4sSuite {
         "\r\n",
         "2\r\n",
         "aa\r\n",
-        "\r\n",
         "0\r\nTrailer: header\r\n",
         "a\r\n",
       )
@@ -707,5 +706,93 @@ class ParsingSuite extends Http4sSuite {
         .parser[IO](10)(Array.emptyByteArray, take)
         .intercept[EmberException.MessageTooLong]
     }
+  }
+
+  test("HeaderP should accept only 'chunked' Transfer-Encoding, case-insensitively") {
+    def parse(headers: String) = {
+      val raw = Helpers
+        .httpifyString(s"$headers\n\n")
+        .getBytes(java.nio.charset.StandardCharsets.UTF_8)
+      Parser.HeaderP.parse[IO](raw, 4096, Parser.HeaderP.ParserState.initial)
+    }
+    def chunked(headers: String) = parse(headers).map {
+      case Right(h) => h.chunked
+      case Left(_) => fail("incomplete header section")
+    }
+    for {
+      _ <- chunked("Transfer-Encoding: chunked").assertEquals(true)
+      _ <- chunked("Transfer-Encoding: Chunked").assertEquals(true)
+      _ <- chunked("Transfer-Encoding: CHUNKED").assertEquals(true)
+      _ <- chunked("Transfer-Encoding: chunked\nTransfer-Encoding: chunked").assertEquals(true)
+      _ <- List(
+        "Transfer-Encoding: notchunked",
+        "Transfer-Encoding: gzip, chunked",
+        "Transfer-Encoding: chunked, gzip",
+        "Transfer-Encoding: identity\nTransfer-Encoding: chunked",
+        "Transfer-Encoding: chunked\nTransfer-Encoding: identity",
+        // U+212A KELVIN SIGN Unicode-case-folds to 'k'; on the wire (UTF-8)
+        // it is bytes E2 84 AA, which must not be decoded as a single char.
+        "Transfer-Encoding: chunKed",
+      ).traverse_ { h =>
+        interceptMessageIO[ParseHeadersError](
+          "Encountered Error Attempting to Parse Headers - UnsupportedTransferEncoding"
+        )(parse(h))
+      }
+    } yield ()
+  }
+
+  test("Request.parser should reject Transfer-Encoding combined with Content-Length") {
+    val raw = "POST / HTTP/1.1\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+    Helpers.taking[IO, Byte](Stream.chunk(Chunk.array(raw.getBytes()))).flatMap { take =>
+      interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - ContentLengthAndTransferEncoding"
+      )(Parser.Request.parser[IO](4096)(Array.emptyByteArray, take))
+    }
+  }
+
+  test("HeaderP should reject a Content-Length that is not 1*DIGIT") {
+    def parse(headers: String) = {
+      val raw = Helpers.httpifyString(s"$headers\n\n")
+      Parser.HeaderP.parse[IO](raw.getBytes(), 4096, Parser.HeaderP.ParserState.initial)
+    }
+    List("-1", "+0", "", "1 0", "1e3", "0x10", "9" * 30).traverse_ { v =>
+      interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - InvalidContentLength"
+      )(parse(s"Content-Length: $v"))
+    } *>
+      interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - DuplicateContentLength"
+      )(parse("Content-Length: 1\nContent-Length: 2")) *>
+      parse("Content-Length: 5\nContent-Length: 5").map {
+        case Right(h) => assertEquals(h.contentLength, Some(5L))
+        case Left(_) => fail("incomplete header section")
+      }
+  }
+
+  private def decodeChunked(body: String): IO[String] =
+    for {
+      trailers <- Deferred[IO, Headers]
+      rest <- Ref.of[IO, Option[Array[Byte]]](None)
+      out <- ChunkedEncoding
+        .decode[IO](body.getBytes(), IO.pure(None), 4096, 4096, trailers, rest)
+        .through(text.utf8.decode)
+        .compile
+        .string
+    } yield out
+
+  test("ChunkedEncoding.decode should reject chunk-size that is not 1*HEXDIG") {
+    List("+5", "-5", "0x5", " 5", "5 ").traverse_ { sz =>
+      decodeChunked(s"$sz\r\nhello\r\n0\r\n\r\n")
+        .intercept[EmberException.ChunkedEncodingError]
+    } *>
+      decodeChunked("5;ext=foo\r\nhello\r\n0\r\n\r\n").assertEquals("hello")
+  }
+
+  test("ChunkedEncoding.decode should require exactly one CRLF after chunk-data") {
+    decodeChunked("5\r\nhello0\r\n\r\n")
+      .intercept[EmberException.ChunkedEncodingError] *>
+      decodeChunked("5\r\nhello\r\n\r\n0\r\n\r\n")
+        .intercept[EmberException.ChunkedEncodingError] *>
+      decodeChunked("5\r\nhello\r\n0\r\n\r\n").assertEquals("hello")
   }
 }

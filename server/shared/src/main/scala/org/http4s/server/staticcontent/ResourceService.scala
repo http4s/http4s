@@ -96,6 +96,8 @@ class ResourceServiceBuilder[F[_]: LoggerFactory] private (
               .liftF(F.catchNonFatal {
                 segments.foldLeft(rootPath) {
                   case (_, "" | "." | "..") => throw BadTraversal
+                  case (_, segment) if segment.contains("/") || segment.contains("\\") =>
+                    throw BadTraversal
                   case (path, segment) =>
                     path.resolve(segment)
                 }

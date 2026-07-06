@@ -52,6 +52,7 @@ import org.typelevel.vault._
   * Headers whose names match `sensitiveHeaderFilter` are not exposed when
   * redirecting to a different authority.
   */
+@annotation.nowarn("cat=deprecation")
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
@@ -70,8 +71,14 @@ object FollowRedirect {
         fragment = uri.fragment.orElse(req.uri.fragment),
       )
 
+      def sameSecurityContext(uri: Uri): Boolean = {
+        val schemeDowngrade =
+          uri.scheme.contains(Uri.Scheme.https) && nextUri.scheme.contains(Uri.Scheme.http)
+        uri.authority == nextUri.authority && !schemeDowngrade
+      }
+
       def stripSensitiveHeaders(req: Request[F]): Request[F] =
-        if (req.uri.authority != nextUri.authority)
+        if (!sameSecurityContext(req.uri))
           req.transformHeaders(hs =>
             Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name)))
           )
@@ -79,7 +86,7 @@ object FollowRedirect {
           req
 
       def propagateCookies(req: Request[F]): Request[F] =
-        if (req.uri.authority == nextUri.authority)
+        if (sameSecurityContext(req.uri))
           cookies.foldLeft(req) { case (nextReq, cookie) =>
             nextReq.addCookie(cookie.name, cookie.content)
           }

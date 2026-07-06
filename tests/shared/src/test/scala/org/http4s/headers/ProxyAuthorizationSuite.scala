@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import cats.effect._
-import io.circe._
-import org.http4s.circe.CirceEntityCodec._
-import org.http4s.client._
+package org.http4s.headers
 
-import scala.scalajs.js
-import scala.scalajs.js.annotation._
+import org.http4s.BasicCredentials
+import org.http4s.implicits._
+import org.scalacheck.Prop._
 
-object Main extends IOApp.Simple {
-  def run: IO[Unit] = client.expect[Json]("https://www.boredapi.com/api/activity").void
-
-  @JSGlobal("client")
-  @js.native
-  def client: Client[IO] = js.native
+class ProxyAuthorizationSuite extends HeaderLaws {
+  test("fromBasicCredentials proper header render") {
+    forAll { (username: String, password: String) =>
+      val basicCredentials = BasicCredentials(username, password)
+      val header = `Proxy-Authorization`.fromBasicCredentials(basicCredentials)
+      header.renderString == s"Proxy-Authorization: Basic ${basicCredentials.token}"
+    }
+  }
 }
