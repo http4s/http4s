@@ -18,57 +18,87 @@ package org.http4s.metrics
 
 import cats.Foldable
 import cats.~>
-import org.http4s.Method
 import org.http4s.Request
+import org.http4s.RequestPrelude
+import org.http4s.ResponsePrelude
 import org.http4s.Status
 
-/** Describes an algebra capable of writing metrics to a metrics registry
+import scala.concurrent.duration.FiniteDuration
+
+/** Describes an algebra capable of writing metrics to a metrics registry.
+  *
+  * The algebra provides enough information to fill out all required and
+  * optional [[https://opentelemetry.io/docs/specs/semconv/http/http-metrics OpenTelemetry attributes]].
   */
 trait MetricsOps[F[_]] {
 
   /** Increases the count of active requests
     *
+    * @param request the request
     * @param classifier the classifier to apply
     */
-  def increaseActiveRequests(classifier: Option[String]): F[Unit]
+  def increaseActiveRequests(request: RequestPrelude, classifier: Option[String]): F[Unit]
 
   /** Decreases the count of active requests
     *
+    * @param request the request
     * @param classifier the classifier to apply
     */
-  def decreaseActiveRequests(classifier: Option[String]): F[Unit]
+  def decreaseActiveRequests(request: RequestPrelude, classifier: Option[String]): F[Unit]
 
   /** Records the time to receive the response headers
     *
-    * @param method the http method of the request
-    * @param elapsed the time to record
+    * @param request the request
+    * @param elapsed the headers receiving time
     * @param classifier the classifier to apply
     */
-  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
-
-  /** Records the time to fully consume the response, including the body
-    *
-    * @param method the http method of the request
-    * @param status the http status code of the response
-    * @param elapsed the time to record
-    * @param classifier the classifier to apply
-    */
-  def recordTotalTime(
-      method: Method,
-      status: Status,
-      elapsed: Long,
+  def recordHeadersTime(
+      request: RequestPrelude,
+      elapsed: FiniteDuration,
       classifier: Option[String],
   ): F[Unit]
 
-  /** Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
+  /** Records the time to fully consume the response, including the body
     *
-    * @param elapsed the time to record
-    * @param terminationType the type of termination
+    * @param request the request
+    * @param status the status of the response
+    * @param terminationType the termination type
+    * @param elapsed the processing time
     * @param classifier the classifier to apply
     */
-  def recordAbnormalTermination(
-      elapsed: Long,
-      terminationType: TerminationType,
+  def recordTotalTime(
+      request: RequestPrelude,
+      status: Option[Status],
+      terminationType: Option[TerminationType],
+      elapsed: FiniteDuration,
+      classifier: Option[String],
+  ): F[Unit]
+
+  /** Records the size of the request body
+    *
+    * @param request the request
+    * @param status the status of the response
+    * @param terminationType the termination type
+    * @param classifier the classifier to apply
+    */
+  def recordRequestBodySize(
+      request: RequestPrelude,
+      status: Option[Status],
+      terminationType: Option[TerminationType],
+      classifier: Option[String],
+  ): F[Unit]
+
+  /** Records the size of the response body
+    *
+    * @param request the request
+    * @param response the response
+    * @param terminationType the termination type
+    * @param classifier the classifier to apply
+    */
+  def recordResponseBodySize(
+      request: RequestPrelude,
+      response: ResponsePrelude,
+      terminationType: Option[TerminationType],
       classifier: Option[String],
   ): F[Unit]
 
@@ -81,28 +111,38 @@ trait MetricsOps[F[_]] {
   def mapK[G[_]](fk: F ~> G): MetricsOps[G] = {
     val ops = this
     new MetricsOps[G] {
-      override def increaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
-        ops.increaseActiveRequests(classifier)
-      )
-      override def decreaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
-        ops.decreaseActiveRequests(classifier)
-      )
+      override def increaseActiveRequests(
+          request: RequestPrelude,
+          classifier: Option[String],
+      ): G[Unit] = fk(ops.increaseActiveRequests(request, classifier))
+      override def decreaseActiveRequests(
+          request: RequestPrelude,
+          classifier: Option[String],
+      ): G[Unit] = fk(ops.decreaseActiveRequests(request, classifier))
       override def recordHeadersTime(
-          method: Method,
-          elapsed: Long,
+          request: RequestPrelude,
+          elapsed: FiniteDuration,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier))
+      ): G[Unit] = fk(ops.recordHeadersTime(request, elapsed, classifier))
       override def recordTotalTime(
-          method: Method,
-          status: Status,
-          elapsed: Long,
+          request: RequestPrelude,
+          status: Option[Status],
+          terminationType: Option[TerminationType],
+          elapsed: FiniteDuration,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier))
-      override def recordAbnormalTermination(
-          elapsed: Long,
-          terminationType: TerminationType,
+      ): G[Unit] = fk(ops.recordTotalTime(request, status, terminationType, elapsed, classifier))
+      override def recordRequestBodySize(
+          request: RequestPrelude,
+          status: Option[Status],
+          terminationType: Option[TerminationType],
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier))
+      ): G[Unit] = fk(ops.recordRequestBodySize(request, status, terminationType, classifier))
+      override def recordResponseBodySize(
+          request: RequestPrelude,
+          response: ResponsePrelude,
+          terminationType: Option[TerminationType],
+          classifier: Option[String],
+      ): G[Unit] = fk(ops.recordResponseBodySize(request, response, terminationType, classifier))
     }
   }
 }
