@@ -485,6 +485,24 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.Parser#HeaderP#ParserState.apply"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._3"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._5"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._6"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._7"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._8"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._9"
+      ),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.apply"),
       ProblemFilters
