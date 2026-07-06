@@ -3,6 +3,19 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.36 (2026-07-06)
+
+This release fixes a binary compatibility regression in the `websocket` package if http4s-core is newer than http4s-server.  See #7887. 
+
+## What's Changed
+### http4s-core
+* Restore binary compatibility of WebSocketFrameDefragmenter by @rossabaker in https://github.com/http4s/http4s/pull/7887
+### Behind the scenes
+* Delete security policy in favor of org level by @rossabaker in https://github.com/http4s/http4s/pull/7689
+* Clean up lingering warnings by @rossabaker in https://github.com/http4s/http4s/pull/7884
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.35...v0.23.36
+
 # v0.23.35 (2026-07-06)
 
 This is a security hardening release that comes as a result of two independent scans.  Upgrades are strongly encouraged if you are:
