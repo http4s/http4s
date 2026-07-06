@@ -13,6 +13,7 @@ This release fixes a binary compatibility regression in the `websocket` package 
 ### Behind the scenes
 * Delete security policy in favor of org level by @rossabaker in https://github.com/http4s/http4s/pull/7689
 * Clean up lingering warnings by @rossabaker in https://github.com/http4s/http4s/pull/7884
+* Do not test unix sockets on Ember on JDK 1.8 by @rossabaker in https://github.com/http4s/http4s/pull/7890
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.35...v0.23.36
 
