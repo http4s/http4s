@@ -172,6 +172,11 @@ private[http4s] object WebSocketFrameDefragmenter {
       go(stream, Chunk.empty[WebSocketFrame]).stream
     }
 
+  @deprecated("Preserved for binary compatibility", "0.23.36")
+  private[WebSocketFrameDefragmenter] def defragFragment[F[_]]
+      : Pipe[F, WebSocketFrame, WebSocketFrame] =
+    defragFragment(DefaultMaxMessageSize.toLong)
+
   /** Raised when a defragmented WebSocket message would exceed the configured
     * maximum size.
     */
