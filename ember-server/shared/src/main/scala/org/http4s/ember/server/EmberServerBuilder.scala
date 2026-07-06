@@ -193,6 +193,11 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
+  /** Enables HTTP/2 support.
+    *
+    * As of 0.23.35, no longer tested or supported with Unix sockets
+    * on Java 8.
+    */
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
