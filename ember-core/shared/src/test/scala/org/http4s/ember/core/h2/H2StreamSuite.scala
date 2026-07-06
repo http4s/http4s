@@ -21,6 +21,7 @@ import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Ref
 import cats.effect.std.Queue
+import cats.effect.testkit.TestControl
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Stream
@@ -34,6 +35,8 @@ import org.http4s.Response
 import org.http4s.Status
 import org.typelevel.log4cats
 import scodec.bits.ByteVector
+
+import scala.concurrent.duration.DurationLong
 
 class H2StreamSuite extends Http4sSuite {
   val defaultSettings = H2Frame.Settings.ConnectionSettings.default
@@ -59,13 +62,15 @@ class H2StreamSuite extends Http4sSuite {
           trailers = trailers,
           readBuffer = readBuffer,
           contentLengthCheck = None,
+          stallStart = None,
         )
       )
-      hpack <- Hpack.create[IO]
+      hpack <- Hpack.create[IO](1024)
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
       outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
       stream = new H2Stream[IO](
         1,
+        60.seconds,
         defaultSettings,
         H2Connection.ConnectionType.Server,
         IO.pure(config),
@@ -99,13 +104,15 @@ class H2StreamSuite extends Http4sSuite {
           trailers = trailers,
           readBuffer = readBuffer,
           contentLengthCheck = None,
+          stallStart = None,
         )
       )
-      hpack <- Hpack.create[IO]
+      hpack <- Hpack.create[IO](1024)
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
       enqueue <- Queue.unbounded[IO, Chunk[H2Frame]]
       stream = new H2Stream[IO](
         1,
+        60.seconds,
         defaultSettings,
         H2Connection.ConnectionType.Client,
         IO.pure(config),
@@ -185,7 +192,7 @@ class H2StreamSuite extends Http4sSuite {
       source = fs2.Stream.repeatEval(IO(42.toByte)).take(10000).chunkN(100)
       actual <- Queue.unbounded[IO, Chunk[Byte]]
 
-      _ <- stream.receiveHeaders(init)
+      _ <- stream.receiveHeaders(init, List.empty)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
       _ <- (
         // Taken from `sendMessageBody` to emulate messages sent from server.
@@ -200,7 +207,7 @@ class H2StreamSuite extends Http4sSuite {
           .drain >>
           // Taken from `sendTrailerHeaders` to emulate trailers headers sent from server.
           stream
-            .receiveHeaders(trailers)
+            .receiveHeaders(trailers, List.empty)
       )
         // Note: Without closing `readBuffer` on headers with `endStream=true`, `readBody` hangs forever.
         .both(stream.readBody.compile.drain)
@@ -338,5 +345,40 @@ class H2StreamSuite extends Http4sSuite {
       _ <- fiber.joinWithNever
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
+  }
+
+  test("sendData clears stallStart when peer grants enough credit for a full chunk") {
+    TestControl.executeEmbed {
+      for {
+        sq <- streamAndQueue(defaultSettings)
+        (stream, _) = sq
+        _ <- stream.state.update(_.copy(writeWindow = 0))
+        fiber <- stream.sendData(ByteVector.fill(10)(0), endStream = false).start
+        _ <- IO.sleep(10.seconds)
+        stalled <- stream.state.get.map(_.stallStart)
+        _ = assert(stalled.isDefined)
+        _ <- stream.receiveWindowUpdate(H2Frame.WindowUpdate(1, 10))
+        _ <- fiber.joinWithNever
+        st <- stream.state.get
+      } yield assertEquals(st.stallStart, None)
+    }
+  }
+
+  test("sendData preserves stallStart across a sub-chunk drip") {
+    TestControl.executeEmbed {
+      for {
+        sq <- streamAndQueue(defaultSettings)
+        (stream, _) = sq
+        _ <- stream.state.update(_.copy(writeWindow = 0))
+        fiber <- stream.sendData(ByteVector.fill(10)(0), endStream = false).start
+        _ <- IO.sleep(10.seconds)
+        stalled0 <- stream.state.get.map(_.stallStart)
+        _ = assert(stalled0.isDefined)
+        _ <- stream.receiveWindowUpdate(H2Frame.WindowUpdate(1, 1))
+        _ <- IO.sleep(10.seconds)
+        stalled1 <- stream.state.get.map(_.stallStart)
+        _ <- fiber.cancel
+      } yield assertEquals(stalled1, stalled0)
+    }
   }
 }

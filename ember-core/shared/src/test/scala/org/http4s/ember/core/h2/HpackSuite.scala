@@ -19,6 +19,7 @@ package ember.core.h2
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import org.http4s.ember.core.EmberException
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
@@ -41,10 +42,20 @@ class HpackSuite extends Http4sSuite {
   test("hpack round-trip") {
     forAllF { (headers: NonEmptyList[Header.Raw]) =>
       for {
-        hpack <- Hpack.create[IO]
+        hpack <- Hpack.create[IO](65635)
         bv <- hpack.encodeHeaders(headers.map { case Header.Raw(n, v) => (n.toString, v, false) })
         decoded <- hpack.decodeHeaders(bv)
       } yield assertEquals(decoded, headers.map { case Header.Raw(n, v) => (n.toString, v) })
+    }
+  }
+
+  test("oversized headers are rejected") {
+    interceptIO[EmberException.MessageTooLong] {
+      for {
+        hpack <- Hpack.create[IO](4)
+        bv <- hpack.encodeHeaders(NonEmptyList.one(("key", "value", false)))
+        _ <- hpack.decodeHeaders(bv)
+      } yield ()
     }
   }
 
