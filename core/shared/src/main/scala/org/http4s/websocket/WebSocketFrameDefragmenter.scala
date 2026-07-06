@@ -128,8 +128,7 @@ private[http4s] object WebSocketFrameDefragmenter {
                 }
               }
               State(Chunk.empty, 0L, defraggedFrame)
-            case (State(fragments, bytes, result), curFrame)
-                if curFrame.last && fragments.isEmpty =>
+            case (State(fragments, _, result), curFrame) if curFrame.last && fragments.isEmpty =>
               // Current frame is a single, not fragmented frame.
               // Just pushing `curFrame` into the `result` chunks.
               checkLimit(curFrame.data.size)
