@@ -78,7 +78,7 @@ object Caching {
       }
 
     def defaultMethodsToSetOn(m: Method): Boolean =
-      m == Method.GET || m == Method.HEAD
+      m == Method.GET || m == Method.HEAD || m == Method.QUERY
   }
 
   /** Sets headers for response to be publicly cached for the specified duration.
