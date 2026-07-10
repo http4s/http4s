@@ -28,4 +28,5 @@ trait Methods {
   val OPTIONS: Method.OPTIONS.type = Method.OPTIONS
   val TRACE: Method.TRACE.type = Method.TRACE
   val PATCH: Method.PATCH.type = Method.PATCH
+  val QUERY: Method.QUERY.type = Method.QUERY
 }
