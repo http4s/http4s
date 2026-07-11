@@ -427,15 +427,17 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       resp: Response[F],
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-  ): F[Unit] =
+  ): F[Unit] = {
+    val isHttp10 = request.exists(_.httpVersion == HttpVersion.`HTTP/1.0`)
     Encoder
-      .respToBytes[F](resp)
+      .respToBytes[F](resp, disableChunkedEncoding = isHttp10)
       .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
       .compile
       .drain
       .onError { case err =>
         onWriteFailure(request, resp, err)
       }
+  }
 
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
