@@ -56,7 +56,9 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
-    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
+    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register.
+    *        Returning `None` excludes the request from [[org.http4s.metrics.MetricsOps.recordTotalTime]], and therefore
+    *        from the backend's request counter. The abnormal termination is recorded either way.
     * @param classifierF a function that allows to add a classifier that can be customized per request
     * @return the metrics middleware
     */
@@ -96,7 +98,9 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
-    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
+    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register.
+    *        Returning `None` excludes the request from [[org.http4s.metrics.MetricsOps.recordTotalTime]], and therefore
+    *        from the backend's request counter. The abnormal termination is recorded either way.
     * @param classifierF a function that allows to add a classifier that can be customized per request
     * @return the metrics middleware
     */
@@ -175,13 +179,9 @@ object Metrics {
           case (Outcome.Succeeded(_), Some(status)) => recordTotal(status)
 
           case (Outcome.Errored(e), None) =>
-            // The error occurred before the routes produced a response, so no response headers were emitted.
-            // Do not call recordHeadersTime because doing so would pollute the headers histogram with samples
-            // that don't correspond to a real header-send. Fall back to InternalServerError when the user-supplied
-            // handler returns None so errored requests are never silently dropped from the counter.
-            recordAbnormal(Error(e)) *> recordTotal(
-              errorResponseHandler(e).getOrElse(Status.InternalServerError)
-            )
+            // No response, so no headers were sent. recordHeadersTime is skipped rather than
+            // called with the elapsed time, which would be a sample for a send that never happened.
+            recordAbnormal(Error(e)) *> errorResponseHandler(e).traverse_(recordTotal)
 
           case (Outcome.Errored(e), Some(status)) =>
             // If an error occurred, but the status is non-empty, this means
@@ -191,10 +191,10 @@ object Metrics {
             recordAbnormal(Abnormal(e)) *> recordTotal(status)
 
           case (Outcome.Canceled(), maybeStatus) =>
-            // Record the cancellation as an abnormal termination, and also bump the request counter so canceled
-            // requests appear in `request_count_total`. Prefer the real status from `maybeStatus`, but if that's not set
-            // we use CanceledStatus is used when the body had not started.
-            recordAbnormal(Canceled) *> recordTotal(maybeStatus.getOrElse(Metrics.CanceledStatus))
+            // recordTotal as well as recordAbnormal, so canceled requests reach the backend's
+            // counter. `maybeStatus` is defined only when cancellation happened mid-body, in which
+            // case that status really was sent; otherwise CanceledStatus stands in.
+            recordAbnormal(Canceled) *> recordTotal(maybeStatus.getOrElse(CanceledStatus))
         }
       }
     }(C)(

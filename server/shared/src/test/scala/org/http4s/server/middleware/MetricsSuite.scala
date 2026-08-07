@@ -19,6 +19,8 @@ package org.http4s.server.middleware
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.IO
+import cats.syntax.all._
+import fs2.Stream
 import org.http4s._
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
@@ -26,54 +28,88 @@ import org.http4s.metrics.TestMetricsOps
 
 final class MetricsSuite extends Http4sSuite {
 
+  // Exercises the `(Canceled, None)` branch.
   private val canceledRoutes: HttpRoutes[IO] =
     Kleisli((_: Request[IO]) => OptionT.liftF(IO.canceled.as(Response[IO]())))
+
+  // Exercises the `(Canceled, Some(status))` branch.
+  private val canceledBodyRoutes: HttpRoutes[IO] =
+    Kleisli((_: Request[IO]) =>
+      OptionT.pure[IO](
+        Response[IO](status = Status.Accepted).withBodyStream(Stream.eval(IO.canceled).drain)
+      )
+    )
 
   private val errorRoutes: HttpRoutes[IO] =
     Kleisli((_: Request[IO]) =>
       OptionT.liftF[IO, Response[IO]](IO.raiseError(new RuntimeException("boom")))
     )
 
+  // Bookkeeping only completes once the response body terminates, hence the drain.
   private def runToCompletion(routes: HttpRoutes[IO]): IO[Unit] =
-    routes.run(Request[IO]()).value.start.flatMap(_.join).void
+    routes
+      .run(Request[IO]())
+      .value
+      .flatMap(_.traverse_(_.body.compile.drain))
+      .start
+      .flatMap(_.join)
+      .void
 
-  test("canceled requests should be counted in recordTotalTime") {
+  test("a request canceled before a response is counted as CanceledStatus") {
     for {
-      pair <- TestMetricsOps.create
-      (ops, get) = pair
-      mw = Metrics[IO](ops)(canceledRoutes)
-      _ <- runToCompletion(mw)
-      state <- get
+      ops <- TestMetricsOps.create
+      _ <- runToCompletion(Metrics[IO](ops)(canceledRoutes))
+      state <- ops.state
     } yield {
-      assertEquals(state.totalTime.size, 1)
-      assertEquals(state.abnormal.map(_._2), List[TerminationType](Canceled))
+      assertEquals(state.statuses, List(Metrics.CanceledStatus))
+      assertEquals(state.terminationTypes, List[TerminationType](Canceled))
+      assertEquals(state.headersTime, Nil)
       assertEquals(state.active, 0L)
     }
   }
 
-  test("errored requests with errorResponseHandler returning None should be counted") {
+  test("a request canceled while streaming the body is counted with the real status") {
     for {
-      pair <- TestMetricsOps.create
-      (ops, get) = pair
-      mw = Metrics[IO](
-        ops = ops,
-        errorResponseHandler = (_: Throwable) => None,
-      )(errorRoutes)
-      _ <- mw.run(Request[IO]()).value.attempt
-      state <- get
+      ops <- TestMetricsOps.create
+      _ <- runToCompletion(Metrics[IO](ops)(canceledBodyRoutes))
+      state <- ops.state
     } yield {
-      assertEquals(state.totalTime.size, 1)
+      assertEquals(state.statuses, List(Status.Accepted))
+      assertEquals(state.terminationTypes, List[TerminationType](Canceled))
+      assertEquals(state.headersTime.size, 1)
+      assertEquals(state.active, 0L)
+    }
+  }
+
+  test("an errored request is counted using the default errorResponseHandler") {
+    for {
+      ops <- TestMetricsOps.create
+      _ <- Metrics[IO](ops)(errorRoutes).run(Request[IO]()).value.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.statuses, List(Status.InternalServerError))
       assertEquals(state.abnormal.size, 1)
     }
   }
 
-  test("errored requests with no response should not record in headersTime") {
+  test("an errorResponseHandler returning None excludes the request from recordTotalTime") {
     for {
-      pair <- TestMetricsOps.create
-      (ops, get) = pair
-      mw = Metrics[IO](ops)(errorRoutes)
+      ops <- TestMetricsOps.create
+      mw = Metrics[IO](ops = ops, errorResponseHandler = (_: Throwable) => None)(errorRoutes)
       _ <- mw.run(Request[IO]()).value.attempt
-      state <- get
+      state <- ops.state
+    } yield {
+      // `None` is a documented opt-out from the counter; the termination is still recorded.
+      assertEquals(state.totalTime, Nil)
+      assertEquals(state.abnormal.size, 1)
+    }
+  }
+
+  test("an error before a response records no headers time") {
+    for {
+      ops <- TestMetricsOps.create
+      _ <- Metrics[IO](ops)(errorRoutes).run(Request[IO]()).value.attempt
+      state <- ops.state
     } yield assertEquals(state.headersTime, Nil)
   }
 }

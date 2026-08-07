@@ -21,47 +21,84 @@ import cats.effect.Ref
 import org.http4s.Method
 import org.http4s.Status
 
+/** MetricsOps that accumulates every sample it is handed, so tests can assert on exactly what
+  * a middleware recorded.
+  */
+final class TestMetricsOps private (ref: Ref[IO, TestMetricsOps.State]) extends MetricsOps[IO] {
+  import TestMetricsOps._
+
+  /** The samples recorded so far, in the order they were recorded. */
+  def state: IO[State] = ref.get.map(_.chronological)
+
+  def increaseActiveRequests(classifier: Option[String]): IO[Unit] =
+    ref.update(s => s.copy(active = s.active + 1L))
+
+  def decreaseActiveRequests(classifier: Option[String]): IO[Unit] =
+    ref.update(s => s.copy(active = s.active - 1L))
+
+  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): IO[Unit] =
+    ref.update(s => s.copy(headersTime = HeadersTime(method, elapsed, classifier) :: s.headersTime))
+
+  def recordTotalTime(
+      method: Method,
+      status: Status,
+      elapsed: Long,
+      classifier: Option[String],
+  ): IO[Unit] =
+    ref.update(s =>
+      s.copy(totalTime = TotalTime(method, status, elapsed, classifier) :: s.totalTime)
+    )
+
+  def recordAbnormalTermination(
+      elapsed: Long,
+      terminationType: TerminationType,
+      classifier: Option[String],
+  ): IO[Unit] =
+    ref.update(s =>
+      s.copy(abnormal = AbnormalTermination(elapsed, terminationType, classifier) :: s.abnormal)
+    )
+}
+
 object TestMetricsOps {
+
+  final case class HeadersTime(method: Method, elapsed: Long, classifier: Option[String])
+
+  final case class TotalTime(
+      method: Method,
+      status: Status,
+      elapsed: Long,
+      classifier: Option[String],
+  )
+
+  final case class AbnormalTermination(
+      elapsed: Long,
+      terminationType: TerminationType,
+      classifier: Option[String],
+  )
 
   final case class State(
       active: Long,
-      headersTime: List[(Method, Long, Option[String])],
-      totalTime: List[(Method, Status, Long, Option[String])],
-      abnormal: List[(Long, TerminationType, Option[String])],
-  )
+      headersTime: List[HeadersTime],
+      totalTime: List[TotalTime],
+      abnormal: List[AbnormalTermination],
+  ) {
+
+    /** The statuses passed to `recordTotalTime`, i.e. what backends label their request counter
+      * with, since that's where they increment it.
+      */
+    def statuses: List[Status] = totalTime.map(_.status)
+
+    def terminationTypes: List[TerminationType] = abnormal.map(_.terminationType)
+
+    // Samples are prepended as they arrive, so undo that before handing the state to a test.
+    private[TestMetricsOps] def chronological: State =
+      State(active, headersTime.reverse, totalTime.reverse, abnormal.reverse)
+  }
 
   object State {
     val empty: State = State(0L, Nil, Nil, Nil)
   }
 
-  // Create a MetricsOps that updates `State` for us to observe in the tests.
-  def create: IO[(MetricsOps[IO], IO[State])] =
-    Ref.of[IO, State](State.empty).map { ref =>
-      val ops: MetricsOps[IO] = new MetricsOps[IO] {
-        def increaseActiveRequests(classifier: Option[String]): IO[Unit] =
-          ref.update(s => s.copy(active = s.active + 1L))
-        def decreaseActiveRequests(classifier: Option[String]): IO[Unit] =
-          ref.update(s => s.copy(active = s.active - 1L))
-        def recordHeadersTime(
-            method: Method,
-            elapsed: Long,
-            classifier: Option[String],
-        ): IO[Unit] =
-          ref.update(s => s.copy(headersTime = (method, elapsed, classifier) :: s.headersTime))
-        def recordTotalTime(
-            method: Method,
-            status: Status,
-            elapsed: Long,
-            classifier: Option[String],
-        ): IO[Unit] =
-          ref.update(s => s.copy(totalTime = (method, status, elapsed, classifier) :: s.totalTime))
-        def recordAbnormalTermination(
-            elapsed: Long,
-            terminationType: TerminationType,
-            classifier: Option[String],
-        ): IO[Unit] =
-          ref.update(s => s.copy(abnormal = (elapsed, terminationType, classifier) :: s.abnormal))
-      }
-      (ops, ref.get)
-    }
+  def create: IO[TestMetricsOps] =
+    Ref.of[IO, State](State.empty).map(new TestMetricsOps(_))
 }
