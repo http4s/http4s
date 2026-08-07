@@ -95,4 +95,27 @@ class SetCookieHeaderSpec extends Http4sSuite {
     assertEquals(c.extension, Some("http4s=fun; rfc6265=not-fun"))
   }
 
+  test("ResponseCookie render should not let cookie content inject a new attribute") {
+    val rendered = ResponseCookie("sess", "x; Domain=evil.example; Path=/").renderString
+    assertEquals(rendered, "sess=x Domain=evil.example Path=/")
+  }
+
+  test("ResponseCookie render should strip CR/LF from fields") {
+    val rendered = ResponseCookie("a", "b\r\nSet-Cookie: evil=1").renderString
+    assertEquals(rendered, "a=bSet-Cookie: evil=1")
+  }
+
+  test("ResponseCookie render should strip ';' from the cookie name") {
+    assertEquals(ResponseCookie("a;b", "v").renderString, "ab=v")
+  }
+
+  test("ResponseCookie render should not let Domain/Path values inject attributes") {
+    val rendered = ResponseCookie("a", "v", domain = Some("good.com; Path=/")).renderString
+    assertEquals(rendered, "a=v; Domain=good.com Path=/")
+  }
+
+  test("ResponseCookie render should preserve the ';' joiner inside extension") {
+    val rendered = ResponseCookie("a", "v", extension = Some("ext1; ext2")).renderString
+    assertEquals(rendered, "a=v; ext1; ext2")
+  }
 }

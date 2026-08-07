@@ -35,7 +35,7 @@ class CookieJarSuite extends Http4sSuite {
             ResponseCookie(
               name = "foo",
               content = "bar",
-              domain = Some("google.com"),
+              domain = Some("example.com"),
               expires = HttpDate.MaxValue.some,
             )
           )
@@ -55,23 +55,23 @@ class CookieJarSuite extends Http4sSuite {
     for {
       jar <- CookieJar.jarImpl[IO]
       testClient = CookieJar(jar)(client)
-      _ <- testClient.successful(Request[IO](Method.GET, uri"http://google.com/get-cookie"))
-      second <- testClient.successful(Request[IO](Method.GET, uri"http://google.com/test-cookie"))
+      _ <- testClient.successful(Request[IO](Method.GET, uri"http://example.com/get-cookie"))
+      second <- testClient.successful(Request[IO](Method.GET, uri"http://example.com/test-cookie"))
     } yield assert(second)
   }
 
-  test("cookieAppliesToRequest should apply if the given domain matches") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+  test("cookie should apply if the given domain matches") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("google.com"),
+      domain = Some("example.com"),
     )
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("cookieAppliesToRequest should not apply if not given a domain") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+  test("cookie should not apply if not given a domain") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
@@ -80,55 +80,147 @@ class CookieJarSuite extends Http4sSuite {
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("cookieAppliesToRequest should apply if a subdomain") {
-    val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
+  test("cookie should apply if a subdomain") {
+    val req = Request[IO](Method.GET, uri = uri"http://api.example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("google.com"),
+      domain = Some("example.com"),
     )
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("cookieAppliesToRequest should not apply if the wrong subdomain") {
-    val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
+  test("cookie should not apply if the wrong subdomain") {
+    val req = Request[IO](Method.GET, uri = uri"http://api.example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("bad.google.com"),
+      domain = Some("bad.example.com"),
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("cookieAppliesToRequest should not apply if the superdomain") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+  test("cookie should not apply if the superdomain") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("bad.google.com"),
+      domain = Some("bad.example.com"),
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("cookieAppliesToRequest should not apply a secure cookie to an http request") {
-    val req = Request[IO](Method.GET, uri = uri"http://google.com")
+  test("cookie should not apply a secure cookie to an http request") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("google.com"),
+      domain = Some("example.com"),
       secure = true,
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
 
-  test("cookieAppliesToRequest should apply a secure cookie to an https request") {
-    val req = Request[IO](Method.GET, uri = uri"https://google.com")
+  test("cookie should apply a secure cookie to an https request") {
+    val req = Request[IO](Method.GET, uri = uri"https://example.com")
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("google.com"),
+      domain = Some("example.com"),
       secure = true,
     )
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should not apply to a host that is a prefix collision") {
+    val req = Request[IO](Method.GET, uri = uri"http://evilexample.com")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"))
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should not apply when the cookie domain is an internal substring") {
+    val req = Request[IO](Method.GET, uri = uri"http://api.example.com.attacker.net")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"))
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should not apply to a request without a host") {
+    val req = Request[IO](Method.GET, uri = uri"/some/path")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"))
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should match an IP host only when the domain is identical") {
+    val req = Request[IO](Method.GET, uri = uri"http://192.168.0.1")
+    assert(
+      CookieJar.cookieAppliesToRequest(
+        req,
+        ResponseCookie("foo", "bar", domain = Some("192.168.0.1")),
+      )
+    )
+    assert(
+      !CookieJar.cookieAppliesToRequest(
+        req,
+        ResponseCookie("foo", "bar", domain = Some("168.0.1")),
+      )
+    )
+  }
+
+  test("cookie should not apply when the path is a non-boundary prefix") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com/public/admin-docs")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"), path = Some("/admin"))
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should not apply to a sibling path sharing a prefix") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com/administrator")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"), path = Some("/admin"))
+    assert(!CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should apply to a path at a segment boundary") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com/admin/users")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"), path = Some("/admin"))
+    assert(CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("cookie should apply when the path is an exact match") {
+    val req = Request[IO](Method.GET, uri = uri"http://example.com/admin")
+    val cookie = ResponseCookie("foo", "bar", domain = Some("example.com"), path = Some("/admin"))
+    assert(CookieJar.cookieAppliesToRequest(req, cookie))
+  }
+
+  test("set-cookie should reject a Domain not authoritative for the response host") {
+    val cookie = ResponseCookie("SESSION", "attacker", domain = Some("example.com"))
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://evil.test/")
+    assert(result.isEmpty)
+  }
+
+  test("set-cookie should reject a Domain when the response has no host") {
+    val cookie = ResponseCookie("SESSION", "attacker", domain = Some("bank.example"))
+    val result = CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"/relative/path")
+    assert(result.isEmpty)
+  }
+
+  test("set-cookie should accept a Domain the response host is a subdomain of") {
+    val cookie = ResponseCookie("SESSION", "ok", domain = Some("example.com"))
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://api.example.com/")
+    assertEquals(result.keySet.map(_.domain), Set("example.com"))
+  }
+
+  test("set-cookie should accept an exact Domain match") {
+    val cookie = ResponseCookie("SESSION", "ok", domain = Some("example.com"))
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://example.com/")
+    assertEquals(result.keySet.map(_.domain), Set("example.com"))
+  }
+
+  test("set-cookie should default a missing Domain to the response host") {
+    val cookie = ResponseCookie("SESSION", "ok", domain = None)
+    val result =
+      CookieJar.extractFromResponseCookie(Map.empty)(cookie, epoch, uri"https://example.com/")
+    assertEquals(result.keySet.map(_.domain), Set("example.com"))
   }
 }

@@ -52,6 +52,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     onClose: F[Unit],
     filterPingPongs: Boolean,
     defragFrame: Boolean,
+    maxMessageSize: Long,
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
@@ -75,6 +76,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       onClose = onClose,
       filterPingPongs = filterPingPongs,
       defragFrame = false,
+      maxMessageSize = WebSocketBuilder2.DefaultMaxMessageSize,
       webSocketKey = webSocketKey,
     )
 
@@ -86,6 +88,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs: Boolean = this.filterPingPongs,
       defragFrame: Boolean = this.defragFrame,
       webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey,
+      maxMessageSize: Long = this.maxMessageSize,
   ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
     headers,
     onNonWebSocketRequest,
@@ -94,6 +97,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     filterPingPongs,
     defragFrame,
     webSocketKey,
+    maxMessageSize,
   )
 
   def withHeaders(headers: Headers): WebSocketBuilder2[F] =
@@ -114,6 +118,10 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withDefragment(defragFrame: Boolean): WebSocketBuilder2[F] =
     copy(defragFrame = defragFrame)
 
+  /** Maximum size of a defragmented message.  Only applies when `withDefragment` is true. */
+  def withMaxMessageSize(maxMessageSize: Long): WebSocketBuilder2[F] =
+    copy(maxMessageSize = maxMessageSize)
+
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
     impl[G](
@@ -124,6 +132,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs,
       defragFrame,
       webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk)),
+      maxMessageSize,
     )
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
@@ -165,8 +174,9 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       (filterPingPongs, defragFrame) match {
         case (true, false) => sendReceive.compose(filterPingPongFrames)
         case (false, false) => sendReceive
-        case (true, true) => sendReceive.compose(defragFragment.compose(filterPingPongFrames))
-        case (false, true) => sendReceive.compose(defragFragment)
+        case (true, true) =>
+          sendReceive.compose(defragFragment(maxMessageSize).compose(filterPingPongFrames))
+        case (false, true) => sendReceive.compose(defragFragment(maxMessageSize))
       }
     buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
   }
@@ -201,8 +211,9 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       (filterPingPongs, defragFrame) match {
         case (true, false) => receive.compose(filterPingPongFrames)
         case (false, false) => receive
-        case (true, true) => receive.compose(defragFragment.compose(filterPingPongFrames))
-        case (false, true) => receive.compose(defragFragment)
+        case (true, true) =>
+          receive.compose(defragFragment(maxMessageSize).compose(filterPingPongFrames))
+        case (false, true) => receive.compose(defragFragment(maxMessageSize))
       }
 
     buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose))
@@ -220,6 +231,8 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 }
 
 object WebSocketBuilder2 {
+  private[http4s] val DefaultMaxMessageSize: Long = 64L * 1024L * 1024L
+
   @deprecated(
     "Use the arg-less constructor to create a `WebSocketBuilder2` and access its key with the webSocketKey method",
     "0.23.15",
@@ -245,6 +258,7 @@ object WebSocketBuilder2 {
       filterPingPongs = true,
       defragFrame = true,
       webSocketKey = webSocketKey,
+      maxMessageSize = WebSocketBuilder2.DefaultMaxMessageSize,
     )
 
   private def impl[F[_]: Applicative](
@@ -255,6 +269,7 @@ object WebSocketBuilder2 {
       filterPingPongs: Boolean,
       defragFrame: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      maxMessageSize: Long,
   ): WebSocketBuilder2[F] =
     new WebSocketBuilder2[F](
       headers = headers,
@@ -264,5 +279,6 @@ object WebSocketBuilder2 {
       filterPingPongs = filterPingPongs,
       defragFrame = defragFrame,
       webSocketKey = webSocketKey,
+      maxMessageSize = maxMessageSize,
     ) {}
 }

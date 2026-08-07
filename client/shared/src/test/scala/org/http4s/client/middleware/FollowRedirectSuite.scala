@@ -56,6 +56,8 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
       case _ -> Root / "different-authority" =>
         TemporaryRedirect(Location(uri"http://www.example.com/ok"))
+      case _ -> Root / "scheme-downgrade" =>
+        TemporaryRedirect(Location(uri"http://localhost/ok"))
       case _ -> Root / status =>
         Response[IO](status = Status.fromInt(status.toInt).yolo)
           .putHeaders(Location(uri"/ok"))
@@ -138,6 +140,38 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val req = PUT(
       "You already know mah secrets!",
       uri"http://localhost/307",
+      "Authorization" -> "Bearer s3cr3t",
+    )
+    client
+      .run(req)
+      .use { case resp =>
+        resp.headers.get(ci"X-Original-Authorization").map(_.head.value).pure[IO]
+      }
+      .assertEquals(Some("Bearer s3cr3t"))
+  }
+
+  test(
+    "FollowRedirect should not send sensitive headers when downgrading https to http on the same authority"
+  ) {
+    val req = PUT(
+      "Don't expose mah secrets!",
+      uri"https://localhost/scheme-downgrade",
+      "Authorization" -> "Bearer s3cr3t",
+    )
+    client
+      .run(req)
+      .use { case resp =>
+        resp.headers.get(ci"X-Original-Authorization").map(_.head.value).pure[IO]
+      }
+      .assertEquals(Some(""))
+  }
+
+  test(
+    "FollowRedirect should send sensitive headers on an https to https same-authority redirect"
+  ) {
+    val req = PUT(
+      "You already know mah secrets!",
+      uri"https://localhost/307",
       "Authorization" -> "Bearer s3cr3t",
     )
     client
