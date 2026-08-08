@@ -26,8 +26,8 @@ import org.http4s.HttpApp
 import org.http4s.HttpRoutes
 import org.http4s.Response
 import org.http4s.Status
+import org.http4s.headers.`Retry-After`
 
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** Transform a service to reject any calls the go over a given rate.
@@ -140,8 +140,14 @@ object Throttle {
   ): F[HttpApp[F]] =
     apply(amount, per)(httpApp)
 
-  def defaultResponse[F[_]](@nowarn retryAfter: Option[FiniteDuration]): Response[F] =
-    Response[F](Status.TooManyRequests)
+  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] =
+    retryAfter match {
+      case Some(duration) =>
+        Response[F](Status.TooManyRequests)
+          .putHeaders(`Retry-After`.unsafeFromDuration(duration))
+      case None =>
+        Response[F](Status.TooManyRequests)
+    }
 
   /** Limits the supplied service using a provided [[TokenBucket]]
     *

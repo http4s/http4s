@@ -27,6 +27,7 @@ import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
 import org.http4s.dsl.io._
+import org.http4s.headers.`Retry-After`
 import org.http4s.laws.discipline.arbitrary.genFiniteDuration
 import org.http4s.server.middleware.Throttle._
 import org.http4s.syntax.all._
@@ -198,5 +199,41 @@ class ThrottleSuite extends Http4sSuite {
     val req = Request[IO](uri = uri"/nonexistent")
 
     TestControl.executeEmbed(testee(req).map(_.status)).assertEquals(Status.TooManyRequests)
+  }
+
+  test("defaultResponse should set Retry-After when a retry delay is provided") {
+    val response = defaultResponse[IO](Some(5.seconds))
+    assertEquals(response.status, Status.TooManyRequests)
+    assertEquals(
+      response.headers.get[`Retry-After`].map(_.retry),
+      Some(Right(5L)),
+    )
+  }
+
+  test("defaultResponse should omit Retry-After when no retry delay is provided") {
+    val response = defaultResponse[IO](None)
+    assertEquals(response.status, Status.TooManyRequests)
+    assertEquals(response.headers.get[`Retry-After`], None)
+  }
+
+  test("Throttle / should include Retry-After when the bucket reports a retry delay") {
+    testMiddleware { middleware =>
+      val retryAfter = 3.seconds
+      val limitReachedBucket = new TokenBucket[IO] {
+        override def takeToken: IO[TokenAvailability] =
+          TokenUnavailable(Some(retryAfter)).pure[IO]
+      }
+
+      val testee = middleware(limitReachedBucket, defaultResponse[IO] _)
+      val req = Request[IO](uri = uri"/")
+
+      TestControl
+        .executeEmbed(testee(req))
+        .map { response =>
+          response.status == Status.TooManyRequests &&
+          response.headers.get[`Retry-After`].map(_.retry).contains(Right(3L))
+        }
+        .assert
+    }
   }
 }
