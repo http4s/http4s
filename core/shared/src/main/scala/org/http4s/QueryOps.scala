@@ -115,13 +115,16 @@ trait QueryOps {
 
   /** Creates maybe a new `Self` with the specified parameters.
     * If any of the given parameters' keys already exists, the value(s) will be replaced.
+    * Other existing parameters are preserved.
     */
   def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](
       params: Map[K, collection.Seq[T]]
   ): Self = {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
-    val vec = params.foldLeft(query.toVector) {
+    val keys = params.iterator.map { case (k, _) => penc.getKey(k).value }.toSet
+    val base = query.toVector.filterNot { case (n, _) => keys.contains(n) }
+    val vec = params.foldLeft(base) {
       case (m, (k, Seq())) => m :+ (penc.getKey(k).value -> None)
       case (m, (k, vs)) =>
         vs.foldLeft(m) { case (m, v) => m :+ (penc.getKey(k).value -> Some(venc.encode(v).value)) }

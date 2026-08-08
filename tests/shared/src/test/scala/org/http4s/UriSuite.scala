@@ -882,6 +882,29 @@ class UriSuite extends Http4sSuite {
       .withMultiValueQueryParams(Map("param2" -> List(4, 5)))
     assertEquals(u, Uri(query = Query.unsafeFromString("param1=3&param2=4&param2=5")))
   }
+  // #7106: setQueryParams must replace values for keys present in the map (per scaladoc)
+  test("Uri parameter convenience methods should setQueryParams replace existing keys") {
+    val uri = uri"http://example.com/a/b/c?m=5&n=6"
+    val updated = uri.setQueryParams(Map("m" -> Seq("10"), "X" -> Seq("10")))
+    assertEquals(
+      updated.query.multiParams,
+      Map("n" -> Seq("6"), "m" -> Seq("10"), "X" -> Seq("10")),
+    )
+    assertEquals(
+      updated,
+      uri"http://example.com/a/b/c?n=6&m=10&X=10",
+    )
+  }
+  test("Uri parameter convenience methods should setQueryParams replace multi-valued keys") {
+    val uri = Uri(query = Query.unsafeFromString("param1=1&param1=2&param2=3"))
+    val updated = uri.setQueryParams(Map("param1" -> Seq("a", "b")))
+    assertEquals(updated, Uri(query = Query.unsafeFromString("param2=3&param1=a&param1=b")))
+  }
+  test("Uri parameter convenience methods should setQueryParams leave unrelated params") {
+    val uri = uri"http://example.com/?m=5&n=6"
+    val updated = uri.setQueryParams(Map("X" -> Seq("10")))
+    assertEquals(updated.query.multiParams, Map("m" -> Seq("5"), "n" -> Seq("6"), "X" -> Seq("10")))
+  }
   test("Uri parameter convenience methods should contains not a parameter") {
     assertEquals(Uri(query = Query.empty) ? "param1", false)
   }
