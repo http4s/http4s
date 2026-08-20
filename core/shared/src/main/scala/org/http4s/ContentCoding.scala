@@ -87,9 +87,19 @@ object ContentCoding {
   val `pack200-gzip` = new ContentCoding("pack200-gzip")
   val zstd = new ContentCoding("zstd")
 
-  // Legacy encodings defined by RFC2616 3.5.
+  // Legacy content codings defined by RFC2616 §3.5.
+  // Aliases of the canonical codings; see `legacy` below for the literal tokens.
   val `x-compress`: ContentCoding = compress
   val `x-gzip`: ContentCoding = gzip
+
+  /** The `x-compress` and `x-gzip` tokens are from HTTP/1.0 and SHOULD only be used
+    * for compatibility with previous HTTP implementations, as per RFC2616 §3.5
+    * and RFC9110 §8.4.1.3.
+    */
+  private[http4s] object legacy {
+    val `x-compress`: ContentCoding = new ContentCoding("x-compress")
+    val `x-gzip`: ContentCoding = new ContentCoding("x-gzip")
+  }
 
   val standard: Map[String, ContentCoding] =
     List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd)
