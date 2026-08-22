@@ -62,7 +62,7 @@ object StaticFile {
     val tryGzipped =
       preferGzipped && acceptEncodingHeader.exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) ||
-          acceptEncoding.satisfiedBy(ContentCoding.legacy.`x-gzip`)
+        acceptEncoding.satisfiedBy(ContentCoding.legacy.`x-gzip`)
       }
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
