@@ -89,7 +89,9 @@ object ContentCoding {
 
   // Legacy content codings defined by RFC2616 §3.5.
   // Aliases of the canonical codings; see `legacy` below for the literal tokens.
+  @deprecated("Use ContentCoding.fromString to instantiate deprecated content codings", "0.23.37")
   val `x-compress`: ContentCoding = compress
+  @deprecated("Use ContentCoding.fromString to instantiate deprecated content codings", "0.23.37")
   val `x-gzip`: ContentCoding = gzip
 
   /** The `x-compress` and `x-gzip` tokens are from HTTP/1.0 and SHOULD only be used
