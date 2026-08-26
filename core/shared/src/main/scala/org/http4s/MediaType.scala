@@ -266,13 +266,21 @@ object MediaType extends MimeDB {
   // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
   lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
 
+  /** The response media type of the GraphQL-over-HTTP specification:
+    *
+    * @see https://graphql.github.io/graphql-over-http/draft/#sec-Media-Types
+    */
+  lazy val `application/graphql-response+json` =
+    new MediaType("application", "graphql-response+json", compressible = true, binary = true)
+
   // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
   // JS application where artifact size matters (i.e. browser applications).
   private[this] var _all: Map[(String, String), MediaType] = null
   def all: Map[(String, String), MediaType] = {
     if (_all eq null)
-      _all = (`text/event-stream` :: `application/graphql` :: allMediaTypes)
+      _all = (`text/event-stream` :: `application/graphql` ::
+        `application/graphql-response+json` :: allMediaTypes)
         .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
         .toMap
     _all
@@ -356,6 +364,7 @@ object MediaType extends MimeDB {
           case "excel" => true
           case "font-woff" => true
           case "gnutar" => true
+          case "graphql-response+json" => true
           case "gzip" => true
           case "hal+json" => true
           case "java-archive" => true
