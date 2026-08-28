@@ -31,4 +31,5 @@ object request extends RequestDslBinCompat {
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
   val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
+  override lazy val StringVar: impl.StringVar.type = impl.StringVar
 }
