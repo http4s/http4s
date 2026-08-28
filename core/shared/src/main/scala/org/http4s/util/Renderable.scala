@@ -16,6 +16,7 @@
 
 package org.http4s.util
 
+import cats.ContravariantMonoidal
 import cats.data.NonEmptyList
 import org.http4s.Header
 import org.http4s.internal.CharPredicate
@@ -113,6 +114,78 @@ object Renderer {
   implicit def headerSelectRenderer[A](implicit select: Header.Select[A]): Renderer[A] =
     new Renderer[A] {
       override def render(writer: Writer, t: A): writer.type = writer << select.toRaw1(t)
+    }
+
+  val charRenderer: Renderer[Char] =
+    new Renderer[Char] {
+      override def render(writer: Writer, c: Char): writer.type =
+        writer << c
+    }
+
+  trait ConstRenderer[A] extends Renderer[A] {
+    def renderConst(writer: Writer): writer.type
+
+    override final def render(writer: Writer, a: A): writer.type =
+      renderConst(writer)
+  }
+
+  object UnitRenderer extends ConstRenderer[Unit] {
+    def renderConst(writer: Writer): writer.type =
+      writer
+  }
+
+  def stringLiteralRenderer[A](s: String): Renderer[A] =
+    new ConstRenderer[A] {
+      override def renderConst(writer: Writer): writer.type =
+        writer << s
+    }
+
+  def charLiteralRenderer[A](c: Char): Renderer[A] =
+    new ConstRenderer[A] {
+      override def renderConst(writer: Writer): writer.type =
+        writer << c
+    }
+
+  implicit val catsContravariantMonoidalForHttp4sUtilRenderable: ContravariantMonoidal[Renderer] =
+    new ContravariantMonoidal[Renderer] {
+      def contramap[A, B](fa: Renderer[A])(f: B => A): Renderer[B] =
+        new Renderer[B] {
+          def render(writer: Writer, b: B): writer.type =
+            fa.render(writer, f(b))
+        }
+
+      val unit: Renderer[Unit] =
+        UnitRenderer
+
+      def product[A, B](fa: Renderer[A], fb: Renderer[B]): Renderer[(A, B)] =
+        (fa, fb) match {
+          case (UnitRenderer, UnitRenderer) =>
+            UnitRenderer.asInstanceOf[ConstRenderer[(A, B)]]
+          case (UnitRenderer, fb: Renderer[B]) =>
+            fb.asInstanceOf[Renderer[(Unit, B)]]
+          case (fa: Renderer[A], UnitRenderer) =>
+            fa.asInstanceOf[Renderer[(A, Unit)]]
+          case (fa: ConstRenderer[A], fb: ConstRenderer[B]) =>
+            new ConstRenderer[(A, B)] {
+              def renderConst(writer: Writer): writer.type =
+                fb.renderConst(fa.renderConst(writer))
+            }
+          case (fa: ConstRenderer[A], fb: Renderer[B]) =>
+            new Renderer[(A, B)] {
+              def render(writer: Writer, ab: (A, B)): writer.type =
+                fb.render(fa.renderConst(writer), ab._2)
+            }
+          case (fa: Renderer[A], fb: ConstRenderer[B]) =>
+            new Renderer[(A, B)] {
+              def render(writer: Writer, ab: (A, B)): writer.type =
+                fb.renderConst(fa.render(writer, ab._1))
+            }
+          case (fa: Renderer[A], fb: Renderer[B]) =>
+            new Renderer[(A, B)] {
+              def render(writer: Writer, ab: (A, B)): writer.type =
+                fb.render(fa.render(writer, ab._1), ab._2)
+            }
+        }
     }
 }
 
