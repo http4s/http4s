@@ -29,6 +29,7 @@ import org.http4s.syntax.all._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF
+import org.typelevel.ci._
 
 import java.util.Arrays
 
@@ -86,6 +87,44 @@ class GZipSuite extends Http4sSuite {
     val resp: IO[Response[IO]] = gzipRoutes.orNotFound(req)
 
     resp.map(!_.headers.contains[`Content-Encoding`]).assert
+  }
+
+  test("decodes random content-type if content-encoding allows it") {
+    val request = "Request string"
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root => Ok(req.body) }
+    val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = _ => false)
+
+    val req: Request[IO] = Request[IO](Method.POST, uri"/")
+      .putHeaders(Header.Raw(ci"Content-Encoding", "gzip"))
+      .withBodyStream(Stream.emits(request.getBytes()).through(Compression[IO].gzip()))
+
+    gzipRoutes.orNotFound(req).flatMap { response =>
+      response.body.compile
+        .to(Chunk)
+        .map { decoded =>
+          Arrays.equals(request.getBytes(), decoded.toArray)
+        }
+        .assert
+    }
+  }
+
+  test("doesn't decode request if content-encoding doesn't allow it") {
+    val request = "Request string"
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root => Ok(req.body) }
+    val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = _ => false)
+
+    val req: Request[IO] = Request[IO](Method.POST, uri"/")
+      .putHeaders(`Content-Encoding`(ContentCoding.identity))
+      .withBodyStream(Stream.emits(request.getBytes()))
+
+    gzipRoutes.orNotFound(req).flatMap { response =>
+      response.body.compile
+        .to(Chunk)
+        .map { decoded =>
+          Arrays.equals(request.getBytes(), decoded.toArray)
+        }
+        .assert
+    }
   }
 
   test("encoding") {
