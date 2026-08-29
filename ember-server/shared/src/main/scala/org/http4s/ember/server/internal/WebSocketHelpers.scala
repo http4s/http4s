@@ -19,8 +19,10 @@ package org.http4s.ember.server.internal
 import cats.ApplicativeThrow
 import cats.MonadThrow
 import cats.data.NonEmptyList
+import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Ref
+import cats.effect.Resource
 import cats.effect.Temporal
 import cats.effect.std.Mutex
 import cats.syntax.all._
@@ -57,7 +59,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.Duration
 
-private[internal] class WebSocketHelpers(maxFrameSize: Int) {
+private[internal] class WebSocketHelpers(maxFrameSize: Int, compression: Boolean) {
   import WebSocketHelpers._
 
   private[this] val supportedWebSocketVersion = 13L
@@ -78,14 +80,20 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       errorHandler: Throwable => F[Response[F]],
       logger: Logger[F],
-  )(implicit F: Temporal[F]): F[Unit] = {
+  )(implicit F: Async[F]): F[Unit] = {
+    val deflateParams =
+      if (compression && ctx.headers.get(PerMessageDeflate.HeaderName).isEmpty)
+        PerMessageDeflate.negotiate(req.headers)
+      else None
+
     val wsResponse = clientHandshake(req) match {
       case Right(key) =>
         serverHandshake(key)
           .map { hashBytes =>
             val secWebSocketAccept = new `Sec-WebSocket-Accept`(hashBytes)
             val headers =
-              ctx.headers ++ Headers(connectionUpgrade, upgradeWebSocket, secWebSocketAccept)
+              ctx.headers ++ Headers(connectionUpgrade, upgradeWebSocket, secWebSocketAccept) ++
+                Headers(deflateParams.map(_.toHeader).toList)
             Response[F](Status.SwitchingProtocols)
               .withHeaders(headers)
           }
@@ -99,7 +107,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       _ <- ServerHelpers.send(socket)(Some(req), response, idleTimeout, onWriteFailure)
       _ <-
         if (response.status == Status.SwitchingProtocols)
-          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
+          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout, deflateParams)
         else F.unit
     } yield ()
 
@@ -121,6 +129,21 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       buffer: Array[Byte],
       receiveBufferSize: Int,
       idleTimeout: Duration,
+      deflateParams: Option[PerMessageDeflate.Params],
+  )(implicit F: Async[F]): F[Unit] =
+    Resource
+      .make(F.delay(deflateParams.map(PerMessageDeflate(_, maxFrameSize))))(
+        _.traverse_(deflate => F.delay(deflate.close()))
+      )
+      .use(connectionLoop(socket, ctx, buffer, receiveBufferSize, idleTimeout, _))
+
+  private def connectionLoop[F[_]](
+      socket: Socket[F],
+      ctx: WebSocketContext[F],
+      buffer: Array[Byte],
+      receiveBufferSize: Int,
+      idleTimeout: Duration,
+      deflate: Option[PerMessageDeflate],
   )(implicit F: Temporal[F]): F[Unit] =
     Mutex[F].flatMap { mut =>
       val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
@@ -128,7 +151,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       // Writes without locking, so concurrent calls may result in interleaving of frame chunks
       // and race on `close`. Use `mut` to guard the state.
       def writeFrameUnsafe(frame: WebSocketFrame): F[Unit] =
-        frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
+        frameToBytes(frame, deflate).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
 
       val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 
@@ -160,7 +183,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
         val (stream, onClose) = ctx.webSocket match {
           case WebSocketCombinedPipe(receiveSend, onClose) =>
             val reader = incoming
-              .through(decodeFrames[F])
+              .through(decodeFrames[F](deflate))
               .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, mut))
               .through(receiveSend)
             val stream =
@@ -172,7 +195,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
             val writer: Stream[F, Nothing] =
               send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame())
             val reader = incoming
-              .through(decodeFrames[F])
+              .through(decodeFrames[F](deflate))
               .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, mut))
               .through(receive)
 
@@ -251,15 +274,36 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       case x => F.pure(Some(x))
     }
 
-  private def frameToBytes(frame: WebSocketFrame): Chunk[Chunk[Byte]] =
-    Chunk.array(nonClientTranscoder.frameToBuffer(frame)).map { buffer =>
+  private def frameToBytes(
+      frame: WebSocketFrame,
+      deflate: Option[PerMessageDeflate],
+  ): Chunk[Chunk[Byte]] = {
+    val (encoded, rsv1) = deflate.fold((frame, false))(_.encode(frame))
+    val buffers = nonClientTranscoder.frameToBuffer(encoded)
+    if (rsv1) {
+      buffers(0).put(0, (buffers(0).get(0) | PerMessageDeflate.Rsv1).toByte)
+      ()
+    }
+    Chunk.array(buffers).map { buffer =>
       // TODO followup: improve the buffering here
       val bytes = new Array[Byte](buffer.remaining())
       buffer.get(bytes)
       Chunk.array(bytes)
     }
+  }
 
-  private def decodeFrames[F[_]](implicit F: ApplicativeThrow[F]): Pipe[F, Byte, WebSocketFrame] =
+  private def decodeFrame(
+      buffer: ByteBuffer,
+      deflate: Option[PerMessageDeflate],
+  ): WebSocketFrame = {
+    val frame = nonClientTranscoder.bufferToFrame(buffer)
+    if (frame == null) frame
+    else deflate.fold(frame)(_.decode(frame, (buffer.get(0) & PerMessageDeflate.Rsv1) != 0))
+  }
+
+  private def decodeFrames[F[_]](deflate: Option[PerMessageDeflate])(implicit
+      F: ApplicativeThrow[F]
+  ): Pipe[F, Byte, WebSocketFrame] =
     stream => {
       def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
         rest.pull.uncons.flatMap {
@@ -272,12 +316,12 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
                 // call it repeatedly until all frames in the buffer are decoded.
                 val frames = ArrayBuffer.empty[WebSocketFrame]
                 var byteBuffer = ByteBuffer.wrap(buffer)
-                var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+                var frame = decodeFrame(byteBuffer, deflate)
                 while (frame != null) {
                   frames += frame
                   // We need to slice b/c `bufferToFrame` does absolute reads.
                   byteBuffer = byteBuffer.slice()
-                  frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+                  frame = decodeFrame(byteBuffer, deflate)
                 }
                 if (frames.nonEmpty) {
                   val remaining = new Array[Byte](byteBuffer.remaining())

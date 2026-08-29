@@ -33,7 +33,9 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.CloseStatusCode
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
+import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.enums.Opcode
+import org.java_websocket.extensions.permessage_deflate.PerMessageDeflateExtension
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import org.java_websocket.handshake.ServerHandshake
@@ -91,16 +93,23 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .orNotFound
   }
 
-  private def serverResource(maxWebSocketMessageSize: Int): Resource[IO, Server] =
-    EmberServerBuilder
+  private def serverResource(
+      maxWebSocketMessageSize: Int,
+      compression: Boolean,
+  ): Resource[IO, Server] = {
+    val builder = EmberServerBuilder
       .default[IO]
       .withPort(port"0")
       .withHttpWebSocketApp(service[IO])
       .withMaxWebSocketMessageSize(maxWebSocketMessageSize)
-      .build
+    (if (compression) builder.withWebSocketCompression else builder).build
+  }
 
-  private def fixture(maxWebSocketMessageSize: Int = org.http4s.websocket.DefaultMaxMessageSize) =
-    (ResourceFunFixture(serverResource(maxWebSocketMessageSize)), dispatcher)
+  private def fixture(
+      maxWebSocketMessageSize: Int = org.http4s.websocket.DefaultMaxMessageSize,
+      compression: Boolean = false,
+  ) =
+    (ResourceFunFixture(serverResource(maxWebSocketMessageSize, compression)), dispatcher)
       .mapN(FunFixture.map2(_, _))
 
   sealed case class Client(
@@ -110,6 +119,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
       closeCode: Deferred[IO, Int],
+      extensions: Deferred[IO, String],
       client: WebSocketClient,
   ) {
     def connect: IO[Unit] =
@@ -129,7 +139,11 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  def createClient(target: URI, dispatcher: Dispatcher[IO]): Resource[IO, Client] = {
+  def createClient(
+      target: URI,
+      dispatcher: Dispatcher[IO],
+      compression: Boolean = false,
+  ): Resource[IO, Client] = {
     val acquire = for {
       waitOpen <- Deferred[IO, Option[Throwable]]
       waitClose <- Deferred[IO, Option[Throwable]]
@@ -137,9 +151,13 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       pongQueue <- Queue.unbounded[IO, String]
       remoteClosed <- Deferred[IO, Unit]
       closeCode <- Deferred[IO, Int]
-      client = new WebSocketClient(target) {
+      extensions <- Deferred[IO, String]
+      draft =
+        if (compression) new Draft_6455(new PerMessageDeflateExtension()) else new Draft_6455()
+      client = new WebSocketClient(target, draft) {
         override def onOpen(handshakedata: ServerHandshake): Unit = {
-          val fa = waitOpen.complete(None)
+          val fa = extensions.complete(handshakedata.getFieldValue("Sec-WebSocket-Extensions")) >>
+            waitOpen.complete(None)
           dispatcher.unsafeRunSync(fa)
           ()
         }
@@ -166,7 +184,16 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           ()
         }
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
+    } yield Client(
+      waitOpen,
+      waitClose,
+      queue,
+      pongQueue,
+      remoteClosed,
+      closeCode,
+      extensions,
+      client,
+    )
     Resource.make(acquire)(client => IO(client.client.closeBlocking()))
   }
 
@@ -381,5 +408,46 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.close
       } yield assertEquals(messagesReceived, messages)
     }
+  }
+
+  fixture(compression = true).test("negotiate permessage-deflate and echo compressed messages") {
+    case (server, dispatcher) =>
+      val messages = List("foo", "bar" * 2000, "baz" * 3000, "")
+      createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher,
+        compression = true,
+      ).use { client =>
+        for {
+          _ <- client.connect
+          extensions <- client.extensions.get
+          _ <- messages.traverse_(client.send)
+          received <- client.messages.take.replicateA(messages.size)
+          _ <- client.close
+        } yield {
+          assert(extensions.startsWith("permessage-deflate"), extensions)
+          assertEquals(received, messages)
+        }
+      }
+  }
+
+  fixture().test("does not negotiate permessage-deflate unless enabled") {
+    case (server, dispatcher) =>
+      createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher,
+        compression = true,
+      ).use { client =>
+        for {
+          _ <- client.connect
+          extensions <- client.extensions.get
+          _ <- client.send("foo")
+          msg <- client.messages.take
+          _ <- client.close
+        } yield {
+          assertEquals(extensions, "")
+          assertEquals(msg, "foo")
+        }
+      }
   }
 }
