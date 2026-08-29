@@ -58,10 +58,18 @@ private[ember] object Encoder {
         ()
       }
     }
-    if (!appliedContentLength && resp.entity == Entity.Empty && resp.status.isEntityAllowed) {
+    // RFC 9112 6.3: only 1xx, 204, and 304 responses are self-delimiting without a
+    // Content-Length or Transfer-Encoding header. 205 must still declare Content-Length: 0,
+    // even though its entity is disallowed, or clients on a persistent connection will block
+    // waiting for a body that never arrives.
+    def requiresNoFraming =
+      resp.status.responseClass == Status.Informational ||
+        resp.status.code == Status.NoContent.code ||
+        resp.status.code == Status.NotModified.code
+    if (!appliedContentLength && resp.entity == Entity.Empty && !requiresNoFraming) {
       stringBuilder.append(zeroContentLengthRaw).append(CRLF)
       chunked = false
-    } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
+    } else if (!chunked && !appliedContentLength && !requiresNoFraming) {
       stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
       chunked = true
     }
@@ -74,7 +82,6 @@ private[ember] object Encoder {
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024,
   ): Stream[F, Byte] = {
-    // resp.status.isEntityAllowed TODO
     val (initSectionBytes, chunked) = initSection(resp)
     val initSectionChunk = Chunk.array(initSectionBytes)
 

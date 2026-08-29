@@ -213,6 +213,30 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeResponseRig(resp).assertEquals(expected)
   }
 
+  test("encoder a response where entity is not allowed correctly (304 Not Modified)") {
+    val resp = Response[IO](Status.NotModified)
+    val expected =
+      """HTTP/1.1 304 Not Modified
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
+  test("respToBytes frames a 205 Reset Content with Content-Length: 0") {
+    // RFC 9112 6.3: unlike 204/304, a 205 response is not self-delimiting and must
+    // still declare its (empty) length or clients on a persistent connection will
+    // block waiting for a body that never arrives.
+    val resp = Response[IO](Status.ResetContent)
+    val expected =
+      """HTTP/1.1 205 Reset Content
+      |Content-Length: 0
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
   test("encode a response with a body correctly") {
     val resp = Response[IO](Status.NotFound)
       .withEntity("Not Found")
