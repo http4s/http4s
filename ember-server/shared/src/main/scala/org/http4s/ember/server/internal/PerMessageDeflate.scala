@@ -16,10 +16,12 @@
 
 package org.http4s.ember.server.internal
 
+import cats.parse.Parser
 import cats.syntax.all._
 import fs2.io.net.ProtocolException
 import org.http4s.Header
 import org.http4s.Headers
+import org.http4s.internal.parsing.CommonRules._
 import org.http4s.websocket.WebSocketFrame
 import org.typelevel.ci._
 import scodec.bits.ByteVector
@@ -32,13 +34,14 @@ import java.util.Locale
   */
 private[internal] final class PerMessageDeflate(
     params: PerMessageDeflate.Params,
-    maxFrameSize: Int,
+    maxDecompressedMessageSize: Int,
     codec: PerMessageDeflate.Codec,
 ) {
   import PerMessageDeflate._
 
   private[this] var compressingOutgoing = false
   private[this] var decompressingIncoming = false
+  private[this] var decompressedBytes = 0L
 
   /** Returns the frame to send and whether its RSV1 bit must be set. */
   def encode(frame: WebSocketFrame): (WebSocketFrame, Boolean) = frame match {
@@ -92,12 +95,15 @@ private[internal] final class PerMessageDeflate(
     } else out
   }
 
-  private def decompress(data: ByteVector, last: Boolean): ByteVector =
+  private def decompress(data: ByteVector, last: Boolean): ByteVector = {
+    val limit = (maxDecompressedMessageSize - decompressedBytes).toInt
+    val out = codec.inflate(if (last) data ++ Tail else data, limit)
     if (last) {
-      val out = codec.inflate(data ++ Tail, maxFrameSize)
+      decompressedBytes = 0L
       if (params.clientNoContextTakeover) codec.resetInflater()
-      out
-    } else codec.inflate(data, maxFrameSize)
+    } else decompressedBytes += out.length
+    out
+  }
 }
 
 private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
@@ -109,7 +115,9 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
     def deflate(data: ByteVector): ByteVector
     def resetDeflater(): Unit
 
-    /** Decompresses `data`, failing if the output exceeds `maxSize` bytes. */
+    /** Decompresses `data`, failing if the output exceeds `maxSize` bytes.
+      * Input after a final DEFLATE block continues as a new block.
+      */
     def inflate(data: ByteVector, maxSize: Int): ByteVector
     def resetInflater(): Unit
 
@@ -147,17 +155,19 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
   private val Tail = ByteVector(0x00, 0x00, 0xff, 0xff)
   private val EmptyBlock = ByteVector(0x00)
 
-  def apply(params: Params, maxFrameSize: Int): PerMessageDeflate =
-    new PerMessageDeflate(params, maxFrameSize, createCodec())
+  def apply(params: Params, maxDecompressedMessageSize: Int): PerMessageDeflate =
+    new PerMessageDeflate(params, maxDecompressedMessageSize, createCodec())
 
   /** Accepts the first valid `permessage-deflate` offer of the request, if any. */
   def negotiate(headers: Headers): Option[Params] =
     if (!isSupported) None
     else
       headers.get(HeaderName).flatMap { values =>
-        parseOffers(values.toList.map(_.value).mkString(",")).collectFirstSome {
-          case (name, params) if name.equalsIgnoreCase(ExtensionName) => accept(params)
-          case _ => None
+        offers.parseAll(values.toList.map(_.value).mkString(",")).toOption.flatMap {
+          _.collectFirstSome {
+            case (name, params) if name.equalsIgnoreCase(ExtensionName) => accept(params)
+            case _ => None
+          }
         }
       }
 
@@ -187,37 +197,12 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
     if (value.matches("[1-9][0-9]?")) Some(value.toInt).filter(bits => bits >= 8 && bits <= 15)
     else None
 
-  private def parseOffers(value: String): List[(String, List[(String, Option[String])])] =
-    split(value, ',').filter(_.nonEmpty).map { offer =>
-      val segments = split(offer, ';')
-      val params = segments.tail.filter(_.nonEmpty).map { param =>
-        param.indexOf('=') match {
-          case -1 => (param.toLowerCase(Locale.ROOT), None)
-          case i =>
-            val name = param.substring(0, i).trim.toLowerCase(Locale.ROOT)
-            (name, Some(unquote(param.substring(i + 1).trim)))
-        }
-      }
-      (segments.head, params)
-    }
-
-  private def split(value: String, separator: Char): List[String] = {
-    val parts = List.newBuilder[String]
-    val part = new StringBuilder
-    var quoted = false
-    value.foreach { c =>
-      if (c == '"') quoted = !quoted
-      if (c == separator && !quoted) {
-        parts += part.result().trim
-        part.clear()
-      } else part.append(c)
-    }
-    parts += part.result().trim
-    parts.result()
+  private val param: Parser[(String, Option[String])] = {
+    val value = (ows.with1 *> Parser.char('=') *> ows *> token.orElse(quotedString)).backtrack
+    (token ~ value.?).map { case (name, v) => (name.toLowerCase(Locale.ROOT), v) }
   }
 
-  private def unquote(value: String): String =
-    if (value.length >= 2 && value.startsWith("\"") && value.endsWith("\""))
-      value.substring(1, value.length - 1)
-    else value
+  private val offers = headerRep1(
+    token ~ (ows.with1 *> Parser.char(';') *> ows *> param).backtrack.rep0
+  )
 }

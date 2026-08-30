@@ -24,6 +24,8 @@ import org.http4s.websocket.FrameTranscoder.TranscodeError
 import org.http4s.websocket.WebSocketFrame
 import scodec.bits._
 
+import java.util.zip.Deflater
+
 class PerMessageDeflateSuite extends Http4sSuite {
   import PerMessageDeflate.Params
 
@@ -34,10 +36,10 @@ class PerMessageDeflateSuite extends Http4sSuite {
 
   private val default = Params(false, false, None)
 
-  private def withDeflate[A](params: Params = default, maxFrameSize: Int = 1024)(
+  private def withDeflate[A](params: Params = default, maxSize: Int = 1024)(
       f: PerMessageDeflate => A
   ): A = {
-    val deflate = PerMessageDeflate(params, maxFrameSize)
+    val deflate = PerMessageDeflate(params, maxSize)
     try f(deflate)
     finally deflate.close()
   }
@@ -80,6 +82,18 @@ class PerMessageDeflateSuite extends Http4sSuite {
 
   test("skip unknown extensions and read multiple headers") {
     assertEquals(negotiate("x-webkit-deflate-frame", "permessage-deflate"), Some(default))
+  }
+
+  test("parse quoted values with escaped quotes") {
+    assertEquals(
+      negotiate("x-foo; a=\"b\\\"c, d\", permessage-deflate; server_max_window_bits=\"15\""),
+      Some(Params(false, false, Some(15))),
+    )
+  }
+
+  test("decline everything when the header is malformed") {
+    assertEquals(negotiate("permessage-deflate; ="), None)
+    assertEquals(negotiate("permessage-deflate; a=\"open"), None)
   }
 
   test("decline invalid offers") {
@@ -201,13 +215,90 @@ class PerMessageDeflateSuite extends Http4sSuite {
     }
   }
 
-  test("fail when the decompressed frame exceeds the max frame size") {
-    withDeflate(maxFrameSize = 1024) { server =>
-      withDeflate(maxFrameSize = 1024 * 1024) { client =>
+  test("fail when the decompressed message exceeds the limit") {
+    withDeflate(maxSize = 1024) { server =>
+      withDeflate(maxSize = 1024 * 1024) { client =>
         val (encoded, rsv1) = client.encode(WebSocketFrame.Binary(ByteVector.fill(100000)(0)))
         assert(encoded.length < 1024)
         intercept[TranscodeError](server.decode(encoded, rsv1))
       }
+    }
+  }
+
+  test("fail when decompressed fragments together exceed the limit") {
+    withDeflate(maxSize = 1000) { server =>
+      withDeflate(maxSize = 1024 * 1024) { client =>
+        val (first, rsv1) = client.encode(WebSocketFrame.Binary(ByteVector.fill(600)(0), false))
+        val (second, _) = client.encode(WebSocketFrame.Continuation(ByteVector.fill(600)(0), true))
+        server.decode(first, rsv1)
+        intercept[TranscodeError](server.decode(second, rsv1 = false))
+      }
+    }
+  }
+
+  test("reset the decompressed limit for each message") {
+    withDeflate(maxSize = 1000) { server =>
+      withDeflate(maxSize = 1024 * 1024) { client =>
+        List.fill(3)(ByteVector.fill(600)(1)).foreach { data =>
+          val (encoded, rsv1) = client.encode(WebSocketFrame.Binary(data))
+          assertEquals(server.decode(encoded, rsv1).data, data)
+        }
+      }
+    }
+  }
+
+  private def rawDeflate(data: String, dictionary: String, finish: Boolean): ByteVector = {
+    val deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
+    try {
+      if (dictionary.nonEmpty) deflater.setDictionary(dictionary.getBytes)
+      deflater.setInput(data.getBytes)
+      if (finish) deflater.finish()
+      val buffer = new Array[Byte](1024)
+      val n = deflater.deflate(
+        buffer,
+        0,
+        buffer.length,
+        if (finish) Deflater.NO_FLUSH else Deflater.SYNC_FLUSH,
+      )
+      ByteVector(buffer, 0, n)
+    } finally deflater.end()
+  }
+
+  test("decompress a message ending with a BFINAL block (RFC 7692 7.2.3.4)") {
+    withDeflate() { deflate =>
+      val frame = deflate.decode(WebSocketFrame.Text(hex"f348cdc9c9070000", true), rsv1 = true)
+      assertEquals(frame, WebSocketFrame.Text("Hello"))
+    }
+  }
+
+  test("keep decompressing after a BFINAL block in the same message") {
+    withDeflate() { deflate =>
+      val payload =
+        rawDeflate("He", "", finish = true) ++ rawDeflate("llo", "He", finish = false).dropRight(4)
+      val frame = deflate.decode(WebSocketFrame.Text(payload, true), rsv1 = true)
+      assertEquals(frame, WebSocketFrame.Text("Hello"))
+    }
+  }
+
+  test("keep the context after a message ending with a BFINAL block") {
+    withDeflate() { deflate =>
+      val first = rawDeflate("Hello", "", finish = true) ++ hex"00"
+      val second = rawDeflate("Hello", "Hello", finish = false).dropRight(4)
+      assertEquals(
+        deflate.decode(WebSocketFrame.Text(first, true), rsv1 = true),
+        WebSocketFrame.Text("Hello"),
+      )
+      assertEquals(
+        deflate.decode(WebSocketFrame.Text(second, true), rsv1 = true),
+        WebSocketFrame.Text("Hello"),
+      )
+    }
+  }
+
+  test("fail on invalid data after a BFINAL block") {
+    withDeflate() { deflate =>
+      val payload = rawDeflate("Hello", "", finish = true) ++ hex"ffffffff"
+      intercept[ProtocolException](deflate.decode(WebSocketFrame.Text(payload, true), rsv1 = true))
     }
   }
 }

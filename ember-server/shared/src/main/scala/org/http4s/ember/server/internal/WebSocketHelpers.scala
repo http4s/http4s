@@ -59,7 +59,11 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.Duration
 
-private[internal] class WebSocketHelpers(maxFrameSize: Int, compression: Boolean) {
+private[internal] class WebSocketHelpers(
+    maxFrameSize: Int,
+    compression: Boolean,
+    maxDecompressedMessageSize: Int,
+) {
   import WebSocketHelpers._
 
   private[this] val supportedWebSocketVersion = 13L
@@ -132,7 +136,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int, compression: Boolean
       deflateParams: Option[PerMessageDeflate.Params],
   )(implicit F: Async[F]): F[Unit] =
     Resource
-      .make(F.delay(deflateParams.map(PerMessageDeflate(_, maxFrameSize))))(
+      .make(F.delay(deflateParams.map(PerMessageDeflate(_, maxDecompressedMessageSize))))(
         _.traverse_(deflate => F.delay(deflate.close()))
       )
       .use(connectionLoop(socket, ctx, buffer, receiveBufferSize, idleTimeout, _))

@@ -33,11 +33,16 @@ private[internal] trait PerMessageDeflatePlatform {
 }
 
 private[internal] object PerMessageDeflatePlatform {
+  private val WindowSize = 32768
+
   private final class ZipCodec extends PerMessageDeflate.Codec {
     private[this] val deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
     private[this] val inflater = new Inflater(true)
     private[this] val deflateBuffer = new Array[Byte](8192)
     private[this] val inflateBuffer = new Array[Byte](8192)
+    private[this] val window = new Array[Byte](WindowSize)
+    private[this] var windowEnd = 0
+    private[this] var windowFull = false
 
     def deflate(data: ByteVector): ByteVector = {
       deflater.setInput(data.toArray)
@@ -53,7 +58,8 @@ private[internal] object PerMessageDeflatePlatform {
     def resetDeflater(): Unit = deflater.reset()
 
     def inflate(data: ByteVector, maxSize: Int): ByteVector = {
-      inflater.setInput(data.toArray)
+      val input = data.toArray
+      inflater.setInput(input)
       val out = new ByteArrayOutputStream()
       var more = true
       try
@@ -63,21 +69,48 @@ private[internal] object PerMessageDeflatePlatform {
             out.write(inflateBuffer, 0, n)
             if (out.size() > maxSize)
               throw TranscodeError.maxFrameSizeExceeded(
-                s"Decompressed frame exceeds limit of $maxSize bytes"
+                "Decompressed message exceeds the size limit"
               )
+            remember(inflateBuffer, n)
           } else if (inflater.needsDictionary())
             throw new ProtocolException("Compressed data requires a preset dictionary")
-          more = n == inflateBuffer.length || !(inflater.finished() || inflater.needsInput())
+          if (inflater.finished()) {
+            val remaining = inflater.getRemaining()
+            restart()
+            if (remaining > 0) inflater.setInput(input, input.length - remaining, remaining)
+          }
+          more = n == inflateBuffer.length || !inflater.needsInput()
         }
       catch {
         case e: DataFormatException =>
           throw new ProtocolException(s"Invalid compressed data: ${e.getMessage}")
       }
-      if (inflater.finished()) inflater.reset()
       ByteVector.view(out.toByteArray)
     }
 
-    def resetInflater(): Unit = inflater.reset()
+    def resetInflater(): Unit = {
+      inflater.reset()
+      windowEnd = 0
+      windowFull = false
+    }
+
+    private def remember(bytes: Array[Byte], length: Int): Unit = {
+      val first = math.min(length, WindowSize - windowEnd)
+      System.arraycopy(bytes, 0, window, windowEnd, first)
+      System.arraycopy(bytes, first, window, 0, length - first)
+      if (windowEnd + length >= WindowSize) windowFull = true
+      windowEnd = (windowEnd + length) % WindowSize
+    }
+
+    private def restart(): Unit = {
+      inflater.reset()
+      if (windowFull) {
+        val dictionary = new Array[Byte](WindowSize)
+        System.arraycopy(window, windowEnd, dictionary, 0, WindowSize - windowEnd)
+        System.arraycopy(window, 0, dictionary, WindowSize - windowEnd, windowEnd)
+        inflater.setDictionary(dictionary)
+      } else if (windowEnd > 0) inflater.setDictionary(window, 0, windowEnd)
+    }
 
     def close(): Unit = {
       deflater.end()
