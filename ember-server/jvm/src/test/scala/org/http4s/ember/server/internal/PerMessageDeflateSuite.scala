@@ -34,7 +34,7 @@ class PerMessageDeflateSuite extends Http4sSuite {
       Headers(values.toList.map(Header.Raw(PerMessageDeflate.HeaderName, _)))
     )
 
-  private val default = Params(false, false, None)
+  private val default = Params(false, false, false)
 
   private def withDeflate[A](params: Params = default, maxSize: Int = 1024)(
       f: PerMessageDeflate => A
@@ -56,7 +56,7 @@ class PerMessageDeflateSuite extends Http4sSuite {
   test("echo context takeover parameters") {
     val params =
       negotiate("permessage-deflate; server_no_context_takeover; client_no_context_takeover")
-    assertEquals(params, Some(Params(true, true, None)))
+    assertEquals(params, Some(Params(true, true, false)))
     assertEquals(
       params.map(_.toHeader.value),
       Some("permessage-deflate; server_no_context_takeover; client_no_context_takeover"),
@@ -87,7 +87,7 @@ class PerMessageDeflateSuite extends Http4sSuite {
   test("parse quoted values with escaped quotes") {
     assertEquals(
       negotiate("x-foo; a=\"b\\\"c, d\", permessage-deflate; server_max_window_bits=\"15\""),
-      Some(Params(false, false, Some(15))),
+      Some(Params(false, false, true)),
     )
   }
 
@@ -159,7 +159,7 @@ class PerMessageDeflateSuite extends Http4sSuite {
   }
 
   test("round trip messages with and without context takeover") {
-    List(default, Params(true, true, None)).foreach { params =>
+    List(default, Params(true, true, false)).foreach { params =>
       withDeflate(params) { server =>
         withDeflate(params) { client =>
           List("Hello", "Hello", "a" * 500, "").foreach { msg =>
@@ -232,6 +232,17 @@ class PerMessageDeflateSuite extends Http4sSuite {
         val (second, _) = client.encode(WebSocketFrame.Continuation(ByteVector.fill(600)(0), true))
         server.decode(first, rsv1)
         intercept[TranscodeError](server.decode(second, rsv1 = false))
+      }
+    }
+  }
+
+  test("reset the decompressed limit when a new message starts mid-fragment") {
+    withDeflate(maxSize = 1000) { server =>
+      withDeflate(maxSize = 1024 * 1024) { client =>
+        val (first, rsv1) = client.encode(WebSocketFrame.Binary(ByteVector.fill(600)(0), false))
+        val (second, _) = client.encode(WebSocketFrame.Binary(ByteVector.fill(600)(0), true))
+        server.decode(first, rsv1)
+        assertEquals(server.decode(second, rsv1 = true).length, 600)
       }
     }
   }

@@ -23,7 +23,6 @@ import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Resource
-import cats.effect.Temporal
 import cats.effect.std.Mutex
 import cats.syntax.all._
 import fs2.Chunk
@@ -124,6 +123,8 @@ private[internal] class WebSocketHelpers(
     }
   }
 
+  private[this] val decompressedLimit = math.min(maxDecompressedMessageSize, maxFrameSize)
+
   private[this] val nonClientTranscoder =
     new FrameTranscoder(isClient = false, maxFrameSize = maxFrameSize)
 
@@ -136,7 +137,7 @@ private[internal] class WebSocketHelpers(
       deflateParams: Option[PerMessageDeflate.Params],
   )(implicit F: Async[F]): F[Unit] =
     Resource
-      .make(F.delay(deflateParams.map(PerMessageDeflate(_, maxDecompressedMessageSize))))(
+      .make(F.delay(deflateParams.map(PerMessageDeflate(_, decompressedLimit))))(
         _.traverse_(deflate => F.delay(deflate.close()))
       )
       .use(connectionLoop(socket, ctx, buffer, receiveBufferSize, idleTimeout, _))
@@ -148,14 +149,15 @@ private[internal] class WebSocketHelpers(
       receiveBufferSize: Int,
       idleTimeout: Duration,
       deflate: Option[PerMessageDeflate],
-  )(implicit F: Temporal[F]): F[Unit] =
+  )(implicit F: Async[F]): F[Unit] =
     Mutex[F].flatMap { mut =>
       val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
 
       // Writes without locking, so concurrent calls may result in interleaving of frame chunks
       // and race on `close`. Use `mut` to guard the state.
       def writeFrameUnsafe(frame: WebSocketFrame): F[Unit] =
-        frameToBytes(frame, deflate).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
+        F.delay(frameToBytes(frame, deflate))
+          .flatMap(_.traverse_(c => timeoutMaybe(socket.write(c), idleTimeout)))
 
       val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 

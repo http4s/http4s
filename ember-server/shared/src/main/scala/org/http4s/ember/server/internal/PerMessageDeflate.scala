@@ -70,6 +70,7 @@ private[internal] final class PerMessageDeflate(
       } else frame
     case _ if rsv1 =>
       decompressingIncoming = !frame.last
+      decompressedBytes = 0L
       withData(frame, decompress(frame.data, frame.last))
     case _ =>
       decompressingIncoming = false
@@ -128,14 +129,14 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
   final case class Params(
       serverNoContextTakeover: Boolean,
       clientNoContextTakeover: Boolean,
-      serverMaxWindowBits: Option[Int],
+      echoServerMaxWindowBits: Boolean,
   ) {
     def toHeader: Header.Raw = {
       val params = List(
         Some(ExtensionName),
         Some(ServerNoContextTakeover).filter(_ => serverNoContextTakeover),
         Some(ClientNoContextTakeover).filter(_ => clientNoContextTakeover),
-        serverMaxWindowBits.map(bits => s"$ServerMaxWindowBits=$bits"),
+        Some(s"$ServerMaxWindowBits=$MaxWindowBits").filter(_ => echoServerMaxWindowBits),
       )
       Header.Raw(HeaderName, params.flatten.mkString("; "))
     }
@@ -175,7 +176,7 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
     val names = params.map(_._1)
     if (names.distinct.size != names.size) None
     else
-      params.foldLeftM(Params(false, false, None)) {
+      params.foldLeftM(Params(false, false, false)) {
         case (agreed, (ServerNoContextTakeover, None)) =>
           Some(agreed.copy(serverNoContextTakeover = true))
         case (agreed, (ClientNoContextTakeover, None)) =>
@@ -183,7 +184,7 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
         case (agreed, (ServerMaxWindowBits, Some(value))) =>
           windowBits(value)
             .filter(_ == MaxWindowBits)
-            .map(bits => agreed.copy(serverMaxWindowBits = Some(bits)))
+            .as(agreed.copy(echoServerMaxWindowBits = true))
         case (agreed, (ClientMaxWindowBits, None)) =>
           Some(agreed)
         case (agreed, (ClientMaxWindowBits, Some(value))) =>

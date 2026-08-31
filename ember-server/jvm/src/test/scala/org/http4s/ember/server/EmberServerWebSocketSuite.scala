@@ -450,4 +450,10 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         }
       }
   }
+
+  test("reject a non-positive decompressed message size") {
+    intercept[IllegalArgumentException](
+      EmberServerBuilder.default[IO].withMaxWebSocketDecompressedMessageSize(0)
+    )
+  }
 }

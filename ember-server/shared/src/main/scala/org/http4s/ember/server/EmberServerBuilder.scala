@@ -254,21 +254,27 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withMaxWebSocketMessageSize(maxWebSocketMessageSize: Int): EmberServerBuilder[F] =
     copy(maxWebSocketMessageSize = maxWebSocketMessageSize)
 
-  /** Enables the `permessage-deflate` WebSocket extension (RFC 7692) on JVM and Native.
+  /** Enables the `permessage-deflate` WebSocket extension (RFC 7692) on the JVM.
     * It is negotiated only when the client offers it and the route doesn't set
-    * `Sec-WebSocket-Extensions` itself.
+    * `Sec-WebSocket-Extensions` itself. Scala.js and Scala Native decline the offer.
     */
   def withWebSocketCompression: EmberServerBuilder[F] = copy(enableWebSocketCompression = true)
   def withoutWebSocketCompression: EmberServerBuilder[F] =
     copy(enableWebSocketCompression = false)
 
-  /** Maximum size of a compressed WebSocket message after decompression.
-    * Larger messages close the connection with code 1009. Default: 8 MiB.
+  /** Maximum size of a compressed WebSocket message after decompression, also capped by
+    * `maxWebSocketMessageSize`. Larger messages close the connection with code 1009.
+    * Default: 8 MiB.
     */
   def withMaxWebSocketDecompressedMessageSize(
       maxWebSocketDecompressedMessageSize: Int
-  ): EmberServerBuilder[F] =
+  ): EmberServerBuilder[F] = {
+    require(
+      maxWebSocketDecompressedMessageSize > 0,
+      "maxWebSocketDecompressedMessageSize must be positive",
+    )
     copy(maxWebSocketDecompressedMessageSize = maxWebSocketDecompressedMessageSize)
+  }
 
   def build: Resource[F, Server] =
     for {
