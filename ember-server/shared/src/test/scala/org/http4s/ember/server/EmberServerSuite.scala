@@ -30,6 +30,9 @@ import org.http4s.implicits._
 import org.http4s.server.Server
 
 import scala.concurrent.duration._
+import java.net.URI
+import java.net.http.{HttpClient, HttpRequest, HttpResponse}
+import java.net.http.HttpClient.Version
 
 class EmberServerSuite extends Http4sSuite {
 
@@ -191,6 +194,62 @@ class EmberServerSuite extends Http4sSuite {
             serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
         }
     }
+  }
+
+  test("#6954 - request cancels if client close connection http2") {
+    import org.http4s.dsl.io._
+
+    for {
+      started <- Deferred[IO, Unit]
+      cancelled <- Deferred[IO, Unit]
+
+      app = HttpRoutes.of[IO] {
+        case GET -> Root / "cancel" =>
+          started.complete(()) *>
+            IO.never.onCancel(cancelled.complete(()).void)
+      }.orNotFound
+
+      _ <- EmberServerBuilder
+        .default[IO]
+        .withHttp2
+        .withHttpApp(app)
+        .build
+        .use { server =>
+          for {
+            client <- IO.delay {
+                HttpClient
+                  .newBuilder()
+                  .version(Version.HTTP_2)
+                  .build()
+            }
+            request =
+                HttpRequest
+                  .newBuilder()
+                  .uri(
+                    URI.create(
+                      s"${server.baseUri.renderString}cancel"
+                    )
+                  )
+                  .GET()
+                  .build()
+
+            res <- IO.fromCompletableFuture(
+              IO.delay(
+                client.sendAsync(
+                  request,
+                  HttpResponse.BodyHandlers.ofString()
+                )
+              )
+            ).start
+            _ <- started.get.timeout(5.seconds)
+
+            _ <- IO.delay(client.shutdownNow())
+            _ <- res.join
+
+            _ <- cancelled.get.timeout(5.seconds).assertEquals(())
+          } yield ()
+        }
+    } yield ()
   }
 
 }

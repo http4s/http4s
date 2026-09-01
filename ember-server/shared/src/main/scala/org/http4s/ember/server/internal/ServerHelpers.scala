@@ -557,7 +557,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           settings,
                           newReq.some,
                         )
-                        .use(_ => Async[F].never[Unit])
+                        .use(_ => Async[F].unit)
                         .as(None)
                     } yield out
                 }
