@@ -181,6 +181,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val munitDiscipline = Def.setting("org.typelevel" %%% "discipline-munit" % V.munitDiscipline)
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
+  lazy val nettyCodecHttp2 = "io.netty" % "netty-codec-http2" % V.netty
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =
