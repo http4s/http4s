@@ -203,11 +203,12 @@ class EmberServerSuite extends Http4sSuite {
       started <- Deferred[IO, Unit]
       cancelled <- Deferred[IO, Unit]
 
-      app = HttpRoutes.of[IO] {
-        case GET -> Root / "cancel" =>
+      app = HttpRoutes
+        .of[IO] { case GET -> Root / "cancel" =>
           started.complete(()) *>
             IO.never.onCancel(cancelled.complete(()).void)
-      }.orNotFound
+        }
+        .orNotFound
 
       _ <- EmberServerBuilder
         .default[IO]
@@ -217,30 +218,32 @@ class EmberServerSuite extends Http4sSuite {
         .use { server =>
           for {
             client <- IO.delay {
-                HttpClient
-                  .newBuilder()
-                  .version(Version.HTTP_2)
-                  .build()
+              HttpClient
+                .newBuilder()
+                .version(Version.HTTP_2)
+                .build()
             }
             request =
-                HttpRequest
-                  .newBuilder()
-                  .uri(
-                    URI.create(
-                      s"${server.baseUri.renderString}cancel"
-                    )
+              HttpRequest
+                .newBuilder()
+                .uri(
+                  URI.create(
+                    s"${server.baseUri.renderString}cancel"
                   )
-                  .GET()
-                  .build()
+                )
+                .GET()
+                .build()
 
-            res <- IO.fromCompletableFuture(
-              IO.delay(
-                client.sendAsync(
-                  request,
-                  HttpResponse.BodyHandlers.ofString()
+            res <- IO
+              .fromCompletableFuture(
+                IO.delay(
+                  client.sendAsync(
+                    request,
+                    HttpResponse.BodyHandlers.ofString(),
+                  )
                 )
               )
-            ).start
+              .start
             _ <- started.get.timeout(5.seconds)
 
             _ <- IO.delay(client.shutdownNow())
