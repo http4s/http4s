@@ -36,26 +36,61 @@ private[internal] object PerMessageDeflatePlatform {
   private val WindowSize = 32768
 
   private final class ZipCodec extends PerMessageDeflate.Codec {
+    private[this] var compressor: Compressor = null
+    private[this] var decompressor: Decompressor = null
+
+    def deflate(data: ByteVector): ByteVector = {
+      if (compressor == null) compressor = new Compressor
+      compressor.deflate(data)
+    }
+
+    def releaseDeflater(): Unit =
+      if (compressor != null) {
+        compressor.end()
+        compressor = null
+      }
+
+    def inflate(data: ByteVector, maxSize: Int): ByteVector = {
+      if (decompressor == null) decompressor = new Decompressor
+      decompressor.inflate(data, maxSize)
+    }
+
+    def releaseInflater(): Unit =
+      if (decompressor != null) {
+        decompressor.end()
+        decompressor = null
+      }
+
+    def close(): Unit = {
+      releaseDeflater()
+      releaseInflater()
+    }
+  }
+
+  private final class Compressor {
     private[this] val deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
-    private[this] val inflater = new Inflater(true)
-    private[this] val deflateBuffer = new Array[Byte](8192)
-    private[this] val inflateBuffer = new Array[Byte](8192)
-    private[this] val window = new Array[Byte](WindowSize)
-    private[this] var windowEnd = 0
-    private[this] var windowFull = false
+    private[this] val buffer = new Array[Byte](8192)
 
     def deflate(data: ByteVector): ByteVector = {
       deflater.setInput(data.toArray)
       val out = new ByteArrayOutputStream()
-      var n = deflateBuffer.length
-      while (n == deflateBuffer.length) {
-        n = deflater.deflate(deflateBuffer, 0, deflateBuffer.length, Deflater.SYNC_FLUSH)
-        out.write(deflateBuffer, 0, n)
+      var n = buffer.length
+      while (n == buffer.length) {
+        n = deflater.deflate(buffer, 0, buffer.length, Deflater.SYNC_FLUSH)
+        out.write(buffer, 0, n)
       }
       ByteVector.view(out.toByteArray)
     }
 
-    def resetDeflater(): Unit = deflater.reset()
+    def end(): Unit = deflater.end()
+  }
+
+  private final class Decompressor {
+    private[this] val inflater = new Inflater(true)
+    private[this] val buffer = new Array[Byte](8192)
+    private[this] val window = new Array[Byte](WindowSize)
+    private[this] var windowEnd = 0
+    private[this] var windowFull = false
 
     def inflate(data: ByteVector, maxSize: Int): ByteVector = {
       val input = data.toArray
@@ -64,14 +99,14 @@ private[internal] object PerMessageDeflatePlatform {
       var more = true
       try
         while (more) {
-          val n = inflater.inflate(inflateBuffer)
+          val n = inflater.inflate(buffer)
           if (n > 0) {
-            out.write(inflateBuffer, 0, n)
+            out.write(buffer, 0, n)
             if (out.size() > maxSize)
               throw TranscodeError.maxFrameSizeExceeded(
                 "Decompressed message exceeds the size limit"
               )
-            remember(inflateBuffer, n)
+            remember(n)
           } else if (inflater.needsDictionary())
             throw new ProtocolException("Compressed data requires a preset dictionary")
           if (inflater.finished()) {
@@ -79,7 +114,7 @@ private[internal] object PerMessageDeflatePlatform {
             restart()
             if (remaining > 0) inflater.setInput(input, input.length - remaining, remaining)
           }
-          more = n == inflateBuffer.length || !inflater.needsInput()
+          more = n == buffer.length || !inflater.needsInput()
         }
       catch {
         case e: DataFormatException =>
@@ -88,16 +123,12 @@ private[internal] object PerMessageDeflatePlatform {
       ByteVector.view(out.toByteArray)
     }
 
-    def resetInflater(): Unit = {
-      inflater.reset()
-      windowEnd = 0
-      windowFull = false
-    }
+    def end(): Unit = inflater.end()
 
-    private def remember(bytes: Array[Byte], length: Int): Unit = {
+    private def remember(length: Int): Unit = {
       val first = math.min(length, WindowSize - windowEnd)
-      System.arraycopy(bytes, 0, window, windowEnd, first)
-      System.arraycopy(bytes, first, window, 0, length - first)
+      System.arraycopy(buffer, 0, window, windowEnd, first)
+      System.arraycopy(buffer, first, window, 0, length - first)
       if (windowEnd + length >= WindowSize) windowFull = true
       windowEnd = (windowEnd + length) % WindowSize
     }
@@ -110,11 +141,6 @@ private[internal] object PerMessageDeflatePlatform {
         System.arraycopy(window, 0, dictionary, WindowSize - windowEnd, windowEnd)
         inflater.setDictionary(dictionary)
       } else if (windowEnd > 0) inflater.setDictionary(window, 0, windowEnd)
-    }
-
-    def close(): Unit = {
-      deflater.end()
-      inflater.end()
     }
   }
 }

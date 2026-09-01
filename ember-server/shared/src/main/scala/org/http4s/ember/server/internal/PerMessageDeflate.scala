@@ -89,7 +89,7 @@ private[internal] final class PerMessageDeflate(
   private def compress(data: ByteVector, last: Boolean): ByteVector = {
     val out = codec.deflate(data)
     if (last) {
-      if (params.serverNoContextTakeover) codec.resetDeflater()
+      if (params.serverNoContextTakeover) codec.releaseDeflater()
       if (out.isEmpty) EmptyBlock
       else if (out.endsWith(Tail)) out.dropRight(Tail.length)
       else out
@@ -101,7 +101,7 @@ private[internal] final class PerMessageDeflate(
     val out = codec.inflate(if (last) data ++ Tail else data, limit)
     if (last) {
       decompressedBytes = 0L
-      if (params.clientNoContextTakeover) codec.resetInflater()
+      if (params.clientNoContextTakeover) codec.releaseInflater()
     } else decompressedBytes += out.length
     out
   }
@@ -109,18 +109,24 @@ private[internal] final class PerMessageDeflate(
 
 private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
 
-  /** A stateful raw DEFLATE compressor and decompressor pair. Not thread-safe. */
+  /** A stateful raw DEFLATE compressor and decompressor pair, allocated on first use.
+    * Not thread-safe.
+    */
   trait Codec {
 
     /** Compresses `data` and finishes with a sync flush. */
     def deflate(data: ByteVector): ByteVector
-    def resetDeflater(): Unit
+
+    /** Frees the compressor. The next message starts with an empty window. */
+    def releaseDeflater(): Unit
 
     /** Decompresses `data`, failing if the output exceeds `maxSize` bytes.
       * Input after a final DEFLATE block continues as a new block.
       */
     def inflate(data: ByteVector, maxSize: Int): ByteVector
-    def resetInflater(): Unit
+
+    /** Frees the decompressor. The next message starts with an empty window. */
+    def releaseInflater(): Unit
 
     def close(): Unit
   }

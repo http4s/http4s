@@ -142,6 +142,19 @@ class PerMessageDeflateSuite extends Http4sSuite {
     }
   }
 
+  test("close without ever compressing or decompressing") {
+    withDeflate()(_ => ())
+  }
+
+  test("decompress independent messages without context takeover") {
+    withDeflate(Params(false, true, false)) { deflate =>
+      List.fill(2)(hex"f248cdc9c90700").foreach { payload =>
+        val frame = deflate.decode(WebSocketFrame.Text(payload, true), rsv1 = true)
+        assertEquals(frame, WebSocketFrame.Text("Hello"))
+      }
+    }
+  }
+
   test("pass uncompressed frames through") {
     withDeflate() { deflate =>
       val frame = WebSocketFrame.Text("plain")
