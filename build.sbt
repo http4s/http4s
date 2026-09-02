@@ -675,9 +675,9 @@ lazy val emberServer = libraryCrossProject("ember-server")
       log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
-      nettyBuffer,
-      nettyCodecHttp,
-      nettyCodecHttp2,
+      nettyBuffer % Test,
+      nettyCodecHttp % Test,
+      nettyCodecHttp2 % Test,
     )
   )
   .jsSettings(
