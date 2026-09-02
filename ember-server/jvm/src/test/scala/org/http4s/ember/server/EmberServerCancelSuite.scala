@@ -17,24 +17,22 @@
 package org.http4s.ember.server
 
 import cats.effect._
-import org.http4s._
-import org.http4s.implicits._
-
-import scala.concurrent.duration._
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.handler.codec.http.{
-  DefaultHttpRequest,
-  HttpClientCodec,
-  HttpClientUpgradeHandler,
-  HttpHeaderNames,
-  HttpMethod,
-  HttpObject,
-}
+import io.netty.handler.codec.http.DefaultHttpRequest
+import io.netty.handler.codec.http.HttpClientCodec
+import io.netty.handler.codec.http.HttpClientUpgradeHandler
+import io.netty.handler.codec.http.HttpHeaderNames
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpObject
 import io.netty.handler.codec.http2._
+import org.http4s._
+import org.http4s.implicits._
+
+import scala.concurrent.duration._
 
 class EmberServerCancelSuite extends Http4sSuite {
 
