@@ -112,19 +112,20 @@ class EmberServerCancelSuite extends Http4sSuite {
                         65536,
                       )
 
-                    val _ = ch
+                    ch
                       .pipeline()
                       .addLast(
                         sourceCodec
-                      )
+                      ): Unit
 
-                    val _ = ch
+                    ch
                       .pipeline()
                       .addLast(
                         upgradeHandler
-                      )
+                      ): Unit
 
-                    ch.pipeline()
+                    ch
+                      .pipeline()
                       .addLast(
                         "response",
                         new SimpleChannelInboundHandler[HttpObject] {
@@ -133,11 +134,11 @@ class EmberServerCancelSuite extends Http4sSuite {
                               ctx: ChannelHandlerContext,
                               msg: HttpObject,
                           ): Unit = {
-                            val _ = ctx.fireChannelRead(msg)
+                            ctx.fireChannelRead(msg): Unit
                             ()
                           }
                         },
-                      )
+                      ): Unit
                   }
                 }
               )
@@ -152,8 +153,8 @@ class EmberServerCancelSuite extends Http4sSuite {
         }
       } { case (group, channel) =>
         IO.blocking {
-          val _ = channel.close().sync()
-          val _ = group.shutdownGracefully().sync()
+          channel.close().sync(): Unit
+          group.shutdownGracefully().sync(): Unit
           ()
         }.handleError(_ => ())
       }
