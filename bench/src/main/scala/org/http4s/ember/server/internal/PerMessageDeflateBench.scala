@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 import scala.util.Random
 
-// sbt "bench/Jmh/run -i 5 -wi 3 -f 1 -t 1 org.http4s.ember.server.internal.PerMessageDeflateBench"
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
@@ -148,35 +147,6 @@ class PerMessageDeflateBench {
     }
   }
 }
-
-/*
-Netty 4.2.19, JDK 25, ns per message:
-[info] Benchmark                           (contextTakeover)  (size)  Mode  Cnt       Score       Error  Units
-[info] PerMessageDeflateBench.emberDecode               true     128  avgt    5     274.931 ±    19.513  ns/op
-[info] PerMessageDeflateBench.emberDecode               true    4096  avgt    5    4143.080 ±    42.768  ns/op
-[info] PerMessageDeflateBench.emberDecode               true   65536  avgt    5   78328.403 ±  6283.842  ns/op
-[info] PerMessageDeflateBench.emberDecode              false     128  avgt    5    1283.573 ±    19.609  ns/op
-[info] PerMessageDeflateBench.emberDecode              false    4096  avgt    5    6102.367 ±   124.266  ns/op
-[info] PerMessageDeflateBench.emberDecode              false   65536  avgt    5   80870.974 ±  2286.750  ns/op
-[info] PerMessageDeflateBench.emberEncode               true     128  avgt    5    1977.860 ±    28.623  ns/op
-[info] PerMessageDeflateBench.emberEncode               true    4096  avgt    5   35564.003 ±  1234.601  ns/op
-[info] PerMessageDeflateBench.emberEncode               true   65536  avgt    5  598135.878 ±  6945.568  ns/op
-[info] PerMessageDeflateBench.emberEncode              false     128  avgt    5    3965.264 ±   103.044  ns/op
-[info] PerMessageDeflateBench.emberEncode              false    4096  avgt    5   27772.723 ±  1513.760  ns/op
-[info] PerMessageDeflateBench.emberEncode              false   65536  avgt    5  551393.505 ±  8905.741  ns/op
-[info] PerMessageDeflateBench.nettyDecode               true     128  avgt    5     854.403 ±    15.260  ns/op
-[info] PerMessageDeflateBench.nettyDecode               true    4096  avgt    5    4862.180 ±   240.164  ns/op
-[info] PerMessageDeflateBench.nettyDecode               true   65536  avgt    5   63989.693 ±  2939.976  ns/op
-[info] PerMessageDeflateBench.nettyDecode              false     128  avgt    5    1674.761 ±    37.545  ns/op
-[info] PerMessageDeflateBench.nettyDecode              false    4096  avgt    5    6187.867 ±   123.962  ns/op
-[info] PerMessageDeflateBench.nettyDecode              false   65536  avgt    5   63768.100 ±  3932.821  ns/op
-[info] PerMessageDeflateBench.nettyEncode               true     128  avgt    5    2557.748 ±    73.793  ns/op
-[info] PerMessageDeflateBench.nettyEncode               true    4096  avgt    5   37019.886 ±  4489.217  ns/op
-[info] PerMessageDeflateBench.nettyEncode               true   65536  avgt    5  596818.456 ± 18257.976  ns/op
-[info] PerMessageDeflateBench.nettyEncode              false     128  avgt    5    5769.133 ±   115.478  ns/op
-[info] PerMessageDeflateBench.nettyEncode              false    4096  avgt    5   29756.928 ±  2454.866  ns/op
-[info] PerMessageDeflateBench.nettyEncode              false   65536  avgt    5  552465.976 ± 12299.813  ns/op
- */
 
 object PerMessageDeflateBench {
   final val Messages = 32

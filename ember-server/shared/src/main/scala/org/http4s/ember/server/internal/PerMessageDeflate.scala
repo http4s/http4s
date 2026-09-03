@@ -204,12 +204,15 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
     if (value.matches("[1-9][0-9]?")) Some(value.toInt).filter(bits => bits >= 8 && bits <= 15)
     else None
 
+  private val text: Parser[String] =
+    Parser.charsWhile(c => c != ',' && c != ';' && c != '=' && c != '"' && !c.isWhitespace)
+
   private val param: Parser[(String, Option[String])] = {
-    val value = (ows.with1 *> Parser.char('=') *> ows *> token.orElse(quotedString)).backtrack
-    (token ~ value.?).map { case (name, v) => (name.toLowerCase(Locale.ROOT), v) }
+    val value = (ows.with1 *> Parser.char('=') *> ows *> quotedString.orElse(text)).backtrack
+    (text ~ value.?).map { case (name, v) => (name.toLowerCase(Locale.ROOT), v) }
   }
 
   private val offers = headerRep1(
-    token ~ (ows.with1 *> Parser.char(';') *> ows *> param).backtrack.rep0
+    text ~ (ows.with1 *> Parser.char(';') *> ows *> param).backtrack.rep0
   )
 }

@@ -107,8 +107,7 @@ private[internal] object PerMessageDeflatePlatform {
                 "Decompressed message exceeds the size limit"
               )
             remember(n)
-          } else if (inflater.needsDictionary())
-            throw new ProtocolException("Compressed data requires a preset dictionary")
+          }
           if (inflater.finished()) {
             val remaining = inflater.getRemaining()
             restart()

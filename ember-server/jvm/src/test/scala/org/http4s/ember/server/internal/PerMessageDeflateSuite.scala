@@ -91,6 +91,14 @@ class PerMessageDeflateSuite extends Http4sSuite {
     )
   }
 
+  test("accept the offer when another extension has unusual values") {
+    assertEquals(negotiate("x-foo; a=b/c; d=@e, permessage-deflate"), Some(default))
+  }
+
+  test("decline permessage-deflate parameters with unusual values") {
+    assertEquals(negotiate("permessage-deflate; server_max_window_bits=1/5"), None)
+  }
+
   test("decline everything when the header is malformed") {
     assertEquals(negotiate("permessage-deflate; ="), None)
     assertEquals(negotiate("permessage-deflate; a=\"open"), None)
