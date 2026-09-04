@@ -541,8 +541,19 @@ private[ember] object H2Frame {
         else if (ack) Settings(raw.identifier, ack, List.empty).asRight
         else fromPayload(raw.payload, raw.identifier, ack)
       } else Either.left(H2Error.InternalError)
+
+    /** The entries a peer may pack into a single SETTINGS frame.
+      *
+      * A frame of legal length still holds thousands of six byte pairs, each of
+      * which becomes a live `Setting`. nghttp2 bounds the count for the same
+      * reason (CVE-2020-11080); six settings are defined, so 32 leaves room for
+      * extensions.
+      */
+    private[this] val MaxEntries: Long = 32L
+
     def fromPayload(payload: ByteVector, identifier: Int, ack: Boolean): Either[H2Error, Settings] =
       if (payload.size % 6 != 0) H2Error.FrameSizeError.asLeft
+      else if (payload.size / 6 > MaxEntries) H2Error.EnhanceYourCalm.asLeft
       else {
         val settings = for {
           i <- 0 to (payload.size.toInt - 5) by 6
