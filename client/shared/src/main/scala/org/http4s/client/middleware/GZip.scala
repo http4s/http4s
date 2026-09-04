@@ -73,7 +73,8 @@ object GZip {
   ): Response[F] =
     response.headers.get[`Content-Encoding`] match {
       case Some(header)
-          if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
+          if header.contentCoding == ContentCoding.gzip ||
+            header.contentCoding == ContentCoding.legacy.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
           _.through(Compression[F].gunzip(bufferSize)).flatMap(_.content)
         response
