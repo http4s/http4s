@@ -164,8 +164,9 @@ class H2FrameSpec extends CatsEffectSuite {
   }
 
   test("Settings should reject a dense frame within the maximum frame size") {
+    val maxFrameSize = H2Frame.Settings.ConnectionSettings.default.maxFrameSize.frameSize
     val payload = ByteVector.concat(
-      List.fill(2730)(ByteVector(0xff, 0xff, 0x00, 0x00, 0x00, 0x00))
+      List.fill(maxFrameSize / 6)(ByteVector(0xff, 0xff, 0x00, 0x00, 0x00, 0x00))
     )
     val raw = H2Frame.RawFrame(
       payload.size.toInt,
@@ -175,7 +176,7 @@ class H2FrameSpec extends CatsEffectSuite {
       payload,
     )
 
-    assert(payload.size <= 16384)
+    assert(payload.size <= maxFrameSize)
     assertEquals(H2Frame.fromRaw(raw), H2Error.EnhanceYourCalm.asLeft)
   }
 
