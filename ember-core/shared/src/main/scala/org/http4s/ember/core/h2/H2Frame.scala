@@ -544,10 +544,8 @@ private[ember] object H2Frame {
 
     /** The entries a peer may pack into a single SETTINGS frame.
       *
-      * A frame of legal length still holds thousands of six byte pairs, each of
-      * which becomes a live `Setting`. nghttp2 bounds the count for the same
-      * reason (CVE-2020-11080); six settings are defined, so 32 leaves room for
-      * extensions.
+      * Six settings are defined, so 32 leaves room for extensions. nghttp2
+      * applies the same bound.
       */
     private[this] val MaxEntries: Long = 32L
 
