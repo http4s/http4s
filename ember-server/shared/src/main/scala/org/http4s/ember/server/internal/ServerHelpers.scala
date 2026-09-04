@@ -32,7 +32,6 @@ import org.http4s.ember.core.Parser
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
 import org.http4s.ember.core.h2.H2Frame
-import org.http4s.ember.core.h2.H2Keys
 import org.http4s.ember.core.h2.H2Server
 import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
@@ -254,7 +253,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   createRequestVault,
                   webSocketKey,
                   ByteVector.empty,
-                  enableHttp2,
                   requestLineParseErrorHandler,
                   maxHeaderSizeErrorHandler,
                   webSocketHelpers,
@@ -279,7 +277,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           createRequestVault,
                           webSocketKey,
                           bv, // Pass read bytes we thought might be the prelude
-                          enableHttp2,
                           requestLineParseErrorHandler,
                           maxHeaderSizeErrorHandler,
                           webSocketHelpers,
@@ -313,7 +310,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       createRequestVault,
                       webSocketKey,
                       ByteVector.empty,
-                      enableHttp2,
                       requestLineParseErrorHandler,
                       maxHeaderSizeErrorHandler,
                       webSocketHelpers,
@@ -460,21 +456,16 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
       initialBuffer: ByteVector,
-      enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
-    val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
       .adaptError {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
-
-    val h2FrameSettings = H2Frame.Settings.ConnectionSettings.default
-      .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
 
     Stream
       .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
@@ -500,7 +491,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             read,
             maxHeaderSize,
             requestHeaderReceiveTimeout,
-            finalApp,
+            httpApp,
             errorHandler,
             socket,
             createRequestVault,
@@ -532,35 +523,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                     Applicative[F].pure(None)
                 }
               case None =>
-                resp.attributes.lookup(H2Keys.H2cUpgrade) match {
-                  // Http1.1
-                  case None =>
-                    for {
-                      nextResp <- postProcessResponse(req, resp)
-                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                      nextBuffer <- drain
-                    } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
-                  // h2c escalation of the connection
-                  case Some((settings, newReq)) =>
-                    for {
-                      nextResp <- postProcessResponse(req, resp)
-                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                      _ <- H2Server.requireConnectionPreface(socket)
-                      out <- H2Server
-                        .fromSocket(
-                          socket,
-                          httpApp,
-                          requestHeaderReceiveTimeout,
-                          idleTimeout,
-                          h2FrameSettings,
-                          logger,
-                          settings,
-                          newReq.some,
-                        )
-                        .use(_ => Async[F].never[Unit])
-                        .as(None)
-                    } yield out
-                }
+                for {
+                  nextResp <- postProcessResponse(req, resp)
+                  _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                  nextBuffer <- drain
+                } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
+
             }
           case Left(err) =>
             err match {
