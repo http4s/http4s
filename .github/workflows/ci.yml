@@ -29,17 +29,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        scala: [3, 2.12, 2.13]
+        scala: [3.3.6, 2.12.21, 3.9.0]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM, rootNative]
         exclude:
-          - scala: 3
+          - scala: 3.3.6
             java: temurin@11
-          - scala: 3
+          - scala: 3.3.6
             java: temurin@17
-          - scala: 2.12
+          - scala: 2.12.21
             java: temurin@11
-          - scala: 2.12
+          - scala: 2.12.21
             java: temurin@17
           - project: rootJS
             java: temurin@11
@@ -282,7 +282,7 @@ jobs:
       - name: Submit Dependencies
         uses: scalacenter/sbt-dependency-submission@v2
         with:
-          modules-ignore: http4s-examples-ember_3 http4s-examples-ember_2.12 http4s-examples-ember_2.13 http4s-examples_3 http4s-examples_2.12 http4s-examples_2.13 scalafixinternalinput_3 scalafixinternalinput_2.12 scalafixinternalinput_2.13 scalafixinternaltests_3 scalafixinternaltests_2.12 scalafixinternaltests_2.13 http4s-examples-docker_3 http4s-examples-docker_2.12 http4s-examples-docker_2.13 http4s_3 http4s_2.12 http4s_2.13 http4s-site_3 http4s-site_2.12 http4s-site_2.13 http4s-tests_3 http4s-tests_2.12 http4s-tests_2.13 scalafixinternaloutput_3 scalafixinternaloutput_2.12 scalafixinternaloutput_2.13 http4s-tests_sjs1_3 http4s-tests_sjs1_2.12 http4s-tests_sjs1_2.13 http4s_3 http4s_2.12 http4s_2.13 http4s_3 http4s_2.12 http4s_2.13 sbt-http4s-org-scalafix-internal_3 sbt-http4s-org-scalafix-internal_2.12 sbt-http4s-org-scalafix-internal_2.13 http4s-tests_native0.5_3 http4s-tests_native0.5_2.12 http4s-tests_native0.5_2.13 http4s-bench_3 http4s-bench_2.12 http4s-bench_2.13
+          modules-ignore: http4s-examples-ember_3 http4s-examples-ember_2.12 http4s-examples-ember_3 http4s-examples_3 http4s-examples_2.12 http4s-examples_3 scalafixinternalinput_3 scalafixinternalinput_2.12 scalafixinternalinput_3 scalafixinternaltests_3 scalafixinternaltests_2.12 scalafixinternaltests_3 http4s-examples-docker_3 http4s-examples-docker_2.12 http4s-examples-docker_3 http4s_3 http4s_2.12 http4s_3 http4s-site_3 http4s-site_2.12 http4s-site_3 http4s-tests_3 http4s-tests_2.12 http4s-tests_3 scalafixinternaloutput_3 scalafixinternaloutput_2.12 scalafixinternaloutput_3 http4s-tests_sjs1_3 http4s-tests_sjs1_2.12 http4s-tests_sjs1_3 http4s_3 http4s_2.12 http4s_3 http4s_3 http4s_2.12 http4s_3 sbt-http4s-org-scalafix-internal_3 sbt-http4s-org-scalafix-internal_2.12 sbt-http4s-org-scalafix-internal_3 http4s-tests_native0.5_3 http4s-tests_native0.5_2.12 http4s-tests_native0.5_3 http4s-bench_3 http4s-bench_2.12 http4s-bench_3
           configs-ignore: test scala-tool scala-doc-tool test-internal
 
   validate-steward:
