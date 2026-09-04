@@ -44,6 +44,19 @@ Merges forward all changes in v0.23.24 and v0.23.35.  See those releases for det
 - @samspills, @morgen-peschke, and @OddKristensen for reviewing the mitigations
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M46...v1.0.0-M47
+# v0.23.36 (2026-07-06)
+
+This release fixes a binary compatibility regression in the `websocket` package if http4s-core is newer than http4s-server.  See #7887. 
+
+## What's Changed
+### http4s-core
+* Restore binary compatibility of WebSocketFrameDefragmenter by @rossabaker in https://github.com/http4s/http4s/pull/7887
+### Behind the scenes
+* Delete security policy in favor of org level by @rossabaker in https://github.com/http4s/http4s/pull/7689
+* Clean up lingering warnings by @rossabaker in https://github.com/http4s/http4s/pull/7884
+* Do not test unix sockets on Ember on JDK 1.8 by @rossabaker in https://github.com/http4s/http4s/pull/7890
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.35...v0.23.36
 
 # v0.23.35 (2026-07-06)
 

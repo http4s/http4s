@@ -57,7 +57,7 @@ object GZip {
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-      ContentCoding.`x-gzip`
+      ContentCoding.legacy.`x-gzip`
     )
 
   private def zipOrPass[F[_]: Applicative: log4cats.Logger, G[_]: Compression](
