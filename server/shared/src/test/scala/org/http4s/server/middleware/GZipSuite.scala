@@ -29,6 +29,7 @@ import org.http4s.syntax.all._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF
+import org.typelevel.ci._
 
 import java.util.Arrays
 
@@ -88,23 +89,46 @@ class GZipSuite extends Http4sSuite {
     resp.map(!_.headers.contains[`Content-Encoding`]).assert
   }
 
-  test("encoding") {
-    val genByteArray =
-      Gen.poisson(10).flatMap(n => Gen.buildableOfN[Array[Byte], Byte](n, arbitrary[Byte]))
-    val genVector = Gen
-      .poisson(10)
-      .flatMap(n => Gen.buildableOfN[Vector[Array[Byte]], Array[Byte]](n, genByteArray))
-    PropF.forAllF(genVector) { (vector: Vector[Array[Byte]]) =>
-      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
-        Ok(Stream.emits(vector))
-      }
-      val gzipRoutes: HttpRoutes[IO] = GZip(routes)
-      val req: Request[IO] = Request[IO](Method.GET, uri"/")
-        .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
-      val actual: IO[Chunk[Byte]] =
-        gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]])
+  test("compresses when the client sends the gzip content-coding") {
+    PropF.forAllF(bodyGen(10)) { (vector: Vector[Array[Byte]]) =>
+      verifyEncoding("gzip", vector)
+    }
+  }
 
-      actual.flatMap { bytes =>
+  test("compresses when the client sends the legacy x-gzip content-coding") {
+    PropF.forAllF(bodyGen(10)) { (vector: Vector[Array[Byte]]) =>
+      verifyEncoding("x-gzip", vector)
+    }
+  }
+
+  private def bodyGen(distRate: Double): Gen[Vector[Array[Byte]]] = {
+    val genByteArray =
+      Gen.poisson(distRate).flatMap(n => Gen.buildableOfN[Array[Byte], Byte](n, arbitrary[Byte]))
+
+    Gen
+      .poisson(distRate)
+      .flatMap(n => Gen.buildableOfN[Vector[Array[Byte]], Array[Byte]](n, genByteArray))
+  }
+
+  private def verifyEncoding(rawContentCoding: String, body: Vector[Array[Byte]]): IO[Unit] = {
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+      Ok(Stream.emits(body).covary[IO])
+    }
+    val gzipRoutes: HttpRoutes[IO] = GZip(routes)
+
+    val req: Request[IO] = Request[IO](Method.GET, uri"/")
+      .putHeaders(Header.Raw(ci"Accept-Encoding", rawContentCoding))
+
+    gzipRoutes
+      .orNotFound(req)
+      .flatMap(r => assertBody(r, body) *> assertHeaders(r))
+  }
+
+  private def assertBody(resp: Response[IO], expected: Vector[Array[Byte]]): IO[Unit] = {
+    val body = resp.as[Chunk[Byte]]
+
+    body
+      .flatMap(bytes =>
         Stream
           .chunk(bytes)
           .through(Compression[IO].gunzip())
@@ -112,9 +136,17 @@ class GZipSuite extends Http4sSuite {
           .compile
           .to(Chunk)
           .map { decoded =>
-            Arrays.equals(Array.concat(vector: _*), decoded.toArray)
+            Arrays.equals(Array.concat(expected: _*), decoded.toArray)
           }
-      }.assert
-    }
+      )
+      .assert
   }
+
+  private def assertHeaders(resp: Response[IO]): IO[Unit] =
+    IO(
+      assertEquals(
+        resp.headers.get[`Content-Encoding`],
+        Some(`Content-Encoding`(ContentCoding.gzip)),
+      )
+    )
 }

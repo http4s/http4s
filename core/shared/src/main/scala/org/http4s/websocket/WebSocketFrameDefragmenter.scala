@@ -128,8 +128,7 @@ private[http4s] object WebSocketFrameDefragmenter {
                 }
               }
               State(Chunk.empty, 0L, defraggedFrame)
-            case (State(fragments, _, result), curFrame)
-                if curFrame.last && fragments.isEmpty =>
+            case (State(fragments, _, result), curFrame) if curFrame.last && fragments.isEmpty =>
               // Current frame is a single, not fragmented frame.
               // Just pushing `curFrame` into the `result` chunks.
               checkLimit(curFrame.data.size)
@@ -172,6 +171,11 @@ private[http4s] object WebSocketFrameDefragmenter {
 
       go(stream, Chunk.empty[WebSocketFrame]).stream
     }
+
+  @deprecated("Preserved for binary compatibility", "0.23.36")
+  private[WebSocketFrameDefragmenter] def defragFragment[F[_]]
+      : Pipe[F, WebSocketFrame, WebSocketFrame] =
+    defragFragment(DefaultMaxMessageSize.toLong)
 
   /** Raised when a defragmented WebSocket message would exceed the configured
     * maximum size.
