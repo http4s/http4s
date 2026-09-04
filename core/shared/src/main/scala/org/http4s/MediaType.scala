@@ -35,6 +35,7 @@ import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.util.StringWriter
 import org.http4s.util.Writer
 
+import scala.annotation.nowarn
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
@@ -264,6 +265,10 @@ object MediaType extends MimeDB {
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
   // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
+  @deprecated(
+    "`application/graphql` is a non-standard media-type unsupported by most servers. This constant will be removed in a future version. Define your own constant to migrate.",
+    since = "0.23.37",
+  )
   lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
 
   /** The response media type of the GraphQL-over-HTTP specification:
@@ -277,6 +282,7 @@ object MediaType extends MimeDB {
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
   // JS application where artifact size matters (i.e. browser applications).
   private[this] var _all: Map[(String, String), MediaType] = null
+  @nowarn("cat=deprecation")
   def all: Map[(String, String), MediaType] = {
     if (_all eq null)
       _all = (`text/event-stream` :: `application/graphql` ::
