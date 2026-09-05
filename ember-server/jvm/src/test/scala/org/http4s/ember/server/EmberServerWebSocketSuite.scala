@@ -215,9 +215,9 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         dispatcher,
       )
       _ <- client.connect
+      _ <- client.remoteClosed.get.timeout(10.seconds)
       msg <- client.messages.take
       code <- client.closeCode.get
-      _ <- client.remoteClosed.get.timeout(10.seconds)
     } yield {
       assertEquals(msg, "foo")
       assertEquals(code, CloseFrame.NORMAL)
