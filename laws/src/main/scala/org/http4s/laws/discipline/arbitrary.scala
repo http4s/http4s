@@ -1213,4 +1213,9 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
     )
   )
+
+  implicit val arbitraryECT: Arbitrary[ECT] =
+    Arbitrary[ECT](
+      Gen.oneOf(ECT.`slow-2g`, ECT.`2g`, ECT.`3g`, ECT.`4g`)
+    )
 }
