@@ -17,6 +17,7 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
 
@@ -25,6 +26,7 @@ class AcceptQuerySuite extends HeaderLaws {
 
   test("parse should fail on invalid formats") {
     assert(`Accept-Query`.parse("applic/*/").isLeft)
+    assert(`Accept-Query`.parse("").isLeft)
   }
 
   test("parse should succeed on wildcard formats") {
@@ -42,14 +44,17 @@ class AcceptQuerySuite extends HeaderLaws {
     val unquoted = "application/sql"
     val parsedUnquoted = `Accept-Query`.parse(unquoted)
     assert(parsedUnquoted.isRight)
-    assertEquals(parsedUnquoted.toOption.get.values, List(MediaType.application.sql))
+    assertEquals(parsedUnquoted.toOption.get.values, NonEmptyList.of(MediaType.application.sql))
     assertEquals(parsedUnquoted.toOption.get.renderString, s"Accept-Query: $unquoted")
 
-    // Quoted string (used for names containing + or starting with digit, or general Structured Fields strings)
+    // Quoted string (used for media types starting with a digit, containing forbidden characters like '+', or general Structured Fields strings)
     val quoted = "\"application/jsonpath\""
     val parsedQuoted = `Accept-Query`.parse(quoted)
     assert(parsedQuoted.isRight)
-    assertEquals(parsedQuoted.toOption.get.values, List(new MediaType("application", "jsonpath")))
+    assertEquals(
+      parsedQuoted.toOption.get.values,
+      NonEmptyList.of(new MediaType("application", "jsonpath")),
+    )
     // application/jsonpath is a valid token, so it renders unquoted
     assertEquals(parsedQuoted.toOption.get.renderString, "Accept-Query: application/jsonpath")
 
@@ -57,8 +62,11 @@ class AcceptQuerySuite extends HeaderLaws {
     val suffixedQuoted = "\"application/ld+json\""
     val parsedSuffixed = `Accept-Query`.parse(suffixedQuoted)
     assert(parsedSuffixed.isRight)
-    assertEquals(parsedSuffixed.toOption.get.values, List(new MediaType("application", "ld+json")))
-    // application/ld+json contains +, which is not a valid token character, so it renders quoted!
+    assertEquals(
+      parsedSuffixed.toOption.get.values,
+      NonEmptyList.of(new MediaType("application", "ld+json")),
+    )
+    // application/ld+json contains '+', which is not a permitted character in Structured Field tokens (RFC 9651 section 3.3.4), so it renders quoted
     assertEquals(parsedSuffixed.toOption.get.renderString, "Accept-Query: \"application/ld+json\"")
 
     // Mix of quoted/unquoted and parameters
@@ -67,7 +75,7 @@ class AcceptQuerySuite extends HeaderLaws {
     assert(parsedMixed.isRight)
     assertEquals(
       parsedMixed.toOption.get.values,
-      List(
+      NonEmptyList.of(
         new MediaType("application", "jsonpath"),
         MediaType.application.sql.withExtensions(Map("charset" -> "UTF-8")),
       ),

@@ -17,20 +17,21 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
 import cats.parse.Parser
-import cats.parse.Parser0
 import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderer
 import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `Accept-Query` {
-  def apply(values: MediaType*): `Accept-Query` = apply(values.toList)
+  def apply(head: MediaType, tail: MediaType*): `Accept-Query` =
+    apply(NonEmptyList(head, tail.toList))
 
   def parse(s: String): ParseResult[`Accept-Query`] =
     ParseResult.fromParser(parser, "Invalid Accept-Query header")(s)
 
-  private[http4s] val parser: Parser0[`Accept-Query`] = {
+  private[http4s] val parser: Parser[`Accept-Query`] = {
     val quoted = (CommonRules.quotedString ~ MediaRange.mediaTypeExtensionParser.rep0).flatMap {
       case (mtStr, exts) =>
         MediaType.parse(mtStr) match {
@@ -41,13 +42,13 @@ object `Accept-Query` {
 
     val item = quoted.orElse(MediaType.parser)
 
-    CommonRules.headerRep(item).map(`Accept-Query`(_))
+    CommonRules.headerRep1(item).map(`Accept-Query`(_))
   }
 
   implicit val renderer: Renderer[`Accept-Query`] = new Renderer[`Accept-Query`] {
     override def render(writer: Writer, t: `Accept-Query`): writer.type = {
       var first = true
-      t.values.foreach { mt =>
+      t.values.toList.foreach { mt =>
         if (!first) {
           writer << ", "
         }
@@ -73,11 +74,8 @@ object `Accept-Query` {
       parse,
     )
 
-  implicit val headerSemigroupInstance: cats.Monoid[`Accept-Query`] =
-    cats.Monoid.instance(
-      `Accept-Query`(Nil),
-      (one, two) => `Accept-Query`(one.values ++ two.values),
-    )
+  implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Query`] =
+    (a, b) => `Accept-Query`(a.values.concatNel(b.values))
 
   private def isSfToken(s: String): Boolean =
     if (s.isEmpty) false
@@ -103,4 +101,4 @@ object `Accept-Query` {
     }
 }
 
-final case class `Accept-Query`(values: List[MediaType])
+final case class `Accept-Query`(values: NonEmptyList[MediaType])
