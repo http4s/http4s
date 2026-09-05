@@ -137,21 +137,28 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               .through(receiveSend)
               .foreach(writeFrame) -> onClose
           case WebSocketSeparatePipe(send, receive, onClose) =>
+            val closed: F[Unit] = close.update {
+              case Open => EndpointClosed
+              case _ => BothClosed
+            }
+
+            def writeOutgoing(frame: WebSocketFrame): F[Unit] = frame match {
+              case _: WebSocketFrame.Close => closed *> writeFrame(frame)
+              case _ => writeFrame(frame)
+            }
+
             val sendClosingFrame: F[Unit] = close.get.flatMap {
               case Open =>
                 for {
                   frame <- F.fromEither(WebSocketFrame.Close(1000))
-                  _ <- close.update {
-                    case Open => EndpointClosed
-                    case _ => BothClosed
-                  }
+                  _ <- closed
                   _ <- writeFrame(frame)
                 } yield ()
               case _ => F.unit
             }
 
             val writer: Stream[F, Nothing] =
-              send.foreach(writeFrame) ++ Stream.exec(sendClosingFrame)
+              send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
 
             val reader = incoming
               .through(decodeFrames[F])
@@ -186,6 +193,9 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               _ <- writeFrame(frame)
               _ <- closeState.set(BothClosed)
             } yield None
+          case EndpointClosed =>
+            // We closed first and the peer has now answered, so the handshake is complete.
+            closeState.set(BothClosed).as(None)
           case _ => F.pure(None)
         }
       case x => F.pure(Some(x))
