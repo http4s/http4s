@@ -126,27 +126,26 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
         )
 
       val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
-
-      // TODO followup: handle close frames from the user?
+      
       SignallingRef[F, Close](Open).flatMap { close =>
-        val closed: F[Unit] = close.update {
-          case Open => EndpointClosed
-          case _ => BothClosed
-        }
+        def startClosing: F[Boolean] =
+          close.modify {
+            case Open => (EndpointClosed, true)
+            case s => (s, false)
+          }
 
         val sendClosingFrame: F[Unit] =
-          close
-            .modify {
-              case Open => (EndpointClosed, true)
-              case s => (s, false)
-            }
-            .flatMap {
-              case true => F.fromEither(WebSocketFrame.Close(1000)).flatMap(writeFrame)
-              case false => F.unit
-            }
+          startClosing.flatMap {
+            case true => F.fromEither(WebSocketFrame.Close(1000)).flatMap(writeFrame)
+            case false => F.unit
+          }
 
         def writeOutgoing(frame: WebSocketFrame): F[Unit] = frame match {
-          case _: WebSocketFrame.Close => closed *> writeFrame(frame)
+          case fr: WebSocketFrame.Close =>
+            startClosing.flatMap {
+              case true => writeFrame(fr)
+              case false => F.unit
+            }
           case _ => writeFrame(frame)
         }
 
