@@ -30,6 +30,7 @@ import org.http4s.crypto.Hash
 import org.http4s.headers._
 
 import scala.concurrent.duration._
+import scala.util.Try
 
 /** Provides Digest Authentication from RFC 2617.
   */
@@ -237,7 +238,9 @@ object DigestAuth {
       paramsNel: NonEmptyList[(String, String)],
   )(implicit F: Monad[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
-    if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet)) {
+    if (
+      !Set("realm", "nonce", "nc", "username", "cnonce", "qop", "response").subsetOf(params.keySet)
+    ) {
       F.pure(BadParameters)
     } else {
       val method = req.method.toString
@@ -247,50 +250,56 @@ object DigestAuth {
       } else {
         val nonce = params("nonce")
         val nc = params("nc")
-        receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
-          case NonceKeeper.StaleReply => F.pure(StaleNonce)
-          case NonceKeeper.BadNCReply => F.pure(BadNC)
-          case NonceKeeper.OKReply =>
-            store match {
-              case authStore: PlainTextAuthStore[F, A] =>
-                authStore.func(params("username")).flatMap {
-                  case None => F.pure(UserUnknown)
-                  case Some((authInfo, password)) =>
-                    DigestUtil
-                      .computeResponse(
-                        method,
-                        params("username"),
-                        realm,
-                        password,
-                        req.uri,
-                        nonce,
-                        nc,
-                        params("cnonce"),
-                        params("qop"),
-                      )
-                      .map { resp =>
-                        if (resp == params("response")) OK(authInfo)
-                        else WrongResponse
-                      }
-                }
-              case authStore: Md5HashedAuthStore[F, A] =>
-                authStore.func(params("username")).flatMap {
-                  case None => F.pure(UserUnknown)
-                  case Some((authInfo, ha1Hash)) =>
-                    DigestUtil
-                      .computeHashedResponse(
-                        method,
-                        ha1Hash,
-                        req.uri,
-                        nonce,
-                        nc,
-                        params("cnonce"),
-                        params("qop"),
-                      )
-                      .map { resp =>
-                        if (resp == params("response")) OK(authInfo)
-                        else WrongResponse
-                      }
+        Try(java.lang.Long.parseLong(nc, 16)).toOption match {
+          case None => F.pure(BadParameters)
+          case Some(value) if value < 0 || value > Int.MaxValue => F.pure(BadNC)
+          case Some(value) =>
+            val count = value.toInt
+            receiveNonce(nonce, count).flatMap {
+              case NonceKeeper.StaleReply => F.pure(StaleNonce)
+              case NonceKeeper.BadNCReply => F.pure(BadNC)
+              case NonceKeeper.OKReply =>
+                store match {
+                  case authStore: PlainTextAuthStore[F, A] =>
+                    authStore.func(params("username")).flatMap {
+                      case None => F.pure(UserUnknown)
+                      case Some((authInfo, password)) =>
+                        DigestUtil
+                          .computeResponse(
+                            method,
+                            params("username"),
+                            realm,
+                            password,
+                            req.uri,
+                            nonce,
+                            nc,
+                            params("cnonce"),
+                            params("qop"),
+                          )
+                          .map { resp =>
+                            if (resp == params("response")) OK(authInfo)
+                            else WrongResponse
+                          }
+                    }
+                  case authStore: Md5HashedAuthStore[F, A] =>
+                    authStore.func(params("username")).flatMap {
+                      case None => F.pure(UserUnknown)
+                      case Some((authInfo, ha1Hash)) =>
+                        DigestUtil
+                          .computeHashedResponse(
+                            method,
+                            ha1Hash,
+                            req.uri,
+                            nonce,
+                            nc,
+                            params("cnonce"),
+                            params("qop"),
+                          )
+                          .map { resp =>
+                            if (resp == params("response")) OK(authInfo)
+                            else WrongResponse
+                          }
+                    }
                 }
             }
         }
