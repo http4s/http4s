@@ -134,15 +134,16 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
           case _ => BothClosed
         }
 
-        val sendClosingFrame: F[Unit] = close.get.flatMap {
-          case Open =>
-            for {
-              frame <- F.fromEither(WebSocketFrame.Close(1000))
-              _ <- closed
-              _ <- writeFrame(frame)
-            } yield ()
-          case _ => F.unit
-        }
+        val sendClosingFrame: F[Unit] =
+          close
+            .modify {
+              case Open => (EndpointClosed, true)
+              case s => (s, false)
+            }
+            .flatMap {
+              case true => F.fromEither(WebSocketFrame.Close(1000)).flatMap(writeFrame)
+              case false => F.unit
+            }
 
         def writeOutgoing(frame: WebSocketFrame): F[Unit] = frame match {
           case _: WebSocketFrame.Close => closed *> writeFrame(frame)
