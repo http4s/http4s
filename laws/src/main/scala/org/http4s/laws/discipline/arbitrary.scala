@@ -572,6 +572,13 @@ private[discipline] trait ArbitraryInstances {
       } yield headers.`Access-Control-Allow-Headers`(NonEmptyList.of(values.head, values.tail: _*))
     }
 
+  implicit val http4sTestingArbitraryForTimingAllowOriginHeader: Arbitrary[`Timing-Allow-Origin`] =
+    Arbitrary {
+      for {
+        values <- nonEmptyListOf(genToken.map(CIString(_)))
+      } yield headers.`Timing-Allow-Origin`(NonEmptyList.of(values.head, values.tail *))
+    }
+
   implicit val http4sTestingArbitraryForAccessControlExposeHeaders
       : Arbitrary[headers.`Access-Control-Expose-Headers`] =
     Arbitrary {
