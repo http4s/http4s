@@ -40,7 +40,6 @@ import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
 import scala.concurrent.duration._
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
