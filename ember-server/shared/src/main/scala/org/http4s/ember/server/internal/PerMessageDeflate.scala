@@ -99,10 +99,8 @@ private[internal] final class PerMessageDeflate(
   private def decompress(data: ByteVector, last: Boolean): ByteVector = {
     val limit = (maxDecompressedMessageSize - decompressedBytes).toInt
     val out = codec.inflate(if (last) data ++ Tail else data, limit)
-    if (last) {
-      decompressedBytes = 0L
-      if (params.clientNoContextTakeover) codec.releaseInflater()
-    } else decompressedBytes += out.length
+    decompressedBytes += out.length
+    if (last && params.clientNoContextTakeover) codec.releaseInflater()
     out
   }
 }
