@@ -126,7 +126,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
         )
 
       val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
-      
+
       SignallingRef[F, Close](Open).flatMap { close =>
         def startClosing: F[Boolean] =
           close.modify {
@@ -146,7 +146,11 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               case true => writeFrame(fr)
               case false => F.unit
             }
-          case _ => writeFrame(frame)
+          case _ =>
+            close.get.flatMap {
+              case Open => writeFrame(frame)
+              case _ => F.unit
+            }
         }
 
         val (stream, onClose) = ctx.webSocket match {
