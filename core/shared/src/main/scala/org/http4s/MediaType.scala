@@ -35,6 +35,7 @@ import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.util.StringWriter
 import org.http4s.util.Writer
 
+import scala.annotation.nowarn
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
@@ -264,15 +265,28 @@ object MediaType extends MimeDB {
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
   // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
+  @deprecated(
+    "`application/graphql` is a non-standard media-type unsupported by most servers. This constant will be removed in a future version. Define your own constant to migrate.",
+    since = "0.23.37",
+  )
   lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
+
+  /** The response media type of the GraphQL-over-HTTP specification:
+    *
+    * @see https://graphql.github.io/graphql-over-http/draft/#sec-Media-Types
+    */
+  lazy val `application/graphql-response+json` =
+    new MediaType("application", "graphql-response+json", compressible = true, binary = true)
 
   // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
   // JS application where artifact size matters (i.e. browser applications).
   private[this] var _all: Map[(String, String), MediaType] = null
+  @nowarn("cat=deprecation")
   def all: Map[(String, String), MediaType] = {
     if (_all eq null)
-      _all = (`text/event-stream` :: `application/graphql` :: allMediaTypes)
+      _all = (`text/event-stream` :: `application/graphql` ::
+        `application/graphql-response+json` :: allMediaTypes)
         .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
         .toMap
     _all
@@ -356,6 +370,7 @@ object MediaType extends MimeDB {
           case "excel" => true
           case "font-woff" => true
           case "gnutar" => true
+          case "graphql-response+json" => true
           case "gzip" => true
           case "hal+json" => true
           case "java-archive" => true

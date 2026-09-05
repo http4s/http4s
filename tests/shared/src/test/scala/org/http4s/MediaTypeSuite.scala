@@ -62,6 +62,15 @@ class MediaTypeSuite extends Http4sSuite {
     )
   }
 
+  test("MediaType should parse application/graphql-response+json to the known media type") {
+    val parsed = MediaType.unsafeParse("application/graphql-response+json")
+    assertEquals(parsed, MediaType.`application/graphql-response+json`)
+    assertEquals(
+      MediaType.`application/graphql-response+json`.show,
+      "application/graphql-response+json",
+    )
+  }
+
   test("MediaType should reject invalid literals") {
     assert(
       compileErrors {

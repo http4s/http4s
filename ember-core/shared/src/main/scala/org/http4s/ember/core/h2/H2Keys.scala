@@ -34,7 +34,4 @@ object H2Keys {
   // mechanism.
   @deprecated(message = "Use org.http4s.h2.H2Keys.Http2PriorKnowledge instead", since = "0.23.27")
   val Http2PriorKnowledge: Key[Unit] = org.http4s.h2.H2Keys.Http2PriorKnowledge
-
-  private[ember] val H2cUpgrade =
-    Key.newKey[SyncIO, (H2Frame.Settings.ConnectionSettings, Request[fs2.Pure])].unsafeRunSync()
 }

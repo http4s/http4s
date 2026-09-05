@@ -17,8 +17,6 @@
 package org.http4s.ember.core.h2
 
 import cats._
-import cats.data.Kleisli
-import cats.data.OptionT
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
@@ -27,7 +25,6 @@ import fs2._
 import fs2.io.IOException
 import fs2.io.net._
 import org.http4s._
-import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -40,7 +37,7 @@ import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 private[ember] object H2Server {
 
   /*
-  3 Mechanism into H2
+  2 Mechanism into H2
 
   TlsContext => Yes => ALPN =>  h2       => HTTP2
                                 http/1.1 => HTTP1
@@ -56,92 +53,7 @@ private[ember] object H2Server {
   Note: implementations that support HTTP/2 over TLS MUST use protocol
     negotiation in TLS.
     So if TLS is used then this method is not allowed.
-
-
-  H2c
-            Request
-            Connection: Upgrade, HTTP2-Settings
-            Upgrade: h2c
-            HTTP2-Settings: <base64url encoding of HTTP/2 SETTINGS payload>
-              =>
-                HTTP/1.1 101 Switching Protocols
-                Connection: Upgrade
-                Upgrade: h2c
-
-                Socket                    => Http2
-
-            Normal                        => Resp
-
    */
-
-  private val upgradeResponse: Response[fs2.Pure] = Response(
-    status = Status.SwitchingProtocols,
-    httpVersion = HttpVersion.`HTTP/1.1`,
-    headers = Headers(
-      "connection" -> "Upgrade",
-      "upgrade" -> "h2c",
-    ),
-  )
-  // Apply this, if it ever becomes Some, then rather than the next request, become an h2 connection
-  def h2cUpgradeHttpRoute[F[_]: Concurrent]: HttpRoutes[F] =
-    Kleisli[OptionT[F, *], Request[F], Response[F]] { (req: Request[F]) =>
-      val connectionCheck = req.headers
-        .get[org.http4s.headers.Connection]
-        .exists(connection =>
-          connection.values.contains_(ci"upgrade") && connection.values
-            .contains_(ci"http2-settings")
-        )
-
-      // checks are cascading so we execute the least amount of work
-      // if there is no upgrade, which is the likely case.
-      val upgradeCheck = connectionCheck &&
-        req.headers
-          .get(ci"upgrade")
-          .exists(upgrade => upgrade.map(r => r.value).exists(_ === "h2c"))
-
-      val settings: Option[H2Frame.Settings.ConnectionSettings] = if (upgradeCheck) {
-        req.headers
-          .get(ci"http2-settings")
-          .collectFirstSome(settings =>
-            settings.map(_.value).collectFirstSome { value =>
-              for {
-                bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
-                settings <- H2Frame.Settings
-                  .fromPayload(bv, 0, ack = false)
-                  .toOption // This isn't an entire frame
-                // It is Just the Payload section of the frame
-              } yield H2Frame.Settings
-                .updateSettings(settings, H2Frame.Settings.ConnectionSettings.default)
-            }
-          )
-      } else None
-      val upgrade = connectionCheck && upgradeCheck
-      (settings, upgrade) match {
-        case (Some(settings), true) =>
-          cats.data.OptionT.liftF(req.body.compile.to(ByteVector): F[ByteVector]).flatMap { bv =>
-            val newReq: Request[fs2.Pure] = Request[fs2.Pure](
-              req.method,
-              req.uri,
-              HttpVersion.`HTTP/2`,
-              req.headers,
-              Stream.chunk(Chunk.byteVector(bv)),
-              req.attributes,
-            )
-            cats.data.OptionT.some(
-              upgradeResponse.covary[F].withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
-            )
-          }
-
-        case (_, _) => cats.data.OptionT.none
-      }
-    }
-
-  def h2cUpgradeMiddleware[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =
-    cats.data.Kleisli { (req: Request[F]) =>
-      h2cUpgradeHttpRoute
-        .run(req)
-        .getOrElseF(app.run(req))
-    }
 
   // Call on a new connection for http2-prior-knowledge
   // If left 1.1 if right 2
@@ -174,25 +86,10 @@ private[ember] object H2Server {
       idleTimeout: Duration,
       localSettings: H2Frame.Settings.ConnectionSettings,
       logger: Logger[F],
-      // Only Used for http1 upgrade where remote settings are provided prior to escalation
-      initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings,
-      initialRequest: Option[Request[fs2.Pure]] = None,
   )(implicit F: Async[F]): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
 
-    // h2c Initial Request Communication on h2c Upgrade
-    def sendInitialRequest(h2: H2Connection[F])(req: Request[Pure]): F[Unit] =
-      for {
-        h2Stream <- h2.initiateRemoteStreamById(1)
-        s <- h2Stream.state.modify { s =>
-          val x = s.copy(state = H2Stream.StreamState.HalfClosedRemote)
-          (x, x)
-        }
-        _ <- s.request.complete(Either.right(req))
-        er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
-        _ <- s.readBuffer.send(er)
-        _ <- s.writeBlock.complete(Either.unit)
-      } yield ()
+    val initialRemoteSettings = defaultSettings
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
@@ -333,10 +230,6 @@ private[ember] object H2Server {
       _ <- h2.writeLoop.compile.drain.background
       _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
-      // h2c Initial Request Communication on h2c Upgrade
-      _ <- Resource.eval(
-        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
-      )
       maxStreams <- Resource.eval(
         Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)
       )
