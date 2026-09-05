@@ -145,6 +145,41 @@ class H2FrameSpec extends CatsEffectSuite {
     )
   }
 
+  test("Settings should accept the maximum number of entries") {
+    val payload = ByteVector.concat(
+      List.fill(32)(ByteVector(0xff, 0xff, 0x00, 0x00, 0x00, 0x00))
+    )
+    val parsed = H2Frame.Settings.fromPayload(payload, 0x0, ack = false)
+
+    assertEquals(parsed.map(_.list.length), 32.asRight)
+  }
+
+  test("Settings should reject more entries than the maximum") {
+    val payload = ByteVector.concat(
+      List.fill(33)(ByteVector(0xff, 0xff, 0x00, 0x00, 0x00, 0x00))
+    )
+    val parsed = H2Frame.Settings.fromPayload(payload, 0x0, ack = false)
+
+    assertEquals(parsed, H2Error.EnhanceYourCalm.asLeft)
+  }
+
+  test("Settings should reject a dense frame within the maximum frame size") {
+    val maxFrameSize = H2Frame.Settings.ConnectionSettings.default.maxFrameSize.frameSize
+    val payload = ByteVector.concat(
+      List.fill(maxFrameSize / 6)(ByteVector(0xff, 0xff, 0x00, 0x00, 0x00, 0x00))
+    )
+    val raw = H2Frame.RawFrame(
+      payload.size.toInt,
+      H2Frame.Settings.`type`,
+      0x00,
+      0x0,
+      payload,
+    )
+
+    assert(payload.size <= maxFrameSize)
+    assertEquals(H2Frame.fromRaw(raw), H2Error.EnhanceYourCalm.asLeft)
+  }
+
   test("PushPromise should traverse") {
     val init =
       H2Frame.PushPromise(
