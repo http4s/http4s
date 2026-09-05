@@ -42,10 +42,11 @@ import org.http4s.util.SizedSeq0
   */
 object Metrics {
 
-  private[this] final case class MetricsEntry(
+  private[this] final case class MetricsEntry[F[_]](
       method: Method,
       startTime: Long,
       classifier: Option[String],
+      bodySizeRef: Ref[F, Long],
   )
 
   /** A server middleware capable of recording metrics
@@ -63,7 +64,7 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       },
-  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: Concurrent[F]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
 
   def withCustomLabels[F[_], SL <: SizedSeq[String]](
@@ -74,7 +75,7 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       },
-  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: Concurrent[F]): HttpRoutes[F] =
     effectWithCustomLabels[F, SL](
       ops,
       customLabelValues,
@@ -101,7 +102,7 @@ object Metrics {
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
       classifierF: Request[F] => F[Option[String]],
-  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] = {
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: Concurrent[F]): HttpRoutes[F] = {
     val cops = CustomMetricsOps.fromMetricsOps(ops)
     val emptyCustomLabelValues = SizedSeq0[String]()
     effectWithCustomLabels(
@@ -120,15 +121,19 @@ object Metrics {
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
       classifierF: Request[F] => F[Option[String]],
-  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] = {
-    def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: Concurrent[F]): HttpRoutes[F] = {
+    def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry[F]]] =
       for {
         classifier <- classifierF(request)
         _ <- ops.increaseActiveRequests(classifier, customLabelValues)
         startTime <- F.monotonic
-      } yield ContextRequest(MetricsEntry(request.method, startTime.toNanos, classifier), request)
+        bodySizeRef <- C.ref(0L)
+      } yield ContextRequest(
+        MetricsEntry(request.method, startTime.toNanos, classifier, bodySizeRef),
+        request,
+      )
 
-    def stopMetrics(metrics: MetricsEntry): F[Long] =
+    def stopMetrics(metrics: MetricsEntry[F]): F[Long] =
       // Decrease active requests _first_ in case any of the other effects triggers an error.
       // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
       // This may have caused the bugs that reported the active requests counter to have drifted.
@@ -137,7 +142,10 @@ object Metrics {
         endTime <- F.monotonic
       } yield endTime.toNanos - metrics.startTime
 
-    def metricHeaders(metrics: MetricsEntry, resp: Response[F]): F[ContextResponse[F, Status]] =
+    def metricHeaders(
+        metrics: MetricsEntry[F],
+        resp: Response[F],
+    ): F[ContextResponse[F, Status]] =
       for {
         now <- F.monotonic
         headerTime = now.toNanos - metrics.startTime
@@ -147,9 +155,32 @@ object Metrics {
           metrics.classifier,
           customLabelValues,
         )
-      } yield ContextResponse(resp.status, resp)
+        respWithMetrics = resp.copy(body =
+          resp.body.chunks
+            .flatMap { chunk =>
+              fs2.Stream.eval(metrics.bodySizeRef.update(_ + chunk.size.toLong)).as(chunk)
+            }
+            .flatMap(fs2.Stream.chunk) ++
+            fs2.Stream
+              .eval(
+                metrics.bodySizeRef.get.flatMap { bodySizeBytes =>
+                  if (bodySizeBytes > 0L)
+                    ops.recordResponseBodySize(
+                      metrics.method,
+                      resp.status,
+                      bodySizeBytes,
+                      metrics.classifier,
+                      customLabelValues,
+                    )
+                  else
+                    C.unit
+                }
+              )
+              .drain
+        )
+      } yield ContextResponse(resp.status, respWithMetrics)
 
-    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, Status] {
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry[F], Status] {
       startMetrics
     } { case (metrics, maybeStatus, outcome) =>
       stopMetrics(metrics).flatMap { totalTime =>

@@ -16,11 +16,13 @@
 
 package org.http4s.metrics
 
+import cats.Applicative
 import cats.Foldable
 import cats.~>
 import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Status
+import scala.annotation.nowarn
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
@@ -72,13 +74,28 @@ trait MetricsOps[F[_]] {
       classifier: Option[String],
   ): F[Unit]
 
+  /** Records the size of the response body in bytes
+    *
+    * @param method the http method of the request
+    * @param status the http status code of the response
+    * @param bodySizeBytes the size of the response body in bytes
+    * @param classifier the classifier to apply
+    */
+  @nowarn("cat=unused")
+  def recordResponseBodySize(
+      method: Method,
+      status: Status,
+      bodySizeBytes: Long,
+      classifier: Option[String],
+  )(implicit F: Applicative[F]): F[Unit] = Applicative[F].unit
+
   /** Transform the effect of MetricOps using the supplied natural transformation
     *
     * @param fk natural transformation
     * @tparam G the effect to transform to
     * @return a new metric ops in the transformed effect
     */
-  def mapK[G[_]](fk: F ~> G): MetricsOps[G] = {
+  def mapK[G[_]](fk: F ~> G)(implicit F: Applicative[F]): MetricsOps[G] = {
     val ops = this
     new MetricsOps[G] {
       override def increaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
@@ -103,6 +120,14 @@ trait MetricsOps[F[_]] {
           terminationType: TerminationType,
           classifier: Option[String],
       ): G[Unit] = fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier))
+      override def recordResponseBodySize(
+          method: Method,
+          status: Status,
+          bodySizeBytes: Long,
+          classifier: Option[String],
+      )(implicit G: Applicative[G]): G[Unit] = fk(
+        ops.recordResponseBodySize(method, status, bodySizeBytes, classifier)
+      )
     }
   }
 }

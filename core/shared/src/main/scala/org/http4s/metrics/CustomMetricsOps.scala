@@ -21,6 +21,8 @@ import org.http4s.Method
 import org.http4s.Status
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
+import cats.Applicative
+import scala.annotation.nowarn
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
@@ -109,13 +111,44 @@ trait CustomMetricsOps[F[_], SL <: SizedSeq[String]] extends MetricsOps[F] {
   ): F[Unit] =
     recordAbnormalTermination(elapsed, terminationType, classifier, definingCustomLabels.values)
 
+  /** Records the size of the response body in bytes
+    *
+    * @param method the http method of the request
+    * @param status the http status code of the response
+    * @param bodySizeBytes the size of the response body in bytes
+    * @param classifier the classifier to apply
+    * @param customLabelValues values for custom labels
+    */
+  @nowarn("cat=unused")
+  def recordResponseBodySize(
+      method: Method,
+      status: Status,
+      bodySizeBytes: Long,
+      classifier: Option[String],
+      customLabelValues: SL,
+  )(implicit F: Applicative[F]): F[Unit] = Applicative[F].unit
+
+  override def recordResponseBodySize(
+      method: Method,
+      status: Status,
+      bodySizeBytes: Long,
+      classifier: Option[String],
+  )(implicit F: Applicative[F]): F[Unit] =
+    recordResponseBodySize(
+      method,
+      status,
+      bodySizeBytes,
+      classifier,
+      definingCustomLabels.values,
+    )
+
   /** Transform the effect of MetricOps using the supplied natural transformation
     *
     * @param fk natural transformation
     * @tparam G the effect to transform to
     * @return a new metric ops in the transformed effect
     */
-  override def mapK[G[_]](fk: F ~> G): CustomMetricsOps[G, SL] = {
+  override def mapK[G[_]](fk: F ~> G)(implicit F: Applicative[F]): CustomMetricsOps[G, SL] = {
     val ops: CustomMetricsOps[F, SL] = this
     new CustomMetricsOps[G, SL] {
       override def definingCustomLabels: CustomLabels[SL] = ops.definingCustomLabels
@@ -154,6 +187,14 @@ trait CustomMetricsOps[F[_], SL <: SizedSeq[String]] extends MetricsOps[F] {
       ): G[Unit] =
         fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier, customLabelValues))
 
+      override def recordResponseBodySize(
+          method: Method,
+          status: Status,
+          bodySizeBytes: Long,
+          classifier: Option[String],
+          customLabelValues: SL,
+      )(implicit G: Applicative[G]): G[Unit] =
+        fk(ops.recordResponseBodySize(method, status, bodySizeBytes, classifier, customLabelValues))
     }
   }
 }
@@ -197,6 +238,15 @@ object CustomMetricsOps {
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
       ): F[Unit] = ops.recordAbnormalTermination(elapsed, terminationType, classifier)
+
+      override def recordResponseBodySize(
+          method: Method,
+          status: Status,
+          bodySizeBytes: Long,
+          classifier: Option[String],
+          customLabelValues: SizedSeq0[String],
+      )(implicit F: Applicative[F]): F[Unit] =
+        ops.recordResponseBodySize(method, status, bodySizeBytes, classifier)
     }
   }
 }

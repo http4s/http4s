@@ -771,7 +771,7 @@ lazy val bench = http4sProject("bench")
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
   )
-  .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
+  .dependsOn(core.jvm, circe.jvm, emberCore.jvm, client.jvm)
 
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
