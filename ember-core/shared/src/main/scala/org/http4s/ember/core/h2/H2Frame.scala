@@ -544,8 +544,8 @@ private[ember] object H2Frame {
 
     /** The entries a peer may pack into a single SETTINGS frame.
       *
-      * Six settings are defined, so 32 leaves room for extensions. nghttp2
-      * applies the same bound.
+      * Six settings are defined by the spec, so 32 leaves ample room for
+      * extensions while keeping a duplicate-stuffed frame cheap to reject.
       */
     private[this] val MaxEntries: Long = 32L
 
