@@ -40,6 +40,7 @@ import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import scala.concurrent.duration._
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -60,6 +61,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-close" =>
           val send = Stream(WebSocketFrame.Text("foo"))
           wsBuilder.build(send, _.void)
+        case GET -> Root / "ws-close-combined" =>
+          wsBuilder.build(_ => Stream(WebSocketFrame.Text("foo")))
         case GET -> Root / "ws-filter-false" =>
           F.deferred[Unit].flatMap { deferred =>
             wsBuilder
@@ -198,6 +201,26 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.remoteClosed.get
         code <- client.closeCode.get
       } yield assertEquals(code, CloseFrame.NORMAL)
+  }
+
+  fixture.test(
+    "combined pipe: server initiates close sequence with code=1000 (NORMAL) on stream completion"
+  ) { case (server, dispatcher) =>
+    for {
+      client <- createClient(
+        URI.create(
+          s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close-combined"
+        ),
+        dispatcher,
+      )
+      _ <- client.connect
+      _ <- client.remoteClosed.get.timeout(10.seconds)
+      msg <- client.messages.take
+      code <- client.closeCode.get
+    } yield {
+      assertEquals(msg, "foo")
+      assertEquals(code, CloseFrame.NORMAL)
+    }
   }
 
   fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
