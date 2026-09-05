@@ -127,7 +127,7 @@ object HttpVersion {
   /** HTTP/2 is the second major version of HTTP.  It defines no minor
     * versions, so minor version `0` is implied.
     *
-    * @see [[https://datatracker.ietf.org/doc/html/rfc7540 RFC7540,
+    * @see [[https://datatracker.ietf.org/doc/html/rfc9113 RFC9113,
     * Hypertext Transfer Protocol Version 2 (HTTP/2)]]
     */
   val `HTTP/2`: HttpVersion = new HttpVersion(2, 0)
