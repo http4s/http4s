@@ -50,6 +50,20 @@ object ResponseLogger {
   )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] =
     impl[G, F, A](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
+  def withLoggerConfig[G[_], F[_], A](
+      loggerConfig: LoggerConfig[F],
+      fk: F ~> G,
+  )(
+      http: Kleisli[G, A, Response[F]]
+  )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] =
+    deferredImpl[G, F, A](
+      loggerConfig.logHeaders,
+      Left(loggerConfig.logBody),
+      fk,
+      loggerConfig.redactHeadersWhen,
+      loggerConfig.logAction.pure[Option],
+    )(http)
+
   private[server] def impl[G[_], F[_], A](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
@@ -58,12 +72,29 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]],
   )(
       http: Kleisli[G, A, Response[F]]
+  )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] =
+    deferredImpl[G, F, A](
+      logHeaders,
+      logBodyText,
+      fk,
+      redactHeadersWhen,
+      logAction.map(f => Async[F].pure(f)),
+    )(http)
+
+  private[server] def deferredImpl[G[_], F[_], A](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      fk: F ~> G,
+      redactHeadersWhen: CIString => Boolean,
+      logAction: Option[F[String => F[Unit]]],
+  )(
+      http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] = {
-    val fallback: String => F[Unit] = s => logger.info(s).to[F]
-    val log = logAction.fold(fallback)(identity)
+    val fallback: F[String => F[Unit]] = F.pure(s => logger.info(s).to[F])
+    val logF = logAction.fold(fallback)(identity)
     val errLog: (String, Throwable) => F[Unit] = (msg, th) => errorLogger.error(th)(msg).to[F]
 
-    def logMessage(resp: Response[F]): F[Unit] =
+    def logMessage(resp: Response[F], log: String => F[Unit]): F[Unit] =
       logBodyText match {
         case Left(bool) =>
           Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
@@ -77,9 +108,9 @@ object ResponseLogger {
       case Right(_) => true
     }
 
-    def logResponse(response: Response[F]): F[Response[F]] =
+    def logResponse(response: Response[F], log: String => F[Unit]): F[Response[F]] =
       if (!logBody)
-        logMessage(response)
+        logMessage(response, log)
           .as(response)
       else
         F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -87,19 +118,21 @@ object ResponseLogger {
           // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
           val logPipe: Pipe[F, Byte, Byte] =
             _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-              .onFinalizeWeak(logMessage(response.withBodyStream(newBody)))
+              .onFinalizeWeak(logMessage(response.withBodyStream(newBody), log))
 
           response.pipeBodyThrough(logPipe)
         }
 
     Kleisli[G, A, Response[F]] { req =>
-      http(req)
-        .flatMap((response: Response[F]) => fk(logResponse(response)))
-        .guaranteeCase {
-          case Outcome.Errored(th) => fk(errLog(s"Service raised an error", th))
-          case Outcome.Canceled() => fk(log(s"Service canceled response for request"))
-          case Outcome.Succeeded(_) => G.unit
-        }
+      fk(logF).flatMap { log =>
+        http(req)
+          .flatMap((response: Response[F]) => fk(logResponse(response, log)))
+          .guaranteeCase {
+            case Outcome.Errored(th) => fk(errLog(s"Service raised an error", th))
+            case Outcome.Canceled() => fk(log(s"Service canceled response for request"))
+            case Outcome.Succeeded(_) => G.unit
+          }
+      }
     }
   }
 
@@ -110,6 +143,11 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+
+  def httpAppWithLoggerConfig[F[_]: Async, A](
+      loggerConfig: LoggerConfig[F]
+  )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+    withLoggerConfig(loggerConfig, FunctionK.id[F])(httpApp)
 
   def httpAppLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
@@ -128,6 +166,11 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+
+  def httpRoutesWithLoggerConfig[F[_]: Async, A](
+      loggerConfig: LoggerConfig[F]
+  )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+    withLoggerConfig(loggerConfig, OptionT.liftK[F])(httpRoutes)
 
   def httpRoutesLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
