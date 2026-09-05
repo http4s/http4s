@@ -193,4 +193,31 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
+  test("MessageFailure is mapped to their HTTP statuses") {
+    import org.http4s.dsl.io._
+
+    val formService: HttpApp[IO] =
+      HttpRoutes
+        .of[IO] { case req @ POST -> Root / "form" =>
+          req.as[UrlForm].flatMap(form => Ok(form.toString))
+        }
+        .orNotFound
+
+    val server = EmberServerBuilder
+      .default[IO]
+      .withPort(port"0")
+      .withHttpApp(formService)
+      .build
+
+    (server, EmberClientBuilder.default[IO].build).tupled.use { case (server, client) =>
+      val req = Request[IO](
+        Method.POST,
+        uri = url(server.addressIp4s, "/form"),
+      ).withEntity("malformed request")
+        .withContentType(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`))
+
+      client.status(req).assertEquals(Status.BadRequest)
+    }
+  }
+
 }
