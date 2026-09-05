@@ -72,6 +72,10 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
                 }.foreach(deferred.complete(_).void),
               )
           }
+        case GET -> Root / "ws-stress" =>
+          // Continuously stream output frames, to run against a client that floods pings.
+          val send = Stream.constant[F, WebSocketFrame](WebSocketFrame.Text("x" * 100), 1)
+          wsBuilder.build(send, _.void)
       }
       .orNotFound
   }
@@ -206,6 +210,28 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       _ <- client.ping("pingu")
       _ <- client.remoteClosed.get
     } yield ()
+  }
+
+  fixture.test("concurrent server output and client pings do not corrupt frames") {
+    case (server, dispatcher) =>
+      val n = 500
+      val expected = List.fill(n)("x" * 100)
+      for {
+        client <- createClient(
+          URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-stress"),
+          dispatcher,
+        )
+        _ <- client.connect
+        // flood pings concurrently with the server's output stream
+        _ <- List.range(0, n).traverse_(i => client.ping(s"ping-$i")).start
+        // a frame-decode error on the client surfaces via onError -> waitClose(Some(ex))
+        result <- IO.race(client.waitClose.get, client.messages.take.replicateA(n))
+        _ <- result match {
+          case Left(Some(ex)) => IO.raiseError(ex)
+          case _ => IO.unit
+        }
+        _ <- client.close
+      } yield assertEquals(result, Right(expected))
   }
 
   fixture.test("send and receive multiple messages") { case (server, dispatcher) =>

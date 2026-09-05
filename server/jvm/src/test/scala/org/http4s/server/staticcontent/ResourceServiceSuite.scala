@@ -27,6 +27,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`If-Modified-Since`
 import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
+import org.typelevel.ci._
 
 import java.nio.file.Paths
 
@@ -89,14 +90,38 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
+  test(
+    "Return a 400 if the request tries to escape the context, obscured by percent-encoded separators"
+  ) {
+    val relativePath = "..%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
   test("Return a 400 on path traversal, even if it's inside the context") {
     val relativePath = "testDir/../testresource.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
-
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
     IO(file.exists()).assert *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
+  test(
+    "Return a 400 on path traversal, even if it's inside the context, obscured by percent-encoded separators"
+  ) {
+    val relativePath = "testDir/..%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
+  test("Return a 400 on a percent-encoded backslash for Windows safety") {
+    val relativePath = "testDir/..%5Ctestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test(
@@ -143,21 +168,38 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       uri = Uri.fromString("/testresource.txt").yolo,
       headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
-    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
-    testResourceGzipped.flatMap { testResourceGzipped =>
-      Stream
-        .eval(rb)
-        .flatMap(_.body.chunks)
-        .compile
-        .lastOrError
-        .assertEquals(testResourceGzipped) *>
-        rb.map(_.status).assertEquals(Status.Ok) *>
-        rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
-          .assertEquals(MediaType.text.plain.some) *>
-        rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-          .assertEquals(ContentCoding.gzip.some)
-    }
+    testResourceGzipped.flatMap(resource => checkGzippedResp(req, resource, builder))
+  }
+
+  test("Try to serve pre-gzipped content when client sends the legacy x-gzip content-coding") {
+    val req = Request[IO](
+      uri = Uri.fromString("/testresource.txt").yolo
+    )
+      .putHeaders(Header.Raw(ci"Accept-Encoding", "x-gzip"))
+
+    testResourceGzipped.flatMap(resource => checkGzippedResp(req, resource, builder))
+  }
+
+  private def checkGzippedResp(
+      req: Request[IO],
+      gzippedResource: Chunk[Byte],
+      builder: ResourceServiceBuilder[IO],
+  ): IO[Unit] = {
+    val resp = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
+    Stream
+      .eval(resp)
+      .flatMap(_.body.chunks)
+      .compile
+      .lastOrError
+      .assertEquals(gzippedResource) *>
+      resp.map(_.status).assertEquals(Status.Ok) *>
+      resp
+        .map(_.headers.get[`Content-Type`].map(_.mediaType))
+        .assertEquals(MediaType.text.plain.some) *>
+      resp
+        .map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
+        .assertEquals(ContentCoding.gzip.some)
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {

@@ -55,12 +55,17 @@ private[http4s] object FrameTranscoder {
     else if (len == 126) (in.get(2) << 8 & 0xff00) | (in.get(3) & 0xff)
     else if (len == 127) {
       val l = in.getLong(2)
-      if (l > Integer.MAX_VALUE) throw new FrameTranscoder.TranscodeError("Frame is too long")
+      // RFC6455 §5.2: the payload length should be interpreted as a 64-bit
+      // unsigned int, but we read it into a 64-bit signed Long and then
+      // truncate into a 32-bit signed Int.  That's fine for reasonable
+      // values, but can result in a negative
+      if (java.lang.Long.compareUnsigned(l, Int.MaxValue) > 0)
+        throw new FrameTranscoder.TranscodeError("Frame is too long")
       else l.toInt
     } else throw new FrameTranscoder.TranscodeError("Length error")
   }
 
-  private def getMsgLength(in: ByteBuffer) = {
+  private def getMsgLength(in: ByteBuffer, maxFrameSize: Int) = {
     var totalLen = 2
     if ((in.get(1) & MASK) != 0) totalLen += 4
 
@@ -72,15 +77,23 @@ private[http4s] object FrameTranscoder {
     if (in.remaining < totalLen)
       -1
     else {
-      totalLen += bodyLength(in)
-
+      val payloadLen = bodyLength(in)
+      if (payloadLen > maxFrameSize) {
+        throw new FrameTranscoder.TranscodeError(
+          s"Frame length $payloadLen exceeds limit of $maxFrameSize bytes"
+        )
+      }
+      totalLen += payloadLen
       if (in.remaining < totalLen) -1
       else totalLen
     }
   }
 }
 
-class FrameTranscoder(val isClient: Boolean) {
+class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
+  @deprecated("Preserved for binary compatibility; uses default maxFrameSize", "0.23.35")
+  def this(isClient: Boolean) = this(isClient, DefaultMaxMessageSize)
+
   def frameToBuffer(in: WebSocketFrame): Array[ByteBuffer] = {
     var size = 2
 
@@ -156,7 +169,7 @@ class FrameTranscoder(val isClient: Boolean) {
     * @return optional message if enough data was available
     */
   def bufferToFrame(in: ByteBuffer): WebSocketFrame =
-    if (in.remaining < 2 || FrameTranscoder.getMsgLength(in) < 0)
+    if (in.remaining < 2 || FrameTranscoder.getMsgLength(in, maxFrameSize) < 0)
       null
     else {
       val opcode = in.get(0) & OP_CODE

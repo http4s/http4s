@@ -53,7 +53,7 @@ object GZip extends GZipPlatform {
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-      ContentCoding.`x-gzip`
+      ContentCoding.legacy.`x-gzip`
     )
 
   private def zipOrPass[F[_]: Compression](

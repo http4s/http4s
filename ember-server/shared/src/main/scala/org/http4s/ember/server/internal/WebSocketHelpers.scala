@@ -22,6 +22,7 @@ import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Temporal
+import cats.effect.std.Mutex
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Pipe
@@ -51,7 +52,8 @@ import java.nio.ByteBuffer
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
 
-private[internal] object WebSocketHelpers {
+private[internal] class WebSocketHelpers(maxFrameSize: Int) {
+  import WebSocketHelpers._
 
   private[this] val supportedWebSocketVersion = 13L
 
@@ -105,7 +107,8 @@ private[internal] object WebSocketHelpers {
     }
   }
 
-  private[this] val nonClientTranscoder = new FrameTranscoder(isClient = false)
+  private[this] val nonClientTranscoder =
+    new FrameTranscoder(isClient = false, maxFrameSize = maxFrameSize)
 
   private def runConnection[F[_]](
       socket: Socket[F],
@@ -113,53 +116,65 @@ private[internal] object WebSocketHelpers {
       buffer: Array[Byte],
       receiveBufferSize: Int,
       idleTimeout: Duration,
-  )(implicit F: Temporal[F]): F[Unit] = {
-    val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
-    def writeFrame(frame: WebSocketFrame): F[Unit] =
-      frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
+  )(implicit F: Temporal[F]): F[Unit] =
+    Mutex[F].flatMap { writeLock =>
+      val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
+      def writeFrame(frame: WebSocketFrame): F[Unit] =
+        // lock guarantees that frame chunks from auto-pong and send-path do not interleave
+        writeLock.lock.surround(
+          frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
+        )
 
-    val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
+      val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 
-    // TODO followup: handle close frames from the user?
-    SignallingRef[F, Close](Open).flatMap { close =>
-      val (stream, onClose) = ctx.webSocket match {
-        case WebSocketCombinedPipe(receiveSend, onClose) =>
-          incoming
-            .through(decodeFrames[F])
-            .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
-            .through(receiveSend)
-            .foreach(writeFrame) -> onClose
-        case WebSocketSeparatePipe(send, receive, onClose) =>
-          val sendClosingFrame: F[Unit] = close.get.flatMap {
-            case Open =>
-              for {
-                frame <- F.fromEither(WebSocketFrame.Close(1000))
-                _ <- close.update {
-                  case Open => EndpointClosed
-                  case _ => BothClosed
-                }
-                _ <- writeFrame(frame)
-              } yield ()
-            case _ => F.unit
-          }
+      // TODO followup: handle close frames from the user?
+      SignallingRef[F, Close](Open).flatMap { close =>
+        val (stream, onClose) = ctx.webSocket match {
+          case WebSocketCombinedPipe(receiveSend, onClose) =>
+            incoming
+              .through(decodeFrames[F])
+              .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
+              .through(receiveSend)
+              .foreach(writeFrame) -> onClose
+          case WebSocketSeparatePipe(send, receive, onClose) =>
+            val closed: F[Unit] = close.update {
+              case Open => EndpointClosed
+              case _ => BothClosed
+            }
 
-          val writer: Stream[F, Nothing] = send.foreach(writeFrame) ++ Stream.exec(sendClosingFrame)
+            def writeOutgoing(frame: WebSocketFrame): F[Unit] = frame match {
+              case _: WebSocketFrame.Close => closed *> writeFrame(frame)
+              case _ => writeFrame(frame)
+            }
 
-          val reader = incoming
-            .through(decodeFrames[F])
-            .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
-            .through(receive)
+            val sendClosingFrame: F[Unit] = close.get.flatMap {
+              case Open =>
+                for {
+                  frame <- F.fromEither(WebSocketFrame.Close(1000))
+                  _ <- closed
+                  _ <- writeFrame(frame)
+                } yield ()
+              case _ => F.unit
+            }
 
-          reader.concurrently(writer) -> onClose
+            val writer: Stream[F, Nothing] =
+              send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
+
+            val reader = incoming
+              .through(decodeFrames[F])
+              .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
+              .through(receive)
+
+            reader.concurrently(writer) -> onClose
+        }
+
+        stream
+          .interruptWhen(close.map(_ == BothClosed))
+          .onFinalize(onClose)
+          .compile
+          .drain
       }
-
-      stream
-        .interruptWhen(close.map(_ == BothClosed))
-        .onFinalize(onClose)
-        .compile
-        .drain
     }
-  }
 
   private def handleIncomingFrame[F[_]](
       writeFrame: WebSocketFrame => F[Unit],
@@ -178,6 +193,9 @@ private[internal] object WebSocketHelpers {
               _ <- writeFrame(frame)
               _ <- closeState.set(BothClosed)
             } yield None
+          case EndpointClosed =>
+            // We closed first and the peer has now answered, so the handshake is complete.
+            closeState.set(BothClosed).as(None)
           case _ => F.pure(None)
         }
       case x => F.pure(Some(x))
@@ -271,7 +289,9 @@ private[internal] object WebSocketHelpers {
         Stream.chunk(bytes) ++ readStream(read)
       case None => Stream.empty
     }
+}
 
+object WebSocketHelpers {
   sealed abstract class Close
   case object Open extends Close
   case object PeerClosed extends Close

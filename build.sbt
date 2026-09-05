@@ -452,6 +452,57 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.throwable"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.complete"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$3"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$5"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$6"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$7"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$8"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$9"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.apply"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._3"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._5"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._6"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._7"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._8"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._9"
+      ),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.apply"),
       ProblemFilters
@@ -515,6 +566,27 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "org.http4s.ember.core.h2.H2Stream#State._8"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.Hpack#Impl.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.apply"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -535,6 +607,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ),
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.ember.core.h2.H2Frame#*.toRaw"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Keys.H2cUpgrade"
           ),
         )
       else Seq.empty

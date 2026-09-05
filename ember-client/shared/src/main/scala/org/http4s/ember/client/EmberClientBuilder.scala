@@ -60,6 +60,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
     ],
+    private val maxDrainBytes: Long,
+    private val drainTimeout: Duration,
 ) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
@@ -81,6 +83,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       pushPromiseSupport: Option[
         (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
       ] = self.pushPromiseSupport,
+      maxDrainBytes: Long = self.maxDrainBytes,
+      drainTimeout: Duration = self.drainTimeout,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -99,6 +103,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       retryPolicy = retryPolicy,
       enableHttp2 = enableHttp2,
       pushPromiseSupport = pushPromiseSupport,
+      maxDrainBytes = maxDrainBytes,
+      drainTimeout = drainTimeout,
     )
 
   /** Sets a custom `TLSContext`.
@@ -233,6 +239,19 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def withoutPushPromiseSupport: EmberClientBuilder[F] =
     copy(pushPromiseSupport = None)
 
+  /** Set the maximum number of bytes to attempt to drain after a response
+    * is completed while deciding whether the connection can be reused.
+    */
+  def withMaxDrainBytes(maxDrainBytes: Long): EmberClientBuilder[F] =
+    copy(maxDrainBytes = maxDrainBytes)
+
+  /** Set the maximum amount of time to read `maxDrainBytes` or reach the
+    * end of the response while deciding whether the connection
+    * can be reused.
+    */
+  def withDrainTimeout(drainTimeout: Duration): EmberClientBuilder[F] =
+    copy(drainTimeout = drainTimeout)
+
   private val verifyTimeoutRelations: F[Unit] =
     logger
       .warn(
@@ -278,13 +297,23 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
       optH2 <- (if (enableHttp2) tlsContextOptWithDefault else None).traverse { context =>
+        val enablePushPromise =
+          if (pushPromiseSupport.isDefined) default.enablePush
+          else
+            H2Frame.Settings.SettingsEnablePush(isEnabled = false)
+
+        val settings = default.copy(
+          enablePush = enablePushPromise,
+          maxHeaderListSize =
+            Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxResponseHeaderSize)),
+        )
+
         H2Client.impl[F](
           pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
           context,
           logger,
-          if (pushPromiseSupport.isDefined) default
-          else
-            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(isEnabled = false)),
+          idleConnectionTime,
+          settings,
           checkEndpointIdentification,
           serverNameIndication,
         )
@@ -323,6 +352,9 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   managed.value.nextBytes,
                   managed.canBeReused,
                   managed.value.startNextRead,
+                  maxDrainBytes,
+                  drainTimeout,
+                  logger,
                 )
               case _ => Applicative[F].unit
             }
@@ -398,6 +430,8 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       retryPolicy = Defaults.retryPolicy,
       enableHttp2 = false,
       pushPromiseSupport = None,
+      maxDrainBytes = 64L * 1024L,
+      drainTimeout = 5.seconds,
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
