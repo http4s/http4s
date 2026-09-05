@@ -129,34 +129,38 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
 
       // TODO followup: handle close frames from the user?
       SignallingRef[F, Close](Open).flatMap { close =>
+        val closed: F[Unit] = close.update {
+          case Open => EndpointClosed
+          case _ => BothClosed
+        }
+
+        val sendClosingFrame: F[Unit] = close.get.flatMap {
+          case Open =>
+            for {
+              frame <- F.fromEither(WebSocketFrame.Close(1000))
+              _ <- closed
+              _ <- writeFrame(frame)
+            } yield ()
+          case _ => F.unit
+        }
+
+        def writeOutgoing(frame: WebSocketFrame): F[Unit] = frame match {
+          case _: WebSocketFrame.Close => closed *> writeFrame(frame)
+          case _ => writeFrame(frame)
+        }
+
         val (stream, onClose) = ctx.webSocket match {
           case WebSocketCombinedPipe(receiveSend, onClose) =>
-            incoming
+            val read = incoming
               .through(decodeFrames[F])
               .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
               .through(receiveSend)
-              .foreach(writeFrame) -> onClose
+
+            val preparedStream =
+              read.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
+
+            preparedStream -> onClose
           case WebSocketSeparatePipe(send, receive, onClose) =>
-            val closed: F[Unit] = close.update {
-              case Open => EndpointClosed
-              case _ => BothClosed
-            }
-
-            def writeOutgoing(frame: WebSocketFrame): F[Unit] = frame match {
-              case _: WebSocketFrame.Close => closed *> writeFrame(frame)
-              case _ => writeFrame(frame)
-            }
-
-            val sendClosingFrame: F[Unit] = close.get.flatMap {
-              case Open =>
-                for {
-                  frame <- F.fromEither(WebSocketFrame.Close(1000))
-                  _ <- closed
-                  _ <- writeFrame(frame)
-                } yield ()
-              case _ => F.unit
-            }
-
             val writer: Stream[F, Nothing] =
               send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
 
