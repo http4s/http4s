@@ -102,6 +102,7 @@ object Method {
   val PROPFIND: Method = safe("PROPFIND")
   val PROPPATCH: Method = idempotent("PROPPATCH")
   val PUT: Method = idempotent("PUT")
+  val QUERY: Method = safe("QUERY")
   val REBIND: Method = idempotent("REBIND")
   val REPORT: Method = safe("REPORT")
   val SEARCH: Method = safe("SEARCH")
@@ -143,6 +144,7 @@ object Method {
     PROPFIND,
     PROPPATCH,
     PUT,
+    QUERY,
     REBIND,
     REPORT,
     SEARCH,

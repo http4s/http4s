@@ -221,4 +221,31 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       }
       .assertEquals(Status.Ok)
   }
+
+  test("FollowRedirect should redirect QUERY to GET on 303 and strip payload") {
+    val req = Request[IO](QUERY, uri"http://localhost/303").withEntity("query payload")
+    client
+      .run(req)
+      .use { resp =>
+        (
+          resp.headers.get(ci"X-Original-Method").map(_.head.value).pure[IO],
+          resp.headers.get(ci"X-Original-Content-Length").map(_.head.value).pure[IO],
+        ).tupled
+      }
+      .assertEquals((Some("GET"), Some("0")))
+  }
+
+  test("FollowRedirect should keep QUERY on 307 and preserve payload") {
+    val req = Request[IO](QUERY, uri"http://localhost/307").withEntity("query payload")
+    client
+      .run(req)
+      .use { resp =>
+        (
+          resp.headers.get(ci"X-Original-Method").map(_.head.value).pure[IO],
+          resp.headers.get(ci"X-Original-Content-Length").map(_.head.value).pure[IO],
+          resp.as[String],
+        ).tupled
+      }
+      .assertEquals((Some("QUERY"), Some("13"), "query payload"))
+  }
 }
