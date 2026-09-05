@@ -359,6 +359,74 @@ class AuthenticationSuite extends Http4sSuite {
       } yield result
     }
 
+    test("DigestAuthentication should respond to an unusable nc with 401") {
+      val method = "GET"
+      val uri = uri"/"
+      val qop = "auth"
+      val nc = "00000001"
+      val cnonce = "abcdef"
+
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
+        challenge <- doDigestAuth1(digestAuthService.orNotFound)
+        nonce = challenge.params("nonce")
+        response <- DigestUtil
+          .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
+
+        // "zz" does not parse, "ffffffff" is a legal 8LHEX count that does not
+        // fit in a signed Int, and "-1" parses but can never exceed the last one
+        badNcs = List("zz", "ffffffff", "-1")
+
+        result <- badNcs
+          .parTraverse { badNc =>
+            val params: NonEmptyList[(String, String)] = NonEmptyList.of(
+              "username" -> username,
+              "realm" -> realm,
+              "nonce" -> nonce,
+              "uri" -> uri.toString(),
+              "qop" -> qop,
+              "nc" -> badNc,
+              "cnonce" -> cnonce,
+              "response" -> response,
+              "method" -> method,
+            )
+            val header = Authorization(Credentials.AuthParams(AuthScheme.Digest, params))
+            val req = Request[IO](uri = uri"/", headers = Headers(header))
+            digestAuthService.orNotFound(req).map(_.status)
+          }
+          .assertEquals(badNcs.map(_ => Unauthorized))
+      } yield result
+    }
+
+    test("DigestAuthentication should respond to a missing response parameter with 401") {
+      val method = "GET"
+      val uri = uri"/"
+      val qop = "auth"
+      val nc = "00000001"
+      val cnonce = "abcdef"
+
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
+        challenge <- doDigestAuth1(digestAuthService.orNotFound)
+        nonce = challenge.params("nonce")
+        params = NonEmptyList.of(
+          "username" -> username,
+          "realm" -> realm,
+          "nonce" -> nonce,
+          "uri" -> uri.toString(),
+          "qop" -> qop,
+          "nc" -> nc,
+          "cnonce" -> cnonce,
+          "method" -> method,
+        )
+        header = Authorization(Credentials.AuthParams(AuthScheme.Digest, params))
+        req = Request[IO](uri = uri"/", headers = Headers(header))
+        status <- digestAuthService.orNotFound(req).map(_.status)
+      } yield assertEquals(status, Unauthorized)
+    }
+
     test("DigestAuthentication can calculate the expected ha1 using the helper function") {
       for {
         newHa1 <- DigestAuth.Md5HashedAuthStore.precomputeHash[IO](username, realm, password)
