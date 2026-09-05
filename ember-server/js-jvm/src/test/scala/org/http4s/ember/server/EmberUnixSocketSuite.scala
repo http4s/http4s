@@ -59,8 +59,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
 
       Files[IO].deleteIfExists(path) *>
         (server *> client).use { client =>
-          IO.sleep(4.seconds) *>
-            client.expect[String](request).assertEquals(msg) *>
+          client.expect[String](request).assertEquals(msg) *>
             client.expect[String](request).assertEquals(msg)
         }
     }
@@ -71,8 +70,6 @@ class EmberUnixSocketSuite extends Http4sSuite {
   }
 
   test("http/2") {
-    assume(!sys.props.get("java.specification.version").contains("1.8"))
-    assume(!sys.props.get("java.specification.version").contains("11"))
     run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
   }
 
