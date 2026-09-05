@@ -27,6 +27,7 @@ import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.metrics.TerminationType.Timeout
 import org.http4s.util.SizedSeq
@@ -132,22 +133,21 @@ object Metrics {
       _ <- Resource.make(ops.increaseActiveRequests(classifier, customLabelValues))(_ =>
         ops.decreaseActiveRequests(classifier, customLabelValues)
       )
-      _ <- Resource.onFinalize(
-        F.monotonic
-          .flatMap(now =>
-            statusRef.get.flatMap(oStatus =>
-              oStatus.traverse_(status =>
-                ops.recordTotalTime(
-                  req.method,
-                  status,
-                  now.toNanos - start,
-                  classifier,
-                  customLabelValues,
-                )
-              )
-            )
-          )
-      )
+      _ <- Resource.onFinalizeCase { exitCase =>
+        F.monotonic.flatMap { now =>
+          val elapsed = now.toNanos - start
+          // Cancellation is otherwise recorded nowhere on the client side. recordTotalTime needs a
+          // status, so it stays gated on one actually having arrived rather than inventing one.
+          val recordCanceled = exitCase match {
+            case Resource.ExitCase.Canceled =>
+              ops.recordAbnormalTermination(elapsed, Canceled, classifier, customLabelValues)
+            case _ => C.unit
+          }
+          recordCanceled *> statusRef.get.flatMap(_.traverse_ { status =>
+            ops.recordTotalTime(req.method, status, elapsed, classifier, customLabelValues)
+          })
+        }
+      }
       resp <- client.run(req)
       _ <- Resource.eval(statusRef.set(Some(resp.status)))
       end <- Resource.eval(F.monotonic)
