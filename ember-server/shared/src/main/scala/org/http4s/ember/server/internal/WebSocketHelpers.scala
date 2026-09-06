@@ -117,11 +117,11 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       receiveBufferSize: Int,
       idleTimeout: Duration,
   )(implicit F: Temporal[F]): F[Unit] =
-    Mutex[F].flatMap { writeLock =>
+    Mutex[F].flatMap { mut =>
       val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
 
       // Writes without locking, so concurrent calls may result in interleaving of frame chunks
-      // and race on `close`. Use `writeLock` to guard the state.
+      // and race on `close`. Use `mut` to guard the state.
       def writeFrameUnsafe(frame: WebSocketFrame): F[Unit] =
         frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
 
@@ -129,7 +129,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
 
       SignallingRef[F, Close](Open).flatMap { close =>
         def writeClosingFrame(frame: WebSocketFrame): F[Unit] =
-          writeLock.lock.surround {
+          mut.lock.surround {
             close.get.flatMap {
               case Open =>
                 close.set(EndpointClosed).flatMap(_ => writeFrameUnsafe(frame))
@@ -141,7 +141,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
           case fr: WebSocketFrame.Close =>
             writeClosingFrame(fr)
           case _ =>
-            writeLock.lock.surround {
+            mut.lock.surround {
               close.get.flatMap {
                 case Open => writeFrameUnsafe(frame)
                 case _ => F.unit
@@ -156,7 +156,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
           case WebSocketCombinedPipe(receiveSend, onClose) =>
             val reader = incoming
               .through(decodeFrames[F])
-              .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, writeLock))
+              .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, mut))
               .through(receiveSend)
             val stream =
               reader.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
@@ -168,7 +168,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
             val reader = incoming
               .through(decodeFrames[F])
-              .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, writeLock))
+              .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, mut))
               .through(receive)
 
             reader.concurrently(writer) -> onClose
@@ -185,15 +185,15 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
   private def handleIncomingFrame[F[_]](
       writeFrame: WebSocketFrame => F[Unit],
       closeState: Ref[F, Close],
-      writeLock: Mutex[F],
+      mut: Mutex[F],
   )(
       frame: WebSocketFrame
   )(implicit F: Concurrent[F]): F[Option[WebSocketFrame]] =
     frame match {
       case ping @ WebSocketFrame.Ping(data) =>
-        writeLock.lock.surround(writeFrame(WebSocketFrame.Pong(data))).as(ping.some)
+        mut.lock.surround(writeFrame(WebSocketFrame.Pong(data))).as(ping.some)
       case WebSocketFrame.Close(_) =>
-        writeLock.lock
+        mut.lock
           .surround {
             closeState.get.flatMap {
               case Open =>
