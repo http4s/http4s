@@ -250,6 +250,12 @@ private[h2] class H2Connection[F[_]](
           case None =>
             logger.debug(s"$connectionTerminated with empty").as(None)
         }
+      } else if (
+        H2Frame.RawFrame.peekDeclaredLength(acc).exists(_ > localSettings.maxFrameSize.frameSize)
+      ) {
+        logger.warn(
+          "Received Frame Size Larger than Allowed Frame Size - Frame Size Error - Issuing GoAway"
+        ) >> goAway(H2Error.FrameSizeError) >> F.pure(None)
       } else
         H2Frame.RawFrame.fromByteVector(acc) match {
           case Some((raw, leftover)) =>
@@ -358,12 +364,8 @@ private[h2] class H2Connection[F[_]](
         ) >>
           goAway(H2Error.ProtocolError)
 
-      case (h @ H2Frame.Headers(i, sd, _, true, headerBlock, _), s) =>
-        val size = headerBlock.size.toInt
-        if (size > s.remoteSettings.maxFrameSize.frameSize) {
-          logger.warn("Header Size too large for frame size - FrameSizeError - Issuing GoAway") >>
-            goAway(H2Error.FrameSizeError)
-        } else if (sd.exists(s => s.dependency == i)) {
+      case (h @ H2Frame.Headers(i, sd, _, true, _, _), s) =>
+        if (sd.exists(s => s.dependency == i)) {
           goAway(H2Error.ProtocolError)
         } else {
           mapRef.get.map(_.get(i)).flatMap {
@@ -391,10 +393,8 @@ private[h2] class H2Connection[F[_]](
               }
           }
         }
-      case (h @ H2Frame.Headers(i, sd, _, false, headerBlock, _), s) =>
-        val size = headerBlock.size.toInt
-        if (size > s.remoteSettings.maxFrameSize.frameSize) goAway(H2Error.FrameSizeError)
-        else if (sd.exists(s => s.dependency == i)) goAway(H2Error.ProtocolError)
+      case (h @ H2Frame.Headers(i, sd, _, false, headerBlock, _), _) =>
+        if (sd.exists(s => s.dependency == i)) goAway(H2Error.ProtocolError)
         else if (headerBlock.size > maxHeaderBlockSize)
           logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
             goAway(H2Error.EnhanceYourCalm)
@@ -403,16 +403,12 @@ private[h2] class H2Connection[F[_]](
             .start(h, headerBlock.size, receiveHeadersTimeout, goAway(H2Error.EnhanceYourCalm))
             .flatMap(headers => state.update(s => s.copy(headersInProgress = Some(headers))))
         }
-      case (h @ H2Frame.PushPromise(_, true, i, headerBlock, _), s) =>
-        val size = headerBlock.size.toInt
+      case (h @ H2Frame.PushPromise(_, true, i, _, _), s) =>
         if (connectionType == H2Connection.ConnectionType.Server) {
           logger.warn(
             "Encountered Push Promise Frame a a Server - Protocol Error - Issuing GoAway"
           ) >>
             goAway(H2Error.ProtocolError)
-        } else if (size > s.remoteSettings.maxFrameSize.frameSize) {
-          logger.warn("Header Size too large for frame size - FrameSizeError - Issuing GoAway") >>
-            goAway(H2Error.FrameSizeError)
         } else {
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
@@ -435,10 +431,8 @@ private[h2] class H2Connection[F[_]](
               }
           }
         }
-      case (h @ H2Frame.PushPromise(_, false, _, headerBlock, _), s) =>
-        val size = headerBlock.size.toInt
-        if (size > s.remoteSettings.maxFrameSize.frameSize) goAway(H2Error.FrameSizeError)
-        else if (headerBlock.size > maxHeaderBlockSize)
+      case (h @ H2Frame.PushPromise(_, false, _, headerBlock, _), _) =>
+        if (headerBlock.size > maxHeaderBlockSize)
           logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
             goAway(H2Error.EnhanceYourCalm)
         else {
@@ -529,46 +523,38 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-      case (d @ H2Frame.Data(i, data, _, _), _) =>
-        val size = data.size.toInt
-        if (size > localSettings.maxFrameSize.frameSize) {
-          logger.warn(
-            "Receive Data Size Larger than Allowed Frame Size - Frame Size Error - Issuing GoAway"
-          ) >>
-            goAway(H2Error.FrameSizeError)
-        } else {
-          mapRef.get.map(_.get(i)).flatMap {
-            case Some(s) =>
-              for {
-                st <- state.get
-                newSize = st.readWindow - d.data.size.toInt
+      case (d @ H2Frame.Data(i, _, _, _), _) =>
+        mapRef.get.map(_.get(i)).flatMap {
+          case Some(s) =>
+            for {
+              st <- state.get
+              newSize = st.readWindow - d.data.size.toInt
 
-                needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
-                _ <- state.update(s =>
-                  s.copy(readWindow =
-                    if (needsWindowUpdate) localSettings.initialWindowSize.windowSize
-                    else newSize.toInt
-                  )
+              needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
+              _ <- state.update(s =>
+                s.copy(readWindow =
+                  if (needsWindowUpdate) localSettings.initialWindowSize.windowSize
+                  else newSize.toInt
                 )
-                _ <-
-                  if (needsWindowUpdate)
-                    outgoing.offer(
-                      Chunk.singleton(
-                        H2Frame.WindowUpdate(
-                          0,
-                          st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
-                        )
+              )
+              _ <-
+                if (needsWindowUpdate)
+                  outgoing.offer(
+                    Chunk.singleton(
+                      H2Frame.WindowUpdate(
+                        0,
+                        st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
                       )
                     )
-                  else Applicative[F].unit
-                _ <- s.receiveData(d)
-              } yield ()
-            case None =>
-              logger.warn(
-                s"Received Data Frame for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
-              ) >>
-                goAway(H2Error.ProtocolError)
-          }
+                  )
+                else Applicative[F].unit
+              _ <- s.receiveData(d)
+            } yield ()
+          case None =>
+            logger.warn(
+              s"Received Data Frame for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
+            ) >>
+              goAway(H2Error.ProtocolError)
         }
 
       case (rst @ H2Frame.RstStream(i, _), _) =>

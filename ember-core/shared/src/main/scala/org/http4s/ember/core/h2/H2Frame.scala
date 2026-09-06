@@ -63,6 +63,17 @@ private[ember] object H2Frame {
 
   object RawFrame {
 
+    /** The payload length a frame declares, decoded from the first three bytes.
+      *
+      * Available long before the payload it describes. RFC 9113 4.2 allows an
+      * oversized frame to be rejected without reading that payload, so a caller
+      * can consult this instead of buffering `9 + length` bytes to find out.
+      */
+    def peekDeclaredLength(bv: ByteVector): Option[Int] =
+      if (bv.length >= 3)
+        Some((bv(2) & 0xff) | ((bv(1) & 0xff) << 8) | ((bv(0) & 0xff) << 16))
+      else None
+
     def fromByteVector(bv: ByteVector): Option[(RawFrame, ByteVector)] =
       if (bv.length >= 9) {
         val length = (bv(2) & 0xff) | ((bv(1) & 0xff) << 8) | ((bv(0) & 0xff) << 16)
