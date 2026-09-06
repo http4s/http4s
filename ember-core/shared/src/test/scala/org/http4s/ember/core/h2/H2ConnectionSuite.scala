@@ -148,4 +148,42 @@ class H2ConnectionSuite extends Http4sSuite {
       _ = assert(closed)
     } yield ()
   }
+
+  test("terminal continuation frame exceeding maxHeaderListSize triggers GoAway(EnhanceYourCalm)") {
+    // small HEADERS (endHeaders=false), then a large terminal CONTINUATION (endHeaders=true)
+    val headers =
+      H2Frame.Headers(1, None, endStream = false, endHeaders = false, ByteVector.fill(10)(0), None)
+    val cont = H2Frame.Continuation(1, endHeaders = true, ByteVector.fill(200)(0))
+    val input = H2Frame.toByteVector(headers) ++ H2Frame.toByteVector(cont)
+    for {
+      // 10 + 200 = 210 > 100
+      h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+      goAway = frames.collectFirst { case g: H2Frame.GoAway => g }
+      _ = assert(goAway.nonEmpty, clue(frames))
+      _ = assertEquals(goAway.get.errorCode.toInt, H2Error.EnhanceYourCalm.value)
+      closed <- h2.state.get.map(_.closed)
+      _ = assert(closed)
+    } yield ()
+  }
+
+  test("terminal continuation frame within maxHeaderListSize does not GoAway on size") {
+    val headers =
+      H2Frame.Headers(1, None, endStream = false, endHeaders = false, ByteVector.fill(10)(0), None)
+    val cont = H2Frame.Continuation(1, endHeaders = true, ByteVector.fill(30)(0))
+    val input = H2Frame.toByteVector(headers) ++ H2Frame.toByteVector(cont)
+    for {
+      // 10 + 30 <= 100; will fail HPACK decode but must not GoAway(EnhanceYourCalm)
+      h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input)
+      _ <- h2.readLoop.attempt
+      frames <- drainOutgoing(h2)
+      _ = assert(
+        !frames
+          .collect { case g: H2Frame.GoAway => g }
+          .exists(_.errorCode.toInt == H2Error.EnhanceYourCalm.value),
+        clue(frames),
+      )
+    } yield ()
+  }
 }

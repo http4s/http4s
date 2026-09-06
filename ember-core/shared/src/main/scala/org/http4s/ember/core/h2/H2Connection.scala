@@ -279,7 +279,13 @@ private[h2] class H2Connection[F[_]](
             c @ H2Frame.Continuation(id, true, _),
             H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _),
           ) =>
-        if (headers.first.identifier == id) {
+        if (headers.first.identifier != id) {
+          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
+            goAway(H2Error.ProtocolError)
+        } else if (headers.size + c.headerBlockFragment.size > maxHeaderBlockSize) {
+          logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
+            goAway(H2Error.EnhanceYourCalm)
+        } else {
           state.update(s => s.copy(headersInProgress = None)) >>
             headers.complete(c).flatMap { case (first, rest) =>
               mapRef.get.map(_.get(id)).flatMap {
@@ -295,15 +301,18 @@ private[h2] class H2Connection[F[_]](
                   )
               }
             }
-        } else {
-          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
-            goAway(H2Error.ProtocolError)
         }
       case (
             c @ H2Frame.Continuation(id, true, _),
             H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _),
           ) =>
-        if (pushPromise.first.promisedStreamId == id) {
+        if (pushPromise.first.promisedStreamId != id) {
+          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
+            goAway(H2Error.ProtocolError)
+        } else if (pushPromise.size + c.headerBlockFragment.size > maxHeaderBlockSize) {
+          logger.debug("PUSH_PROMISE Header block exceeds maxHeaderListSize - Issuing GoAway") >>
+            goAway(H2Error.EnhanceYourCalm)
+        } else {
           state.update(s => s.copy(pushPromiseInProgress = None)) >>
             pushPromise.complete(c).flatMap { case (first, rest) =>
               mapRef.get.map(_.get(id)).flatMap {
@@ -315,14 +324,10 @@ private[h2] class H2Connection[F[_]](
                       stream <- initiateRemoteStreamById(id)
                       _ <- createdStreams.offer(id)
                       _ <- stream.receivePushPromise(first, rest)
-
                     } yield ()
                   )
               }
             }
-        } else {
-          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
-            goAway(H2Error.ProtocolError)
         }
       case (
             c @ H2Frame.Continuation(id, false, _),
