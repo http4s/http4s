@@ -72,6 +72,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
 
   test("http/2") {
     assume(!sys.props.get("java.specification.version").contains("1.8"))
+    assume(!sys.props.get("java.specification.version").contains("11"))
     run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
   }
 

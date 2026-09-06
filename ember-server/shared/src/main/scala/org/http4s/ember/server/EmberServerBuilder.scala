@@ -195,8 +195,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   /** Enables HTTP/2 support.
     *
-    * As of 0.23.35, no longer tested or supported with Unix sockets
-    * on Java 8.
+    * No longer tested or supported with Unix sockets on Java < 17.
     */
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
