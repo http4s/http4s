@@ -63,6 +63,9 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           wsBuilder.build(send, _.void)
         case GET -> Root / "ws-close-combined" =>
           wsBuilder.build(_ => Stream(WebSocketFrame.Text("foo")))
+        case GET -> Root / "ws-replicated-response" =>
+          val send = Stream(WebSocketFrame.Text("42")).repeatN(512)
+          wsBuilder.build(send, _.void)
         case GET -> Root / "ws-filter-false" =>
           F.deferred[Unit].flatMap { deferred =>
             wsBuilder
@@ -197,6 +200,45 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.remoteClosed.get
         code <- client.closeCode.get
       } yield assertEquals(code, CloseFrame.NORMAL)
+  }
+
+  fixture.test("server response and pong frames do not interfere") { case (server, dispatcher) =>
+    val onCancel = IO.raiseError(new IllegalStateException("Fiber canceled"))
+
+    for {
+      client <- createClient(
+        URI.create(
+          s"ws://${server.address.getHostName}:${server.address.getPort}/ws-replicated-response"
+        ),
+        dispatcher,
+      )
+      _ <- client.connect
+      pings =
+        (0 to 511).toList
+          .traverse_(i => client.ping(s"ping-$i"))
+      takes = client.messages.take.replicateA(512)
+      serverResponse <-
+        IO.racePair(pings, takes)
+          .flatMap {
+            case Left((Outcome.Succeeded(_), takeFiber)) =>
+              takeFiber.joinWith(onCancel)
+            case Left((Outcome.Errored(ex), takeFiber)) =>
+              takeFiber.cancel *> IO.raiseError(ex)
+            case Left((Outcome.Canceled(), takeFiber)) =>
+              takeFiber.cancel *> onCancel
+            case Right((pingFiber, Outcome.Succeeded(res))) =>
+              pingFiber.cancel *> res
+            case Right((pingFiber, Outcome.Errored(ex))) =>
+              pingFiber.cancel *> IO.raiseError(ex)
+            case Right((pingFiber, Outcome.Canceled())) =>
+              pingFiber.cancel *> onCancel
+          }
+          .timeout(10.seconds)
+      code <- client.closeCode.get
+    } yield {
+      assertEquals(serverResponse, List.fill(512)("42"))
+      assertEquals(code, CloseFrame.NORMAL)
+    }
   }
 
   fixture.test(
