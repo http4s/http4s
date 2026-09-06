@@ -100,7 +100,7 @@ private[internal] final class PerMessageDeflate(
     val limit = (maxDecompressedMessageSize - decompressedBytes).toInt
     val out = codec.inflate(if (last) data ++ Tail else data, limit)
     decompressedBytes += out.length
-    if (last && params.clientNoContextTakeover) codec.releaseInflater()
+    if (last && params.clientNoContextTakeover) codec.resetInflater()
     out
   }
 }
@@ -123,8 +123,8 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
       */
     def inflate(data: ByteVector, maxSize: Int): ByteVector
 
-    /** Frees the decompressor. The next message starts with an empty window. */
-    def releaseInflater(): Unit
+    /** Resets the decompressor, keeping it allocated. The next message starts with an empty window. */
+    def resetInflater(): Unit
 
     def close(): Unit
   }

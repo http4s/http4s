@@ -55,15 +55,12 @@ private[internal] object PerMessageDeflatePlatform {
       decompressor.inflate(data, maxSize)
     }
 
-    def releaseInflater(): Unit =
-      if (decompressor != null) {
-        decompressor.end()
-        decompressor = null
-      }
+    def resetInflater(): Unit =
+      if (decompressor != null) decompressor.reset()
 
     def close(): Unit = {
       releaseDeflater()
-      releaseInflater()
+      if (decompressor != null) decompressor.end()
     }
   }
 
@@ -123,6 +120,12 @@ private[internal] object PerMessageDeflatePlatform {
     }
 
     def end(): Unit = inflater.end()
+
+    def reset(): Unit = {
+      inflater.reset()
+      windowEnd = 0
+      windowFull = false
+    }
 
     private def remember(length: Int): Unit = {
       val first = math.min(length, WindowSize - windowEnd)
