@@ -174,6 +174,40 @@ private[h2] class H2Connection[F[_]](
       H2Connection.KillWithoutMessage().raiseError
 
   private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
+    def withStallTimeout[A](fa: F[A]): F[A] =
+      Temporal[F].monotonic
+        .flatMap { now =>
+          state.modify { st =>
+            val start = st.stallStart.getOrElse(now)
+            (st.copy(stallStart = Some(start)), now - start)
+          }
+        }
+        .flatMap { elapsed =>
+          val remaining = idleTimeout - elapsed
+          if (remaining <= Duration.Zero)
+            logger.debug(s"connection stall timeout exceeded ($elapsed)") >>
+              goAwayImmediately(H2Error.ProtocolError)
+          else
+            Temporal[F].timeoutTo(
+              fa,
+              remaining,
+              logger.debug(s"stream stall timeout exceeded") >>
+                goAwayImmediately(H2Error.ProtocolError),
+            )
+        }
+
+    // Terminate the connection during a write stall. In this case, the `outgoing` queue isn't
+    // progressing and will stay stuck waiting to send the go away message, so push it out directly.
+    def goAwayImmediately[A](error: H2Error): F[A] =
+      state.get.map(_.remoteHighestStream).flatMap { i =>
+        // Last-ditch timeout in case TCP layer is stalled.
+        Temporal[F].timeout(
+          socket.write(Chunk.byteVector(H2Frame.toByteVector(error.toGoAway(i)))),
+          idleTimeout,
+        )
+      } >> state.update(_.copy(closed = true)) >>
+        H2Connection.KillWithoutMessage().raiseError
+
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {
         case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
@@ -185,8 +219,10 @@ private[h2] class H2Connection[F[_]](
         val bv = chunk.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-        state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize, stallStart = None)) >>
-          socket.write(Chunk.byteVector(bv)) >>
+        withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
+          state.update(s =>
+            s.copy(writeWindow = s.writeWindow - fullDataSize, stallStart = None)
+          ) >>
           chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
       } else {
         val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
@@ -197,29 +233,21 @@ private[h2] class H2Connection[F[_]](
         val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-        socket.write(Chunk.byteVector(bv)) >>
+        withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
           nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
-          Temporal[F].monotonic.flatMap { now =>
-            state.update(st => st.copy(stallStart = st.stallStart.orElse(Some(now))))
-          } >>
-          s.writeBlock.get.rethrow >>
-          Temporal[F].monotonic.flatMap { current =>
-            state.get.flatMap { st =>
-              val elapsed = current - st.stallStart.getOrElse(current)
-              if (elapsed >= idleTimeout)
-                logger.debug(s"connection stall timeout exceeded ($elapsed)") >>
-                  goAway(H2Error.ProtocolError)
-              else
-                go(after)
-            }
+          { // avoid stalling if only control frames were written
+            if (after.isEmpty) state.update(s => s.copy(stallStart = None))
+            else withStallTimeout(s.writeBlock.get.rethrow) >> go(after)
           }
       }
     }
+
     val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
       mapRef.get.flatMap { m =>
         m.values.toList.traverse_(connection => connection.receiveGoAway(g))
       } >> state.update(s => s.copy(closed = true))
     }
+
     firstGoAway.getOrElse(F.unit) >> go(chunk)
   }
 
