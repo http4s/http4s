@@ -47,16 +47,16 @@ class AcceptQuerySuite extends HeaderLaws {
     assertEquals(parsedUnquoted.toOption.get.values, NonEmptyList.of(MediaType.application.sql))
     assertEquals(parsedUnquoted.toOption.get.renderString, s"Accept-Query: $unquoted")
 
-    // Quoted string (used for media types starting with a digit, containing forbidden characters like '+', or general Structured Fields strings)
-    val quoted = "\"application/jsonpath\""
-    val parsedQuoted = `Accept-Query`.parse(quoted)
-    assert(parsedQuoted.isRight)
+    // Media type starting with a digit (must be quoted because sf-token must start with ALPHA or *)
+    val digitQuoted = "\"3gpp/media\""
+    val parsedDigit = `Accept-Query`.parse(digitQuoted)
+    assert(parsedDigit.isRight)
     assertEquals(
-      parsedQuoted.toOption.get.values,
-      NonEmptyList.of(new MediaType("application", "jsonpath")),
+      parsedDigit.toOption.get.values,
+      NonEmptyList.of(new MediaType("3gpp", "media")),
     )
-    // application/jsonpath is a valid token, so it renders unquoted
-    assertEquals(parsedQuoted.toOption.get.renderString, "Accept-Query: application/jsonpath")
+    // 3gpp/media is parsed from quoted string and rendered as standard media type
+    assertEquals(parsedDigit.toOption.get.renderString, "Accept-Query: 3gpp/media")
 
     // Quoted string with suffix (+)
     val suffixedQuoted = "\"application/ld+json\""
@@ -66,8 +66,7 @@ class AcceptQuerySuite extends HeaderLaws {
       parsedSuffixed.toOption.get.values,
       NonEmptyList.of(new MediaType("application", "ld+json")),
     )
-    // application/ld+json contains '+', which is not a permitted character in Structured Field tokens (RFC 9651 section 3.3.4), so it renders quoted
-    assertEquals(parsedSuffixed.toOption.get.renderString, "Accept-Query: \"application/ld+json\"")
+    assertEquals(parsedSuffixed.toOption.get.renderString, "Accept-Query: application/ld+json")
 
     // Mix of quoted/unquoted and parameters
     val mixed = "\"application/jsonpath\", application/sql;charset=\"UTF-8\""
@@ -82,7 +81,16 @@ class AcceptQuerySuite extends HeaderLaws {
     )
     assertEquals(
       parsedMixed.toOption.get.renderString,
-      "Accept-Query: application/jsonpath, application/sql;charset=\"UTF-8\"",
+      "Accept-Query: application/jsonpath, application/sql; charset=\"UTF-8\"",
+    )
+
+    // Quoted string with parameters
+    val quotedWithParams = "\"application/sql\";charset=\"UTF-8\""
+    val parsedQuotedWithParams = `Accept-Query`.parse(quotedWithParams)
+    assert(parsedQuotedWithParams.isRight)
+    assertEquals(
+      parsedQuotedWithParams.toOption.get.values,
+      NonEmptyList.of(MediaType.application.sql.withExtensions(Map("charset" -> "UTF-8"))),
     )
   }
 }

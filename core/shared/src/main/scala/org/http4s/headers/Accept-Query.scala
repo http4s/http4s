@@ -20,10 +20,9 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.CommonRules
-import org.http4s.util.Renderer
-import org.http4s.util.Writer
 import org.typelevel.ci._
 
+// This implementation is incomplete, as this requires support for Structured Fields.
 object `Accept-Query` {
   def apply(head: MediaType, tail: MediaType*): `Accept-Query` =
     apply(NonEmptyList(head, tail.toList))
@@ -39,66 +38,19 @@ object `Accept-Query` {
           case Left(failure) => Parser.failWith(failure.message)
         }
     }
-
     val item = quoted.orElse(MediaType.parser)
-
     CommonRules.headerRep1(item).map(`Accept-Query`(_))
-  }
-
-  implicit val renderer: Renderer[`Accept-Query`] = new Renderer[`Accept-Query`] {
-    override def render(writer: Writer, t: `Accept-Query`): writer.type = {
-      var first = true
-      t.values.toList.foreach { mt =>
-        if (!first) {
-          writer << ", "
-        }
-        first = false
-        val mtStr = s"${mt.mainType}/${mt.subType}"
-        if (isSfToken(mtStr)) {
-          writer << mtStr
-        } else {
-          writer.quote(mtStr)
-        }
-        mt.extensions.foreach { case (k, v) =>
-          writer << ';' << k << '=' <<# v
-        }
-      }
-      writer
-    }
   }
 
   implicit val headerInstance: Header[`Accept-Query`, Header.Recurring] =
     Header.createRendered(
       ci"Accept-Query",
-      identity,
+      _.values,
       parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Query`] =
     (a, b) => `Accept-Query`(a.values.concatNel(b.values))
-
-  private def isSfToken(s: String): Boolean =
-    if (s.isEmpty) false
-    else {
-      val first = s.charAt(0)
-      val isFirstOk =
-        (first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z') || first == '*'
-      if (!isFirstOk) false
-      else {
-        var i = 1
-        var ok = true
-        while (i < s.length && ok) {
-          val c = s.charAt(i)
-          val isCharOk = (c >= 'a' && c <= 'z') ||
-            (c >= 'A' && c <= 'Z') ||
-            (c >= '0' && c <= '9') ||
-            c == '_' || c == '-' || c == '.' || c == '*' || c == '/' || c == ':' || c == '@'
-          if (!isCharOk) ok = false
-          i += 1
-        }
-        ok
-      }
-    }
 }
 
 final case class `Accept-Query`(values: NonEmptyList[MediaType])
