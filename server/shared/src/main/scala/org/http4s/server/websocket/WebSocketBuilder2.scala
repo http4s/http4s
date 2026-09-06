@@ -28,6 +28,7 @@ import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrameDefragmenter.DefaultMaxFragmentCount
 import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.vault.Key
@@ -60,6 +61,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     filterPingPongs: Boolean,
     defragFrame: Boolean,
     maxMessageSize: Long,
+    maxFragmentCount: Int,
     heartbeat: Option[F[Heartbeat[F]]],
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
@@ -85,6 +87,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs = filterPingPongs,
       defragFrame = false,
       maxMessageSize = WebSocketBuilder2.DefaultMaxMessageSize,
+      maxFragmentCount = DefaultMaxFragmentCount,
       heartbeat = None,
       webSocketKey = webSocketKey,
     )
@@ -98,6 +101,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       defragFrame: Boolean = this.defragFrame,
       webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey,
       maxMessageSize: Long = this.maxMessageSize,
+      maxFragmentCount: Int = this.maxFragmentCount,
       heartbeat: Option[F[Heartbeat[F]]] = this.heartbeat,
   ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
     headers,
@@ -108,6 +112,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     defragFrame,
     webSocketKey,
     maxMessageSize,
+    maxFragmentCount,
     heartbeat,
   )
 
@@ -132,6 +137,10 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   /** Maximum size of a defragmented message.  Only applies when `withDefragment` is true. */
   def withMaxMessageSize(maxMessageSize: Long): WebSocketBuilder2[F] =
     copy(maxMessageSize = maxMessageSize)
+
+  /** Maximum fragments a message can be split across.  Only applies when `withDefragment` is true. */
+  def withMaxFragmentCount(maxFragmentCount: Int): WebSocketBuilder2[F] =
+    copy(maxFragmentCount = maxFragmentCount)
 
   /** Closes connections to clients that stopped answering.
     *
@@ -169,6 +178,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       defragFrame,
       webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk)),
       maxMessageSize,
+      maxFragmentCount,
       heartbeat.map(fk(_).map(_.imapK(fk)(gk))),
     )
 
@@ -216,8 +226,11 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (true, false) => sendReceive.compose(filterPingPongFrames)
         case (false, false) => sendReceive
         case (true, true) =>
-          sendReceive.compose(defragFragment(maxMessageSize).compose(filterPingPongFrames))
-        case (false, true) => sendReceive.compose(defragFragment(maxMessageSize))
+          sendReceive.compose(
+            defragFragment(maxMessageSize, DefaultMaxFragmentCount).compose(filterPingPongFrames)
+          )
+        case (false, true) =>
+          sendReceive.compose(defragFragment(maxMessageSize, DefaultMaxFragmentCount))
       }
 
     buildResponse(startHeartbeat(WebSocketCombinedPipe(finalSendReceive, onClose)))
@@ -254,8 +267,11 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (true, false) => receive.compose(filterPingPongFrames)
         case (false, false) => receive
         case (true, true) =>
-          receive.compose(defragFragment(maxMessageSize).compose(filterPingPongFrames))
-        case (false, true) => receive.compose(defragFragment(maxMessageSize))
+          receive.compose(
+            defragFragment(maxMessageSize, maxFragmentCount).compose(filterPingPongFrames)
+          )
+        case (false, true) =>
+          receive.compose(defragFragment(maxMessageSize, maxFragmentCount))
       }
 
     buildResponse(startHeartbeat(WebSocketSeparatePipe(send, finalReceive, onClose)))
@@ -301,6 +317,7 @@ object WebSocketBuilder2 {
       defragFrame = true,
       webSocketKey = webSocketKey,
       maxMessageSize = WebSocketBuilder2.DefaultMaxMessageSize,
+      maxFragmentCount = DefaultMaxFragmentCount,
       heartbeat = None,
     )
 
@@ -313,6 +330,7 @@ object WebSocketBuilder2 {
       defragFrame: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
       maxMessageSize: Long,
+      maxFragmentCount: Int,
       heartbeat: Option[F[Heartbeat[F]]],
   ): WebSocketBuilder2[F] =
     new WebSocketBuilder2[F](
@@ -324,6 +342,7 @@ object WebSocketBuilder2 {
       defragFrame = defragFrame,
       webSocketKey = webSocketKey,
       maxMessageSize = maxMessageSize,
+      maxFragmentCount = maxFragmentCount,
       heartbeat = heartbeat,
     ) {}
 }
