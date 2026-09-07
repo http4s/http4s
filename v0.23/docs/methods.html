@@ -200,6 +200,7 @@
   <p class="header"><a href="#">HTTP Methods</a></p>
 
   <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#safe-and-idempotent-requests-with-a-body-query">Safe and Idempotent Requests with a Body: QUERY</a></li>
   </ul>
 
   <p class="footer"></p>
@@ -246,6 +247,15 @@
 }</span></code></pre>
         <p>There&#39;s also <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.36//org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
         implementation of the <code>HEAD</code> route.</p>
+        
+        <h2 id="safe-and-idempotent-requests-with-a-body-query" class="section"><a class="anchor-link left" href="#safe-and-idempotent-requests-with-a-body-query"><i class="icofont-laika link">&#xef71;</i></a>Safe and Idempotent Requests with a Body: QUERY</h2>
+        <p>Http4s supports the <code>QUERY</code> method defined in RFC 10008. The <code>QUERY</code> method is designed for safe and idempotent requests that need to carry a payload (request body), bridging the gap between <code>GET</code> (which does not have defined semantics for request bodies) and <code>POST</code> (which is neither safe nor idempotent).</p>
+        <p>You can match on <code>QUERY</code> requests in your routing DSL:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">searchService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">req</span><span> @ </span><span class="type-name">QUERY</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;search&quot;</span><span> =&gt;
+    </span><span class="identifier">req</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">SearchQuery</span><span>].</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">performSearch</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Ok</span><span>(</span><span class="identifier">_</span><span>))
+}</span></code></pre>
+        <p>To support content negotiation for query formats, http4s also provides the <code>Accept-Query</code> header (defined in RFC 10008 Section 3).</p>
 
         
 <hr class="footer-rule"/>
