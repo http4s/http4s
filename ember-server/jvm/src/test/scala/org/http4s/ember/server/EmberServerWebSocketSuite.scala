@@ -455,6 +455,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     EmberServerBuilder
       .default[IO]
       .withPort(port"0")
+      .withWebSocketCompression
       .withMaxWebSocketDecompressedMessageSize(0)
       .build
       .use_

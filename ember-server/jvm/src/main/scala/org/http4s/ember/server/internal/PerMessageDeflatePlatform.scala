@@ -34,6 +34,7 @@ private[internal] trait PerMessageDeflatePlatform {
 
 private[internal] object PerMessageDeflatePlatform {
   private val WindowSize = 32768
+  private val MaxFinalBlocksPerFrame = 8
 
   private final class ZipCodec extends PerMessageDeflate.Codec {
     private[this] var compressor: Compressor = null
@@ -88,12 +89,14 @@ private[internal] object PerMessageDeflatePlatform {
     private[this] val window = new Array[Byte](WindowSize)
     private[this] var windowEnd = 0
     private[this] var windowFull = false
+    private[this] var dictionary: Array[Byte] = null
 
     def inflate(data: ByteVector, maxSize: Int): ByteVector = {
       val input = data.toArray
       inflater.setInput(input)
       val out = new ByteArrayOutputStream()
       var more = true
+      var finalBlocks = 0
       try
         while (more) {
           val n = inflater.inflate(buffer)
@@ -106,6 +109,9 @@ private[internal] object PerMessageDeflatePlatform {
             remember(n)
           }
           if (inflater.finished()) {
+            finalBlocks += 1
+            if (finalBlocks > MaxFinalBlocksPerFrame)
+              throw new ProtocolException("Too many final DEFLATE blocks in one frame")
             val remaining = inflater.getRemaining()
             restart()
             if (remaining > 0) inflater.setInput(input, input.length - remaining, remaining)
@@ -138,7 +144,7 @@ private[internal] object PerMessageDeflatePlatform {
     private def restart(): Unit = {
       inflater.reset()
       if (windowFull) {
-        val dictionary = new Array[Byte](WindowSize)
+        if (dictionary == null) dictionary = new Array[Byte](WindowSize)
         System.arraycopy(window, windowEnd, dictionary, 0, WindowSize - windowEnd)
         System.arraycopy(window, 0, dictionary, WindowSize - windowEnd, windowEnd)
         inflater.setDictionary(dictionary)

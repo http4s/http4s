@@ -274,7 +274,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def build: Resource[F, Server] =
     for {
       _ <-
-        if (maxWebSocketDecompressedMessageSize <= 0)
+        if (enableWebSocketCompression && maxWebSocketDecompressedMessageSize <= 0)
           Resource.raiseError[F, Unit, Throwable](
             new IllegalArgumentException("maxWebSocketDecompressedMessageSize must be positive")
           )

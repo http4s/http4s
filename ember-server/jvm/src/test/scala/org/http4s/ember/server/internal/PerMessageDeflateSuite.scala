@@ -327,6 +327,19 @@ class PerMessageDeflateSuite extends Http4sSuite {
     }
   }
 
+  test("fail on too many BFINAL blocks in one frame") {
+    withDeflate(maxSize = 1024 * 1024) { server =>
+      withDeflate(maxSize = 1024 * 1024) { client =>
+        val (fill, rsv1) = client.encode(WebSocketFrame.Binary(ByteVector.fill(40000)(0)))
+        server.decode(fill, rsv1)
+        val emptyFinalBlocks = ByteVector.concat(List.fill(100)(hex"0300"))
+        intercept[ProtocolException](
+          server.decode(WebSocketFrame.Binary(emptyFinalBlocks), rsv1 = true)
+        )
+      }
+    }
+  }
+
   test("fail on invalid data after a BFINAL block") {
     withDeflate() { deflate =>
       val payload = rawDeflate("Hello", "", finish = true) ++ hex"ffffffff"

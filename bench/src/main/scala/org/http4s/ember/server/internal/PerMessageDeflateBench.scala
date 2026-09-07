@@ -16,6 +16,8 @@
 
 package org.http4s.ember.server.internal
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
@@ -70,8 +72,12 @@ class PerMessageDeflateBench {
       }
     finally encoder.close()
 
-    val decoded = nettyDecodeAll(_ => ())
-    require(decoded.sameElements(messages.map(_.length)), "netty failed to decode ember output")
+    val decoded = Array.newBuilder[Array[Byte]]
+    nettyDecodeAll(content => decoded += ByteBufUtil.getBytes(content))
+    require(
+      decoded.result().zip(messages).forall { case (d, m) => d.sameElements(m) },
+      "netty failed to decode ember output",
+    )
   }
 
   @Benchmark
@@ -121,26 +127,21 @@ class PerMessageDeflateBench {
 
   @Benchmark
   @OperationsPerInvocation(Messages)
-  def nettyDecode(bh: Blackhole): Unit = {
-    nettyDecodeAll(bh.consume)
-    ()
-  }
+  def nettyDecode(bh: Blackhole): Unit =
+    nettyDecodeAll(content => bh.consume(content.readableBytes()))
 
-  private def nettyDecodeAll(consume: Int => Unit): Array[Int] = {
+  private def nettyDecodeAll(consume: ByteBuf => Unit): Unit = {
     val channel = new EmbeddedChannel(netty.newExtensionDecoder())
     try {
-      val sizes = new Array[Int](Messages)
       var i = 0
       while (i < Messages) {
         val in = Unpooled.wrappedBuffer(compressed(i))
         channel.writeInbound(new TextWebSocketFrame(true, WebSocketExtension.RSV1, in))
         val frame = channel.readInbound[NettyFrame]()
-        sizes(i) = frame.content().readableBytes()
-        consume(sizes(i))
+        consume(frame.content())
         frame.release()
         i += 1
       }
-      sizes
     } finally {
       channel.finishAndReleaseAll()
       ()
