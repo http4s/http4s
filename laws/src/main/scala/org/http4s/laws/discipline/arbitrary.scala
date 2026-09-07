@@ -1170,6 +1170,12 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
     } yield headers.`Accept-Post`(values)
   }
 
+  implicit val arbitraryAcceptQuery: Arbitrary[`Accept-Query`] = Arbitrary {
+    for {
+      media <- getArbitrary[NonEmptyList[MediaType]]
+    } yield headers.`Accept-Query`(media)
+  }
+
   implicit val arbitraryCrossOriginResourcePolicy: Arbitrary[`Cross-Origin-Resource-Policy`] =
     Arbitrary[`Cross-Origin-Resource-Policy`](
       Gen.oneOf(

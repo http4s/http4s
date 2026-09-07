@@ -45,5 +45,20 @@ val tweetService = HttpRoutes.of[IO] {
 There's also [`DefaultHead`] which replicates the functionality of the native
 implementation of the `HEAD` route.
 
+## Safe and Idempotent Requests with a Body: QUERY
+
+Http4s supports the `QUERY` method defined in RFC 10008. The `QUERY` method is designed for safe and idempotent requests that need to carry a payload (request body), bridging the gap between `GET` (which does not have defined semantics for request bodies) and `POST` (which is neither safe nor idempotent).
+
+You can match on `QUERY` requests in your routing DSL:
+
+```scala
+val searchService = HttpRoutes.of[IO] {
+  case req @ QUERY -> Root / "search" =>
+    req.as[SearchQuery].flatMap(performSearch).flatMap(Ok(_))
+}
+```
+
+To support content negotiation for query formats, http4s also provides the `Accept-Query` header (defined in RFC 10008 Section 3).
+
 [methods]: @API_URL@/org/http4s/Method$.html
 [`DefaultHead`]: @API_URL@/org/http4s/server/middleware/DefaultHead$.html
