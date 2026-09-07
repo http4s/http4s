@@ -19,7 +19,6 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser0}
-import org.http4s.Header
 import org.http4s.headers.`Alt-Svc`.Value.Clear
 import org.http4s.internal.parsing.{CommonRules, Rfc3986}
 import org.http4s.util.{Renderable, Renderer, Writer}
@@ -121,7 +120,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   object Value {
 
     /** All alternative services of the origin are invalidated. */
-    final case object Clear extends Value
+    case object Clear extends Value
     final case class AltValue(alternatives: NonEmptyList[AltService]) extends Value
     object AltValue {
       def apply(altService: AltService, altServices: AltService*): AltValue =
