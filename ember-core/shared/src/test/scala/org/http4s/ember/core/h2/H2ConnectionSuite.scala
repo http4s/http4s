@@ -151,6 +151,27 @@ class H2ConnectionSuite extends Http4sSuite {
     H2Frame.Settings.ConnectionSettings.default
       .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderListSize)))
 
+  test("data for a stream that has already been answered is ignored") {
+    val data = H2Frame.Data(1, ByteVector.empty, None, endStream = true)
+    for {
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        H2Frame.toByteVector(data),
+      )
+      _ <- h2.initiateRemoteStreamById(1)
+      _ <- h2.mapRef.set(Map.empty)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+      _ = assert(
+        !frames.exists(_.isInstanceOf[H2Frame.GoAway]),
+        clue(
+          s"a peer that sends END_STREAM after we have answered and dropped the " +
+            s"stream must not take the whole connection down, got $frames"
+        ),
+      )
+    } yield ()
+  }
+
   test("continunation frames within maxHeaderListSize accumulate without GoAway") {
     val headers =
       H2Frame.Headers(1, None, endStream = false, endHeaders = false, ByteVector.fill(40)(0), None)

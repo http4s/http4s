@@ -60,6 +60,24 @@ private[h2] class H2Connection[F[_]](
   private[this] val maxHeaderBlockSize: Long =
     localSettings.maxHeaderListSize.fold(65536L)(_.listSize.toLong)
 
+  private[this] val readIdleTimeout: Duration = connectionType match {
+    case H2Connection.ConnectionType.Server => idleTimeout
+    case H2Connection.ConnectionType.Client => Duration.Inf
+  }
+
+  /** Whether some stream leaves the peer nothing to send, so silence from it is
+    * a peer waiting on us rather than an idle connection.
+    */
+  private[this] def peerAwaitingResponse: F[Boolean] =
+    mapRef.get
+      .flatMap(_.values.toList.traverse(_.state.get.map(_.state)))
+      .map(_.exists {
+        case H2Stream.StreamState.Idle | H2Stream.StreamState.ReservedLocal |
+            H2Stream.StreamState.HalfClosedRemote =>
+          true
+        case _ => false
+      })
+
   // An unauthenticated peer can open streams without limit.  The 4x
   // gives us slack to reap the closed streams in a graceful fashion,
   // while giving a hard upper bound to protect the server or client
@@ -268,8 +286,19 @@ private[h2] class H2Connection[F[_]](
   def readLoop: F[Unit] = {
 
     def connectionTerminated: String = s"Connection $addrStr readLoop Terminated"
-    val readFromSocket: F[Option[Chunk[Byte]]] =
-      socket.read(localSettings.initialWindowSize.windowSize)
+    val readFromSocket: F[Option[Chunk[Byte]]] = {
+      val read = socket.read(localSettings.initialWindowSize.windowSize)
+      readIdleTimeout match {
+        case timeout: FiniteDuration =>
+          F.race(read, F.sleep(timeout).untilM_(peerAwaitingResponse.map(!_))).flatMap {
+            case Left(chunk) => F.pure(chunk)
+            case Right(_) =>
+              logger.debug(s"$addrStr readLoop idle timeout exceeded ($timeout)") >>
+                goAway(H2Error.ProtocolError).as(Option.empty[Chunk[Byte]])
+          }
+        case _ => read
+      }
+    }
 
     def readNextFrame(acc: ByteVector): F[Option[(H2Frame, ByteVector)]] =
       if (acc.isEmpty) {
@@ -584,10 +613,15 @@ private[h2] class H2Connection[F[_]](
               _ <- s.receiveData(d)
             } yield ()
           case None =>
-            logger.warn(
-              s"Received Data Frame for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
-            ) >>
-              goAway(H2Error.ProtocolError)
+            state.get.flatMap { st =>
+              if (i <= st.remoteHighestStream)
+                logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
+              else
+                logger.warn(
+                  s"Received Data Frame for Idle Stream $i - Protocol Error - Issuing GoAway"
+                ) >>
+                  goAway(H2Error.ProtocolError)
+            }
         }
 
       case (rst @ H2Frame.RstStream(i, _), _) =>
