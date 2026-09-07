@@ -191,7 +191,18 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
   )(implicit F: Concurrent[F]): F[Option[WebSocketFrame]] =
     frame match {
       case ping @ WebSocketFrame.Ping(data) =>
-        mut.lock.surround(writeFrame(WebSocketFrame.Pong(data))).as(ping.some)
+        // As per RFC 6455 §5.5.2, an endpoint that receives a Ping after a Close
+        // from the peer is no longer required to respond to that Ping. Moreover,
+        // once the closing handshake has completed, the connection is being closed.
+        mut.lock.surround {
+          closeState.get.flatMap {
+            case EndpointClosed | Open =>
+              writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
+            case _ =>
+              F.pure(None)
+          }
+        }
+
       case WebSocketFrame.Close(_) =>
         mut.lock
           .surround {
