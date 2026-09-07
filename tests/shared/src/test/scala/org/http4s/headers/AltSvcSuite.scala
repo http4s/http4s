@@ -17,12 +17,18 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
+import cats.implicits.catsSyntaxEitherId
+import cats.implicits.catsSyntaxOptionId
 import org.http4s.Uri
-import org.http4s.headers.`Alt-Svc`.{AltAuthority, AltService, ProtocolId, Value}
-import org.http4s.headers.`Alt-Svc`.Value.{AltValue, Clear}
+import org.http4s.headers.`Alt-Svc`.AltAuthority
+import org.http4s.headers.`Alt-Svc`.AltService
+import org.http4s.headers.`Alt-Svc`.ProtocolId
+import org.http4s.headers.`Alt-Svc`.Value
+import org.http4s.headers.`Alt-Svc`.Value.AltValue
+import org.http4s.headers.`Alt-Svc`.Value.Clear
 import org.http4s.syntax.header._
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 import org.typelevel.ci.CIString
 
 class AltSvcSuite extends HeaderLaws {

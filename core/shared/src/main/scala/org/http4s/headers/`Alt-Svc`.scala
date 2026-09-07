@@ -18,11 +18,16 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
+import cats.parse.Parser0
 import org.http4s.headers.`Alt-Svc`.Value.Clear
-import org.http4s.internal.parsing.{CommonRules, Rfc3986}
-import org.http4s.util.{Renderable, Renderer, Writer}
-import org.typelevel.ci.{CIString, CIStringSyntax}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.util.Renderable
+import org.http4s.util.Renderer
+import org.http4s.util.Writer
+import org.typelevel.ci.CIString
+import org.typelevel.ci.CIStringSyntax
 
 import scala.util.Try
 
@@ -35,8 +40,10 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   def fromString(header: String): ParseResult[`Alt-Svc`] =
     ParseResult.fromParser(parser, s"Cannot parse `Alt-Svc` header from $header")(header)
 
-  final case class AltAuthority private (host: Option[Uri.Host], port: Int)
+  sealed abstract case class AltAuthority private (host: Option[Uri.Host], port: Int)
   object AltAuthority {
+    def apply(host: Option[Uri.Host], port: Int): AltAuthority = new AltAuthority(host, port) {}
+
     private def isEmptyRegName(host: Uri.Host): Boolean = host match {
       case Uri.RegName(n) => n.isEmpty
       case _ => false
@@ -93,16 +100,18 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
     * so this is not a closed set: [[fromString]] accepts any token, and named constants are
     * provided only for common values.
     */
-  final case class ProtocolId private (value: CIString) extends Renderable {
+  sealed abstract case class ProtocolId private (value: CIString) extends Renderable {
     override def render(writer: Writer): writer.type = writer << value
   }
   object ProtocolId {
-    val `http/1.1`: ProtocolId = ProtocolId(ci"http/1.1")
-    val h2: ProtocolId = ProtocolId(ci"h2")
-    val h2c: ProtocolId = ProtocolId(ci"h2c")
-    val h3: ProtocolId = ProtocolId(ci"h3")
-    val `h3-25`: ProtocolId = ProtocolId(ci"h3-25")
-    val `h3-29`: ProtocolId = ProtocolId(ci"h3-29")
+    private def apply(value: CIString): ProtocolId = new ProtocolId(value) {}
+
+    val `http/1.1`: ProtocolId = apply(ci"http/1.1")
+    val h2: ProtocolId = apply(ci"h2")
+    val h2c: ProtocolId = apply(ci"h2c")
+    val h3: ProtocolId = apply(ci"h3")
+    val `h3-25`: ProtocolId = apply(ci"h3-25")
+    val `h3-29`: ProtocolId = apply(ci"h3-29")
 
     def fromString(protocol: String): ParseResult[ProtocolId] =
       ParseResult.fromParser(parser, s"Cannot parse protocol $protocol")(protocol)
@@ -113,7 +122,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
     private[`Alt-Svc`] val parser: Parser[ProtocolId] =
       Parser
         .charsWhile(c => c != '=' && c != ',' && c != ';' && c != ' ' && c != '\t' && c != '"')
-        .map(s => ProtocolId(CIString(s)))
+        .map(s => apply(CIString(s)))
   }
 
   sealed trait Value
