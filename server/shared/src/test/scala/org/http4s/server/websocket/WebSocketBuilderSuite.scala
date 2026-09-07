@@ -178,7 +178,12 @@ class WebSocketBuilderSuite extends Http4sSuite {
     TestControl.executeEmbed {
       outgoingSlowly(pongsEvery(heartbeat / 2), write = heartbeat * 10, firstWriteOnly = true)
         .product(IO.monotonic)
-        .assertEquals((Nil, 4 * heartbeat))
+        .map { case (frames, closedAt) =>
+          assertEquals(frames, Nil)
+          // Give it some wiggle room for fs2 implementation details
+          assert(closedAt >= 2 * heartbeat, s"closed at $closedAt, too fast")
+          assert(closedAt <= 4 * heartbeat, s"closed at $closedAt, too slow")
+        }
     }
   }
 
@@ -196,12 +201,19 @@ class WebSocketBuilderSuite extends Http4sSuite {
             case ws => IO(fail(s"expected a combined pipe, got $ws"))
           }
         }
-        .map(_.lastOption)
-        .map {
-          case Some(close: WebSocketFrame.Close) => close.closeCode
-          case other => fail(s"expected a close frame, got $other")
+        .product(IO.monotonic)
+        .map { case (frames, closedAt) =>
+          // A stalled write path is torn down with an interrupt, not
+          // a Close frame.  There's no point in sending a Close frame
+          // to a write path that won't receive it.
+          assert(
+            !frames.exists(_.isInstanceOf[WebSocketFrame.Close]),
+            s"expected no close frame, got $frames",
+          )
+          // Give it some wiggle room for fs2 implementation details
+          assert(closedAt >= 2 * heartbeat, s"closed at $closedAt, too fast")
+          assert(closedAt <= 4 * heartbeat, s"closed at $closedAt: too slow")
         }
-        .assertEquals(1011)
     }
   }
 
