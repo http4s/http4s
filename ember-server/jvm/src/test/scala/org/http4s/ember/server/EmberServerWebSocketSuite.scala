@@ -209,61 +209,63 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("server response and pong frames do not interfere") { case (server, dispatcher) =>
-    val onCancel = IO.raiseError(new IllegalStateException("Fiber canceled"))
+    createClient(
+      URI.create(
+        s"ws://${server.address.getHostName}:${server.address.getPort}/ws-replicated-response"
+      ),
+      dispatcher,
+    ).use { client =>
+      val onCancel = IO.raiseError(new IllegalStateException("Fiber canceled"))
 
-    for {
-      client <- createClient(
-        URI.create(
-          s"ws://${server.address.getHostName}:${server.address.getPort}/ws-replicated-response"
-        ),
-        dispatcher,
-      )
-      _ <- client.connect
-      pings =
-        (0 to 511).toList
-          .traverse_(i => client.ping(s"ping-$i"))
-      takes = client.messages.take.replicateA(512)
-      serverResponse <-
-        IO.racePair(pings, takes)
-          .flatMap {
-            case Left((Outcome.Succeeded(_), takeFiber)) =>
-              takeFiber.joinWith(onCancel)
-            case Left((Outcome.Errored(ex), takeFiber)) =>
-              takeFiber.cancel *> IO.raiseError(ex)
-            case Left((Outcome.Canceled(), takeFiber)) =>
-              takeFiber.cancel *> onCancel
-            case Right((pingFiber, Outcome.Succeeded(res))) =>
-              pingFiber.cancel *> res
-            case Right((pingFiber, Outcome.Errored(ex))) =>
-              pingFiber.cancel *> IO.raiseError(ex)
-            case Right((pingFiber, Outcome.Canceled())) =>
-              pingFiber.cancel *> onCancel
-          }
-          .timeout(10.seconds)
-      code <- client.closeCode.get
-    } yield {
-      assertEquals(serverResponse, List.fill(512)("42"))
-      assertEquals(code, CloseFrame.NORMAL)
+      for {
+        _ <- client.connect
+        pings =
+          (0 to 511).toList
+            .traverse_(i => client.ping(s"ping-$i"))
+        takes = client.messages.take.replicateA(512)
+        serverResponse <-
+          IO.racePair(pings, takes)
+            .flatMap {
+              case Left((Outcome.Succeeded(_), takeFiber)) =>
+                takeFiber.joinWith(onCancel)
+              case Left((Outcome.Errored(ex), takeFiber)) =>
+                takeFiber.cancel *> IO.raiseError(ex)
+              case Left((Outcome.Canceled(), takeFiber)) =>
+                takeFiber.cancel *> onCancel
+              case Right((pingFiber, Outcome.Succeeded(res))) =>
+                pingFiber.cancel *> res
+              case Right((pingFiber, Outcome.Errored(ex))) =>
+                pingFiber.cancel *> IO.raiseError(ex)
+              case Right((pingFiber, Outcome.Canceled())) =>
+                pingFiber.cancel *> onCancel
+            }
+            .timeout(10.seconds)
+        code <- client.closeCode.get
+      } yield {
+        assertEquals(serverResponse, List.fill(512)("42"))
+        assertEquals(code, CloseFrame.NORMAL)
+      }
     }
   }
 
   fixture.test(
     "combined pipe: server initiates close sequence with code=1000 (NORMAL) on stream completion"
   ) { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(
-          s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close-combined"
-        ),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.remoteClosed.get.timeout(10.seconds)
-      msg <- client.messages.take
-      code <- client.closeCode.get
-    } yield {
-      assertEquals(msg, "foo")
-      assertEquals(code, CloseFrame.NORMAL)
+    createClient(
+      URI.create(
+        s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close-combined"
+      ),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- client.remoteClosed.get.timeout(10.seconds)
+        msg <- client.messages.take
+        code <- client.closeCode.get
+      } yield {
+        assertEquals(msg, "foo")
+        assertEquals(code, CloseFrame.NORMAL)
+      }
     }
   }
 
