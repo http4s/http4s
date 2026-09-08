@@ -195,8 +195,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   /** Enables HTTP/2 support.
     *
-    * As of 0.23.35, no longer tested or supported with Unix sockets
-    * on Java 8.
+    * No longer tested or supported with Unix sockets on Java < 17.
     */
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
@@ -254,6 +253,13 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def build: Resource[F, Server] =
     for {
+      _ <-
+        if (unixSocketConfig.isDefined && enableHttp2)
+          Resource.eval(
+            logger.warn("Unix sockets are not tested on HTTP/2.  Proceed at your own risk.")
+          )
+        else
+          Resource.unit[F]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(
