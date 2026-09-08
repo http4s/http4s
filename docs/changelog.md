@@ -3,6 +3,76 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.37 (2026-09-07)
+
+## Security fixes
+
+* [`GHSA-gq9p-f254-h286`](https://github.com/http4s/http4s/security/advisories/GHSA-gq9p-f254-h286):
+  Ember HTTP/2 buffers a frame's declared payload before checking
+  SETTINGS_MAX_FRAME_SIZE
+* [`GHSA-3q2f-8v8m-249p`](https://github.com/http4s/http4s/security/advisories/GHSA-3q2f-8v8m-249p): Ember HTTP/2: CONTINUATION frame with END_HEADERS bypasses maxHeaderBlockSize size check (CVE-2026-69218 patch bypass) 
+* [`GHSA-3jm4-mm2v-96qj`](https://github.com/http4s/http4s/security/advisories/GHSA-3jm4-mm2v-96qj): Ember HTTP/2 never times out a silent peer, so idle connections pin maxConnections slots 
+* [`GHSA-gw3w-mpf8-v247`](https://github.com/http4s/http4s/security/advisories/GHSA-gw3w-mpf8-v247): Ember HTTP/2 SETTINGS Frame Missing maxFrameSize Check Causes Memory Amplification DoS 
+* [`GHSA-h2xv-5x52-7qvw`](https://github.com/http4s/http4s/security/advisories/GHSA-h2xv-5x52-7qvw): http4s WebSocketFrameDefragmenter zero-data fragment bypass causes O(n^2) CPU exhaustion DoS 
+* [`GHSA-3p4m-6fv5-mjq7`](https://github.com/http4s/http4s/security/advisories/GHSA-3p4m-6fv5-mjq7): Ember HTTP/2: Unbounded request body buffering in H2c upgrade middleware leads to DoS
+* [`GHSA-g7xf-9x49-v632`](https://github.com/http4s/http4s/security/advisories/GHSA-g7xf-9x49-v632): Ember HTTP/2 Connection-Level Write Flow Control writeBlock Missing Timeout Causes Permanent Connection Hang DoS
+
+## What Else Changed
+
+### http4s-core
+* bugfix: Use List instead of Seq when pattern matching by @tgodzik in https://github.com/http4s/http4s/pull/7910
+* Harden RFC 9110 compliance for legacy `x-gzip` content coding by @danicheg in https://github.com/http4s/http4s/pull/7920
+* Remove ember-server http/2 h2c support by @reardonj in https://github.com/http4s/http4s/pull/7935
+* Add `application/graphql-response+json` media type by @hugo-vrijswijk in https://github.com/http4s/http4s/pull/7924
+* Add ECT header by @jarmuszz in https://github.com/http4s/http4s/pull/7786
+* Add support for RFC 10008 (The HTTP QUERY Method) by @desiderantes in https://github.com/http4s/http4s/pull/7892
+* Return 401 for malformed digest auth parameters by @stasimus in https://github.com/http4s/http4s/pull/7938
+* Update fs2-core, fs2-io to 3.14.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7940
+### http4s-server
+* Add an optional heartbeat to WebSocketBuilder by @hugo-vrijswijk in https://github.com/http4s/http4s/pull/7926
+* Fix undercounting issues in metrics by @coltfred in https://github.com/http4s/http4s/pull/7866
+### http4s-ember-core
+* Cap SETTINGS entries per frame by @stasimus in https://github.com/http4s/http4s/pull/7936
+### http4s-ember-server
+* Warn on running Ember H2 with Unix sockets by @rossabaker in https://github.com/http4s/http4s/pull/7942
+* Harden RFC 6455 compliance for WebSocket closing handshake by @danicheg in https://github.com/http4s/http4s/pull/7939
+### Documentation
+* Fix command syntax for Mill Build Tool by @carlosrogue in https://github.com/http4s/http4s/pull/7818
+### Behind the scenes
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7894
+* Update scalafmt-core to 3.11.3 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7901
+* Update netty-buffer, netty-codec-http to 4.2.16.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7897
+* Update jnr-unixsocket to 0.39.2 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7895
+* Update http4s-circe, http4s-ember-client to 0.23.36 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7898
+* Update sbt, scripted-plugin to 1.12.14 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7903
+* Update scalafmt-core to 3.11.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7904
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7907
+* Update scalafmt-core to 3.11.5 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7908
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7909
+* Pin doctest to a compatible version by @rossabaker in https://github.com/http4s/http4s/pull/7906
+* Update netty-buffer, netty-codec-http to 4.2.17.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7912
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7911
+* Update sbt, scripted-plugin to 1.12.15 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7913
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7918
+* Update sbt, scripted-plugin to 1.13.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7922
+* Update cats-effect, cats-effect-std, ... to 3.7.1 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7923
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7928
+* Update sbt-scalajs, scalajs-compiler, ... to 1.22.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7872
+* Update scalacheck to 1.20.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7925
+* Update munit to 1.3.6 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7932
+* Update jnr-unixsocket to 0.39.3 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7921
+* Update sbt-http4s-org to 2.0.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7902
+* Do not test Unix sockets on Ember on JDK < 17 by @rossabaker in https://github.com/http4s/http4s/pull/7937
+* In EmberWebSocketSuite, use client as a resource by @rossabaker in https://github.com/http4s/http4s/pull/7943
+
+## New Contributors
+* @tgodzik made their first contribution in https://github.com/http4s/http4s/pull/7910
+* @jarmuszz made their first contribution in https://github.com/http4s/http4s/pull/7786
+* @stasimus made their first contribution in https://github.com/http4s/http4s/pull/7936
+* @desiderantes made their first contribution in https://github.com/http4s/http4s/pull/7892
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.36...v0.23.37
+
 # v1.0.0-M47 (2026-07-06)
 
 This is a security hardening release that comes as a result of two independent scans.  Upgrades are strongly encouraged if you are:
@@ -44,6 +114,7 @@ Merges forward all changes in v0.23.24 and v0.23.35.  See those releases for det
 - @samspills, @morgen-peschke, and @OddKristensen for reviewing the mitigations
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M46...v1.0.0-M47
+
 # v0.23.36 (2026-07-06)
 
 This release fixes a binary compatibility regression in the `websocket` package if http4s-core is newer than http4s-server.  See #7887. 

@@ -63,6 +63,17 @@ private[ember] object H2Frame {
 
   object RawFrame {
 
+    /** The payload length a frame declares, decoded from the first three bytes.
+      *
+      * Available long before the payload it describes. RFC 9113 4.2 allows an
+      * oversized frame to be rejected without reading that payload, so a caller
+      * can consult this instead of buffering `9 + length` bytes to find out.
+      */
+    def peekDeclaredLength(bv: ByteVector): Option[Int] =
+      if (bv.length >= 3)
+        Some((bv(2) & 0xff) | ((bv(1) & 0xff) << 8) | ((bv(0) & 0xff) << 16))
+      else None
+
     def fromByteVector(bv: ByteVector): Option[(RawFrame, ByteVector)] =
       if (bv.length >= 9) {
         val length = (bv(2) & 0xff) | ((bv(1) & 0xff) << 8) | ((bv(0) & 0xff) << 16)
@@ -541,8 +552,17 @@ private[ember] object H2Frame {
         else if (ack) Settings(raw.identifier, ack, List.empty).asRight
         else fromPayload(raw.payload, raw.identifier, ack)
       } else Either.left(H2Error.InternalError)
+
+    /** The entries a peer may pack into a single SETTINGS frame.
+      *
+      * Six settings are defined by the spec, so 32 leaves ample room for
+      * extensions while keeping a duplicate-stuffed frame cheap to reject.
+      */
+    private[this] val MaxEntries: Long = 32L
+
     def fromPayload(payload: ByteVector, identifier: Int, ack: Boolean): Either[H2Error, Settings] =
       if (payload.size % 6 != 0) H2Error.FrameSizeError.asLeft
+      else if (payload.size / 6 > MaxEntries) H2Error.EnhanceYourCalm.asLeft
       else {
         val settings = for {
           i <- 0 to (payload.size.toInt - 5) by 6
