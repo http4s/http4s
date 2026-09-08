@@ -24,6 +24,8 @@ import cats.syntax.all._
 import fs2._
 import fs2.io.net._
 import org.http4s._
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Util
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -56,20 +58,26 @@ private[ember] object H2Server {
 
   // Call on a new connection for http2-prior-knowledge
   // If left 1.1 if right 2
-  def checkConnectionPreface[F[_]: MonadThrow](socket: Socket[F]): F[Either[ByteVector, Unit]] =
-    socket.readN(Preface.clientBV.size.toInt).flatMap { s =>
-      val received = s.toByteVector
-      if (received == Preface.clientBV)
-        Applicative[F].pure(Either.unit)
-      else
-        Applicative[F].pure(Either.left(received))
-    }
+  def checkConnectionPreface[F[_]: Temporal](
+      socket: Socket[F],
+      timeout: Duration,
+  ): F[Either[ByteVector, Unit]] =
+    Util
+      .timeoutMaybe(socket.readN(Preface.clientBV.size.toInt), timeout)
+      .adaptError { case _: TimeoutException => EmberException.ReadTimeout(timeout) }
+      .flatMap { s =>
+        val received = s.toByteVector
+        if (received == Preface.clientBV)
+          Applicative[F].pure(Either.unit)
+        else
+          Applicative[F].pure(Either.left(received))
+      }
 
   // For Anything that is guaranteed to only be h2 this method will fail
   // unless the connection preface is there. For example after ALPN negotiation
   // on an SSL connection.
-  def requireConnectionPreface[F[_]: MonadThrow](socket: Socket[F]): F[Unit] =
-    checkConnectionPreface(socket).flatMap {
+  def requireConnectionPreface[F[_]: Temporal](socket: Socket[F], timeout: Duration): F[Unit] =
+    checkConnectionPreface(socket, timeout).flatMap {
       case Left(_) => new IllegalArgumentException("Invalid Connection Preface").raiseError
       case Right(unit) => unit.pure[F]
     }

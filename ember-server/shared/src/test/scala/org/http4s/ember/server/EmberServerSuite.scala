@@ -176,6 +176,28 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
+  test("HTTP/2 response slower than the idle timeout is not reaped") {
+    val slow: HttpApp[IO] =
+      HttpApp[IO](_ => IO.sleep(2.seconds).as(Response[IO](Status.Ok).withEntity("slow")))
+
+    val server = EmberServerBuilder
+      .default[IO]
+      .withPort(port"0")
+      .withHttp2
+      .withIdleTimeout(500.millis)
+      .withRequestHeaderReceiveTimeout(500.millis)
+      .withHttpApp(slow)
+      .build
+
+    val client = EmberClientBuilder.default[IO].withHttp2.build
+
+    (server, client).tupled.use { case (server, client) =>
+      val req = Request[IO](Method.GET, uri = url(server.addressIp4s))
+        .withAttribute(Http2PriorKnowledge, ())
+      client.expect[String](req).assertEquals("slow")
+    }
+  }
+
   test("#7216 - client can replace a terminated connection with max total of 1") {
     EmberClientBuilder.default[IO].withMaxTotal(1).build.use { client =>
       def runReq(server: Server) = {

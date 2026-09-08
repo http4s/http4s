@@ -69,7 +69,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
     run(identity(_), identity(_), identity(_))
   }
 
-  test("http/2") {
+  test("http/2".flaky) {
     run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
   }
 

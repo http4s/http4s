@@ -40,6 +40,7 @@ import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import scala.concurrent.duration._
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -59,6 +60,11 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           wsBuilder.build(sendReceive)
         case GET -> Root / "ws-close" =>
           val send = Stream(WebSocketFrame.Text("foo"))
+          wsBuilder.build(send, _.void)
+        case GET -> Root / "ws-close-combined" =>
+          wsBuilder.build(_ => Stream(WebSocketFrame.Text("foo")))
+        case GET -> Root / "ws-replicated-response" =>
+          val send = Stream(WebSocketFrame.Text("42")).repeatN(512)
           wsBuilder.build(send, _.void)
         case GET -> Root / "ws-filter-false" =>
           F.deferred[Unit].flatMap { deferred =>
@@ -106,8 +112,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  def createClient(target: URI, dispatcher: Dispatcher[IO]): IO[Client] =
-    for {
+  def createClient(target: URI, dispatcher: Dispatcher[IO]): Resource[IO, Client] = {
+    val acquire = for {
       waitOpen <- Deferred[IO, Option[Throwable]]
       waitClose <- Deferred[IO, Option[Throwable]]
       queue <- Queue.unbounded[IO, String]
@@ -144,83 +150,152 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         }
       }
     } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
+    Resource.make(acquire)(client => IO(client.client.closeBlocking()))
+  }
 
   fixture.test("open and close connection to server") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.close
-    } yield ()
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- client.close
+      } yield ()
+    }
   }
 
   fixture.test("send and receive a message") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.send("foo")
-      msg <- client.messages.take
-      _ <- client.close
-    } yield assertEquals(msg, "foo")
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- client.send("foo")
+        msg <- client.messages.take
+        _ <- client.close
+      } yield assertEquals(msg, "foo")
+    }
   }
 
   fixture.test("respond to pings") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.ping("hello")
-      data <- client.pongs.take
-      _ <- client.close
-    } yield assertEquals(data, "hello")
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- client.ping("hello")
+        data <- client.pongs.take
+        _ <- client.close
+      } yield assertEquals(data, "hello")
+    }
   }
 
   fixture.test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
     case (server, dispatcher) =>
+      createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
+        dispatcher,
+      ).use { client =>
+        for {
+          _ <- client.connect
+          _ <- client.messages.take
+          _ <- client.remoteClosed.get
+          code <- client.closeCode.get
+        } yield assertEquals(code, CloseFrame.NORMAL)
+      }
+  }
+
+  fixture.test("server response and pong frames do not interfere") { case (server, dispatcher) =>
+    createClient(
+      URI.create(
+        s"ws://${server.address.getHostName}:${server.address.getPort}/ws-replicated-response"
+      ),
+      dispatcher,
+    ).use { client =>
+      val onCancel = IO.raiseError(new IllegalStateException("Fiber canceled"))
+
       for {
-        client <- createClient(
-          URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
-          dispatcher,
-        )
         _ <- client.connect
-        _ <- client.messages.take
-        _ <- client.remoteClosed.get
+        pings =
+          (0 to 511).toList
+            .traverse_(i => client.ping(s"ping-$i"))
+        takes = client.messages.take.replicateA(512)
+        serverResponse <-
+          IO.racePair(pings, takes)
+            .flatMap {
+              case Left((Outcome.Succeeded(_), takeFiber)) =>
+                takeFiber.joinWith(onCancel)
+              case Left((Outcome.Errored(ex), takeFiber)) =>
+                takeFiber.cancel *> IO.raiseError(ex)
+              case Left((Outcome.Canceled(), takeFiber)) =>
+                takeFiber.cancel *> onCancel
+              case Right((pingFiber, Outcome.Succeeded(res))) =>
+                pingFiber.cancel *> res
+              case Right((pingFiber, Outcome.Errored(ex))) =>
+                pingFiber.cancel *> IO.raiseError(ex)
+              case Right((pingFiber, Outcome.Canceled())) =>
+                pingFiber.cancel *> onCancel
+            }
+            .timeout(10.seconds)
         code <- client.closeCode.get
-      } yield assertEquals(code, CloseFrame.NORMAL)
+      } yield {
+        assertEquals(serverResponse, List.fill(512)("42"))
+        assertEquals(code, CloseFrame.NORMAL)
+      }
+    }
+  }
+
+  fixture.test(
+    "combined pipe: server initiates close sequence with code=1000 (NORMAL) on stream completion"
+  ) { case (server, dispatcher) =>
+    createClient(
+      URI.create(
+        s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close-combined"
+      ),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- client.remoteClosed.get.timeout(10.seconds)
+        msg <- client.messages.take
+        code <- client.closeCode.get
+      } yield {
+        assertEquals(msg, "foo")
+        assertEquals(code, CloseFrame.NORMAL)
+      }
+    }
   }
 
   fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.ping("pingu")
-      _ <- client.remoteClosed.get
-    } yield ()
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- client.ping("pingu")
+        _ <- client.remoteClosed.get
+      } yield ()
+    }
   }
 
   fixture.test("send and receive multiple messages") { case (server, dispatcher) =>
     val n = 10
     val messages = List.tabulate(n)(i => s"${i + 1}")
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- messages.traverse_(client.send)
-      messagesReceived <- client.messages.take.replicateA(n)
-      _ <- client.close
-    } yield assertEquals(messagesReceived, messages)
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        _ <- messages.traverse_(client.send)
+        messagesReceived <- client.messages.take.replicateA(n)
+        _ <- client.close
+      } yield assertEquals(messagesReceived, messages)
+    }
   }
 
 }

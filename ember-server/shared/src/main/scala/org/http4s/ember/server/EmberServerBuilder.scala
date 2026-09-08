@@ -250,6 +250,13 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def build: Resource[F, Server] =
     for {
+      _ <-
+        if (unixSocketConfig.isDefined && enableHttp2)
+          Resource.eval(
+            logger.warn("Unix sockets are not tested on HTTP/2.  Proceed at your own risk.")
+          )
+        else
+          Resource.unit[F]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(

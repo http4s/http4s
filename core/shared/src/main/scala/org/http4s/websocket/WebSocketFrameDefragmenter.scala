@@ -25,6 +25,7 @@ import fs2.Stream
 import scodec.bits.ByteVector
 
 private[http4s] object WebSocketFrameDefragmenter {
+  val DefaultMaxFragmentCount: Int = 1024
 
   /** This function provides a pipe that defrags a sequence of fragmented WebSocket Frames,
     * according to RFC 6455.
@@ -85,78 +86,80 @@ private[http4s] object WebSocketFrameDefragmenter {
     * @return A [[Pipe]] that defrags the fragmented frames
     */
   def defragFragment[F[_]](
-      maxMessageSize: Long
+      maxMessageSize: Long,
+      maxFragmentCount: Int,
   ): Pipe[F, WebSocketFrame, WebSocketFrame] =
     stream => {
-      def defrag(
-          frames: Chunk[WebSocketFrame]
-      ): Either[Throwable, (Chunk[WebSocketFrame], Chunk[WebSocketFrame])] = {
-        case class State(
-            fragments: Chunk[WebSocketFrame],
-            bytes: Long,
-            result: Chunk[WebSocketFrame],
-        )
-        val initialState = State(Chunk.empty[WebSocketFrame], 0L, Chunk.empty[WebSocketFrame])
-        def checkLimit(bytes: Long): Unit =
-          // Nasty throw, but always caught in the Either that follows
-          if (bytes > maxMessageSize) throw new MessageTooLong(maxMessageSize)
+      final case class State(
+          fragments: Chunk[WebSocketFrame],
+          bytes: Long,
+          count: Int,
+      )
 
-        Either
-          .catchNonFatal(frames.foldLeft(initialState) {
-            case (
-                  State(fragments, bytes, result),
-                  curFrame @ WebSocketFrame.Continuation(_, true),
-                ) =>
-              // Current frame is the last one of a sequence of fragments.
-              checkLimit(bytes + curFrame.data.size)
-              // Defrag all data accumulated in `fragments` into a single frame
-              // and push it to `result` chunks.
-              val fragmentSum = fragments ++ Chunk.singleton(curFrame)
-              val defraggedData =
-                fragmentSum.foldLeft(ByteVector.empty)((sum, f) => sum ++ f.data)
-              val defraggedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
-                firstFrame match {
-                  case WebSocketFrame.Text(_, _) =>
-                    result ++ Chunk.singleton(WebSocketFrame.Text(defraggedData, last = true))
-                  case WebSocketFrame.Binary(_, _) =>
-                    result ++ Chunk.singleton(WebSocketFrame.Binary(defraggedData, last = true))
-                  case _: WebSocketFrame =>
-                    // Here is an illegal path, since the first frame of a fragmented frame
-                    // must be Text or Binary.
-                    // We just push `fragments` and `curFrame` to `result` chunks without any defragmentation.
-                    result ++ fragments ++ Chunk.singleton(curFrame)
-                }
-              }
-              State(Chunk.empty, 0L, defraggedFrame)
-            case (State(fragments, _, result), curFrame) if curFrame.last && fragments.isEmpty =>
-              // Current frame is a single, not fragmented frame.
-              // Just pushing `curFrame` into the `result` chunks.
-              checkLimit(curFrame.data.size)
-              State(Chunk.empty, 0L, result ++ Chunk.singleton(curFrame))
-            case (State(fragments, bytes, result), curFrame) if !curFrame.last =>
-              // Current frame is in the middle of a sequence of fragments.
-              // Just pushing `curFrame` into the `fragments` chunks.
-              val bytes_ = bytes + curFrame.data.size
-              checkLimit(bytes_)
-              State(fragments ++ Chunk.singleton(curFrame), bytes_, result)
-            case (State(fragments, bytes, result), curFrame) =>
-              // Here is an illegal path, e.g. the fragmented frame is not terminated
-              // by a continuation frame with fin bit true.
-              // We just push `fragments` and `curFrame` to `result` chunks without any defragmentation.
-              val bytes_ = bytes + curFrame.data.size
-              checkLimit(bytes_)
-              State(Chunk.empty, 0L, result ++ fragments ++ Chunk.singleton(curFrame))
-          })
-          .map(state => (state.fragments, state.result))
+      def checkLimit(bytes: Long, count: Int): Unit = {
+        // Nasty throws, but always caught in the Either that follows
+        if (bytes > maxMessageSize) throw new MessageTooLong(maxMessageSize)
+        if (count > maxFragmentCount) throw new TooManyFragments(maxFragmentCount)
       }
 
-      def go(
-          s: Stream[F, WebSocketFrame],
-          remaining: Chunk[WebSocketFrame],
-      ): Pull[F, WebSocketFrame, Unit] =
+      def defrag(
+          chunk: Chunk[WebSocketFrame],
+          init: State,
+      ): Either[Throwable, (State, Chunk[WebSocketFrame])] =
+        Either
+          .catchNonFatal {
+            val (finalState, result) =
+              chunk.foldLeft((init, Chunk.empty[WebSocketFrame])) {
+                case (
+                      (State(fragments, bytes, count), acc),
+                      curFrame @ WebSocketFrame.Continuation(_, true),
+                    ) =>
+                  checkLimit(bytes + curFrame.data.size, count + 1)
+                  val fragmentSum = fragments ++ Chunk.singleton(curFrame)
+                  val defraggedData = fragmentSum.foldLeft(ByteVector.empty)(_ ++ _.data)
+                  val out = fragmentSum.head.fold(Chunk[WebSocketFrame](curFrame)) {
+                    case WebSocketFrame.Text(_, _) =>
+                      Chunk.singleton(WebSocketFrame.Text(defraggedData, last = true))
+                    case WebSocketFrame.Binary(_, _) =>
+                      Chunk.singleton(WebSocketFrame.Binary(defraggedData, last = true))
+                    case _: WebSocketFrame =>
+                      // Here is an illegal path, since the first
+                      // frame of a fragmented frame must be Text or
+                      // Binary.  We just pass through undefragmented.
+                      fragments ++ Chunk.singleton(curFrame)
+                  }
+                  (State(Chunk.empty, 0L, 0), acc ++ out)
+
+                case ((State(fragments, _, _), acc), curFrame)
+                    if curFrame.last && fragments.isEmpty =>
+                  // Current frame is a single, unfragmented frame.
+                  // Emit as is.
+                  checkLimit(curFrame.data.size, 1)
+                  (State(Chunk.empty, 0L, 0), acc ++ Chunk.singleton(curFrame))
+
+                case ((State(fragments, bytes, count), acc), curFrame) if !curFrame.last =>
+                  // Current frame is in the middle of a sequence of
+                  // fragments.  Buffer it.
+                  val bytes_ = bytes + curFrame.data.size
+                  val count_ = count + 1
+                  checkLimit(bytes_, count_)
+                  (State(fragments ++ Chunk.singleton(curFrame), bytes_, count_), acc)
+
+                case ((State(fragments, bytes, count), acc), curFrame) =>
+                  // Here is an illegal path, e.g. the fragmented
+                  // frame is not terminated by a continuation frame
+                  // with fin bit true.  Pass through undefragmented.
+                  val bytes_ = bytes + curFrame.data.size
+                  checkLimit(bytes_, count + 1)
+                  (State(Chunk.empty, 0L, 0), acc ++ fragments ++ Chunk.singleton(curFrame))
+              }
+            (finalState, result)
+          }
+
+      def go(s: Stream[F, WebSocketFrame], acc: State): Pull[F, WebSocketFrame, Unit] =
         s.pull.uncons.flatMap {
           case Some((chunk, next)) =>
-            defrag(remaining ++ chunk) match {
+            defrag(chunk, acc) match {
               case Left(e) =>
                 ApplicativeThrow[Pull[F, WebSocketFrame, *]].raiseError[Unit](e)
               case Right((remaining, defragged)) =>
@@ -169,7 +172,7 @@ private[http4s] object WebSocketFrameDefragmenter {
             Pull.done
         }
 
-      go(stream, Chunk.empty[WebSocketFrame]).stream
+      go(stream, State(Chunk.empty[WebSocketFrame], 0L, 0)).stream
     }
 
   @deprecated("Preserved for binary compatibility", "0.23.36")
@@ -177,9 +180,19 @@ private[http4s] object WebSocketFrameDefragmenter {
       : Pipe[F, WebSocketFrame, WebSocketFrame] =
     defragFragment(DefaultMaxMessageSize.toLong)
 
+  @deprecated("Preserved for binary compatibility", "0.23.37")
+  private[WebSocketFrameDefragmenter] def defragFragment[F[_]](
+      maxMessageSize: Long
+  ): Pipe[F, WebSocketFrame, WebSocketFrame] =
+    defragFragment(maxMessageSize, DefaultMaxFragmentCount)
+
   /** Raised when a defragmented WebSocket message would exceed the configured
     * maximum size.
     */
   final class MessageTooLong(val maxBytes: Long)
       extends Exception(s"WebSocket message exceeds the maximum of $maxBytes bytes")
+
+  final class TooManyFragments(val maxFragments: Int)
+      extends Exception(s"WebSocket message exceeds the maximum of $maxFragments fragments")
+
 }
