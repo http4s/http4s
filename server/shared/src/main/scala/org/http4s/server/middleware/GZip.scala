@@ -25,13 +25,15 @@ import fs2.compression._
 import org.http4s.headers._
 
 object GZip extends GZipPlatform {
+  private final val DefaultBufferSize = 32 * 1024
+
   private[this] val logger = Platform.loggerFactory.getLogger
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
   def apply[F[_]: Functor, G[_]: Compression](
       http: Http[F, G],
-      bufferSize: Int = 32 * 1024,
+      bufferSize: Int = DefaultBufferSize,
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
   ): Http[F, G] =

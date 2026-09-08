@@ -23,6 +23,8 @@ import fs2._
 import fs2.text.utf8
 import munit._
 import munit.catseffect._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.noop.NoOpFactory
 
 /** Common stack for http4s' munit based tests
   */
@@ -58,4 +60,5 @@ trait Http4sSuite
       .last
       .map(_.getOrElse(""))
 
+  implicit val loggerFactory: LoggerFactory[IO] = NoOpFactory[IO]
 }
