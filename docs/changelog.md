@@ -3,6 +3,12 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M48 (2026-09-07)
+
+This is a forward merge of all changes since v0.23.37, including its security patches.
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M47...v1.0.0-M48
+
 # v0.23.37 (2026-09-07)
 
 ## Security fixes
