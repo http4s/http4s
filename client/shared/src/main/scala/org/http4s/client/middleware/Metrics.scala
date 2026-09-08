@@ -18,17 +18,15 @@ package org.http4s.client.middleware
 
 import cats.effect.Clock
 import cats.effect.Concurrent
-import cats.effect.Ref
 import cats.effect.Resource
 import cats.syntax.all._
 import org.http4s.Request
 import org.http4s.Response
-import org.http4s.Status
+import org.http4s.ResponsePrelude
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.Error
-import org.http4s.metrics.TerminationType.Timeout
+import org.http4s.metrics.TerminationType
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
 
@@ -103,80 +101,48 @@ object Metrics {
       ops: CustomMetricsOps[F, SL],
       customLabelValues: SL,
       classifierF: Request[F] => F[Option[String]],
-  )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
+  )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] = {
+    val rp = req.requestPrelude
+
     for {
-      statusRef <- Resource.eval(C.ref[Option[Status]](None))
       start <- Resource.eval(F.monotonic)
-      resp <- executeRequestAndRecordMetrics(
-        client,
-        ops,
-        customLabelValues,
-        classifierF,
-        req,
-        statusRef,
-        start.toNanos,
-      )
-    } yield resp
-
-  private def executeRequestAndRecordMetrics[F[_], SL <: SizedSeq[String]](
-      client: Client[F],
-      ops: CustomMetricsOps[F, SL],
-      customLabelValues: SL,
-      classifierF: Request[F] => F[Option[String]],
-      req: Request[F],
-      statusRef: Ref[F, Option[Status]],
-      start: Long,
-  )(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
-    (for {
+      responseRef <- Resource.eval(C.ref(Option.empty[ResponsePrelude]))
       classifier <- Resource.eval(classifierF(req))
-      _ <- Resource.make(ops.increaseActiveRequests(classifier, customLabelValues))(_ =>
-        ops.decreaseActiveRequests(classifier, customLabelValues)
-      )
-      _ <- Resource.onFinalize(
-        F.monotonic
-          .flatMap(now =>
-            statusRef.get.flatMap(oStatus =>
-              oStatus.traverse_(status =>
-                ops.recordTotalTime(
-                  req.method,
-                  status,
-                  now.toNanos - start,
-                  classifier,
-                  customLabelValues,
-                )
-              )
-            )
-          )
-      )
-      resp <- client.run(req)
-      _ <- Resource.eval(statusRef.set(Some(resp.status)))
-      end <- Resource.eval(F.monotonic)
-      _ <- Resource.eval(
-        ops.recordHeadersTime(req.method, end.toNanos - start, classifier, customLabelValues)
-      )
-    } yield resp).handleErrorWith { (e: Throwable) =>
-      Resource.eval(
-        classifierF(req).flatMap(registerError(start, ops, customLabelValues, _)(e)) *>
-          C.raiseError[Response[F]](e)
-      )
-    }
 
-  private def registerError[F[_], SL <: SizedSeq[String]](
-      start: Long,
-      ops: CustomMetricsOps[F, SL],
-      customLabelValues: SL,
-      classifier: Option[String],
-  )(e: Throwable)(implicit F: Clock[F], C: Concurrent[F]): F[Unit] =
-    F.monotonic
-      .flatMap { now =>
-        if (e.isInstanceOf[TimeoutException])
-          ops.recordAbnormalTermination(now.toNanos - start, Timeout, classifier, customLabelValues)
-        else
-          ops.recordAbnormalTermination(
-            now.toNanos - start,
-            Error(e),
-            classifier,
-            customLabelValues,
-          )
+      _ <- Resource.make(ops.increaseActiveRequests(rp, classifier, customLabelValues))(_ =>
+        ops.decreaseActiveRequests(rp, classifier, customLabelValues)
+      )
+
+      _ <- Resource.onFinalizeCase { exitCase =>
+        val tpe = exitCase match {
+          case Resource.ExitCase.Succeeded =>
+            None
+
+          case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
+            Some(TerminationType.Timeout)
+
+          case Resource.ExitCase.Errored(e) =>
+            Some(TerminationType.Error(e))
+
+          case Resource.ExitCase.Canceled =>
+            Some(TerminationType.Canceled)
+        }
+
+        (responseRef.get, F.monotonic).flatMapN { case (response, now) =>
+          val status = response.map(_.status)
+          ops.recordTotalTime(rp, status, tpe, now - start, classifier, customLabelValues) *>
+            ops.recordRequestBodySize(rp, status, tpe, classifier, customLabelValues) *>
+            response.traverse_(
+              ops.recordResponseBodySize(rp, _, tpe, classifier, customLabelValues)
+            )
+        }
       }
+
+      resp <- client.run(req)
+      _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
+      now <- Resource.monotonic
+      _ <- Resource.eval(ops.recordHeadersTime(rp, now - start, classifier, customLabelValues))
+    } yield resp
+  }
+
 }

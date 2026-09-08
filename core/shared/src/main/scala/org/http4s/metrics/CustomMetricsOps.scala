@@ -17,10 +17,13 @@
 package org.http4s.metrics
 
 import cats.~>
-import org.http4s.Method
+import org.http4s.RequestPrelude
+import org.http4s.ResponsePrelude
 import org.http4s.Status
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
@@ -35,79 +38,118 @@ trait CustomMetricsOps[F[_], SL <: SizedSeq[String]] extends MetricsOps[F] {
     * @param classifier the classifier to apply
     * @param customLabelValues values for custom labels
     */
-  def increaseActiveRequests(classifier: Option[String], customLabelValues: SL): F[Unit]
-  override def increaseActiveRequests(classifier: Option[String]): F[Unit] =
-    increaseActiveRequests(classifier, definingCustomLabels.values)
+  def increaseActiveRequests(
+      request: RequestPrelude,
+      classifier: Option[String],
+      customLabelValues: SL,
+  ): F[Unit]
+  override def increaseActiveRequests(
+      request: RequestPrelude,
+      classifier: Option[String],
+  ): F[Unit] =
+    increaseActiveRequests(request, classifier, definingCustomLabels.values)
 
   /** Decreases the count of active requests
     *
     * @param classifier the classifier to apply
     * @param customLabelValues values for custom labels
     */
-  def decreaseActiveRequests(classifier: Option[String], customLabelValues: SL): F[Unit]
-  override def decreaseActiveRequests(classifier: Option[String]): F[Unit] =
-    decreaseActiveRequests(classifier, definingCustomLabels.values)
+  def decreaseActiveRequests(
+      request: RequestPrelude,
+      classifier: Option[String],
+      customLabelValues: SL,
+  ): F[Unit]
+  override def decreaseActiveRequests(
+      request: RequestPrelude,
+      classifier: Option[String],
+  ): F[Unit] =
+    decreaseActiveRequests(request, classifier, definingCustomLabels.values)
 
   /** Records the time to receive the response headers
     *
-    * @param method the http method of the request
+    * @param request the http request
     * @param elapsed the time to record
     * @param classifier the classifier to apply
     * @param customLabelValues values for custom labels
     */
   def recordHeadersTime(
-      method: Method,
-      elapsed: Long,
+      request: RequestPrelude,
+      elapsed: FiniteDuration,
       classifier: Option[String],
       customLabelValues: SL,
   ): F[Unit]
   override def recordHeadersTime(
-      method: Method,
-      elapsed: Long,
+      request: RequestPrelude,
+      elapsed: FiniteDuration,
       classifier: Option[String],
-  ): F[Unit] = recordHeadersTime(method, elapsed, classifier, definingCustomLabels.values)
+  ): F[Unit] = recordHeadersTime(request, elapsed, classifier, definingCustomLabels.values)
 
   /** Records the time to fully consume the response, including the body
     *
-    * @param method the http method of the request
+    * @param request the http request
     * @param status the http status code of the response
     * @param elapsed the time to record
     * @param classifier the classifier to apply
     * @param customLabelValues values for custom labels
     */
   def recordTotalTime(
-      method: Method,
-      status: Status,
-      elapsed: Long,
+      request: RequestPrelude,
+      status: Option[Status],
+      terminationType: Option[TerminationType],
+      elapsed: FiniteDuration,
       classifier: Option[String],
       customLabelValues: SL,
   ): F[Unit]
   override def recordTotalTime(
-      method: Method,
-      status: Status,
-      elapsed: Long,
+      request: RequestPrelude,
+      status: Option[Status],
+      terminationType: Option[TerminationType],
+      elapsed: FiniteDuration,
       classifier: Option[String],
-  ): F[Unit] = recordTotalTime(method, status, elapsed, classifier, definingCustomLabels.values)
+  ): F[Unit] = recordTotalTime(
+    request,
+    status,
+    terminationType,
+    elapsed,
+    classifier,
+    definingCustomLabels.values,
+  )
 
-  /** Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
-    *
-    * @param elapsed the time to record
-    * @param terminationType the type of termination
-    * @param classifier the classifier to apply
-    * @param customLabelValues values for custom labels
-    */
-  def recordAbnormalTermination(
-      elapsed: Long,
-      terminationType: TerminationType,
+  def recordRequestBodySize(
+      request: RequestPrelude,
+      status: Option[Status],
+      terminationType: Option[TerminationType],
       classifier: Option[String],
       customLabelValues: SL,
   ): F[Unit]
-  override def recordAbnormalTermination(
-      elapsed: Long,
-      terminationType: TerminationType,
+  override def recordRequestBodySize(
+      request: RequestPrelude,
+      status: Option[Status],
+      terminationType: Option[TerminationType],
       classifier: Option[String],
   ): F[Unit] =
-    recordAbnormalTermination(elapsed, terminationType, classifier, definingCustomLabels.values)
+    recordRequestBodySize(request, status, terminationType, classifier, definingCustomLabels.values)
+
+  def recordResponseBodySize(
+      request: RequestPrelude,
+      response: ResponsePrelude,
+      terminationType: Option[TerminationType],
+      classifier: Option[String],
+      customLabelValues: SL,
+  ): F[Unit]
+  override def recordResponseBodySize(
+      request: RequestPrelude,
+      response: ResponsePrelude,
+      terminationType: Option[TerminationType],
+      classifier: Option[String],
+  ): F[Unit] =
+    recordResponseBodySize(
+      request,
+      response,
+      terminationType,
+      classifier,
+      definingCustomLabels.values,
+    )
 
   /** Transform the effect of MetricOps using the supplied natural transformation
     *
@@ -119,40 +161,75 @@ trait CustomMetricsOps[F[_], SL <: SizedSeq[String]] extends MetricsOps[F] {
     val ops: CustomMetricsOps[F, SL] = this
     new CustomMetricsOps[G, SL] {
       override def definingCustomLabels: CustomLabels[SL] = ops.definingCustomLabels
+
       override def increaseActiveRequests(
+          request: RequestPrelude,
           classifier: Option[String],
           customLabelValues: SL,
       ): G[Unit] =
-        fk(ops.increaseActiveRequests(classifier, customLabelValues))
+        fk(ops.increaseActiveRequests(request, classifier, customLabelValues))
 
       override def decreaseActiveRequests(
+          request: RequestPrelude,
           classifier: Option[String],
           customLabelValues: SL,
       ): G[Unit] =
-        fk(ops.decreaseActiveRequests(classifier, customLabelValues))
+        fk(ops.decreaseActiveRequests(request, classifier, customLabelValues))
 
       override def recordHeadersTime(
-          method: Method,
-          elapsed: Long,
-          classifier: Option[String],
-          customLabelValues: SL,
-      ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier, customLabelValues))
-
-      override def recordTotalTime(
-          method: Method,
-          status: Status,
-          elapsed: Long,
-          classifier: Option[String],
-          customLabelValues: SL,
-      ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier, customLabelValues))
-
-      override def recordAbnormalTermination(
-          elapsed: Long,
-          terminationType: TerminationType,
+          request: RequestPrelude,
+          elapsed: FiniteDuration,
           classifier: Option[String],
           customLabelValues: SL,
       ): G[Unit] =
-        fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier, customLabelValues))
+        fk(ops.recordHeadersTime(request, elapsed, classifier, customLabelValues))
+
+      override def recordTotalTime(
+          request: RequestPrelude,
+          status: Option[Status],
+          terminationType: Option[TerminationType],
+          elapsed: FiniteDuration,
+          classifier: Option[String],
+          customLabelValues: SL,
+      ): G[Unit] =
+        fk(
+          ops.recordTotalTime(
+            request,
+            status,
+            terminationType,
+            elapsed,
+            classifier,
+            customLabelValues,
+          )
+        )
+
+      override def recordRequestBodySize(
+          request: RequestPrelude,
+          status: Option[Status],
+          terminationType: Option[TerminationType],
+          classifier: Option[String],
+          customLabelValues: SL,
+      ): G[Unit] =
+        fk(
+          ops.recordRequestBodySize(request, status, terminationType, classifier, customLabelValues)
+        )
+
+      override def recordResponseBodySize(
+          request: RequestPrelude,
+          response: ResponsePrelude,
+          terminationType: Option[TerminationType],
+          classifier: Option[String],
+          customLabelValues: SL,
+      ): G[Unit] =
+        fk(
+          ops.recordResponseBodySize(
+            request,
+            response,
+            terminationType,
+            classifier,
+            customLabelValues,
+          )
+        )
 
     }
   }
@@ -167,36 +244,54 @@ object CustomMetricsOps {
       override def definingCustomLabels: EmptyCustomLabels = emptyCustomLabels
 
       override def increaseActiveRequests(
+          request: RequestPrelude,
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
-      ): F[Unit] = ops.increaseActiveRequests(classifier)
+      ): F[Unit] =
+        ops.increaseActiveRequests(request, classifier)
 
       override def decreaseActiveRequests(
+          request: RequestPrelude,
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
-      ): F[Unit] = ops.decreaseActiveRequests(classifier)
+      ): F[Unit] =
+        ops.decreaseActiveRequests(request, classifier)
 
       override def recordHeadersTime(
-          method: Method,
-          elapsed: Long,
+          request: RequestPrelude,
+          elapsed: FiniteDuration,
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
-      ): F[Unit] = ops.recordHeadersTime(method, elapsed, classifier)
+      ): F[Unit] =
+        ops.recordHeadersTime(request, elapsed, classifier)
 
       override def recordTotalTime(
-          method: Method,
-          status: Status,
-          elapsed: Long,
+          request: RequestPrelude,
+          status: Option[Status],
+          terminationType: Option[TerminationType],
+          elapsed: FiniteDuration,
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
-      ): F[Unit] = ops.recordTotalTime(method, status, elapsed, classifier)
+      ): F[Unit] =
+        ops.recordTotalTime(request, status, terminationType, elapsed, classifier)
 
-      override def recordAbnormalTermination(
-          elapsed: Long,
-          terminationType: TerminationType,
+      override def recordRequestBodySize(
+          request: RequestPrelude,
+          status: Option[Status],
+          terminationType: Option[TerminationType],
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
-      ): F[Unit] = ops.recordAbnormalTermination(elapsed, terminationType, classifier)
+      ): F[Unit] =
+        ops.recordRequestBodySize(request, status, terminationType, classifier)
+
+      override def recordResponseBodySize(
+          request: RequestPrelude,
+          response: ResponsePrelude,
+          terminationType: Option[TerminationType],
+          classifier: Option[String],
+          customLabelValues: SizedSeq0[String],
+      ): F[Unit] =
+        ops.recordResponseBodySize(request, response, terminationType, classifier)
     }
   }
 }
