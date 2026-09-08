@@ -65,7 +65,7 @@ class PerMessageDeflateBench {
 
     val random = new Random(42)
     messages = Array.fill(Messages)(json(random, size))
-    val encoder = PerMessageDeflate(params, Int.MaxValue)
+    val encoder = PerMessageDeflate(params, Int.MaxValue).get
     try
       compressed = messages.map { m =>
         encoder.encode(WebSocketFrame.Text(ByteVector.view(m), true))._1.data.toArray
@@ -83,7 +83,7 @@ class PerMessageDeflateBench {
   @Benchmark
   @OperationsPerInvocation(Messages)
   def emberEncode(bh: Blackhole): Unit = {
-    val deflate = PerMessageDeflate(params, Int.MaxValue)
+    val deflate = PerMessageDeflate(params, Int.MaxValue).get
     try {
       var i = 0
       while (i < Messages) {
@@ -115,7 +115,7 @@ class PerMessageDeflateBench {
   @Benchmark
   @OperationsPerInvocation(Messages)
   def emberDecode(bh: Blackhole): Unit = {
-    val deflate = PerMessageDeflate(params, Int.MaxValue)
+    val deflate = PerMessageDeflate(params, Int.MaxValue).get
     try {
       var i = 0
       while (i < Messages) {

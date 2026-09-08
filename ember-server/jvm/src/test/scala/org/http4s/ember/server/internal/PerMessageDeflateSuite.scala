@@ -39,7 +39,8 @@ class PerMessageDeflateSuite extends Http4sSuite {
   private def withDeflate[A](params: Params = default, maxSize: Int = 1024)(
       f: PerMessageDeflate => A
   ): A = {
-    val deflate = PerMessageDeflate(params, maxSize)
+    val deflate =
+      PerMessageDeflate(params, maxSize).getOrElse(fail("permessage-deflate unsupported"))
     try f(deflate)
     finally deflate.close()
   }
@@ -97,6 +98,13 @@ class PerMessageDeflateSuite extends Http4sSuite {
 
   test("decline permessage-deflate parameters with unusual values") {
     assertEquals(negotiate("permessage-deflate; server_max_window_bits=1/5"), None)
+    assertEquals(negotiate("permessage-deflate; server_max_window_bits="), None)
+    assertEquals(negotiate("permessage-deflate; client_no_context_takeover="), None)
+  }
+
+  test("tolerate empty parameters and values in other extensions") {
+    assertEquals(negotiate("permessage-deflate; client_max_window_bits, x-foo;"), Some(default))
+    assertEquals(negotiate("x-foo; a=; ; b, permessage-deflate;"), Some(default))
   }
 
   test("decline everything when the header is malformed") {
@@ -257,13 +265,13 @@ class PerMessageDeflateSuite extends Http4sSuite {
     }
   }
 
-  test("reset the decompressed limit when a new message starts mid-fragment") {
-    withDeflate(maxSize = 1000) { server =>
-      withDeflate(maxSize = 1024 * 1024) { client =>
+  test("fail on a new message before a compressed message finishes") {
+    withDeflate() { server =>
+      withDeflate() { client =>
         val (first, rsv1) = client.encode(WebSocketFrame.Binary(ByteVector.fill(600)(0), false))
-        val (second, _) = client.encode(WebSocketFrame.Binary(ByteVector.fill(600)(0), true))
         server.decode(first, rsv1)
-        assertEquals(server.decode(second, rsv1 = true).length, 600)
+        intercept[ProtocolException](server.decode(WebSocketFrame.Binary(hex"00"), rsv1 = true))
+        intercept[ProtocolException](server.decode(WebSocketFrame.Text("plain"), rsv1 = false))
       }
     }
   }

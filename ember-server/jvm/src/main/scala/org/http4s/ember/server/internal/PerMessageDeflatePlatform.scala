@@ -26,10 +26,8 @@ import java.util.zip.Deflater
 import java.util.zip.Inflater
 
 private[internal] trait PerMessageDeflatePlatform {
-  private[internal] val isSupported: Boolean = true
-
-  private[internal] def createCodec(): PerMessageDeflate.Codec =
-    new PerMessageDeflatePlatform.ZipCodec
+  private[internal] val codecFactory: Option[() => PerMessageDeflate.Codec] =
+    Some(() => new PerMessageDeflatePlatform.ZipCodec)
 }
 
 private[internal] object PerMessageDeflatePlatform {

@@ -68,12 +68,13 @@ private[internal] final class PerMessageDeflate(
         decompressingIncoming = !frame.last
         withData(frame, decompress(frame.data, frame.last))
       } else frame
+    case _ if decompressingIncoming =>
+      throw new ProtocolException("New message before the previous compressed message finished")
     case _ if rsv1 =>
       decompressingIncoming = !frame.last
       decompressedBytes = 0L
       withData(frame, decompress(frame.data, frame.last))
     case _ =>
-      decompressingIncoming = false
       frame
   }
 
@@ -160,12 +161,13 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
   private val Tail = ByteVector(0x00, 0x00, 0xff, 0xff)
   private val EmptyBlock = ByteVector(0x00)
 
-  def apply(params: Params, maxDecompressedMessageSize: Int): PerMessageDeflate =
-    new PerMessageDeflate(params, maxDecompressedMessageSize, createCodec())
+  /** Returns `None` on platforms without a DEFLATE implementation. */
+  def apply(params: Params, maxDecompressedMessageSize: Int): Option[PerMessageDeflate] =
+    codecFactory.map(codec => new PerMessageDeflate(params, maxDecompressedMessageSize, codec()))
 
   /** Accepts the first valid `permessage-deflate` offer of the request, if any. */
   def negotiate(headers: Headers): Option[Params] =
-    if (!isSupported) None
+    if (codecFactory.isEmpty) None
     else
       headers.get(HeaderName).flatMap { values =>
         offers.parseAll(values.toList.map(_.value).mkString(",")).toOption.flatMap {
@@ -202,15 +204,19 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
     if (value.matches("[1-9][0-9]?")) Some(value.toInt).filter(bits => bits >= 8 && bits <= 15)
     else None
 
-  private val text: Parser[String] =
-    Parser.charsWhile(c => c != ',' && c != ';' && c != '=' && c != '"' && !c.isWhitespace)
+  private def isText(c: Char): Boolean =
+    c != ',' && c != ';' && c != '=' && c != '"' && !c.isWhitespace
+
+  private val text: Parser[String] = Parser.charsWhile(isText)
 
   private val param: Parser[(String, Option[String])] = {
-    val value = (ows.with1 *> Parser.char('=') *> ows *> quotedString.orElse(text)).backtrack
-    (text ~ value.?).map { case (name, v) => (name.toLowerCase(Locale.ROOT), v) }
+    val value = ows.with1 *> Parser.char('=') *> ows *> quotedString.orElse(
+      Parser.charsWhile0(isText)
+    )
+    (text ~ value.backtrack.?).map { case (name, v) => (name.toLowerCase(Locale.ROOT), v) }
   }
 
   private val offers = headerRep1(
-    text ~ (ows.with1 *> Parser.char(';') *> ows *> param).backtrack.rep0
+    text ~ (ows.with1 *> Parser.char(';') *> ows *> param.?).backtrack.rep0.map(_.flatten)
   )
 }

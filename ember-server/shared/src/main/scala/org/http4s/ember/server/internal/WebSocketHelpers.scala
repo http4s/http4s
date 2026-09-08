@@ -137,7 +137,7 @@ private[internal] class WebSocketHelpers(
       deflateParams: Option[PerMessageDeflate.Params],
   )(implicit F: Async[F]): F[Unit] =
     Resource
-      .make(F.delay(deflateParams.map(PerMessageDeflate(_, decompressedLimit))))(
+      .make(F.delay(deflateParams.flatMap(PerMessageDeflate(_, decompressedLimit))))(
         _.traverse_(deflate => F.delay(deflate.close()))
       )
       .use(connectionLoop(socket, ctx, buffer, receiveBufferSize, idleTimeout, _))
@@ -298,36 +298,44 @@ private[internal] class WebSocketHelpers(
     }
   }
 
-  private def decodeFrame(
-      buffer: ByteBuffer,
-      deflate: Option[PerMessageDeflate],
-  ): WebSocketFrame = {
-    val frame = nonClientTranscoder.bufferToFrame(buffer)
-    if (frame == null) frame
-    else deflate.fold(frame)(_.decode(frame, (buffer.get(0) & PerMessageDeflate.Rsv1) != 0))
-  }
-
   private def decodeFrames[F[_]](deflate: Option[PerMessageDeflate])(implicit
       F: ApplicativeThrow[F]
   ): Pipe[F, Byte, WebSocketFrame] =
+    deflate match {
+      case None => _.through(readFrames[F]).map(_._1)
+      case Some(d) =>
+        _.through(readFrames[F]).evalMap { case (frame, rsv1) =>
+          F.catchNonFatal(d.decode(frame, rsv1))
+        }
+    }
+
+  private def readFrame(buffer: ByteBuffer): (WebSocketFrame, Boolean) = {
+    val frame = nonClientTranscoder.bufferToFrame(buffer)
+    if (frame == null) null
+    else (frame, (buffer.get(0) & PerMessageDeflate.Rsv1) != 0)
+  }
+
+  private def readFrames[F[_]](implicit
+      F: ApplicativeThrow[F]
+  ): Pipe[F, Byte, (WebSocketFrame, Boolean)] =
     stream => {
-      def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
+      def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, (WebSocketFrame, Boolean), Unit] =
         rest.pull.uncons.flatMap {
           case Some((chunk, next)) =>
-            ApplicativeThrow[Pull[F, WebSocketFrame, *]]
+            ApplicativeThrow[Pull[F, (WebSocketFrame, Boolean), *]]
               .catchNonFatal { // `bufferToFrame` might throw
                 val buffer = acc ++ chunk.toArray[Byte]
                 // A single chunk might contain multiple frames
                 // but `bufferToFrame` decodes at most one, so we
                 // call it repeatedly until all frames in the buffer are decoded.
-                val frames = ArrayBuffer.empty[WebSocketFrame]
+                val frames = ArrayBuffer.empty[(WebSocketFrame, Boolean)]
                 var byteBuffer = ByteBuffer.wrap(buffer)
-                var frame = decodeFrame(byteBuffer, deflate)
+                var frame = readFrame(byteBuffer)
                 while (frame != null) {
                   frames += frame
                   // We need to slice b/c `bufferToFrame` does absolute reads.
                   byteBuffer = byteBuffer.slice()
-                  frame = decodeFrame(byteBuffer, deflate)
+                  frame = readFrame(byteBuffer)
                 }
                 if (frames.nonEmpty) {
                   val remaining = new Array[Byte](byteBuffer.remaining())

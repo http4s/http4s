@@ -17,10 +17,5 @@
 package org.http4s.ember.server.internal
 
 private[internal] trait PerMessageDeflatePlatform {
-  private[internal] val isSupported: Boolean = false
-
-  private[internal] def createCodec(): PerMessageDeflate.Codec =
-    throw new UnsupportedOperationException(
-      "permessage-deflate is not supported on Scala.js and Scala Native"
-    )
+  private[internal] val codecFactory: Option[() => PerMessageDeflate.Codec] = None
 }
