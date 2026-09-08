@@ -22,7 +22,6 @@ import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
-import fs2.io.IOException
 import fs2.io.net._
 import org.http4s._
 import org.typelevel.log4cats.Logger
@@ -58,13 +57,12 @@ private[ember] object H2Server {
   // Call on a new connection for http2-prior-knowledge
   // If left 1.1 if right 2
   def checkConnectionPreface[F[_]: MonadThrow](socket: Socket[F]): F[Either[ByteVector, Unit]] =
-    socket.read(Preface.clientBV.size.toInt).flatMap {
-      case Some(s) =>
-        val received = s.toByteVector
-        if (received == Preface.clientBV) Applicative[F].pure(Either.unit)
-        else Applicative[F].pure(Either.left(received))
-      case None =>
-        new IOException("Input Closed Before Receiving Data").raiseError
+    socket.readN(Preface.clientBV.size.toInt).flatMap { s =>
+      val received = s.toByteVector
+      if (received == Preface.clientBV)
+        Applicative[F].pure(Either.unit)
+      else
+        Applicative[F].pure(Either.left(received))
     }
 
   // For Anything that is guaranteed to only be h2 this method will fail
