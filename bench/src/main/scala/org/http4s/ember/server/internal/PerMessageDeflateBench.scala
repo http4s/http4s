@@ -59,6 +59,7 @@ class PerMessageDeflateBench {
     if (!contextTakeover) {
       offer.put("server_no_context_takeover", null)
       offer.put("client_no_context_takeover", null)
+      ()
     }
     netty = new PerMessageDeflateServerExtensionHandshaker(6, false, 15, true, true, 0)
       .handshakeExtension(new WebSocketExtensionData("permessage-deflate", offer))
