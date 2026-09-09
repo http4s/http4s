@@ -141,21 +141,24 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxWebSocketFrameSize: Int,
   ): Stream[F, Nothing] = {
     val server =
-      // Our interface has an issue
       Stream
-        .eval(
-          ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
-            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), port"0"))
+        .resource(
+          Network[F].bind(
+            unixSocketAddress,
+            List(
+              SocketOption.unixSocketDeleteIfExists(deleteIfExists),
+              SocketOption.unixSocketDeleteOnClose(deleteOnClose),
+            ) ++ additionalSocketOptions,
           )
-        ) // Sketchy
-        .drain ++
-        Network[F].bindAndAccept(
-          unixSocketAddress,
-          List(
-            SocketOption.unixSocketDeleteIfExists(deleteIfExists),
-            SocketOption.unixSocketDeleteOnClose(deleteOnClose),
-          ) ++ additionalSocketOptions,
         )
+        .attempt
+        .evalTap(e =>
+          ready.complete(
+            e.as(SocketAddress(Ipv4Address.Wildcard, port"0"))
+          )
+        )
+        .rethrow
+        .flatMap(_.accept)
 
     serverInternal(
       server,
