@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.websocketx.extensions.WebSocketExtension
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketExtensionData
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtension
 import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker
+import org.http4s.websocket.FrameTranscoder
 import org.http4s.websocket.WebSocketFrame
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
@@ -69,7 +70,11 @@ class PerMessageDeflateBench {
     val encoder = PerMessageDeflate(params, Int.MaxValue).get
     try
       compressed = messages.map { m =>
-        encoder.encode(WebSocketFrame.Text(ByteVector.view(m), true))._1.data.toArray
+        val buffers = encoder.encode(WebSocketFrame.Text(ByteVector.view(m), true), writer)
+        reader
+          .bufferToFrame(buffers.foldLeft(ByteVector.empty)(_ ++ ByteVector(_)).toByteBuffer)
+          .data
+          .toArray
       }
     finally encoder.close()
 
@@ -88,7 +93,7 @@ class PerMessageDeflateBench {
     try {
       var i = 0
       while (i < Messages) {
-        bh.consume(deflate.encode(WebSocketFrame.Text(ByteVector.view(messages(i)), true)))
+        bh.consume(deflate.encode(WebSocketFrame.Text(ByteVector.view(messages(i)), true), writer))
         i += 1
       }
     } finally deflate.close()
@@ -151,6 +156,8 @@ class PerMessageDeflateBench {
 }
 
 object PerMessageDeflateBench {
+  private val writer = new FrameTranscoder(isClient = false, maxFrameSize = Int.MaxValue)
+  private val reader = new FrameTranscoder(isClient = true, maxFrameSize = Int.MaxValue)
   final val Messages = 32
 
   private def json(random: Random, size: Int): Array[Byte] = {

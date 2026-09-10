@@ -22,187 +22,171 @@ import fs2.io.net.ProtocolException
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.internal.parsing.CommonRules._
+import org.http4s.websocket.FrameTranscoder
 import org.http4s.websocket.WebSocketFrame
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
+import java.nio.ByteBuffer
 import java.util.Locale
 
-/** Per-connection state of the `permessage-deflate` extension.
+/** Per-connection state of the `permessage-deflate` WebSocket extension.
   *
   * @see [[https://datatracker.ietf.org/doc/html/rfc7692 RFC 7692]]
   */
 private[internal] final class PerMessageDeflate(
     params: PerMessageDeflate.Params,
-    maxDecompressedMessageSize: Int,
+    maxMessageSize: Int,
     codec: PerMessageDeflate.Codec,
 ) {
   import PerMessageDeflate._
 
-  private[this] var compressingOutgoing = false
-  private[this] var decompressingIncoming = false
-  private[this] var decompressedBytes = 0L
+  private[this] var deflating = false
+  private[this] var inflating = false
+  private[this] var inflatedBytes = 0
 
-  /** Returns the frame to send and whether its RSV1 bit must be set. */
-  def encode(frame: WebSocketFrame): (WebSocketFrame, Boolean) = frame match {
-    case _: WebSocketFrame.Text | _: WebSocketFrame.Binary if frame.last && frame.length == 0 =>
-      compressingOutgoing = false
-      (frame, false)
-    case _: WebSocketFrame.Text | _: WebSocketFrame.Binary =>
-      compressingOutgoing = !frame.last
-      (withData(frame, compress(frame.data, frame.last)), true)
-    case _: WebSocketFrame.Continuation if compressingOutgoing =>
-      compressingOutgoing = !frame.last
-      (withData(frame, compress(frame.data, frame.last)), false)
-    case _ =>
-      (frame, false)
+  /** Compresses data frames and sets RSV1 on the first frame of each message. */
+  def encode(frame: WebSocketFrame, transcoder: FrameTranscoder): Array[ByteBuffer] = {
+    val (compress, first) = frame match {
+      case _: WebSocketFrame.Text | _: WebSocketFrame.Binary =>
+        (!(frame.last && frame.length == 0), true)
+      case _: WebSocketFrame.Continuation => (deflating, false)
+      case _ => (false, false)
+    }
+    if (!compress) transcoder.frameToBuffer(frame)
+    else {
+      deflating = !frame.last
+      val buffers = transcoder.frameToBuffer(withData(frame, deflate(frame)))
+      if (first) {
+        buffers(0).put(0, (buffers(0).get(0) | Rsv1).toByte)
+        ()
+      }
+      buffers
+    }
   }
 
+  /** Decompresses data frames of messages that were sent with RSV1. */
   def decode(frame: WebSocketFrame, rsv1: Boolean): WebSocketFrame = frame match {
-    case _: WebSocketFrame.ControlFrame =>
-      if (rsv1) throw new ProtocolException("RSV1 bit set on a control frame")
-      frame
-    case _: WebSocketFrame.Continuation =>
-      if (rsv1) throw new ProtocolException("RSV1 bit set on a continuation frame")
-      if (decompressingIncoming) {
-        decompressingIncoming = !frame.last
-        withData(frame, decompress(frame.data, frame.last))
-      } else frame
-    case _ if decompressingIncoming =>
-      throw new ProtocolException("New message before the previous compressed message finished")
+    case _: WebSocketFrame.ControlFrame | _: WebSocketFrame.Continuation if rsv1 =>
+      throw new ProtocolException("RSV1 set on a control or continuation frame")
+    case _: WebSocketFrame.ControlFrame => frame
+    case _: WebSocketFrame.Continuation => if (inflating) inflate(frame) else frame
+    case _ if inflating =>
+      throw new ProtocolException("New message before the compressed message finished")
     case _ if rsv1 =>
-      decompressingIncoming = !frame.last
-      decompressedBytes = 0L
-      withData(frame, decompress(frame.data, frame.last))
-    case _ =>
-      frame
+      inflatedBytes = 0
+      inflate(frame)
+    case _ => frame
   }
 
   def close(): Unit = codec.close()
 
+  private def deflate(frame: WebSocketFrame): ByteVector = {
+    val out = codec.deflate(frame.data)
+    if (!frame.last) out
+    else {
+      if (params.serverNoContextTakeover) codec.endDeflater()
+      if (out.isEmpty) EmptyBlock else out.dropRight(Tail.length)
+    }
+  }
+
+  private def inflate(frame: WebSocketFrame): WebSocketFrame = {
+    inflating = !frame.last
+    val data = if (frame.last) frame.data ++ Tail else frame.data
+    val out = codec.inflate(data, maxMessageSize - inflatedBytes)
+    inflatedBytes += out.length.toInt
+    if (frame.last && params.clientNoContextTakeover) codec.resetInflater()
+    withData(frame, out)
+  }
+
   private def withData(frame: WebSocketFrame, data: ByteVector): WebSocketFrame = frame match {
     case _: WebSocketFrame.Text => WebSocketFrame.Text(data, frame.last)
     case _: WebSocketFrame.Binary => WebSocketFrame.Binary(data, frame.last)
-    case _: WebSocketFrame.Continuation => WebSocketFrame.Continuation(data, frame.last)
-    case _ => frame
-  }
-
-  private def compress(data: ByteVector, last: Boolean): ByteVector = {
-    val out = codec.deflate(data)
-    if (last) {
-      if (params.serverNoContextTakeover) codec.releaseDeflater()
-      if (out.isEmpty) EmptyBlock
-      else if (out.endsWith(Tail)) out.dropRight(Tail.length)
-      else out
-    } else out
-  }
-
-  private def decompress(data: ByteVector, last: Boolean): ByteVector = {
-    val limit = (maxDecompressedMessageSize - decompressedBytes).toInt
-    val out = codec.inflate(if (last) data ++ Tail else data, limit)
-    decompressedBytes += out.length
-    if (last && params.clientNoContextTakeover) codec.resetInflater()
-    out
+    case _ => WebSocketFrame.Continuation(data, frame.last)
   }
 }
 
 private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
 
-  /** A stateful raw DEFLATE compressor and decompressor pair, allocated on first use.
-    * Not thread-safe.
-    */
+  /** Raw DEFLATE compressor and decompressor, both created on first use. Not thread-safe. */
   trait Codec {
 
-    /** Compresses `data` and finishes with a sync flush. */
+    /** Compresses `data` and ends with a sync flush. */
     def deflate(data: ByteVector): ByteVector
 
-    /** Frees the compressor. The next message starts with an empty window. */
-    def releaseDeflater(): Unit
+    /** Frees the compressor, so the next message starts with an empty window. */
+    def endDeflater(): Unit
 
-    /** Decompresses `data`, failing if the output exceeds `maxSize` bytes.
-      * Input after a final DEFLATE block continues as a new block.
-      */
+    /** Decompresses `data`, failing if the output exceeds `maxSize` bytes. */
     def inflate(data: ByteVector, maxSize: Int): ByteVector
 
-    /** Resets the decompressor, keeping it allocated. The next message starts with an empty window. */
+    /** Empties the decompressor's window, keeping it allocated. */
     def resetInflater(): Unit
 
     def close(): Unit
   }
 
-  /** The agreed parameters of an accepted offer. */
   final case class Params(
       serverNoContextTakeover: Boolean,
       clientNoContextTakeover: Boolean,
-      echoServerMaxWindowBits: Boolean,
+      serverMaxWindowBits: Boolean,
   ) {
     def toHeader: Header.Raw = {
       val params = List(
-        Some(ExtensionName),
-        Some(ServerNoContextTakeover).filter(_ => serverNoContextTakeover),
-        Some(ClientNoContextTakeover).filter(_ => clientNoContextTakeover),
-        Some(s"$ServerMaxWindowBits=$MaxWindowBits").filter(_ => echoServerMaxWindowBits),
-      )
-      Header.Raw(HeaderName, params.flatten.mkString("; "))
+        ServerNoContextTakeover -> serverNoContextTakeover,
+        ClientNoContextTakeover -> clientNoContextTakeover,
+        s"$ServerMaxWindowBits=15" -> serverMaxWindowBits,
+      ).collect { case (agreed, true) => agreed }
+      Header.Raw(HeaderName, (ExtensionName :: params).mkString("; "))
     }
   }
 
   val HeaderName: CIString = ci"Sec-WebSocket-Extensions"
-
-  private[internal] val Rsv1 = 0x40
 
   private val ExtensionName = "permessage-deflate"
   private val ServerNoContextTakeover = "server_no_context_takeover"
   private val ClientNoContextTakeover = "client_no_context_takeover"
   private val ServerMaxWindowBits = "server_max_window_bits"
   private val ClientMaxWindowBits = "client_max_window_bits"
-  private val MaxWindowBits = 15
 
+  private val Rsv1 = 0x40
   private val Tail = ByteVector(0x00, 0x00, 0xff, 0xff)
   private val EmptyBlock = ByteVector(0x00)
 
-  /** Returns `None` on platforms without a DEFLATE implementation. */
-  def apply(params: Params, maxDecompressedMessageSize: Int): Option[PerMessageDeflate] =
-    codecFactory.map(codec => new PerMessageDeflate(params, maxDecompressedMessageSize, codec()))
+  def rsv1(buffer: ByteBuffer): Boolean = (buffer.get(0) & Rsv1) != 0
 
-  /** Accepts the first valid `permessage-deflate` offer of the request, if any. */
+  /** Returns `None` on platforms without a DEFLATE implementation. */
+  def apply(params: Params, maxMessageSize: Int): Option[PerMessageDeflate] =
+    codecFactory.map(codec => new PerMessageDeflate(params, maxMessageSize, codec()))
+
+  /** Accepts the first valid `permessage-deflate` offer, if the platform supports it. */
   def negotiate(headers: Headers): Option[Params] =
-    if (codecFactory.isEmpty) None
-    else
-      headers.get(HeaderName).flatMap { values =>
-        offers.parseAll(values.toList.map(_.value).mkString(",")).toOption.flatMap {
-          _.collectFirstSome {
-            case (name, params) if name.equalsIgnoreCase(ExtensionName) => accept(params)
-            case _ => None
-          }
+    headers.get(HeaderName).filter(_ => codecFactory.isDefined).flatMap { values =>
+      offers.parseAll(values.toList.map(_.value).mkString(",")).toOption.flatMap {
+        _.collectFirstSome {
+          case (name, params) if name.equalsIgnoreCase(ExtensionName) => accept(params)
+          case _ => None
         }
       }
+    }
 
-  private def accept(params: List[(String, Option[String])]): Option[Params] = {
-    val names = params.map(_._1)
-    if (names.distinct.size != names.size) None
+  private def accept(params: List[(String, Option[String])]): Option[Params] =
+    if (params.map(_._1).distinct.size != params.size) None
     else
       params.foldLeftM(Params(false, false, false)) {
         case (agreed, (ServerNoContextTakeover, None)) =>
           Some(agreed.copy(serverNoContextTakeover = true))
         case (agreed, (ClientNoContextTakeover, None)) =>
           Some(agreed.copy(clientNoContextTakeover = true))
-        case (agreed, (ServerMaxWindowBits, Some(value))) =>
-          windowBits(value)
-            .filter(_ == MaxWindowBits)
-            .as(agreed.copy(echoServerMaxWindowBits = true))
+        case (agreed, (ServerMaxWindowBits, Some("15"))) =>
+          Some(agreed.copy(serverMaxWindowBits = true))
         case (agreed, (ClientMaxWindowBits, None)) =>
           Some(agreed)
-        case (agreed, (ClientMaxWindowBits, Some(value))) =>
-          windowBits(value).as(agreed)
+        case (agreed, (ClientMaxWindowBits, Some(bits))) if bits.matches("[89]|1[0-5]") =>
+          Some(agreed)
         case _ =>
           None
       }
-  }
-
-  private def windowBits(value: String): Option[Int] =
-    if (value.matches("[1-9][0-9]?")) Some(value.toInt).filter(bits => bits >= 8 && bits <= 15)
-    else None
 
   private def isText(c: Char): Boolean =
     c != ',' && c != ';' && c != '=' && c != '"' && !c.isWhitespace

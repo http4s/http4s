@@ -79,7 +79,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       maxWebSocketFrameSize: Int,
       webSocketCompression: Boolean,
-      maxWebSocketDecompressedMessageSize: Int,
   )(implicit F: Async[F], F2: Network[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -113,11 +112,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
-      new WebSocketHelpers(
-        maxWebSocketFrameSize,
-        webSocketCompression,
-        maxWebSocketDecompressedMessageSize,
-      ),
+      new WebSocketHelpers(maxWebSocketFrameSize, webSocketCompression),
     )
   }
 
@@ -146,7 +141,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       maxWebSocketFrameSize: Int,
       webSocketCompression: Boolean,
-      maxWebSocketDecompressedMessageSize: Int,
   ): Stream[F, Nothing] = {
     val server =
       Stream
@@ -188,11 +182,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
-      new WebSocketHelpers(
-        maxWebSocketFrameSize,
-        webSocketCompression,
-        maxWebSocketDecompressedMessageSize,
-      ),
+      new WebSocketHelpers(maxWebSocketFrameSize, webSocketCompression),
     )
   }
 

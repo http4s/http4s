@@ -59,8 +59,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
     private val maxWebSocketMessageSize: Int,
-    private val enableWebSocketCompression: Boolean,
-    private val maxWebSocketDecompressedMessageSize: Int,
+    private val webSocketCompression: Boolean,
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -88,8 +87,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
         self.maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize: Int = self.maxWebSocketMessageSize,
-      enableWebSocketCompression: Boolean = self.enableWebSocketCompression,
-      maxWebSocketDecompressedMessageSize: Int = self.maxWebSocketDecompressedMessageSize,
+      webSocketCompression: Boolean = self.webSocketCompression,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -112,8 +110,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestLineParseErrorHandler = requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize = maxWebSocketMessageSize,
-      enableWebSocketCompression = enableWebSocketCompression,
-      maxWebSocketDecompressedMessageSize = maxWebSocketDecompressedMessageSize,
+      webSocketCompression = webSocketCompression,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -254,31 +251,14 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withMaxWebSocketMessageSize(maxWebSocketMessageSize: Int): EmberServerBuilder[F] =
     copy(maxWebSocketMessageSize = maxWebSocketMessageSize)
 
-  /** Enables the `permessage-deflate` WebSocket extension (RFC 7692) on the JVM.
-    * It is negotiated only when the client offers it and the route doesn't set
-    * `Sec-WebSocket-Extensions` itself. Scala.js and Scala Native decline the offer.
+  /** Enables the `permessage-deflate` WebSocket extension (RFC 7692) on the JVM,
+    * when the client offers it. Decompressed messages are limited by `maxWebSocketMessageSize`.
     */
-  def withWebSocketCompression: EmberServerBuilder[F] = copy(enableWebSocketCompression = true)
-  def withoutWebSocketCompression: EmberServerBuilder[F] =
-    copy(enableWebSocketCompression = false)
-
-  /** Maximum size of a compressed WebSocket message after decompression, also capped by
-    * `maxWebSocketMessageSize`. Larger messages close the connection with code 1009.
-    * Default: 8 MiB.
-    */
-  def withMaxWebSocketDecompressedMessageSize(
-      maxWebSocketDecompressedMessageSize: Int
-  ): EmberServerBuilder[F] =
-    copy(maxWebSocketDecompressedMessageSize = maxWebSocketDecompressedMessageSize)
+  def withWebSocketCompression: EmberServerBuilder[F] = copy(webSocketCompression = true)
+  def withoutWebSocketCompression: EmberServerBuilder[F] = copy(webSocketCompression = false)
 
   def build: Resource[F, Server] =
     for {
-      _ <-
-        if (enableWebSocketCompression && maxWebSocketDecompressedMessageSize <= 0)
-          Resource.raiseError[F, Unit, Throwable](
-            new IllegalArgumentException("maxWebSocketDecompressedMessageSize must be positive")
-          )
-        else Resource.unit[F]
       _ <-
         if (unixSocketConfig.isDefined && enableHttp2)
           Resource.eval(
@@ -318,8 +298,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               requestLineParseErrorHandler,
               maxHeaderSizeErrorHandler,
               maxWebSocketMessageSize,
-              enableWebSocketCompression,
-              maxWebSocketDecompressedMessageSize,
+              webSocketCompression,
             )
             .compile
             .drain
@@ -349,8 +328,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             requestLineParseErrorHandler,
             maxHeaderSizeErrorHandler,
             maxWebSocketMessageSize,
-            enableWebSocketCompression,
-            maxWebSocketDecompressedMessageSize,
+            webSocketCompression,
           )
           .compile
           .drain
@@ -388,8 +366,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize = org.http4s.websocket.DefaultMaxMessageSize,
-      enableWebSocketCompression = false,
-      maxWebSocketDecompressedMessageSize = 8 * 1024 * 1024,
+      webSocketCompression = false,
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
