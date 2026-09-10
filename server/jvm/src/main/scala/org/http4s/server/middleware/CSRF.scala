@@ -38,8 +38,8 @@ import org.http4s.headers.Referer
 import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.headers.{Cookie => HCookie}
-import org.typelevel.scalaccompat.annotation.unused
 import org.typelevel.ci._
+import org.typelevel.scalaccompat.annotation.unused
 import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
 
