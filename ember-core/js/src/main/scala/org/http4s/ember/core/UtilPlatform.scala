@@ -22,16 +22,15 @@ import com.comcast.ip4s.IDN
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.SocketAddress
 import fs2.io.net.tls.TLSParameters
+import org.typelevel.scalaccompat.annotation.unused
 
-import scala.annotation.nowarn
 import scala.annotation.tailrec
 
 private[core] trait UtilPlatform {
 
-  @nowarn("msg=never used")
   def mkClientTLSParameters(
       address: Option[SocketAddress[Host]],
-      enableEndpointValidation: Boolean,
+      @unused enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
   ): TLSParameters =
     TLSParameters(
