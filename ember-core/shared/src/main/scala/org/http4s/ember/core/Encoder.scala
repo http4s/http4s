@@ -22,6 +22,7 @@ import fs2._
 import org.http4s._
 import org.http4s.headers.Host
 import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.internal.CharPredicate
 import org.http4s.internal.appendSanitized
 
@@ -37,8 +38,12 @@ private[ember] object Encoder {
   def respToBytes[F[_]: Applicative](
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024,
+      disableChunkedEncoding: Boolean = false,
   ): Stream[F, Byte] = {
     var chunked = resp.isChunked
+    // RFC 9112 §6.1: a server MUST NOT send Transfer-Encoding in a
+    // response to an HTTP/1.0 request.
+    if (disableChunkedEncoding) chunked = false
     // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
@@ -54,11 +59,16 @@ private[ember] object Encoder {
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
         if (h.isNameValid) {
-          appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
+          // Strip Transfer-Encoding for HTTP/1.0 responses
+          if (disableChunkedEncoding && h.name == `Transfer-Encoding`.name) {
+            ()
+          } else {
+            appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
 
-          stringBuilder.append(h.name).append(": ")
-          appendSanitized(stringBuilder, h.value)
-          stringBuilder.append(CRLF)
+            stringBuilder.append(h.name).append(": ")
+            appendSanitized(stringBuilder, h.value)
+            stringBuilder.append(CRLF)
+          }
         }
       }
 
@@ -67,7 +77,7 @@ private[ember] object Encoder {
       if (!appliedContentLength && isEmptyBody && isEntityAllowed) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-      } else if (!chunked && !appliedContentLength && isEntityAllowed) {
+      } else if (!chunked && !appliedContentLength && isEntityAllowed && !disableChunkedEncoding) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
       }
