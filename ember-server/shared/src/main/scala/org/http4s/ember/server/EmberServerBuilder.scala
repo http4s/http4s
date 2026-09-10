@@ -193,10 +193,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
-  /** Enables HTTP/2 support.
-    *
-    * No longer tested or supported with Unix sockets on Java < 17.
-    */
+  /** Enables HTTP/2 support. */
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
@@ -253,6 +250,13 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def build: Resource[F, Server] =
     for {
+      _ <-
+        if (unixSocketConfig.isDefined && enableHttp2)
+          Resource.eval(
+            logger.warn("Unix sockets are not tested on HTTP/2.  Proceed at your own risk.")
+          )
+        else
+          Resource.unit[F]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(

@@ -141,21 +141,24 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxWebSocketFrameSize: Int,
   ): Stream[F, Nothing] = {
     val server =
-      // Our interface has an issue
       Stream
-        .eval(
-          ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
-            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), port"0"))
+        .resource(
+          Network[F].bind(
+            unixSocketAddress,
+            List(
+              SocketOption.unixSocketDeleteIfExists(deleteIfExists),
+              SocketOption.unixSocketDeleteOnClose(deleteOnClose),
+            ) ++ additionalSocketOptions,
           )
-        ) // Sketchy
-        .drain ++
-        Network[F].bindAndAccept(
-          unixSocketAddress,
-          List(
-            SocketOption.unixSocketDeleteIfExists(deleteIfExists),
-            SocketOption.unixSocketDeleteOnClose(deleteOnClose),
-          ) ++ additionalSocketOptions,
         )
+        .attempt
+        .evalTap(e =>
+          ready.complete(
+            e.as(SocketAddress(Ipv4Address.Wildcard, port"0"))
+          )
+        )
+        .rethrow
+        .flatMap(_.accept)
 
     serverInternal(
       server,
@@ -222,7 +225,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             .flatMap {
               case (socket, Some("h2")) =>
                 // ALPN H2 Strategy
-                Stream.exec(H2Server.requireConnectionPreface(socket)) ++
+                Stream.exec(H2Server.requireConnectionPreface(socket, idleTimeout)) ++
                   Stream
                     .resource(
                       H2Server
@@ -262,7 +265,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   case true =>
                     // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
                     // Otherwise this is now http1
-                    Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
+                    Stream.eval(H2Server.checkConnectionPreface(socket, idleTimeout)).flatMap {
                       case Left(bv) =>
                         runConnection(
                           socket,
@@ -320,7 +323,11 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         def fullConnectionErrorHandler(t: Throwable): F[Unit] =
           connectionErrorHandler.applyOrElse(
             t,
-            (t: Throwable) => logger.error(t)("Request handler failed with exception"),
+            {
+              case e: EmberException.ReadTimeout =>
+                logger.debug(e)("Closing connection idle past the idle timeout")
+              case t: Throwable => logger.error(t)("Request handler failed with exception")
+            }: Throwable => F[Unit],
           )
         handler.handleErrorWith { t =>
           Stream.eval(fullConnectionErrorHandler(t)).drain
@@ -528,7 +535,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                   nextBuffer <- drain
                 } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
-
             }
           case Left(err) =>
             err match {

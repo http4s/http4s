@@ -47,6 +47,10 @@ package object util {
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
 
+  /** True if `s` is a non-empty string of hexadecimal digits. */
+  private[http4s] def isHexDigits(s: String): Boolean =
+    s.nonEmpty && s.forall(c => Character.digit(c, 16) >= 0)
+
   @deprecated("use org.typelevel.ci.CIString", "0.22")
   type CaseInsensitiveString = CIString
 
