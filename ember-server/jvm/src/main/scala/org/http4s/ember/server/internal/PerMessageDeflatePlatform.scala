@@ -31,6 +31,13 @@ private[internal] trait PerMessageDeflatePlatform {
 }
 
 private[internal] object PerMessageDeflatePlatform {
+  private val MaxFinalBlocks = 8
+
+  private def isTail(input: Array[Byte], offset: Int): Boolean =
+    input.length - offset == 4 &&
+      input(offset) == 0 && input(offset + 1) == 0 && input(offset + 2) == -1 &&
+      input(offset + 3) == -1
+
   private final class ZipCodec extends PerMessageDeflate.Codec {
     private[this] var deflater: Deflater = null
     private[this] var inflater: Inflater = null
@@ -61,6 +68,7 @@ private[internal] object PerMessageDeflatePlatform {
       inflater.setInput(input)
       val out = new ByteArrayOutputStream()
       var more = true
+      var finalBlocks = 0
       try
         while (more) {
           val n = inflater.inflate(inflateBuffer)
@@ -68,9 +76,12 @@ private[internal] object PerMessageDeflatePlatform {
           if (out.size() > maxSize)
             throw TranscodeError.maxFrameSizeExceeded("Decompressed message is too big")
           if (inflater.finished()) {
-            val remaining = inflater.getRemaining()
+            finalBlocks += 1
+            if (finalBlocks > MaxFinalBlocks)
+              throw new ProtocolException("Too many final DEFLATE blocks in one frame")
+            val offset = input.length - inflater.getRemaining()
             inflater.reset()
-            inflater.setInput(input, input.length - remaining, remaining)
+            if (!isTail(input, offset)) inflater.setInput(input, offset, input.length - offset)
           }
           more = n == inflateBuffer.length || !inflater.needsInput()
         }

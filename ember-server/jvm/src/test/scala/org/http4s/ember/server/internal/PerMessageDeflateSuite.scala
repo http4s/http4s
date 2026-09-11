@@ -159,6 +159,21 @@ class PerMessageDeflateSuite extends Http4sSuite {
     }
   }
 
+  test("keep decoding after a message that ends with a final block and no padding") {
+    withDeflate() { deflate =>
+      val hello = Text("Hello")
+      assertEquals(deflate.decode(Text(hex"f348cdc9c90700", true), rsv1 = true), hello)
+      assertEquals(deflate.decode(Text(hex"f248cdc9c90700", true), rsv1 = true), hello)
+    }
+  }
+
+  test("reject frames with too many final blocks") {
+    withDeflate() { deflate =>
+      val finalBlocks = ByteVector.concat(List.fill(100)(hex"0300"))
+      intercept[ProtocolException](deflate.decode(Binary(finalBlocks), rsv1 = true))
+    }
+  }
+
   test("reject invalid compressed data") {
     withDeflate() { deflate =>
       intercept[ProtocolException](deflate.decode(Binary(hex"ffffffff"), rsv1 = true))
