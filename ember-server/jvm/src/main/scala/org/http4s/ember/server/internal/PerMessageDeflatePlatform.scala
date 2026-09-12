@@ -32,6 +32,7 @@ private[internal] trait PerMessageDeflatePlatform {
 
 private[internal] object PerMessageDeflatePlatform {
   private val MaxFinalBlocks = 8
+  private val BufferSize = 8192
 
   private def isTail(input: Array[Byte], offset: Int): Boolean =
     input.length - offset == 4 &&
@@ -40,12 +41,16 @@ private[internal] object PerMessageDeflatePlatform {
 
   private final class ZipCodec extends PerMessageDeflate.Codec {
     private[this] var deflater: Deflater = null
+    private[this] var deflateBuffer: Array[Byte] = null
     private[this] var inflater: Inflater = null
-    private[this] val deflateBuffer = new Array[Byte](8192)
-    private[this] val inflateBuffer = new Array[Byte](8192)
+    private[this] var inflateBuffer: Array[Byte] = null
+    private[this] var streamEnded = false
 
     def deflate(data: ByteVector): ByteVector = {
-      if (deflater == null) deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
+      if (deflater == null) {
+        deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
+        deflateBuffer = new Array[Byte](BufferSize)
+      }
       deflater.setInput(data.toArray)
       val out = new ByteArrayOutputStream()
       var n = deflateBuffer.length
@@ -60,12 +65,18 @@ private[internal] object PerMessageDeflatePlatform {
       if (deflater != null) {
         deflater.end()
         deflater = null
+        deflateBuffer = null
       }
 
     def inflate(data: ByteVector, maxSize: Int): ByteVector = {
-      if (inflater == null) inflater = new Inflater(true)
+      if (inflater == null) {
+        inflater = new Inflater(true)
+        inflateBuffer = new Array[Byte](BufferSize)
+      }
       val input = data.toArray
-      inflater.setInput(input)
+      val start = if (streamEnded && isTail(input, 0)) input.length else 0
+      streamEnded = false
+      inflater.setInput(input, start, input.length - start)
       val out = new ByteArrayOutputStream()
       var more = true
       var finalBlocks = 0
@@ -81,7 +92,9 @@ private[internal] object PerMessageDeflatePlatform {
               throw new ProtocolException("Too many final DEFLATE blocks in one frame")
             val offset = input.length - inflater.getRemaining()
             inflater.reset()
-            if (!isTail(input, offset)) inflater.setInput(input, offset, input.length - offset)
+            streamEnded = offset == input.length
+            if (!streamEnded && !isTail(input, offset))
+              inflater.setInput(input, offset, input.length - offset)
           }
           more = n == inflateBuffer.length || !inflater.needsInput()
         }
@@ -92,7 +105,10 @@ private[internal] object PerMessageDeflatePlatform {
       ByteVector.view(out.toByteArray)
     }
 
-    def resetInflater(): Unit = if (inflater != null) inflater.reset()
+    def resetInflater(): Unit = {
+      if (inflater != null) inflater.reset()
+      streamEnded = false
+    }
 
     def close(): Unit = {
       endDeflater()

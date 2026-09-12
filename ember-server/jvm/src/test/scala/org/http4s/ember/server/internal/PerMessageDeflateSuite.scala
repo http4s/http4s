@@ -160,10 +160,16 @@ class PerMessageDeflateSuite extends Http4sSuite {
   }
 
   test("keep decoding after a message that ends with a final block and no padding") {
+    val finalBlock = hex"f348cdc9c90700"
+    val next = Text(hex"f248cdc9c90700", true)
     withDeflate() { deflate =>
-      val hello = Text("Hello")
-      assertEquals(deflate.decode(Text(hex"f348cdc9c90700", true), rsv1 = true), hello)
-      assertEquals(deflate.decode(Text(hex"f248cdc9c90700", true), rsv1 = true), hello)
+      deflate.decode(Text(finalBlock, true), rsv1 = true)
+      assertEquals(deflate.decode(next, rsv1 = true), Text("Hello"))
+    }
+    withDeflate() { deflate =>
+      deflate.decode(Text(finalBlock, false), rsv1 = true)
+      deflate.decode(Continuation(ByteVector.empty, true), rsv1 = false)
+      assertEquals(deflate.decode(next, rsv1 = true), Text("Hello"))
     }
   }
 
