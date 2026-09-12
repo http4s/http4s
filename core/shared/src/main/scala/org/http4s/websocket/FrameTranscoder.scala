@@ -176,8 +176,13 @@ class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
       val finished = (in.get(0) & FINISHED) != 0
       val masked = (in.get(1) & MASK) != 0
 
+      // RFC6455 §5.1 states that:
+      //   * a client MUST close a connection if it detects a masked frame;
+      //   * a server MUST close a connection upon receiving an unmasked frame.
       if (masked && isClient)
-        throw new FrameTranscoder.TranscodeError("Client received a masked message")
+        throw new FrameTranscoder.TranscodeError("Client received a masked frame")
+      else if (!masked && !isClient)
+        throw new FrameTranscoder.TranscodeError("Server received an unmasked frame")
 
       var bodyOffset = FrameTranscoder.lengthOffset(in)
 
