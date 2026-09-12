@@ -168,6 +168,15 @@ class WebSocketSuite extends Http4sSuite {
     intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
   }
 
+  test("decode rejects a masked frame when used by a client") {
+    // 0x81 -> FIN=1
+    // 0x05 -> MASK=1, payload length=5
+    // 0x01, 0x02, 0x03, 0x04 -> masking key
+    val frame =
+      ByteVector(0x81, 0x85, 0x01, 0x02, 0x03, 0x04, 0x4e, 0x06d, 0x73, 0x77, 0x20).toArray
+    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = true))
+  }
+
   test("decode rejects an unmasked frame when used by a server") {
     // 0x81 -> FIN=1
     // 0x05 -> MASK=0, payload length=5
