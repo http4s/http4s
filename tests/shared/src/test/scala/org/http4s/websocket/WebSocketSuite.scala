@@ -151,29 +151,31 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test("decode should reject a frame declaring a negative 64-bit length") {
-    // 0x82 = FIN
-    // 0x7f = Length-code: length is 64 bits
-    // 0xFFFFFFFFFFFFFFF6 = -10
+    // 0x82 -> FIN
+    // 0xff -> MASK=1, length-code 127: 64-bit length
+    // 0xFFFFFFFFFFFFFFF6 -> -10
+    // 0x00, 0x00, 0x00, 0x00 -> masking key
     val negativeLengthFrame = ByteVector(
-      0x82, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf6,
+      0x82, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf6, 0x00, 0x00, 0x00, 0x00,
     ).toArray
     intercept[FrameTranscoder.TranscodeError](decode(negativeLengthFrame, isClient = false))
   }
 
   test("decode rejects a frame whose declared length exceeds maxFrameSize") {
-    // 0x82 = FIN
-    // 0x7e = Length-code: length is 16 bits
-    // 0x00c8 = 200
-    val frame = ByteVector(0x82, 0x7e, 0x00, 0xc8).toArray
+    // 0x82 -> FIN
+    // 0xfe -> MASK=1, length-code 126: 16-bit length
+    // 0x00c8 -> 200
+    // 0x00, 0x00, 0x00, 0x00 -> masking key
+    val frame = ByteVector(0x82, 0xfe, 0x00, 0xc8, 0x00, 0x00, 0x00, 0x00).toArray
     intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
   }
 
   test("decode rejects a masked frame when used by a client") {
     // 0x81 -> FIN=1
-    // 0x05 -> MASK=1, payload length=5
+    // 0x85 -> MASK=1, payload length=5
     // 0x01, 0x02, 0x03, 0x04 -> masking key
     val frame =
-      ByteVector(0x81, 0x85, 0x01, 0x02, 0x03, 0x04, 0x4e, 0x06d, 0x73, 0x77, 0x20).toArray
+      ByteVector(0x81, 0x85, 0x01, 0x02, 0x03, 0x04, 0x4e, 0x6d, 0x73, 0x77, 0x20).toArray
     intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = true))
   }
 
