@@ -29,11 +29,11 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class WebSocketSuite extends Http4sSuite {
   private def helloTxtMasked =
-    intArrayOps(Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58)).map(
-      _.toByte
-    )
+    intArrayOps(Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58))
+      .map(_.toByte)
 
-  private def helloTxt = intArrayOps(Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f)).map(_.toByte)
+  private def helloTxtUnmasked =
+    intArrayOps(Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f)).map(_.toByte)
 
   def decode(
       msg: Array[Byte],
@@ -73,7 +73,7 @@ class WebSocketSuite extends Http4sSuite {
     assert(result.last)
     assertEquals(new String(result.data.toArray, UTF_8), "Hello")
 
-    val result2 = decode(helloTxt, isClient = true)
+    val result2 = decode(helloTxtUnmasked, isClient = true)
     assert(result2.last)
     assertEquals(new String(result2.data.toArray, UTF_8), "Hello")
   }
@@ -166,5 +166,12 @@ class WebSocketSuite extends Http4sSuite {
     // 0x00c8 = 200
     val frame = ByteVector(0x82, 0x7e, 0x00, 0xc8).toArray
     intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
+  }
+
+  test("decode rejects an unmasked frame when used by a server") {
+    // 0x81 -> FIN=1
+    // 0x05 -> MASK=0, payload length=5
+    val frame = ByteVector(0x81, 0x05, 0x4f, 0x6f, 0x70, 0x73, 0x21).toArray
+    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false))
   }
 }
