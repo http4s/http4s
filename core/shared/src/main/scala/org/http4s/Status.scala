@@ -28,12 +28,16 @@ import org.http4s.util.Renderable
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
+  * @param isEntityAllowed indicates if content can be included with this status
+  * @param skipFramingHeader indicates if a framing header should be skipped when no entity is allowed.
+  *
   * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
   * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
 sealed abstract case class Status private (code: Int)(
     val reason: String,
     val isEntityAllowed: Boolean,
+    val skipFramingHeader: Boolean,
 ) extends Ordered[Status]
     with Renderable {
 
@@ -80,7 +84,7 @@ object Status {
     "0.22.6",
   )
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
-    new Status(code)(reason, isEntityAllowed) {
+    new Status(code)(reason, isEntityAllowed, skipFramingHeader = false) {
       override lazy val sanitizedReason: String =
         if (this.reason.forall(ReasonPhrasePredicate))
           this.reason
@@ -92,8 +96,13 @@ object Status {
   def apply(code: Int): Status =
     apply(code, "", isEntityAllowed = true)
 
-  private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
-    new Status(code)(reason, isEntityAllowed) {
+  private def trust(
+      code: Int,
+      reason: String,
+      isEntityAllowed: Boolean = true,
+      skipFramingHeader: Boolean = false,
+  ): Status =
+    new Status(code)(reason, isEntityAllowed, skipFramingHeader) {
       override def sanitizedReason: String = this.reason
     }
 
@@ -169,19 +178,29 @@ object Status {
 
   /** Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
     */
-  val Continue: Status = register(trust(100, "Continue", isEntityAllowed = false))
-  val SwitchingProtocols: Status = register(
-    trust(101, "Switching Protocols", isEntityAllowed = false)
+  val Continue: Status = register(
+    trust(100, "Continue", isEntityAllowed = false, skipFramingHeader = true)
   )
-  val Processing: Status = register(trust(102, "Processing", isEntityAllowed = false))
-  val EarlyHints: Status = register(trust(103, "Early Hints", isEntityAllowed = false))
+  val SwitchingProtocols: Status = register(
+    trust(101, "Switching Protocols", isEntityAllowed = false, skipFramingHeader = true)
+  )
+  val Processing: Status = register(
+    trust(102, "Processing", isEntityAllowed = false, skipFramingHeader = true)
+  )
+  val EarlyHints: Status = register(
+    trust(103, "Early Hints", isEntityAllowed = false, skipFramingHeader = true)
+  )
 
   val Ok: Status = register(trust(200, "OK"))
   val Created: Status = register(trust(201, "Created"))
   val Accepted: Status = register(trust(202, "Accepted"))
   val NonAuthoritativeInformation: Status = register(trust(203, "Non-Authoritative Information"))
-  val NoContent: Status = register(trust(204, "No Content", isEntityAllowed = false))
-  val ResetContent: Status = register(trust(205, "Reset Content", isEntityAllowed = false))
+  val NoContent: Status = register(
+    trust(204, "No Content", isEntityAllowed = false, skipFramingHeader = true)
+  )
+  val ResetContent: Status = register(
+    trust(205, "Reset Content", isEntityAllowed = false, skipFramingHeader = false)
+  )
   val PartialContent: Status = register(trust(206, "Partial Content"))
   val MultiStatus: Status = register(trust(207, "Multi-Status"))
   val AlreadyReported: Status = register(trust(208, "Already Reported"))

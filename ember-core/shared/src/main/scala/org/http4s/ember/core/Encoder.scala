@@ -39,7 +39,6 @@ private[ember] object Encoder {
       writeBufferSize: Int = 32 * 1024,
   ): Stream[F, Byte] = {
     var chunked = resp.isChunked
-    // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()
@@ -63,11 +62,12 @@ private[ember] object Encoder {
       }
 
       def isEmptyBody = resp.body eq EmptyBody
-      def isEntityAllowed = resp.status.isEntityAllowed
-      if (!appliedContentLength && isEmptyBody && isEntityAllowed) {
+      def includeFramingHeader = resp.status.isEntityAllowed || !resp.status.skipFramingHeader
+
+      if (!appliedContentLength && isEmptyBody && includeFramingHeader) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-      } else if (!chunked && !appliedContentLength && isEntityAllowed) {
+      } else if (!chunked && !appliedContentLength && includeFramingHeader) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
       }
