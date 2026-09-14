@@ -62,7 +62,7 @@ private[ember] object Encoder {
       }
 
       def isEmptyBody = resp.body eq EmptyBody
-      def includeFramingHeader = resp.status.isEntityAllowed || !resp.status.skipFramingHeader
+      def includeFramingHeader = resp.status.isEntityAllowed || resp.status == Status.ResetContent
 
       if (!appliedContentLength && isEmptyBody && includeFramingHeader) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
