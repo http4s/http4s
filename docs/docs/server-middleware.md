@@ -69,7 +69,7 @@ implicit val mdocConsoleIO: Console[IO] = new Console[IO] {
   val mdocConsoleOut = scala.Console.out
   def println[A](a: A)(implicit s: Show[A] = Show.fromToString[A]): IO[Unit] = {
     val str = s.show(a)
-    IO.blocking(mdocConsoleOut.println(str)) 
+    IO.blocking(mdocConsoleOut.println(str))
   }
 
   def print[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
@@ -527,6 +527,33 @@ val loggerClient = Client.fromHttpApp(loggerService)
 ```scala mdoc
 loggerClient.expect[Unit](reverseRequest.withEntity("mood")).unsafeRunSync()
 ```
+
+#### Deferred Log Actions
+
+When you need to capture contextual information (like trace IDs from `IOLocal`) during logging,
+when `logBody = true`, use `LoggerConfig` with a deferred log action of type `F[String => F[Unit]]`:
+
+```scala mdoc:silent
+import org.http4s.server.middleware.LoggerConfig
+
+// Example with IOLocal for distributed tracing
+IOLocal(Map.empty[String, String]).map { traceContext =>
+  val action = traceContext.get.map { ctx =>
+      (msg: String) =>
+        Console[IO].println(s"[trace=${ctx.get("traceId")}] $msg")
+    }
+  val logAction = LoggerConfig.default[IO]
+    .withLogBody(true)
+    .withDeferredLogAction(action)
+    .build
+
+  val loggedRoutesWithTraceIds = Logger.httpAppWithConfig(logAction)(service.orNotFound)
+}
+```
+
+This ensures that the logging action captures the current context when the log effect is
+created, not when it's eventually executed (which may happen on a different fiber when
+the response body is consumed).
 
 ## Advanced
 

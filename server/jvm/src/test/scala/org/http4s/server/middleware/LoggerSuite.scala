@@ -92,4 +92,50 @@ class LoggerSuite extends Http4sSuite {
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert
   }
+
+  test("logger with deferred log action should retain IOLocal details while logging the body") {
+    IOLocal(Map.empty[String, String]).flatMap { local =>
+      IO.ref(Vector.empty[(String, Map[String, String])]).flatMap { logs =>
+        val logF: IO[String => IO[Unit]] =
+          for {
+            state <- local.get
+          } yield (message: String) => logs.update(_ :+ ((message, state)))
+
+        val logAction = LoggerConfig
+          .default[IO]
+          .withLogBody(true)
+          .withDeferredLogAction(logF)
+          .build
+
+        val loggerApp = Logger.httpAppWithConfig(logAction)(testApp)
+
+        val traceId = "3239b0fd76624aa7"
+        val spanId = "3239b0fd"
+
+        // simulate tracing middleware
+        val tracedApp: HttpApp[IO] = HttpApp { req =>
+          (local.set(Map("traceId" -> traceId, "spanId" -> spanId)) >> loggerApp(req))
+            .guarantee(local.reset)
+        }
+
+        val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+
+        val expected = {
+          val ctx = Map("traceId" -> traceId, "spanId" -> spanId)
+
+          Vector(
+            s"""${req.httpVersion} POST /post body="$expectedBody"""" -> ctx,
+            s"""${req.httpVersion} 200 OK body="$expectedBody"""" -> ctx,
+          )
+        }
+
+        for {
+          res <- tracedApp(req)
+          _ <- res.as[String].assertEquals(expectedBody)
+          _ <- IO(assert(res.status === Status.Ok))
+          _ <- logs.get.assertEquals(expected)
+        } yield ()
+      }
+    }
+  }
 }

@@ -49,6 +49,21 @@ object RequestLogger {
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
+  def withLoggerConfig[G[_], F[_]](
+      loggerConfig: LoggerConfig[F],
+      fk: F ~> G,
+  )(http: Http[G, F])(implicit
+      F: Async[F],
+      G: MonadCancelThrow[G],
+  ): Http[G, F] =
+    deferredImpl[G, F](
+      loggerConfig.logHeaders,
+      Left(loggerConfig.logBody),
+      fk,
+      loggerConfig.redactHeadersWhen,
+      loggerConfig.logAction.pure[Option],
+    )(http)
+
   private[server] def impl[G[_], F[_]](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
@@ -58,12 +73,30 @@ object RequestLogger {
   )(http: Http[G, F])(implicit
       F: Async[F],
       G: MonadCancelThrow[G],
+  ): Http[G, F] =
+    deferredImpl[G, F](
+      logHeaders,
+      logBodyText,
+      fk,
+      redactHeadersWhen,
+      logAction.map(f => Async[F].pure(f)),
+    )(http)
+
+  private[server] def deferredImpl[G[_], F[_]](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      fk: F ~> G,
+      redactHeadersWhen: CIString => Boolean,
+      logAction: Option[F[String => F[Unit]]],
+  )(http: Http[G, F])(implicit
+      F: Async[F],
+      G: MonadCancelThrow[G],
   ): Http[G, F] = {
-    val log = logAction.fold { (s: String) =>
-      logger.info(s).to[F]
+    val logF = logAction.fold {
+      F.pure((s: String) => logger.info(s).to[F])
     }(identity)
 
-    def logMessage(r: Request[F]): F[Unit] =
+    def logMessage(r: Request[F], log: String => F[Unit]): F[Unit] =
       logBodyText match {
         case Left(bool) =>
           Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
@@ -79,25 +112,24 @@ object RequestLogger {
 
     Kleisli { req =>
       if (!logBody) {
-        def logAct = logMessage(req)
-        // This construction will log on Any Error/Cancellation
-        // The Completed Case is Unit, as we rely on the semantics of G
-        // As None Is Successful, but we oly want to log on Some
-        http(req)
-          .guaranteeCase {
-            case Outcome.Succeeded(_) => G.unit
-            case _ => fk(logAct)
-          } <* fk(logAct)
+        fk(logF).flatMap { log =>
+          val logAct = logMessage(req, log)
+          http(req)
+            .guaranteeCase {
+              case Outcome.Succeeded(_) => G.unit
+              case _ => fk(logAct)
+            } <* fk(logAct)
+        }
       } else
-        fk(F.ref(Vector.empty[Chunk[Byte]]))
-          .flatMap { vec =>
+        fk(F.ref(Vector.empty[Chunk[Byte]]).product(logF))
+          .flatMap { case (vec, log) =>
             val collectChunks: Pipe[F, Byte, Nothing] =
               _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
 
             val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
 
             val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
-            val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+            val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody), log)
 
             http(changedRequest)
               .guaranteeCase {
@@ -117,6 +149,11 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  def httpAppWithLoggerConfig[F[_]: Async](
+      loggerConfig: LoggerConfig[F]
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    withLoggerConfig(loggerConfig, FunctionK.id[F])(httpApp)
+
   def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -124,6 +161,11 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+
+  def httpRoutesWithLoggerConfig[F[_]: Async](
+      loggerConfig: LoggerConfig[F]
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    withLoggerConfig(loggerConfig, OptionT.liftK[F])(httpRoutes)
 
   def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
