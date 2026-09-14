@@ -23,12 +23,15 @@ import cats.syntax.all._
 import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.MetricsOps2
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Server middleware to record metrics for the http4s server.
   *
@@ -52,6 +55,14 @@ object Metrics {
       classifier: Option[String],
   )
 
+  private[this] final case class MetricsEntry2[F[_], Context](
+      request: RequestPrelude,
+      startTime: FiniteDuration,
+      context: Context,
+      requestBodySizeRef: Ref[F, Long],
+      responseBodySizeRef: Ref[F, Long],
+  )
+
   /** A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
@@ -71,6 +82,32 @@ object Metrics {
       },
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
+
+  def apply[F[_]](
+      ops: MetricsOps2[F]
+  )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] =
+    withMetrics2(
+      ops,
+      Status.NotFound.some,
+      (_: Throwable) => Status.InternalServerError.some,
+    )(routes)
+
+  def apply[F[_]](
+      ops: MetricsOps2[F],
+      emptyResponseHandler: Option[Status],
+  )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] =
+    withMetrics2(
+      ops,
+      emptyResponseHandler,
+      (_: Throwable) => Status.InternalServerError.some,
+    )(routes)
+
+  def apply[F[_]](
+      ops: MetricsOps2[F],
+      emptyResponseHandler: Option[Status],
+      errorResponseHandler: Throwable => Option[Status],
+  )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] =
+    withMetrics2(ops, emptyResponseHandler, errorResponseHandler)(routes)
 
   def withCustomLabels[F[_], SL <: SizedSeq[String]](
       ops: CustomMetricsOps[F, SL],
@@ -202,6 +239,143 @@ object Metrics {
         routes(req).semiflatMap(metricHeaders(metrics, _))
       }
     )
+  }
+
+  private def withMetrics2[F[_]](
+      ops: MetricsOps2[F],
+      emptyResponseHandler: Option[Status],
+      errorResponseHandler: Throwable => Option[Status],
+  )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] = {
+    def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
+      val requestPrelude = request.requestPrelude
+      for {
+        context <- ops.createContext(requestPrelude)
+        _ <- ops.increaseActiveRequests(requestPrelude, context)
+        startTime <- F.monotonic
+        requestBodySizeRef <- F.ref(0L)
+        responseBodySizeRef <- F.ref(0L)
+        requestWithMetrics = request.withBodyStream(
+          request.body.chunks
+            .evalTap { chunk =>
+              requestBodySizeRef.update(_ + chunk.size.toLong)
+            }
+            .flatMap(fs2.Stream.chunk)
+        )
+      } yield ContextRequest(
+        MetricsEntry2(requestPrelude, startTime, context, requestBodySizeRef, responseBodySizeRef),
+        requestWithMetrics,
+      )
+    }
+
+    def stopMetrics(metrics: MetricsEntry2[F, ops.Context]): F[FiniteDuration] =
+      for {
+        _ <- ops.decreaseActiveRequests(metrics.request, metrics.context)
+        endTime <- F.monotonic
+      } yield endTime - metrics.startTime
+
+    def metricHeaders(
+        metrics: MetricsEntry2[F, ops.Context],
+        response: Response[F],
+    ): F[ContextResponse[F, ResponsePrelude]] =
+      for {
+        now <- F.monotonic
+        _ <- ops.recordHeadersTime(
+          metrics.request,
+          now - metrics.startTime,
+          metrics.context,
+        )
+        prelude = response.responsePrelude
+        respWithMetrics = response.withBodyStream(
+          response.body.chunks
+            .evalTap { chunk =>
+              metrics.responseBodySizeRef.update(_ + chunk.size.toLong)
+            }
+            .flatMap(fs2.Stream.chunk) /* ++
+            fs2.Stream
+              .eval(
+                metrics.bodySizeRef.get.flatMap { bodySizeBytes =>
+                  if (bodySizeBytes > 0L)
+                    ops.recordResponseBodySize(
+                      metrics.request,
+                      bodySizeBytes,
+                      response,
+                      None,
+                      metrics.context,
+                    )
+                  else
+                    F.unit
+                }
+              )
+              .drain*/
+        )
+      } yield ContextResponse(prelude, respWithMetrics)
+
+    BracketRequestResponse
+      .bracketRequestResponseCaseRoutes_[F, MetricsEntry2[F, ops.Context], ResponsePrelude](
+        (request: Request[F]) => startMetrics(request)
+      ) { case (metrics, maybeResponse, outcome) =>
+        stopMetrics(metrics).flatMap { totalTime =>
+          def recordTotal(
+              response: Option[ResponsePrelude],
+              terminationType: Option[TerminationType],
+          ): F[Unit] =
+            for {
+              _ <- ops.recordTotalTime(
+                metrics.request,
+                response,
+                terminationType,
+                totalTime,
+                metrics.context,
+              )
+              requestBodySize <- metrics.requestBodySizeRef.get
+              _ <- ops.recordRequestBodySize(
+                metrics.request,
+                response,
+                terminationType,
+                requestBodySize,
+                metrics.context,
+              )
+              // if the response body consumption escapes the scope, nothing will be recorded
+              // client.run(resp => IO.pure(resp)).flatMap(resp => resp.body.compile.drain)
+              // we can try to record the body size in 2 places: 1) here; 2) inside the body stream itself
+              // and we can have a Ref[F, Boolean] that will indicate whether data has been recorded
+              _ <- response.traverse_ { response =>
+                for {
+                  responseBodySize <- metrics.responseBodySizeRef.get
+                  _ <- ops.recordResponseBodySize(
+                    metrics.request,
+                    response,
+                    terminationType,
+                    responseBodySize,
+                    metrics.context,
+                  )
+                } yield ()
+              }
+            } yield ()
+
+          def syntheticResponse(status: Status): ResponsePrelude =
+            ResponsePrelude(Headers.empty, metrics.request.httpVersion, status)
+
+          (outcome, maybeResponse) match {
+            case (Outcome.Succeeded(_), None) =>
+              recordTotal(emptyResponseHandler.map(syntheticResponse), None)
+            case (Outcome.Succeeded(_), Some(response)) => recordTotal(Some(response), None)
+            case (Outcome.Errored(e), None) =>
+              ops.recordHeadersTime(
+                metrics.request,
+                totalTime,
+                metrics.context,
+              ) *> recordTotal(errorResponseHandler(e).map(syntheticResponse), Some(Error(e)))
+            case (Outcome.Errored(e), Some(response)) =>
+              recordTotal(Some(response), Some(Abnormal(e)))
+            case (Outcome.Canceled(), None) => recordTotal(None, Some(Canceled))
+            case (Outcome.Canceled(), Some(response)) =>
+              recordTotal(Some(response), Some(Canceled))
+          }
+        }
+      }(F)(Kleisli { case ContextRequest(metrics, request) =>
+        routes(request).semiflatMap(metricHeaders(metrics, _))
+      })
   }
 
 }

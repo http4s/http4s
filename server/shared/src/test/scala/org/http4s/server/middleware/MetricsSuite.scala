@@ -25,6 +25,8 @@ import org.http4s._
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
+import org.http4s.metrics.TestMetricsOps2
+import org.http4s.syntax.literals._
 
 final class MetricsSuite extends Http4sSuite {
 
@@ -111,5 +113,51 @@ final class MetricsSuite extends Http4sSuite {
       _ <- Metrics[IO](ops)(errorRoutes).run(Request[IO]()).value.attempt
       state <- ops.state
     } yield assertEquals(state.headersTime, Nil)
+  }
+
+  test("MetricsOps2 records an errored request with its synthetic response") {
+    val request =
+      Request[IO](method = Method.POST, uri = Uri(path = path"/metrics"))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(errorRoutes).run(request).value.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers.map(_._1), List(request.requestPrelude))
+      assertEquals(state.totals.map(_.status), List(Some(Status.InternalServerError)))
+      assert(state.totals.head.terminationType.exists(_.isInstanceOf[TerminationType.Error]))
+      assertEquals(state.requestBodies, List(request.requestPrelude))
+      assertEquals(state.responseBodies.map(_.status), List(Status.InternalServerError))
+    }
+  }
+
+  test("MetricsOps2 records cancellation before a response without a synthetic status") {
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- runToCompletion(Metrics[IO](ops)(canceledRoutes))
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers, Nil)
+      assertEquals(state.totals.map(_.status), List(None))
+      assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 records cancellation while streaming with the real response") {
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- runToCompletion(Metrics[IO](ops)(canceledBodyRoutes))
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers.size, 1)
+      assertEquals(state.totals.map(_.status), List(Some(Status.Accepted)))
+      assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+      assertEquals(state.responseBodies.map(_.status), List(Status.Accepted))
+    }
   }
 }

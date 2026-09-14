@@ -25,6 +25,7 @@ import org.http4s.client.Client
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
+import org.http4s.metrics.TestMetricsOps2
 import org.http4s.syntax.all._
 
 final class MetricsSuite extends Http4sSuite {
@@ -75,6 +76,45 @@ final class MetricsSuite extends Http4sSuite {
       assertEquals(state.statuses, List(Status.Accepted))
       assertEquals(state.headersTime.size, 1)
       assertEquals(state.active, 0L)
+    }
+  }
+
+  test("MetricsOps2 receives request and response preludes") {
+    val request = Request[IO](method = Method.POST, uri = uri"/metrics").withEntity("request")
+    val client =
+      Client[IO]((_: Request[IO]) => Resource.pure(Response[IO](Status.Created).withEntity("ok")))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(request).use(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers.map(_._1), List(request.requestPrelude))
+      assertEquals(state.headers.map(_._3), List(Some("POST")))
+      assertEquals(state.totals.map(_.status), List(Some(Status.Created)))
+      assertEquals(state.totals.map(_.terminationType), List(None))
+      assertEquals(state.requestBodies, List(request.requestPrelude))
+      assertEquals(state.responseBodies.map(_.status), List(Status.Created))
+    }
+  }
+
+  test("MetricsOps2 records cancellation before a response without inventing a status") {
+    for {
+      ready <- Deferred[IO, Unit]
+      ops <- TestMetricsOps2.create
+      fiber <- Metrics[IO](ops)(hangingClient(ready)).run(req).use_.start
+      _ <- ready.get
+      _ <- fiber.cancel
+      _ <- fiber.join
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers, Nil)
+      assertEquals(state.totals.map(_.status), List(None))
+      assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+      assertEquals(state.requestBodies, List(req.requestPrelude))
+      assertEquals(state.responseBodies, Nil)
     }
   }
 }

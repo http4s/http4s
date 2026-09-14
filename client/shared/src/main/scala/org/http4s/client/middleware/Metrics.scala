@@ -16,17 +16,17 @@
 
 package org.http4s.client.middleware
 
-import cats.effect.Clock
-import cats.effect.Concurrent
-import cats.effect.Ref
-import cats.effect.Resource
+import cats.effect.{Clock, Concurrent, Ref, Resource, Temporal}
 import cats.syntax.all._
 import org.http4s.Request
 import org.http4s.Response
+import org.http4s.ResponsePrelude
 import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.MetricsOps2
+import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.metrics.TerminationType.Timeout
@@ -63,6 +63,11 @@ object Metrics {
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     effect(ops, classifierF.andThen(_.pure[F]))(client)
 
+  def apply[F[_]](
+      ops: MetricsOps2[F]
+  )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
+    Client(withMetrics2(client, ops))
+
   def withCustomLabels[F[_], SL <: SizedSeq[String]](
       ops: CustomMetricsOps[F, SL],
       customLabelValues: SL,
@@ -98,6 +103,91 @@ object Metrics {
       classifierF: Request[F] => F[Option[String]],
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     Client(withMetrics(client, ops, customLabelValues, classifierF))
+
+  private def withMetrics2[F[_]](
+      client: Client[F],
+      ops: MetricsOps2[F],
+  )(req: Request[F])(implicit F: Temporal[F]): Resource[F, Response[F]] = {
+    val request = req.requestPrelude
+
+    for {
+      start <- Resource.eval(F.monotonic)
+      responseRef <- Resource.eval(F.ref(Option.empty[ResponsePrelude]))
+      context <- Resource.eval(ops.createContext(request))
+      _ <- Resource.make(ops.increaseActiveRequests(request, context))(_ =>
+        ops.decreaseActiveRequests(request, context)
+      )
+      requestBodySizeRef <- Resource.eval(F.ref(0L))
+      responseBodySizeRef <- Resource.eval(F.ref(0L))
+      _ <- Resource.onFinalizeCase { exitCase =>
+        val terminationType = exitCase match {
+          case Resource.ExitCase.Succeeded => None
+          case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
+            Some(TerminationType.Timeout)
+          case Resource.ExitCase.Errored(e) => Some(TerminationType.Error(e))
+          case Resource.ExitCase.Canceled => Some(TerminationType.Canceled)
+        }
+
+        for {
+          response <- responseRef.get
+          now <- F.monotonic
+          _ <- ops.recordTotalTime(
+            request,
+            response,
+            terminationType,
+            now - start,
+            context,
+          )
+          requestBodySize <- requestBodySizeRef.get
+          _ <- ops.recordRequestBodySize(
+            request,
+            response,
+            terminationType,
+            requestBodySize,
+            context,
+          )
+          // if the response body consumption escapes the scope, nothing will be recorded
+          // client.run(resp => IO.pure(resp)).flatMap(resp => resp.body.compile.drain)
+          // we can try to record the body size in 2 places: 1) here; 2) inside the body stream itself
+          // and we can have a Ref[F, Boolean] that will indicate whether data has been recorded
+          _ <- response.traverse_ { response =>
+            for {
+              responseBodySize <- responseBodySizeRef.get
+              _ <- ops.recordResponseBodySize(
+                request,
+                response,
+                terminationType,
+                responseBodySize,
+                context,
+              )
+            } yield ()
+
+          }
+
+        } yield ()
+      }
+      reqWithMetrics = req.withBodyStream(
+        req.body.chunks
+          .evalTap { chunk =>
+            requestBodySizeRef.update(_ + chunk.size.toLong)
+          }
+          .flatMap(fs2.Stream.chunk)
+      )
+      resp <- client.run(reqWithMetrics)
+      _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
+      now <- Resource.eval(F.monotonic)
+      _ <- Resource.eval(
+        ops.recordHeadersTime(request, now - start, context)
+      )
+      respWithMetrics = resp.withBodyStream(
+        resp.body.chunks
+          .evalTap { chunk =>
+            responseBodySizeRef.update(_ + chunk.size.toLong)
+          }
+          .flatMap(fs2.Stream.chunk)
+      )
+    } yield respWithMetrics
+  }
 
   private def withMetrics[F[_], SL <: SizedSeq[String]](
       client: Client[F],
