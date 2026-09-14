@@ -19,7 +19,6 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.internal.parsing.CommonRules
-import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
@@ -46,7 +45,7 @@ object Server extends HeaderCompanion[Server]("Server") {
 
   @deprecated("Use parser(Int) instead", "0.23.17")
   private[http4s] val parser: Parser[Server] =
-    parser(Rfc7230.CommentDefaultMaxDepth)
+    parser(CommonRules.CommentDefaultMaxDepth)
 
   private[http4s] def parser(maxDepth: Int): Parser[Server] =
     ProductIdOrComment.serverAgentParser(maxDepth).map {
