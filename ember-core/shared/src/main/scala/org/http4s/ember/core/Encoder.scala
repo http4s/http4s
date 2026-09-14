@@ -62,6 +62,9 @@ private[ember] object Encoder {
       }
 
       def isEmptyBody = resp.body eq EmptyBody
+
+      // While status 205 (Reset Content) responses cannot have a body, it is not included in the
+      // list of statuses in RFC 9112 section 6.3, rule 1 that do not need framing.
       def includeFramingHeader = resp.status.isEntityAllowed || resp.status == Status.ResetContent
 
       if (!appliedContentLength && isEmptyBody && includeFramingHeader) {
