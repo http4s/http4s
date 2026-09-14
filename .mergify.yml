@@ -106,3 +106,13 @@ pull_request_rules:
   actions:
     label:
       add: ['docs']
+- name: Reject AI co-authors
+  conditions:
+    - or:
+      - author ~= "(?i)(copilot|claude|cursor|openai|agent|opencode)"
+      - "commits[*].commit_message ~= (?i)Co-authored-by:.*(copilot|claude|cursor|openai|agent|opencode)"
+  actions:
+    review:
+        type: REQUEST_CHANGES
+        message: |
+          This pull request cannot be merged because one or more commits include an AI tool as an author or co-author.
