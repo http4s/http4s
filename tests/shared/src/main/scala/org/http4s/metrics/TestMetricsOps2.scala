@@ -20,7 +20,6 @@ import cats.effect.IO
 import cats.effect.Ref
 import org.http4s.RequestPrelude
 import org.http4s.ResponsePrelude
-import org.http4s.Status
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -31,13 +30,16 @@ final class TestMetricsOps2 private (ref: Ref[IO, TestMetricsOps2.State]) extend
 
   def state: IO[State] = ref.get
 
-  def createContext(request: RequestPrelude): IO[Context] = IO.pure(Some(request.method.name))
+  def createContext(request: RequestPrelude): IO[Context] = {
+    val context = Some(request.method.name)
+    ref.update(s => s.copy(contexts = (request, context) :: s.contexts)).as(context)
+  }
 
   def increaseActiveRequests(request: RequestPrelude, context: Context): IO[Unit] =
-    ref.update(s => s.copy(active = s.active + 1L))
+    ref.update(s => s.copy(active = s.active + 1L, increases = (request, context) :: s.increases))
 
   def decreaseActiveRequests(request: RequestPrelude, context: Context): IO[Unit] =
-    ref.update(s => s.copy(active = s.active - 1L))
+    ref.update(s => s.copy(active = s.active - 1L, decreases = (request, context) :: s.decreases))
 
   def recordHeadersTime(
       request: RequestPrelude,
@@ -47,48 +49,76 @@ final class TestMetricsOps2 private (ref: Ref[IO, TestMetricsOps2.State]) extend
 
   def recordTotalTime(
       request: RequestPrelude,
-      status: Option[Status],
+      response: Option[ResponsePrelude],
       terminationType: Option[TerminationType],
       elapsed: FiniteDuration,
       context: Context,
   ): IO[Unit] = ref.update(s =>
-    s.copy(totals = Total(request, status, terminationType, elapsed, context) :: s.totals)
+    s.copy(totals = Total(request, response, terminationType, elapsed, context) :: s.totals)
   )
 
   def recordRequestBodySize(
       request: RequestPrelude,
-      status: Option[Status],
+      response: Option[ResponsePrelude],
       terminationType: Option[TerminationType],
+      bodySizeBytes: Long,
       context: Context,
-  ): IO[Unit] = ref.update(s => s.copy(requestBodies = request :: s.requestBodies))
+  ): IO[Unit] = ref.update(s =>
+    s.copy(
+      requestBodies =
+        BodySize(request, response, terminationType, bodySizeBytes, context) :: s.requestBodies
+    )
+  )
 
   def recordResponseBodySize(
       request: RequestPrelude,
       response: ResponsePrelude,
       terminationType: Option[TerminationType],
+      bodySizeBytes: Long,
       context: Context,
-  ): IO[Unit] = ref.update(s => s.copy(responseBodies = response :: s.responseBodies))
+  ): IO[Unit] = ref.update(s =>
+    s.copy(
+      responseBodies = BodySize(
+        request,
+        Some(response),
+        terminationType,
+        bodySizeBytes,
+        context,
+      ) :: s.responseBodies
+    )
+  )
 }
 
 object TestMetricsOps2 {
   final case class Total(
       request: RequestPrelude,
-      status: Option[Status],
+      response: Option[ResponsePrelude],
       terminationType: Option[TerminationType],
       elapsed: FiniteDuration,
       context: Option[String],
   )
 
+  final case class BodySize(
+      request: RequestPrelude,
+      response: Option[ResponsePrelude],
+      terminationType: Option[TerminationType],
+      bodySizeBytes: Long,
+      context: Option[String],
+  )
+
   final case class State(
       active: Long,
+      contexts: List[(RequestPrelude, Option[String])],
+      increases: List[(RequestPrelude, Option[String])],
+      decreases: List[(RequestPrelude, Option[String])],
       headers: List[(RequestPrelude, FiniteDuration, Option[String])],
       totals: List[Total],
-      requestBodies: List[RequestPrelude],
-      responseBodies: List[ResponsePrelude],
+      requestBodies: List[BodySize],
+      responseBodies: List[BodySize],
   )
 
   object State {
-    val empty: State = State(0L, Nil, Nil, Nil, Nil)
+    val empty: State = State(0L, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
   }
 
   def create: IO[TestMetricsOps2] = Ref.of[IO, State](State.empty).map(new TestMetricsOps2(_))

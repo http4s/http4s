@@ -38,7 +38,9 @@ final class MetricsSuite extends Http4sSuite {
   private val canceledBodyRoutes: HttpRoutes[IO] =
     Kleisli((_: Request[IO]) =>
       OptionT.pure[IO](
-        Response[IO](status = Status.Accepted).withBodyStream(Stream.eval(IO.canceled).drain)
+        Response[IO](status = Status.Accepted).withBodyStream(
+          Stream.emit(42.toByte) ++ Stream.eval(IO.canceled).drain
+        )
       )
     )
 
@@ -115,7 +117,7 @@ final class MetricsSuite extends Http4sSuite {
     } yield assertEquals(state.headersTime, Nil)
   }
 
-  test("MetricsOps2 records an errored request with its synthetic response") {
+  test("MetricsOps2 maps an early error to a status without recording a response size") {
     val request =
       Request[IO](method = Method.POST, uri = Uri(path = path"/metrics"))
 
@@ -125,11 +127,19 @@ final class MetricsSuite extends Http4sSuite {
       state <- ops.state
     } yield {
       assertEquals(state.active, 0L)
-      assertEquals(state.headers.map(_._1), List(request.requestPrelude))
-      assertEquals(state.totals.map(_.status), List(Some(Status.InternalServerError)))
+      assertEquals(state.contexts, List(request.requestPrelude -> Some("POST")))
+      assertEquals(state.increases, state.contexts)
+      assertEquals(state.decreases, state.contexts)
+      assertEquals(state.headers, Nil)
+      assertEquals(
+        state.totals.flatMap(_.response.map(_.status)),
+        List(Status.InternalServerError),
+      )
       assert(state.totals.head.terminationType.exists(_.isInstanceOf[TerminationType.Error]))
-      assertEquals(state.requestBodies, List(request.requestPrelude))
-      assertEquals(state.responseBodies.map(_.status), List(Status.InternalServerError))
+      assertEquals(state.totals.map(_.context), List(Some("POST")))
+      assertEquals(state.requestBodies.map(_.request), List(request.requestPrelude))
+      assertEquals(state.requestBodies.map(_.context), List(Some("POST")))
+      assertEquals(state.responseBodies, Nil)
     }
   }
 
@@ -141,7 +151,7 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(state.active, 0L)
       assertEquals(state.headers, Nil)
-      assertEquals(state.totals.map(_.status), List(None))
+      assertEquals(state.totals.map(_.response), List(None))
       assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
       assertEquals(state.responseBodies, Nil)
     }
@@ -155,9 +165,48 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(state.active, 0L)
       assertEquals(state.headers.size, 1)
-      assertEquals(state.totals.map(_.status), List(Some(Status.Accepted)))
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Accepted))
       assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
-      assertEquals(state.responseBodies.map(_.status), List(Status.Accepted))
+      assertEquals(state.responseBodies.flatMap(_.response.map(_.status)), List(Status.Accepted))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(1L))
+    }
+  }
+
+  test("MetricsOps2 counts request and response body bytes") {
+    val request = Request[IO](method = Method.PUT, uri = uri"/metrics")
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
+    val routes = Kleisli((request: Request[IO]) =>
+      OptionT.liftF(
+        request.body.compile.drain.as(
+          Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+        )
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(routes).run(request).value
+      _ <- response.traverse_(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(7L))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(8L))
+      assertEquals(state.contexts, List(request.requestPrelude -> Some("PUT")))
+      assertEquals(state.increases, state.contexts)
+      assertEquals(state.decreases, state.contexts)
+    }
+  }
+
+  test("MetricsOps2 does not record a response size for an unmatched route") {
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(HttpRoutes.empty[IO]).run(Request[IO]()).value
+      state <- ops.state
+    } yield {
+      assertEquals(state.headers, Nil)
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.NotFound))
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
+      assertEquals(state.responseBodies, Nil)
     }
   }
 }

@@ -80,9 +80,17 @@ final class MetricsSuite extends Http4sSuite {
   }
 
   test("MetricsOps2 receives request and response preludes") {
-    val request = Request[IO](method = Method.POST, uri = uri"/metrics").withEntity("request")
+    val request = Request[IO](method = Method.POST, uri = uri"/metrics")
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
     val client =
-      Client[IO]((_: Request[IO]) => Resource.pure(Response[IO](Status.Created).withEntity("ok")))
+      Client[IO](request =>
+        Resource.eval(
+          request.body.compile.drain.as(
+            Response[IO](Status.Created)
+              .withBodyStream(Stream.emits("response".getBytes).covary[IO])
+          )
+        )
+      )
 
     for {
       ops <- TestMetricsOps2.create
@@ -90,12 +98,33 @@ final class MetricsSuite extends Http4sSuite {
       state <- ops.state
     } yield {
       assertEquals(state.active, 0L)
+      assertEquals(state.contexts, List(request.requestPrelude -> Some("POST")))
+      assertEquals(state.increases, state.contexts)
+      assertEquals(state.decreases, state.contexts)
       assertEquals(state.headers.map(_._1), List(request.requestPrelude))
       assertEquals(state.headers.map(_._3), List(Some("POST")))
-      assertEquals(state.totals.map(_.status), List(Some(Status.Created)))
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Created))
       assertEquals(state.totals.map(_.terminationType), List(None))
-      assertEquals(state.requestBodies, List(request.requestPrelude))
-      assertEquals(state.responseBodies.map(_.status), List(Status.Created))
+      assertEquals(state.totals.map(_.context), List(Some("POST")))
+      assertEquals(state.requestBodies.map(_.request), List(request.requestPrelude))
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(7L))
+      assertEquals(state.responseBodies.flatMap(_.response.map(_.status)), List(Status.Created))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(8L))
+      assertEquals(state.requestBodies.map(_.context), List(Some("POST")))
+      assertEquals(state.responseBodies.map(_.context), List(Some("POST")))
+    }
+  }
+
+  test("MetricsOps2 records empty bodies as zero bytes") {
+    val client = Client[IO]((_: Request[IO]) => Resource.pure(Response[IO](Status.NoContent)))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
     }
   }
 
@@ -110,10 +139,31 @@ final class MetricsSuite extends Http4sSuite {
       state <- ops.state
     } yield {
       assertEquals(state.active, 0L)
+      assertEquals(state.contexts.size, 1)
+      assertEquals(state.increases, state.contexts)
+      assertEquals(state.decreases, state.contexts)
       assertEquals(state.headers, Nil)
-      assertEquals(state.totals.map(_.status), List(None))
+      assertEquals(state.totals.map(_.response), List(None))
       assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
-      assertEquals(state.requestBodies, List(req.requestPrelude))
+      assertEquals(state.requestBodies.map(_.request), List(req.requestPrelude))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 records an error before a response without headers or response size") {
+    val failure = new RuntimeException("boom")
+    val client = Client[IO]((_: Request[IO]) => Resource.eval(IO.raiseError(failure)))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use_.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers, Nil)
+      assertEquals(state.totals.map(_.response), List(None))
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
       assertEquals(state.responseBodies, Nil)
     }
   }

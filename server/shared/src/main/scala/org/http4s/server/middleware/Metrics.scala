@@ -83,6 +83,14 @@ object Metrics {
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
 
+  /** A server middleware capable of recording metrics.
+    *
+    * @note Middleware ordering defines the scope of the measurements. It is generally useful to
+    * place metrics outside other middleware so requests handled or rejected there are recorded.
+    * Body sizes are counted from the streams observed at this layer: for example,
+    * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
+    * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
+    */
   def apply[F[_]](
       ops: MetricsOps2[F]
   )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] =
@@ -92,6 +100,14 @@ object Metrics {
       (_: Throwable) => Status.InternalServerError.some,
     )(routes)
 
+  /** A server middleware capable of recording metrics.
+    *
+    * @note Middleware ordering defines the scope of the measurements. It is generally useful to
+    * place metrics outside other middleware so requests handled or rejected there are recorded.
+    * Body sizes are counted from the streams observed at this layer: for example,
+    * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
+    * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
+    */
   def apply[F[_]](
       ops: MetricsOps2[F],
       emptyResponseHandler: Option[Status],
@@ -102,6 +118,14 @@ object Metrics {
       (_: Throwable) => Status.InternalServerError.some,
     )(routes)
 
+  /** A server middleware capable of recording metrics.
+    *
+    * @note Middleware ordering defines the scope of the measurements. It is generally useful to
+    * place metrics outside other middleware so requests handled or rejected there are recorded.
+    * Body sizes are counted from the streams observed at this layer: for example,
+    * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
+    * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
+    */
   def apply[F[_]](
       ops: MetricsOps2[F],
       emptyResponseHandler: Option[Status],
@@ -250,10 +274,10 @@ object Metrics {
       val requestPrelude = request.requestPrelude
       for {
         context <- ops.createContext(requestPrelude)
-        _ <- ops.increaseActiveRequests(requestPrelude, context)
         startTime <- F.monotonic
         requestBodySizeRef <- F.ref(0L)
         responseBodySizeRef <- F.ref(0L)
+        _ <- ops.increaseActiveRequests(requestPrelude, context)
         requestWithMetrics = request.withBodyStream(
           request.body.chunks
             .evalTap { chunk =>
@@ -290,23 +314,7 @@ object Metrics {
             .evalTap { chunk =>
               metrics.responseBodySizeRef.update(_ + chunk.size.toLong)
             }
-            .flatMap(fs2.Stream.chunk) /* ++
-            fs2.Stream
-              .eval(
-                metrics.bodySizeRef.get.flatMap { bodySizeBytes =>
-                  if (bodySizeBytes > 0L)
-                    ops.recordResponseBodySize(
-                      metrics.request,
-                      bodySizeBytes,
-                      response,
-                      None,
-                      metrics.context,
-                    )
-                  else
-                    F.unit
-                }
-              )
-              .drain*/
+            .flatMap(fs2.Stream.chunk)
         )
       } yield ContextResponse(prelude, respWithMetrics)
 
@@ -317,6 +325,7 @@ object Metrics {
         stopMetrics(metrics).flatMap { totalTime =>
           def recordTotal(
               response: Option[ResponsePrelude],
+              actualResponse: Option[ResponsePrelude],
               terminationType: Option[TerminationType],
           ): F[Unit] =
             for {
@@ -335,11 +344,7 @@ object Metrics {
                 requestBodySize,
                 metrics.context,
               )
-              // if the response body consumption escapes the scope, nothing will be recorded
-              // client.run(resp => IO.pure(resp)).flatMap(resp => resp.body.compile.drain)
-              // we can try to record the body size in 2 places: 1) here; 2) inside the body stream itself
-              // and we can have a Ref[F, Boolean] that will indicate whether data has been recorded
-              _ <- response.traverse_ { response =>
+              _ <- actualResponse.traverse_ { response =>
                 for {
                   responseBodySize <- metrics.responseBodySizeRef.get
                   _ <- ops.recordResponseBodySize(
@@ -358,19 +363,16 @@ object Metrics {
 
           (outcome, maybeResponse) match {
             case (Outcome.Succeeded(_), None) =>
-              recordTotal(emptyResponseHandler.map(syntheticResponse), None)
-            case (Outcome.Succeeded(_), Some(response)) => recordTotal(Some(response), None)
+              recordTotal(emptyResponseHandler.map(syntheticResponse), None, None)
+            case (Outcome.Succeeded(_), Some(response)) =>
+              recordTotal(Some(response), Some(response), None)
             case (Outcome.Errored(e), None) =>
-              ops.recordHeadersTime(
-                metrics.request,
-                totalTime,
-                metrics.context,
-              ) *> recordTotal(errorResponseHandler(e).map(syntheticResponse), Some(Error(e)))
+              recordTotal(errorResponseHandler(e).map(syntheticResponse), None, Some(Error(e)))
             case (Outcome.Errored(e), Some(response)) =>
-              recordTotal(Some(response), Some(Abnormal(e)))
-            case (Outcome.Canceled(), None) => recordTotal(None, Some(Canceled))
+              recordTotal(Some(response), Some(response), Some(Abnormal(e)))
+            case (Outcome.Canceled(), None) => recordTotal(None, None, Some(Canceled))
             case (Outcome.Canceled(), Some(response)) =>
-              recordTotal(Some(response), Some(Canceled))
+              recordTotal(Some(response), Some(response), Some(Canceled))
           }
         }
       }(F)(Kleisli { case ContextRequest(metrics, request) =>

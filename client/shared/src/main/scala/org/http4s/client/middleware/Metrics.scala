@@ -63,6 +63,14 @@ object Metrics {
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     effect(ops, classifierF.andThen(_.pure[F]))(client)
 
+  /** Wraps a [[Client]] with a middleware capable of recording metrics.
+    *
+    * @note Middleware ordering defines the scope of the measurements. Placing metrics outside
+    * retry middleware records one logical request, while placing it inside records every attempt.
+    * Body sizes are counted from the streams observed at this layer: for example,
+    * `Metrics(ops)(GZip()(client))` records the decoded, application-facing response, whereas
+    * `GZip()(Metrics(ops)(client))` records the encoded, transport-facing response.
+    */
   def apply[F[_]](
       ops: MetricsOps2[F]
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
