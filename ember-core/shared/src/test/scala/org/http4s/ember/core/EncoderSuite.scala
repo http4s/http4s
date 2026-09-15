@@ -137,6 +137,18 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeResponseRig(resp).assertEquals(expected)
   }
 
+  test("respToBytes should encode a 205 no body response correctly") {
+    val resp = Response[IO](Status.ResetContent)
+
+    val expected =
+      """HTTP/1.1 205 Reset Content
+      |Content-Length: 0
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
   test("respToBytes should encode a no body response correctly with no header") {
     val resp = Response[IO](Status.Ok)
 

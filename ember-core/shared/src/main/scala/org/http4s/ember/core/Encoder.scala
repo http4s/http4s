@@ -39,7 +39,6 @@ private[ember] object Encoder {
       writeBufferSize: Int = 32 * 1024,
   ): Stream[F, Byte] = {
     var chunked = resp.isChunked
-    // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()
@@ -63,11 +62,15 @@ private[ember] object Encoder {
       }
 
       def isEmptyBody = resp.body eq EmptyBody
-      def isEntityAllowed = resp.status.isEntityAllowed
-      if (!appliedContentLength && isEmptyBody && isEntityAllowed) {
+
+      // While status 205 (Reset Content) responses cannot have a body, it is not included in the
+      // list of statuses in RFC 9112 section 6.3, rule 1 that do not need framing.
+      def includeFramingHeader = resp.status.isEntityAllowed || resp.status == Status.ResetContent
+
+      if (!appliedContentLength && isEmptyBody && includeFramingHeader) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-      } else if (!chunked && !appliedContentLength && isEntityAllowed) {
+      } else if (!chunked && !appliedContentLength && includeFramingHeader) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
       }
