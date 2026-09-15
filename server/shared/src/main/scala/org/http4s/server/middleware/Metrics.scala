@@ -271,6 +271,17 @@ object Metrics {
       emptyResponseHandler: Option[Status],
       errorResponseHandler: Throwable => Option[Status],
   )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] = {
+    def countBodyBytes(body: EntityBody[F], sizeRef: Ref[F, Long]): EntityBody[F] =
+      fs2.Stream.suspend {
+        var size = 0L
+        body
+          .mapChunks { chunk =>
+            size += chunk.size.toLong
+            chunk
+          }
+          .onFinalize(sizeRef.update(_ + size))
+      }
+
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
       val metricsRequest = MetricsRequest.fromRequest(request)
       for {
@@ -282,11 +293,7 @@ object Metrics {
           for {
             _ <- ops.increaseActiveRequests(metricsRequest, context)
             requestWithMetrics = request.withBodyStream(
-              request.body.chunks
-                .evalTap { chunk =>
-                  requestBodySizeRef.update(_ + chunk.size.toLong)
-                }
-                .flatMap(fs2.Stream.chunk)
+              countBodyBytes(request.body, requestBodySizeRef)
             )
           } yield ContextRequest(
             MetricsEntry2(
@@ -321,11 +328,7 @@ object Metrics {
         )
         prelude = response.responsePrelude
         respWithMetrics = response.withBodyStream(
-          response.body.chunks
-            .evalTap { chunk =>
-              metrics.responseBodySizeRef.update(_ + chunk.size.toLong)
-            }
-            .flatMap(fs2.Stream.chunk)
+          countBodyBytes(response.body, metrics.responseBodySizeRef)
         )
       } yield ContextResponse(prelude, respWithMetrics)
 

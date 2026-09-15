@@ -125,6 +125,32 @@ object Metrics {
   )(req: Request[F])(implicit F: Temporal[F]): Resource[F, Response[F]] = {
     val request = MetricsRequest.fromRequest(req)
 
+    def countBodyBytes(
+        body: fs2.Stream[F, Byte],
+        sizeRef: Ref[F, Long],
+    ): fs2.Stream[F, Byte] =
+      fs2.Stream.suspend {
+        var size = 0L
+        body
+          .mapChunks { chunk =>
+            size += chunk.size.toLong
+            chunk
+          }
+          .onFinalize(sizeRef.update(_ + size))
+      }
+
+    def countCompletedBodyBytes(
+        body: fs2.Stream[F, Byte],
+        completedSizeRef: Ref[F, Option[Long]],
+    ): fs2.Stream[F, Byte] =
+      fs2.Stream.suspend {
+        var size = 0L
+        body.mapChunks { chunk =>
+          size += chunk.size.toLong
+          chunk
+        } ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
+      }
+
     for {
       start <- Resource.eval(F.monotonic)
       responseRef <- Resource.eval(F.ref(Option.empty[ResponsePrelude]))
@@ -161,28 +187,24 @@ object Metrics {
             requestBodySize,
             context,
           )
-          responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
-          _ <- response.traverse_ { response =>
-            responseBodyCompletedSize.traverse_ { responseBodySize =>
-              ops.recordResponseBodySize(
-                request,
-                response,
-                terminationType,
-                responseBodySize,
-                context,
-              )
-            }
-
+          _ <- response.fold(F.unit) { response =>
+            for {
+              responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
+              _ <- responseBodyCompletedSize.fold(F.unit) { responseBodySize =>
+                ops.recordResponseBodySize(
+                  request,
+                  response,
+                  terminationType,
+                  responseBodySize,
+                  context,
+                )
+              }
+            } yield ()
           }
-
         } yield ()
       }
       reqWithMetrics = req.withBodyStream(
-        req.body.chunks
-          .evalTap { chunk =>
-            requestBodySizeRef.update(_ + chunk.size.toLong)
-          }
-          .flatMap(fs2.Stream.chunk)
+        countBodyBytes(req.body, requestBodySizeRef)
       )
       resp <- client.run(reqWithMetrics)
       _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
@@ -191,22 +213,7 @@ object Metrics {
         ops.recordHeadersTime(request, now - start, context)
       )
       respWithMetrics = resp.withBodyStream(
-        fs2.Stream.eval(F.ref(0L)).flatMap { responseBodySizeRef =>
-          resp.body.chunks
-            .evalTap { chunk =>
-              responseBodyCompletedSizeRef.get.flatMap {
-                case Some(_) => F.unit
-                case None => responseBodySizeRef.update(_ + chunk.size.toLong)
-              }
-            }
-            .flatMap(fs2.Stream.chunk) ++ fs2.Stream
-            .eval(
-              responseBodySizeRef.get.flatMap { responseBodySize =>
-                responseBodyCompletedSizeRef.update(_.orElse(Some(responseBodySize)))
-              }
-            )
-            .drain
-        }
+        countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef)
       )
     } yield respWithMetrics
   }
