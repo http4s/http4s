@@ -16,7 +16,11 @@
 
 package org.http4s.client.middleware
 
-import cats.effect.{Clock, Concurrent, Ref, Resource, Temporal}
+import cats.effect.Clock
+import cats.effect.Concurrent
+import cats.effect.Ref
+import cats.effect.Resource
+import cats.effect.Temporal
 import cats.syntax.all._
 import org.http4s.Request
 import org.http4s.Response
@@ -24,9 +28,9 @@ import org.http4s.ResponsePrelude
 import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
-import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.MetricsOps2
+import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error

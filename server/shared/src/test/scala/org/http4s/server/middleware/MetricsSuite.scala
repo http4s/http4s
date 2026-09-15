@@ -22,8 +22,8 @@ import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
-import org.http4s._
 import org.http4s.Request.Connection
+import org.http4s._
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps

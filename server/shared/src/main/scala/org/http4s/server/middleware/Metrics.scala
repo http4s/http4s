@@ -22,9 +22,9 @@ import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
-import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.MetricsOps2
+import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
