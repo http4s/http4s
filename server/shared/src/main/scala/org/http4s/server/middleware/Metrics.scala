@@ -274,28 +274,38 @@ object Metrics {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
       val metricsRequest = MetricsRequest.fromRequest(request)
       for {
-        context <- ops.createContext(metricsRequest)
         startTime <- F.monotonic
+        context <- ops.createContext(metricsRequest)
         requestBodySizeRef <- F.ref(0L)
         responseBodySizeRef <- F.ref(0L)
-        _ <- ops.increaseActiveRequests(metricsRequest, context)
-        requestWithMetrics = request.withBodyStream(
-          request.body.chunks
-            .evalTap { chunk =>
-              requestBodySizeRef.update(_ + chunk.size.toLong)
-            }
-            .flatMap(fs2.Stream.chunk)
-        )
-      } yield ContextRequest(
-        MetricsEntry2(metricsRequest, startTime, context, requestBodySizeRef, responseBodySizeRef),
-        requestWithMetrics,
-      )
+        contextRequest <- F.uncancelable { _ =>
+          for {
+            _ <- ops.increaseActiveRequests(metricsRequest, context)
+            requestWithMetrics = request.withBodyStream(
+              request.body.chunks
+                .evalTap { chunk =>
+                  requestBodySizeRef.update(_ + chunk.size.toLong)
+                }
+                .flatMap(fs2.Stream.chunk)
+            )
+          } yield ContextRequest(
+            MetricsEntry2(
+              metricsRequest,
+              startTime,
+              context,
+              requestBodySizeRef,
+              responseBodySizeRef,
+            ),
+            requestWithMetrics,
+          )
+        }
+      } yield contextRequest
     }
 
     def stopMetrics(metrics: MetricsEntry2[F, ops.Context]): F[FiniteDuration] =
       for {
-        _ <- ops.decreaseActiveRequests(metrics.request, metrics.context)
         endTime <- F.monotonic
+        _ <- ops.decreaseActiveRequests(metrics.request, metrics.context)
       } yield endTime - metrics.startTime
 
     def metricHeaders(
@@ -326,7 +336,6 @@ object Metrics {
         stopMetrics(metrics).flatMap { totalTime =>
           def recordTotal(
               response: Option[ResponsePrelude],
-              actualResponse: Option[ResponsePrelude],
               terminationType: Option[TerminationType],
           ): F[Unit] =
             for {
@@ -345,12 +354,12 @@ object Metrics {
                 requestBodySize,
                 metrics.context,
               )
-              _ <- actualResponse.traverse_ { response =>
+              _ <- response.fold(F.unit) { resp =>
                 for {
                   responseBodySize <- metrics.responseBodySizeRef.get
                   _ <- ops.recordResponseBodySize(
                     metrics.request,
-                    response,
+                    resp,
                     terminationType,
                     responseBodySize,
                     metrics.context,
@@ -359,21 +368,18 @@ object Metrics {
               }
             } yield ()
 
-          def syntheticResponse(status: Status): ResponsePrelude =
-            ResponsePrelude(Headers.empty, metrics.request.requestPrelude.httpVersion, status)
-
           (outcome, maybeResponse) match {
             case (Outcome.Succeeded(_), None) =>
-              recordTotal(emptyResponseHandler.map(syntheticResponse), None, None)
+              emptyResponseHandler.fold(F.unit)(_ => recordTotal(None, None))
             case (Outcome.Succeeded(_), Some(response)) =>
-              recordTotal(Some(response), Some(response), None)
+              recordTotal(Some(response), None)
             case (Outcome.Errored(e), None) =>
-              recordTotal(errorResponseHandler(e).map(syntheticResponse), None, Some(Error(e)))
+              errorResponseHandler(e).fold(F.unit)(_ => recordTotal(None, Some(Error(e))))
             case (Outcome.Errored(e), Some(response)) =>
-              recordTotal(Some(response), Some(response), Some(Abnormal(e)))
-            case (Outcome.Canceled(), None) => recordTotal(None, None, Some(Canceled))
+              recordTotal(Some(response), Some(Abnormal(e)))
+            case (Outcome.Canceled(), None) => recordTotal(None, Some(Canceled))
             case (Outcome.Canceled(), Some(response)) =>
-              recordTotal(Some(response), Some(response), Some(Canceled))
+              recordTotal(Some(response), Some(Canceled))
           }
         }
       }(F)(Kleisli { case ContextRequest(metrics, request) =>

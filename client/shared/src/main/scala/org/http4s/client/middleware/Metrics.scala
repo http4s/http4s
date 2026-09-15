@@ -70,7 +70,9 @@ object Metrics {
     * retry middleware records one logical request, while placing it inside records every attempt.
     * Body sizes are counted from the streams observed at this layer: for example,
     * `Metrics(ops)(GZip()(client))` records the decoded, application-facing response, whereas
-    * `GZip()(Metrics(ops)(client))` records the encoded, transport-facing response.
+    * `GZip()(Metrics(ops)(client))` records the encoded, transport-facing response. Backends that
+    * require transferred body sizes, such as OpenTelemetry HTTP metrics, should place this
+    * middleware where it observes the transport-encoded streams.
     */
   def apply[F[_]](
       ops: MetricsOps2[F]
@@ -127,7 +129,7 @@ object Metrics {
         ops.decreaseActiveRequests(request, context)
       )
       requestBodySizeRef <- Resource.eval(F.ref(0L))
-      responseBodySizeRef <- Resource.eval(F.ref(0L))
+      responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
       _ <- Resource.onFinalizeCase { exitCase =>
         val terminationType = exitCase match {
           case Resource.ExitCase.Succeeded => None
@@ -155,21 +157,17 @@ object Metrics {
             requestBodySize,
             context,
           )
-          // if the response body consumption escapes the scope, nothing will be recorded
-          // client.run(resp => IO.pure(resp)).flatMap(resp => resp.body.compile.drain)
-          // we can try to record the body size in 2 places: 1) here; 2) inside the body stream itself
-          // and we can have a Ref[F, Boolean] that will indicate whether data has been recorded
+          responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
           _ <- response.traverse_ { response =>
-            for {
-              responseBodySize <- responseBodySizeRef.get
-              _ <- ops.recordResponseBodySize(
+            responseBodyCompletedSize.traverse_ { responseBodySize =>
+              ops.recordResponseBodySize(
                 request,
                 response,
                 terminationType,
                 responseBodySize,
                 context,
               )
-            } yield ()
+            }
 
           }
 
@@ -189,11 +187,22 @@ object Metrics {
         ops.recordHeadersTime(request, now - start, context)
       )
       respWithMetrics = resp.withBodyStream(
-        resp.body.chunks
-          .evalTap { chunk =>
-            responseBodySizeRef.update(_ + chunk.size.toLong)
-          }
-          .flatMap(fs2.Stream.chunk)
+        fs2.Stream.eval(F.ref(0L)).flatMap { responseBodySizeRef =>
+          resp.body.chunks
+            .evalTap { chunk =>
+              responseBodyCompletedSizeRef.get.flatMap {
+                case Some(_) => F.unit
+                case None => responseBodySizeRef.update(_ + chunk.size.toLong)
+              }
+            }
+            .flatMap(fs2.Stream.chunk) ++ fs2.Stream
+            .eval(
+              responseBodySizeRef.get.flatMap { responseBodySize =>
+                responseBodyCompletedSizeRef.update(_.orElse(Some(responseBodySize)))
+              }
+            )
+            .drain
+        }
       )
     } yield respWithMetrics
   }

@@ -120,7 +120,7 @@ final class MetricsSuite extends Http4sSuite {
     } yield assertEquals(state.headersTime, Nil)
   }
 
-  test("MetricsOps2 maps an early error to a status without recording a response size") {
+  test("MetricsOps2 records an early error without inventing a response status") {
     val request =
       Request[IO](method = Method.POST, uri = Uri(path = path"/metrics"))
 
@@ -134,10 +134,7 @@ final class MetricsSuite extends Http4sSuite {
       assertEquals(state.increases, state.contexts)
       assertEquals(state.decreases, state.contexts)
       assertEquals(state.headers, Nil)
-      assertEquals(
-        state.totals.flatMap(_.response.map(_.status)),
-        List(Status.InternalServerError),
-      )
+      assertEquals(state.totals.map(_.response), List(None))
       assert(state.totals.head.terminationType.exists(_.isInstanceOf[TerminationType.Error]))
       assertEquals(state.totals.map(_.context), List(Some("POST")))
       assertEquals(state.requestBodies.map(_.request), List(request.requestPrelude))
@@ -226,7 +223,7 @@ final class MetricsSuite extends Http4sSuite {
       state <- ops.state
     } yield {
       assertEquals(state.headers, Nil)
-      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.NotFound))
+      assertEquals(state.totals.map(_.response), List(None))
       assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
       assertEquals(state.responseBodies, Nil)
     }

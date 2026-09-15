@@ -129,6 +129,57 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
+  test("MetricsOps2 skips response body size when the response body is not consumed") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      status <- Metrics[IO](ops)(client).status(req)
+      state <- ops.state
+    } yield {
+      assertEquals(status, Status.Ok)
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Ok))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 skips response body size when the response body is partially consumed") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.take(1).compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Ok))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 records a replayable response body size once") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use { response =>
+        response.body.compile.drain >> response.body.compile.drain
+      }
+      state <- ops.state
+    } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(8L))
+  }
+
   test("MetricsOps2 records cancellation before a response without inventing a status") {
     for {
       ready <- Deferred[IO, Unit]
