@@ -20,13 +20,16 @@ import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all._
+import com.comcast.ip4s._
 import fs2.Stream
 import org.http4s._
+import org.http4s.Request.Connection
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
 import org.http4s.metrics.TestMetricsOps2
 import org.http4s.syntax.literals._
+import org.typelevel.vault.Vault
 
 final class MetricsSuite extends Http4sSuite {
 
@@ -195,6 +198,25 @@ final class MetricsSuite extends Http4sSuite {
       assertEquals(state.increases, state.contexts)
       assertEquals(state.decreases, state.contexts)
     }
+  }
+
+  test("MetricsOps2 receives server connection information") {
+    val connection = Connection(
+      SocketAddress(ip"127.0.0.1", port"443"),
+      SocketAddress(ip"192.0.2.1", port"12345"),
+      secure = true,
+    )
+    val request = Request[IO](
+      attributes = Vault.empty.insert(Request.Keys.ConnectionInfo, connection)
+    )
+    val routes = HttpRoutes.pure[IO](Response[IO](Status.NoContent))
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(routes).run(request).value
+      _ <- response.traverse_(_.body.compile.drain)
+      state <- ops.state
+    } yield assertEquals(state.connectionInfos, List(Some(connection)))
   }
 
   test("MetricsOps2 does not record a response size for an unmatched route") {

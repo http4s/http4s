@@ -22,6 +22,7 @@ import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
+import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.MetricsOps2
 import org.http4s.metrics.TerminationType
@@ -56,7 +57,7 @@ object Metrics {
   )
 
   private[this] final case class MetricsEntry2[F[_], Context](
-      request: RequestPrelude,
+      request: MetricsRequest,
       startTime: FiniteDuration,
       context: Context,
       requestBodySizeRef: Ref[F, Long],
@@ -271,13 +272,13 @@ object Metrics {
       errorResponseHandler: Throwable => Option[Status],
   )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] = {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
-      val requestPrelude = request.requestPrelude
+      val metricsRequest = MetricsRequest.fromRequest(request)
       for {
-        context <- ops.createContext(requestPrelude)
+        context <- ops.createContext(metricsRequest)
         startTime <- F.monotonic
         requestBodySizeRef <- F.ref(0L)
         responseBodySizeRef <- F.ref(0L)
-        _ <- ops.increaseActiveRequests(requestPrelude, context)
+        _ <- ops.increaseActiveRequests(metricsRequest, context)
         requestWithMetrics = request.withBodyStream(
           request.body.chunks
             .evalTap { chunk =>
@@ -286,7 +287,7 @@ object Metrics {
             .flatMap(fs2.Stream.chunk)
         )
       } yield ContextRequest(
-        MetricsEntry2(requestPrelude, startTime, context, requestBodySizeRef, responseBodySizeRef),
+        MetricsEntry2(metricsRequest, startTime, context, requestBodySizeRef, responseBodySizeRef),
         requestWithMetrics,
       )
     }
@@ -359,7 +360,7 @@ object Metrics {
             } yield ()
 
           def syntheticResponse(status: Status): ResponsePrelude =
-            ResponsePrelude(Headers.empty, metrics.request.httpVersion, status)
+            ResponsePrelude(Headers.empty, metrics.request.requestPrelude.httpVersion, status)
 
           (outcome, maybeResponse) match {
             case (Outcome.Succeeded(_), None) =>

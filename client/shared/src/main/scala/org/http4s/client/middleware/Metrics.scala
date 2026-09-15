@@ -24,6 +24,7 @@ import org.http4s.ResponsePrelude
 import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
+import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.MetricsOps2
 import org.http4s.metrics.TerminationType
@@ -116,7 +117,7 @@ object Metrics {
       client: Client[F],
       ops: MetricsOps2[F],
   )(req: Request[F])(implicit F: Temporal[F]): Resource[F, Response[F]] = {
-    val request = req.requestPrelude
+    val request = MetricsRequest.fromRequest(req)
 
     for {
       start <- Resource.eval(F.monotonic)

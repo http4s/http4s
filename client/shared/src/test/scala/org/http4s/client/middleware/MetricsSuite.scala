@@ -99,6 +99,7 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(state.active, 0L)
       assertEquals(state.contexts, List(request.requestPrelude -> Some("POST")))
+      assertEquals(state.connectionInfos, List(None))
       assertEquals(state.increases, state.contexts)
       assertEquals(state.decreases, state.contexts)
       assertEquals(state.headers.map(_._1), List(request.requestPrelude))

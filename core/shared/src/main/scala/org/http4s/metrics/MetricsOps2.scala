@@ -17,7 +17,6 @@
 package org.http4s.metrics
 
 import cats.~>
-import org.http4s.RequestPrelude
 import org.http4s.ResponsePrelude
 
 import scala.concurrent.duration.FiniteDuration
@@ -35,20 +34,20 @@ trait MetricsOps2[F[_]] { self =>
   /** Creates the metrics context once at the beginning of a request.
     * Each metric provider can use their own context: otel4s can use Attributes, while Prometheus can use Labels.
     */
-  def createContext(request: RequestPrelude): F[Context]
+  def createContext(request: MetricsRequest): F[Context]
 
-  def increaseActiveRequests(request: RequestPrelude, context: Context): F[Unit]
+  def increaseActiveRequests(request: MetricsRequest, context: Context): F[Unit]
 
-  def decreaseActiveRequests(request: RequestPrelude, context: Context): F[Unit]
+  def decreaseActiveRequests(request: MetricsRequest, context: Context): F[Unit]
 
   def recordHeadersTime(
-      request: RequestPrelude,
+      request: MetricsRequest,
       elapsed: FiniteDuration,
       context: Context,
   ): F[Unit]
 
   def recordTotalTime(
-      request: RequestPrelude,
+      request: MetricsRequest,
       response: Option[ResponsePrelude],
       terminationType: Option[TerminationType],
       elapsed: FiniteDuration,
@@ -56,7 +55,7 @@ trait MetricsOps2[F[_]] { self =>
   ): F[Unit]
 
   def recordRequestBodySize(
-      request: RequestPrelude,
+      request: MetricsRequest,
       response: Option[ResponsePrelude],
       terminationType: Option[TerminationType],
       bodySizeBytes: Long,
@@ -64,7 +63,7 @@ trait MetricsOps2[F[_]] { self =>
   ): F[Unit]
 
   def recordResponseBodySize(
-      request: RequestPrelude,
+      request: MetricsRequest,
       response: ResponsePrelude,
       terminationType: Option[TerminationType],
       bodySizeBytes: Long,
@@ -75,27 +74,27 @@ trait MetricsOps2[F[_]] { self =>
     new MetricsOps2[G] {
       override type Context = self.Context
 
-      override def createContext(request: RequestPrelude): G[Context] =
+      override def createContext(request: MetricsRequest): G[Context] =
         fk(self.createContext(request))
 
       override def increaseActiveRequests(
-          request: RequestPrelude,
+          request: MetricsRequest,
           context: Context,
       ): G[Unit] = fk(self.increaseActiveRequests(request, context))
 
       override def decreaseActiveRequests(
-          request: RequestPrelude,
+          request: MetricsRequest,
           context: Context,
       ): G[Unit] = fk(self.decreaseActiveRequests(request, context))
 
       override def recordHeadersTime(
-          request: RequestPrelude,
+          request: MetricsRequest,
           elapsed: FiniteDuration,
           context: Context,
       ): G[Unit] = fk(self.recordHeadersTime(request, elapsed, context))
 
       override def recordTotalTime(
-          request: RequestPrelude,
+          request: MetricsRequest,
           response: Option[ResponsePrelude],
           terminationType: Option[TerminationType],
           elapsed: FiniteDuration,
@@ -103,7 +102,7 @@ trait MetricsOps2[F[_]] { self =>
       ): G[Unit] = fk(self.recordTotalTime(request, response, terminationType, elapsed, context))
 
       override def recordRequestBodySize(
-          request: RequestPrelude,
+          request: MetricsRequest,
           response: Option[ResponsePrelude],
           terminationType: Option[TerminationType],
           bodySizeBytes: Long,
@@ -113,7 +112,7 @@ trait MetricsOps2[F[_]] { self =>
       )
 
       override def recordResponseBodySize(
-          request: RequestPrelude,
+          request: MetricsRequest,
           response: ResponsePrelude,
           terminationType: Option[TerminationType],
           bodySizeBytes: Long,
