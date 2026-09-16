@@ -86,14 +86,17 @@ object Metrics {
 
   /** A server middleware capable of recording metrics.
     *
-    * @note Middleware ordering defines the scope of the measurements. It is generally useful to
-    * place metrics outside other middleware so requests handled or rejected there are recorded.
-    * Body sizes are counted from the streams observed at this layer: for example,
-    * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
-    * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
-    * A `Content-Length` header is preferred when available, avoiding per-chunk instrumentation;
-    * otherwise, the observed chunks are counted. Consequently, a known length is the declared
-    * size even if processing ends early.
+    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. For
+    * transport-level measurements, make this the outermost routes middleware: apply compression
+    * and other body-transforming middleware first, then pass the routes wrapped by `Metrics`
+    * directly to the server backend. For example, `Metrics(ops)(GZip(routes))` measures the encoded
+    * response. A known length remains the declared size if processing ends early.
+    *
+    * @example
+    * {{{
+    * val routes: HttpRoutes[F] = ???
+    * val measuredRoutes = Metrics(ops)(GZip(routes))
+    * }}}
     */
   def apply[F[_]](
       ops: MetricsOps2[F]
@@ -106,14 +109,11 @@ object Metrics {
 
   /** A server middleware capable of recording metrics.
     *
-    * @note Middleware ordering defines the scope of the measurements. It is generally useful to
-    * place metrics outside other middleware so requests handled or rejected there are recorded.
-    * Body sizes are counted from the streams observed at this layer: for example,
-    * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
-    * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
-    * A `Content-Length` header is preferred when available, avoiding per-chunk instrumentation;
-    * otherwise, the observed chunks are counted. Consequently, a known length is the declared
-    * size even if processing ends early.
+    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. For
+    * transport-level measurements, make this the outermost routes middleware: apply compression
+    * and other body-transforming middleware first, then pass the routes wrapped by `Metrics`
+    * directly to the server backend. For example, `Metrics(ops)(GZip(routes))` measures the encoded
+    * response. A known length remains the declared size if processing ends early.
     */
   def apply[F[_]](
       ops: MetricsOps2[F],
@@ -127,14 +127,11 @@ object Metrics {
 
   /** A server middleware capable of recording metrics.
     *
-    * @note Middleware ordering defines the scope of the measurements. It is generally useful to
-    * place metrics outside other middleware so requests handled or rejected there are recorded.
-    * Body sizes are counted from the streams observed at this layer: for example,
-    * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
-    * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
-    * A `Content-Length` header is preferred when available, avoiding per-chunk instrumentation;
-    * otherwise, the observed chunks are counted. Consequently, a known length is the declared
-    * size even if processing ends early.
+    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. For
+    * transport-level measurements, make this the outermost routes middleware: apply compression
+    * and other body-transforming middleware first, then pass the routes wrapped by `Metrics`
+    * directly to the server backend. For example, `Metrics(ops)(GZip(routes))` measures the encoded
+    * response. A known length remains the declared size if processing ends early.
     */
   def apply[F[_]](
       ops: MetricsOps2[F],

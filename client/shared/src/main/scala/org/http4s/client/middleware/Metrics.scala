@@ -71,16 +71,19 @@ object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics.
     *
-    * @note Middleware ordering defines the scope of the measurements. Placing metrics outside
-    * retry middleware records one logical request, while placing it inside records every attempt.
-    * Body sizes are counted from the streams observed at this layer: for example,
-    * `Metrics(ops)(GZip()(client))` records the decoded, application-facing response, whereas
-    * `GZip()(Metrics(ops)(client))` records the encoded, transport-facing response. Backends that
-    * require transferred body sizes, such as OpenTelemetry HTTP metrics, should place this
-    * middleware where it observes the transport-encoded streams. A `Content-Length` header is
-    * preferred when available, avoiding per-chunk instrumentation; otherwise, the observed chunks
-    * are counted. Consequently, a known request length is the declared size even if sending ends
-    * early. A response size is recorded only after its body is fully consumed.
+    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. For
+    * transport-level measurements, install this middleware directly around the underlying client,
+    * then wrap it with compression, retry, and other higher-level middleware. This placement sees
+    * encoded bodies and records retries as individual transport attempts. A known request length
+    * remains the declared size if sending ends early; response size is recorded only after the body
+    * is fully consumed.
+    *
+    * @example
+    * {{{
+    * val transport: Client[F] = ???
+    * val measuredTransport = Metrics(ops)(transport)
+    * val client = GZip()(measuredTransport)
+    * }}}
     */
   def apply[F[_]](
       ops: MetricsOps2[F]
