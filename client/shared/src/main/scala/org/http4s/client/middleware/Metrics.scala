@@ -167,76 +167,81 @@ object Metrics {
 
     val requestBodySize = req.contentLength
 
-    for {
-      start <- Resource.eval(F.monotonic)
-      responseRef <- Resource.eval(F.ref(Option.empty[ResponsePrelude]))
-      context <- Resource.eval(ops.createContext(request))
-      _ <- Resource.make(ops.increaseActiveRequests(request, context))(_ =>
-        ops.decreaseActiveRequests(request, context)
-      )
-      requestBodySizeRef <- Resource.eval(F.ref(requestBodySize.getOrElse(0L)))
-      responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
-      _ <- Resource.onFinalizeCase { exitCase =>
-        val terminationType = exitCase match {
-          case Resource.ExitCase.Succeeded => None
-          case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
-            Some(TerminationType.Timeout)
-          case Resource.ExitCase.Errored(e) => Some(TerminationType.Error(e))
-          case Resource.ExitCase.Canceled => Some(TerminationType.Canceled)
-        }
+    Resource.eval(ops.createContext(request)).flatMap {
+      case None =>
+        client.run(req)
 
+      case Some(context) =>
         for {
-          response <- responseRef.get
-          now <- F.monotonic
-          _ <- ops.recordTotalTime(
-            request,
-            response,
-            terminationType,
-            now - start,
-            context,
+          start <- Resource.eval(F.monotonic)
+          responseRef <- Resource.eval(F.ref(Option.empty[ResponsePrelude]))
+          _ <- Resource.make(ops.increaseActiveRequests(request, context))(_ =>
+            ops.decreaseActiveRequests(request, context)
           )
-          requestBodySize <- requestBodySizeRef.get
-          _ <- ops.recordRequestBodySize(
-            request,
-            response,
-            terminationType,
-            requestBodySize,
-            context,
-          )
-          _ <- response.fold(F.unit) { response =>
+          requestBodySizeRef <- Resource.eval(F.ref(requestBodySize.getOrElse(0L)))
+          responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
+          _ <- Resource.onFinalizeCase { exitCase =>
+            val terminationType = exitCase match {
+              case Resource.ExitCase.Succeeded => None
+              case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
+                Some(TerminationType.Timeout)
+              case Resource.ExitCase.Errored(e) => Some(TerminationType.Error(e))
+              case Resource.ExitCase.Canceled => Some(TerminationType.Canceled)
+            }
+
             for {
-              responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
-              _ <- responseBodyCompletedSize.fold(F.unit) { responseBodySize =>
-                ops.recordResponseBodySize(
-                  request,
-                  response,
-                  terminationType,
-                  responseBodySize,
-                  context,
-                )
+              response <- responseRef.get
+              now <- F.monotonic
+              _ <- ops.recordTotalTime(
+                request,
+                response,
+                terminationType,
+                now - start,
+                context,
+              )
+              requestBodySize <- requestBodySizeRef.get
+              _ <- ops.recordRequestBodySize(
+                request,
+                response,
+                terminationType,
+                requestBodySize,
+                context,
+              )
+              _ <- response.fold(F.unit) { response =>
+                for {
+                  responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
+                  _ <- responseBodyCompletedSize.fold(F.unit) { responseBodySize =>
+                    ops.recordResponseBodySize(
+                      request,
+                      response,
+                      terminationType,
+                      responseBodySize,
+                      context,
+                    )
+                  }
+                } yield ()
               }
             } yield ()
           }
-        } yield ()
-      }
-      reqWithMetrics = req.withBodyStream(
-        requestBodySize.fold(countBodyBytes(req.body, requestBodySizeRef))(_ => req.body)
-      )
-      resp <- client.run(reqWithMetrics)
-      _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
-      now <- Resource.eval(F.monotonic)
-      _ <- Resource.eval(
-        ops.recordHeadersTime(request, now - start, context)
-      )
-      responseBodySize =
-        if (req.method == Method.HEAD || !resp.status.isEntityAllowed) Some(0L)
-        else resp.contentLength
-      respWithMetrics = resp.withBodyStream(
-        responseBodySize.fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
-          markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
-        )
-      )
-    } yield respWithMetrics
+          reqWithMetrics = req.withBodyStream(
+            requestBodySize.fold(countBodyBytes(req.body, requestBodySizeRef))(_ => req.body)
+          )
+          resp <- client.run(reqWithMetrics)
+          _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
+          now <- Resource.eval(F.monotonic)
+          _ <- Resource.eval(
+            ops.recordHeadersTime(request, now - start, context)
+          )
+          responseBodySize =
+            if (req.method == Method.HEAD || !resp.status.isEntityAllowed) Some(0L)
+            else resp.contentLength
+          respWithMetrics = resp.withBodyStream(
+            responseBodySize.fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
+              markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
+            )
+          )
+        } yield respWithMetrics
+    }
   }
 
   private def withMetrics[F[_], SL <: SizedSeq[String]](

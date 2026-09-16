@@ -31,10 +31,11 @@ trait MetricsOps2[F[_]] { self =>
   /** Backend-specific context shared by all metrics recorded for a request. */
   type Context
 
-  /** Creates the metrics context once at the beginning of a request.
-    * Each metric provider can use their own context: otel4s can use Attributes, while Prometheus can use Labels.
+  /** Optionally creates the metrics context once at the beginning of a request.
+    * Each metric provider can use its own context: otel4s can use Attributes, while Prometheus can
+    * use Labels. Returning `None` excludes the request from all metrics and body instrumentation.
     */
-  def createContext(request: MetricsRequest): F[Context]
+  def createContext(request: MetricsRequest): F[Option[Context]]
 
   def increaseActiveRequests(request: MetricsRequest, context: Context): F[Unit]
 
@@ -74,7 +75,7 @@ trait MetricsOps2[F[_]] { self =>
     new MetricsOps2[G] {
       override type Context = self.Context
 
-      override def createContext(request: MetricsRequest): G[Context] =
+      override def createContext(request: MetricsRequest): G[Option[Context]] =
         fk(self.createContext(request))
 
       override def increaseActiveRequests(

@@ -63,6 +63,14 @@ final class MetricsSuite extends Http4sSuite {
       .flatMap(_.join)
       .void
 
+  private def runAppToCompletion(app: HttpApp[IO]): IO[Unit] =
+    app
+      .run(Request[IO]())
+      .flatMap(_.body.compile.drain)
+      .start
+      .flatMap(_.join)
+      .void
+
   test("a request canceled before a response is counted as CanceledStatus") {
     for {
       ops <- TestMetricsOps.create
@@ -127,7 +135,7 @@ final class MetricsSuite extends Http4sSuite {
 
     for {
       ops <- TestMetricsOps2.create
-      _ <- Metrics[IO](ops)(errorRoutes).run(request).value.attempt
+      _ <- Metrics[IO](ops)(errorRoutes.orNotFound).run(request).attempt
       state <- ops.state
     } yield {
       assertEquals(state.active, 0L)
@@ -147,7 +155,7 @@ final class MetricsSuite extends Http4sSuite {
   test("MetricsOps2 records cancellation before a response without a synthetic status") {
     for {
       ops <- TestMetricsOps2.create
-      _ <- runToCompletion(Metrics[IO](ops)(canceledRoutes))
+      _ <- runAppToCompletion(Metrics[IO](ops)(canceledRoutes.orNotFound))
       state <- ops.state
     } yield {
       assertEquals(state.active, 0L)
@@ -161,7 +169,7 @@ final class MetricsSuite extends Http4sSuite {
   test("MetricsOps2 records cancellation while streaming with the real response") {
     for {
       ops <- TestMetricsOps2.create
-      _ <- runToCompletion(Metrics[IO](ops)(canceledBodyRoutes))
+      _ <- runAppToCompletion(Metrics[IO](ops)(canceledBodyRoutes.orNotFound))
       state <- ops.state
     } yield {
       assertEquals(state.active, 0L)
@@ -186,8 +194,8 @@ final class MetricsSuite extends Http4sSuite {
 
     for {
       ops <- TestMetricsOps2.create
-      response <- Metrics[IO](ops)(routes).run(request).value
-      _ <- response.traverse_(_.body.compile.drain)
+      response <- Metrics[IO](ops)(routes.orNotFound).run(request)
+      _ <- response.body.compile.drain
       state <- ops.state
     } yield {
       assertEquals(state.requestBodies.map(_.bodySizeBytes), List(7L))
@@ -214,8 +222,8 @@ final class MetricsSuite extends Http4sSuite {
 
     for {
       ops <- TestMetricsOps2.create
-      response <- Metrics[IO](ops)(routes).run(request).value
-      _ <- response.traverse_(_.body.compile.drain)
+      response <- Metrics[IO](ops)(routes.orNotFound).run(request)
+      _ <- response.body.compile.drain
       state <- ops.state
     } yield {
       assertEquals(state.requestBodies.map(_.bodySizeBytes), List(70L))
@@ -231,8 +239,8 @@ final class MetricsSuite extends Http4sSuite {
 
     for {
       ops <- TestMetricsOps2.create
-      response <- Metrics[IO](ops)(routes).run(request).value
-      _ <- response.traverse_(_.body.compile.drain)
+      response <- Metrics[IO](ops)(routes.orNotFound).run(request)
+      _ <- response.body.compile.drain
       state <- ops.state
     } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
   }
@@ -250,22 +258,40 @@ final class MetricsSuite extends Http4sSuite {
 
     for {
       ops <- TestMetricsOps2.create
-      response <- Metrics[IO](ops)(routes).run(request).value
-      _ <- response.traverse_(_.body.compile.drain)
+      response <- Metrics[IO](ops)(routes.orNotFound).run(request)
+      _ <- response.body.compile.drain
       state <- ops.state
     } yield assertEquals(state.connectionInfos, List(Some(connection)))
   }
 
-  test("MetricsOps2 does not record a response size for an unmatched route") {
+  test("MetricsOps2 records the actual fallback response from an HttpApp") {
     for {
       ops <- TestMetricsOps2.create
-      _ <- Metrics[IO](ops)(HttpRoutes.empty[IO]).run(Request[IO]()).value
+      response <- Metrics[IO](ops)(HttpRoutes.empty[IO].orNotFound).run(Request[IO]())
+      _ <- response.body.compile.drain
       state <- ops.state
     } yield {
-      assertEquals(state.headers, Nil)
-      assertEquals(state.totals.map(_.response), List(None))
+      assertEquals(state.headers.size, 1)
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.NotFound))
       assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
-      assertEquals(state.responseBodies, Nil)
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(9L))
+    }
+  }
+
+  test("MetricsOps2 bypasses instrumentation when createContext returns None") {
+    val app = Kleisli((request: Request[IO]) =>
+      request.body.compile.drain.as(Response[IO](Status.Accepted))
+    )
+    val request = Request[IO]().withEntity("request")
+
+    for {
+      ops <- TestMetricsOps2.create(_ => false)
+      response <- Metrics[IO](ops)(app).run(request)
+      _ <- response.body.compile.drain
+      state <- ops.state
+    } yield {
+      assertEquals(response.status, Status.Accepted)
+      assertEquals(state, TestMetricsOps2.State.empty)
     }
   }
 }

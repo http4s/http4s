@@ -24,23 +24,28 @@ import org.http4s.ResponsePrelude
 
 import scala.concurrent.duration.FiniteDuration
 
-final class TestMetricsOps2 private (ref: Ref[IO, TestMetricsOps2.State]) extends MetricsOps2[IO] {
+final class TestMetricsOps2 private (
+    ref: Ref[IO, TestMetricsOps2.State],
+    include: MetricsRequest => Boolean,
+) extends MetricsOps2[IO] {
   import TestMetricsOps2._
 
   type Context = Option[String]
 
   def state: IO[State] = ref.get
 
-  def createContext(request: MetricsRequest): IO[Context] = {
+  def createContext(request: MetricsRequest): IO[Option[Context]] = {
     val context = Some(request.requestPrelude.method.name)
-    ref
-      .update(s =>
-        s.copy(
-          contexts = (request.requestPrelude, context) :: s.contexts,
-          connectionInfos = request.connectionInfo :: s.connectionInfos,
+    if (include(request))
+      ref
+        .update(s =>
+          s.copy(
+            contexts = (request.requestPrelude, context) :: s.contexts,
+            connectionInfos = request.connectionInfo :: s.connectionInfos,
+          )
         )
-      )
-      .as(context)
+        .as(Some(context))
+    else IO.pure(None)
   }
 
   def increaseActiveRequests(request: MetricsRequest, context: Context): IO[Unit] =
@@ -139,5 +144,8 @@ object TestMetricsOps2 {
     val empty: State = State(0L, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
   }
 
-  def create: IO[TestMetricsOps2] = Ref.of[IO, State](State.empty).map(new TestMetricsOps2(_))
+  def create: IO[TestMetricsOps2] = create(_ => true)
+
+  def create(include: MetricsRequest => Boolean): IO[TestMetricsOps2] =
+    Ref.of[IO, State](State.empty).map(new TestMetricsOps2(_, include))
 }

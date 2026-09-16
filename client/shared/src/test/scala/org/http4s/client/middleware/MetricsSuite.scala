@@ -130,6 +130,22 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
+  test("MetricsOps2 bypasses instrumentation when createContext returns None") {
+    val client = Client[IO]((request: Request[IO]) =>
+      Resource.eval(request.body.compile.drain.as(Response[IO](Status.Accepted)))
+    )
+    val request = Request[IO]().withEntity("request")
+
+    for {
+      ops <- TestMetricsOps2.create(_ => false)
+      response <- Metrics[IO](ops)(client).run(request).use(IO.pure)
+      state <- ops.state
+    } yield {
+      assertEquals(response.status, Status.Accepted)
+      assertEquals(state, TestMetricsOps2.State.empty)
+    }
+  }
+
   test("MetricsOps2 prefers Content-Length to counting body chunks") {
     val request = Request[IO](method = Method.POST, uri = uri"/metrics")
       .withBodyStream(Stream.emits("request".getBytes).covary[IO])
