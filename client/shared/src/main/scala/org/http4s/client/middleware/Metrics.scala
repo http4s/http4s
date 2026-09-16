@@ -22,6 +22,7 @@ import cats.effect.Ref
 import cats.effect.Resource
 import cats.effect.Temporal
 import cats.syntax.all._
+import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.ResponsePrelude
@@ -76,7 +77,10 @@ object Metrics {
     * `Metrics(ops)(GZip()(client))` records the decoded, application-facing response, whereas
     * `GZip()(Metrics(ops)(client))` records the encoded, transport-facing response. Backends that
     * require transferred body sizes, such as OpenTelemetry HTTP metrics, should place this
-    * middleware where it observes the transport-encoded streams.
+    * middleware where it observes the transport-encoded streams. A `Content-Length` header is
+    * preferred when available, avoiding per-chunk instrumentation; otherwise, the observed chunks
+    * are counted. Consequently, a known request length is the declared size even if sending ends
+    * early. A response size is recorded only after its body is fully consumed.
     */
   def apply[F[_]](
       ops: MetricsOps2[F]
@@ -151,6 +155,15 @@ object Metrics {
         } ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
       }
 
+    def markCompletedBodyBytes(
+        body: fs2.Stream[F, Byte],
+        size: Long,
+        completedSizeRef: Ref[F, Option[Long]],
+    ): fs2.Stream[F, Byte] =
+      body ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
+
+    val requestBodySize = req.contentLength
+
     for {
       start <- Resource.eval(F.monotonic)
       responseRef <- Resource.eval(F.ref(Option.empty[ResponsePrelude]))
@@ -158,7 +171,7 @@ object Metrics {
       _ <- Resource.make(ops.increaseActiveRequests(request, context))(_ =>
         ops.decreaseActiveRequests(request, context)
       )
-      requestBodySizeRef <- Resource.eval(F.ref(0L))
+      requestBodySizeRef <- Resource.eval(F.ref(requestBodySize.getOrElse(0L)))
       responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
       _ <- Resource.onFinalizeCase { exitCase =>
         val terminationType = exitCase match {
@@ -204,7 +217,7 @@ object Metrics {
         } yield ()
       }
       reqWithMetrics = req.withBodyStream(
-        countBodyBytes(req.body, requestBodySizeRef)
+        requestBodySize.fold(countBodyBytes(req.body, requestBodySizeRef))(_ => req.body)
       )
       resp <- client.run(reqWithMetrics)
       _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
@@ -212,8 +225,13 @@ object Metrics {
       _ <- Resource.eval(
         ops.recordHeadersTime(request, now - start, context)
       )
+      responseBodySize =
+        if (req.method == Method.HEAD || !resp.status.isEntityAllowed) Some(0L)
+        else resp.contentLength
       respWithMetrics = resp.withBodyStream(
-        countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef)
+        responseBodySize.fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
+          markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
+        )
       )
     } yield respWithMetrics
   }

@@ -91,6 +91,9 @@ object Metrics {
     * Body sizes are counted from the streams observed at this layer: for example,
     * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
     * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
+    * A `Content-Length` header is preferred when available, avoiding per-chunk instrumentation;
+    * otherwise, the observed chunks are counted. Consequently, a known length is the declared
+    * size even if processing ends early.
     */
   def apply[F[_]](
       ops: MetricsOps2[F]
@@ -108,6 +111,9 @@ object Metrics {
     * Body sizes are counted from the streams observed at this layer: for example,
     * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
     * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
+    * A `Content-Length` header is preferred when available, avoiding per-chunk instrumentation;
+    * otherwise, the observed chunks are counted. Consequently, a known length is the declared
+    * size even if processing ends early.
     */
   def apply[F[_]](
       ops: MetricsOps2[F],
@@ -126,6 +132,9 @@ object Metrics {
     * Body sizes are counted from the streams observed at this layer: for example,
     * `Metrics(ops)(GZip(routes))` records the encoded, transport-facing response, whereas
     * `GZip(Metrics(ops)(routes))` records the uncompressed, application-facing response.
+    * A `Content-Length` header is preferred when available, avoiding per-chunk instrumentation;
+    * otherwise, the observed chunks are counted. Consequently, a known length is the declared
+    * size even if processing ends early.
     */
   def apply[F[_]](
       ops: MetricsOps2[F],
@@ -284,16 +293,19 @@ object Metrics {
 
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
       val metricsRequest = MetricsRequest.fromRequest(request)
+      val requestBodySize = request.contentLength
       for {
         startTime <- F.monotonic
         context <- ops.createContext(metricsRequest)
-        requestBodySizeRef <- F.ref(0L)
+        requestBodySizeRef <- F.ref(requestBodySize.getOrElse(0L))
         responseBodySizeRef <- F.ref(0L)
         contextRequest <- F.uncancelable { _ =>
           for {
             _ <- ops.increaseActiveRequests(metricsRequest, context)
             requestWithMetrics = request.withBodyStream(
-              countBodyBytes(request.body, requestBodySizeRef)
+              requestBodySize.fold(countBodyBytes(request.body, requestBodySizeRef))(_ =>
+                request.body
+              )
             )
           } yield ContextRequest(
             MetricsEntry2(
@@ -327,9 +339,15 @@ object Metrics {
           metrics.context,
         )
         prelude = response.responsePrelude
-        respWithMetrics = response.withBodyStream(
-          countBodyBytes(response.body, metrics.responseBodySizeRef)
-        )
+        responseBodySize =
+          if (
+            metrics.request.requestPrelude.method == Method.HEAD || !response.status.isEntityAllowed
+          ) Some(0L)
+          else response.contentLength
+        _ <- responseBodySize.traverse_(metrics.responseBodySizeRef.set)
+        respWithMetrics = responseBodySize.fold(
+          response.withBodyStream(countBodyBytes(response.body, metrics.responseBodySizeRef))
+        )(_ => response)
       } yield ContextResponse(prelude, respWithMetrics)
 
     BracketRequestResponse

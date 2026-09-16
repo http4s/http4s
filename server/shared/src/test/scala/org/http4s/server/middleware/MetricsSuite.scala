@@ -24,6 +24,7 @@ import com.comcast.ip4s._
 import fs2.Stream
 import org.http4s.Request.Connection
 import org.http4s._
+import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
@@ -195,6 +196,45 @@ final class MetricsSuite extends Http4sSuite {
       assertEquals(state.increases, state.contexts)
       assertEquals(state.decreases, state.contexts)
     }
+  }
+
+  test("MetricsOps2 prefers Content-Length to counting body chunks") {
+    val request = Request[IO](method = Method.PUT, uri = uri"/metrics")
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
+      .putHeaders(`Content-Length`.unsafeFromLong(70L))
+    val routes = Kleisli((request: Request[IO]) =>
+      OptionT.liftF(
+        request.body.compile.drain.as(
+          Response[IO](Status.Ok)
+            .withBodyStream(Stream.emits("response".getBytes).covary[IO])
+            .putHeaders(`Content-Length`.unsafeFromLong(80L))
+        )
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(routes).run(request).value
+      _ <- response.traverse_(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(70L))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(80L))
+    }
+  }
+
+  test("MetricsOps2 treats a HEAD response body as empty despite Content-Length") {
+    val request = Request[IO](method = Method.HEAD, uri = uri"/metrics")
+    val routes = HttpRoutes.pure[IO](
+      Response[IO](Status.Ok).putHeaders(`Content-Length`.unsafeFromLong(80L))
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(routes).run(request).value
+      _ <- response.traverse_(_.body.compile.drain)
+      state <- ops.state
+    } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
   }
 
   test("MetricsOps2 receives server connection information") {
