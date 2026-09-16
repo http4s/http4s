@@ -101,7 +101,7 @@ object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
-    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects or examining the body.
+    * Same as `apply`, but can classify requests effectually, e.g. performing side-effects or examining the body.
     * Failed attempt to classify the request (e.g. failing with `F.raiseError`) leads to not recording metrics for that request.
     *
     * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
