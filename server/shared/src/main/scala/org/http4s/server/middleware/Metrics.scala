@@ -308,37 +308,36 @@ object Metrics {
         response: Option[ResponsePrelude],
         terminationType: Option[TerminationType],
     ): F[Unit] =
-      stopMetrics(metrics).flatMap { totalTime =>
-        for {
-          _ <- ops.recordTotalTime(
-            metrics.request,
-            response,
-            terminationType,
-            totalTime,
-            metrics.context,
-          )
-          requestBodySize <- metrics.requestBodySizeRef.get
-          _ <- ops.recordRequestBodySize(
-            metrics.request,
-            response,
-            terminationType,
-            requestBodySize,
-            metrics.context,
-          )
-          _ <- response.fold(F.unit) { resp =>
-            for {
-              responseBodySize <- metrics.responseBodySizeRef.get
-              _ <- ops.recordResponseBodySize(
-                metrics.request,
-                resp,
-                terminationType,
-                responseBodySize,
-                metrics.context,
-              )
-            } yield ()
-          }
-        } yield ()
-      }
+      for {
+        totalTime <- stopMetrics(metrics)
+        _ <- ops.recordTotalTime(
+          metrics.request,
+          response,
+          terminationType,
+          totalTime,
+          metrics.context,
+        )
+        requestBodySize <- metrics.requestBodySizeRef.get
+        _ <- ops.recordRequestBodySize(
+          metrics.request,
+          response,
+          terminationType,
+          requestBodySize,
+          metrics.context,
+        )
+        _ <- response.fold(F.unit) { resp =>
+          for {
+            responseBodySize <- metrics.responseBodySizeRef.get
+            _ <- ops.recordResponseBodySize(
+              metrics.request,
+              resp,
+              terminationType,
+              responseBodySize,
+              metrics.context,
+            )
+          } yield ()
+        }
+      } yield ()
 
     Kleisli { request =>
       val metricsRequest = MetricsRequest.fromRequest(request)
