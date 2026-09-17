@@ -23,8 +23,10 @@ import org.http4s.Method.GET
 import org.http4s.Uri.Path.Root
 import org.http4s.client.dsl.io._
 import org.http4s.dsl.io._
+import org.http4s.headers.Authorization
+import org.http4s.headers.Location
 import org.http4s.server.middleware.authentication.{BasicAuth => ServerBasicAuth}
-import org.http4s.syntax.literals._
+import org.http4s.syntax.all._
 
 class BasicAuthSuite extends Http4sSuite {
 
@@ -63,6 +65,46 @@ class BasicAuthSuite extends Http4sSuite {
   test("Client with valid basic auth should succeed") {
     val authClient = BasicAuth(validCredentials)(client)
     authClient.status(protectedEndpoint).assertEquals(Status.Ok)
+  }
+
+  private val localhost = Uri.Authority(host = Uri.RegName("localhost"))
+
+  private val echoClient = Client.fromHttpApp[IO](
+    HttpRoutes
+      .of[IO] {
+        case _ -> Root / "redirect" =>
+          TemporaryRedirect(Location(uri"http://www.example.com/echo"))
+        case request @ _ -> Root / "echo" =>
+          Ok(request.headers.get[Authorization].fold("")(_.value))
+      }
+      .orNotFound
+  )
+
+  test("Client should not overwrite an Authorization header set on the request") {
+    val perRequestAuth = Authorization(Credentials.Token(AuthScheme.Bearer, "a-token"))
+    BasicAuth(validCredentials)(echoClient)
+      .expect[String](Request[IO](uri = uri"http://localhost/echo").putHeaders(perRequestAuth))
+      .assertEquals(perRequestAuth.value)
+  }
+
+  test("Client scoped to an authority should send the credentials to that authority") {
+    BasicAuth
+      .forAuthority[IO](localhost, validCredentials)(echoClient)
+      .expect[String](Request[IO](uri = uri"http://localhost/echo"))
+      .assertEquals(Authorization(validCredentials).value)
+  }
+
+  test("Client scoped to an authority should not send the credentials to another authority") {
+    BasicAuth
+      .forAuthority[IO](localhost, validCredentials)(echoClient)
+      .expect[String](Request[IO](uri = uri"http://www.example.com/echo"))
+      .assertEquals("")
+  }
+
+  test("Client scoped to an authority should not leak the credentials through a redirect") {
+    FollowRedirect(3)(BasicAuth.forAuthority[IO](localhost, validCredentials)(echoClient))
+      .expect[String](Request[IO](uri = uri"http://localhost/redirect"))
+      .assertEquals("")
   }
 
 }

@@ -164,7 +164,10 @@ loggerClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
 ## Basic authentication
 
 Adds support for basic authentication. The client will introduce the Authorization header matching the provided 
-credentials to the outgoing requests.
+credentials to the outgoing requests. 
+
+Requests that already carry an `Authorization` header are left untouched, so a per-request header always takes precedence 
+over the configured credentials.
 
 ```scala mdoc:silent
 import org.http4s.client.middleware.BasicAuth
@@ -178,6 +181,26 @@ val basicAuthClient = BasicAuth(credentials)(client)
 ```scala mdoc
 basicAuthClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
 ```
+
+`BasicAuth(credentials)` sends the credentials with every request, whatever its destination. When it is combined with
+[FollowRedirect](#followredirects), it must therefore wrap it, and not the other way around: `FollowRedirect` drops the
+`Authorization` header when redirected to a different authority, and an inner `BasicAuth` would put it back, leaking the
+credentials to the redirect target.
+
+```scala mdoc:silent
+val safeOrdering = BasicAuth(credentials)(FollowRedirect(3)(client))
+```
+
+Alternatively, scope the credentials to the authority they belong to. They are then never sent anywhere else, whichever
+way the middlewares are stacked:
+
+```scala mdoc:silent
+val scopedClient = FollowRedirect(3)(
+  BasicAuth.forAuthority[IO](Uri.Authority(host = Uri.RegName("example.com")))(credentials)(client)
+)
+```
+
+`BasicAuth.when` takes an arbitrary predicate on the request if the authority is not the right granularity.
 
 ## GZip
 
