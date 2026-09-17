@@ -259,6 +259,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   requestLineParseErrorHandler,
                   maxHeaderSizeErrorHandler,
                   webSocketHelpers,
+                  shutdown,
                 ).drain
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
@@ -283,6 +284,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           requestLineParseErrorHandler,
                           maxHeaderSizeErrorHandler,
                           webSocketHelpers,
+                          shutdown,
                         ).drain
                       case Right(_) =>
                         Stream
@@ -316,6 +318,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       requestLineParseErrorHandler,
                       maxHeaderSizeErrorHandler,
                       webSocketHelpers,
+                      shutdown,
                     ).drain
                 }
             }
@@ -443,12 +446,13 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F],
-  ): F[Response[F]] = {
-    val connection = connectionFor(req.httpVersion, req.headers)
+      shutdown: Shutdown[F],
+  ): F[Response[F]] =
     for {
+      isShuttingDown <- shutdown.isShuttingDown
+      connection = connectionForServer(req.httpVersion, req.headers, isShuttingDown)
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
-  }
 
   private[internal] def runConnection[F[_]: Async](
       socket: Socket[F],
@@ -466,6 +470,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
+      shutdown: Shutdown[F],
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
@@ -531,7 +536,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 }
               case None =>
                 for {
-                  nextResp <- postProcessResponse(req, resp)
+                  nextResp <- postProcessResponse(req, resp, shutdown)
                   _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                   nextBuffer <- drain
                 } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))

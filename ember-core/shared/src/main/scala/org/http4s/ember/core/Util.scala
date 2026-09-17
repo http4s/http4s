@@ -38,7 +38,7 @@ private[ember] object Util extends UtilPlatform {
   private[this] val closeCi = ci"close"
   private[this] val keepAliveCi = ci"keep-alive"
   private[this] val connectionCi = ci"connection"
-  private[this] val close = Connection(NonEmptyList.of(closeCi))
+  private[this] val close = Connection(NonEmptyList.one(closeCi))
   private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
   private def streamCurrentTimeMillis[F[_]](clock: Clock[F]): Stream[F, Long] =
@@ -112,6 +112,13 @@ private[ember] object Util extends UtilPlatform {
       case fd: FiniteDuration => F.timeoutTo(fa, fd, ft)
       case _ => fa
     }
+
+  def connectionForServer(
+      httpVersion: HttpVersion,
+      headers: Headers,
+      shuttingDown: Boolean,
+  ): Connection =
+    if (shuttingDown) close else connectionFor(httpVersion, headers)
 
   def connectionFor(httpVersion: HttpVersion, headers: Headers): Connection =
     if (isKeepAlive(httpVersion, headers)) keepAlive
