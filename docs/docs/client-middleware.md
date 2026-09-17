@@ -196,7 +196,7 @@ way the middlewares are stacked:
 
 ```scala mdoc:silent
 val scopedClient = FollowRedirect(3)(
-  BasicAuth.forAuthority[IO](Uri.Authority(host = Uri.RegName("example.com")))(credentials)(client)
+  BasicAuth.forAuthority[IO](Uri.Authority(host = Uri.RegName("example.com")), credentials)(client)
 )
 ```
 
