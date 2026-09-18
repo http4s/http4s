@@ -113,12 +113,13 @@ private[ember] object Util extends UtilPlatform {
       case _ => fa
     }
 
-  def connectionForServer(
+  def connectionFor(
       httpVersion: HttpVersion,
       headers: Headers,
       shuttingDown: Boolean,
   ): Connection =
-    if (shuttingDown) close else connectionFor(httpVersion, headers)
+    if (shuttingDown) close
+    else connectionFor(httpVersion, headers)
 
   def connectionFor(httpVersion: HttpVersion, headers: Headers): Connection =
     if (isKeepAlive(httpVersion, headers)) keepAlive

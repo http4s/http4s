@@ -450,7 +450,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   ): F[Response[F]] =
     for {
       isShuttingDown <- shutdown.isShuttingDown
-      connection = connectionForServer(req.httpVersion, req.headers, isShuttingDown)
+      connection = connectionFor(req.httpVersion, req.headers, isShuttingDown)
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
 
