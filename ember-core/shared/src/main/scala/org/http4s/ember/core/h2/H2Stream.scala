@@ -204,8 +204,7 @@ private[h2] class H2Stream[F[_]: Temporal](
   }
 
   def receiveHeaders(
-      headers: H2Frame.Headers,
-      continuations: List[H2Frame.Continuation],
+      headers: H2Frame.Headers
   ): F[Unit] = {
 
     def checkLengthOf(mess: Message[Pure]): F[Unit] =
@@ -223,9 +222,7 @@ private[h2] class H2Stream[F[_]: Temporal](
       s.state match {
         case StreamState.Open | StreamState.HalfClosedLocal | StreamState.Idle |
             StreamState.ReservedRemote =>
-          val block = headers.headerBlock ++ continuations.foldLeft(ByteVector.empty) {
-            case (acc, cont) => acc ++ cont.headerBlockFragment
-          }
+          val block = headers.headerBlock
           for {
             h <- hpack.decodeHeaders(block).onError {
               case e @ EmberException.MessageTooLong(_) =>
@@ -298,16 +295,13 @@ private[h2] class H2Stream[F[_]: Temporal](
   }
 
   def receivePushPromise(
-      headers: H2Frame.PushPromise,
-      continuations: List[H2Frame.Continuation],
+      headers: H2Frame.PushPromise
   ): F[Unit] = state.get.flatMap { s =>
     connectionType match {
       case H2Connection.ConnectionType.Client =>
         s.state match {
           case StreamState.Idle =>
-            val block = headers.headerBlock ++ continuations.foldLeft(ByteVector.empty) {
-              case (acc, cont) => acc ++ cont.headerBlockFragment
-            }
+            val block = headers.headerBlock
             for {
               h <- hpack.decodeHeaders(block).onError {
                 case e @ EmberException.MessageTooLong(_) =>

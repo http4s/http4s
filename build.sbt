@@ -599,6 +599,18 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.h2.H2Connection#State.apply"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.addContinuation"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.start"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.this"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
