@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import org.http4s.Uri.{Fragment => _, Path => _, apply => _, unapply => _, _}
+import org.http4s.Uri.{Fragment => _, Path => _, _}
 import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
 
