@@ -62,6 +62,7 @@ object Metrics {
       context: Context,
       requestBodySizeRef: Ref[F, Long],
       responseBodySizeRef: Ref[F, Long],
+      completionStartedRef: Ref[F, Boolean],
   )
 
   /** A server middleware capable of recording metrics
@@ -90,7 +91,9 @@ object Metrics {
     * routing fallbacks, error recovery, compression, and other body-transforming middleware before
     * `Metrics`, then pass the measured [[HttpApp]] directly to the server backend. This ensures
     * metrics observe the actual response sent by the application. A known length remains the
-    * declared size if processing ends early.
+    * declared size if processing ends early. Response bodies have single-consumption semantics.
+    * If a body is nevertheless evaluated more than once, terminal metrics are attempted at most
+    * once for the exchange.
     *
     * @example
     * {{{
@@ -258,6 +261,7 @@ object Metrics {
         startTime <- F.monotonic
         requestBodySizeRef <- F.ref(requestBodySize.getOrElse(0L))
         responseBodySizeRef <- F.ref(0L)
+        completionStartedRef <- F.ref(false)
         _ <- ops.increaseActiveRequests(metricsRequest, context)
         requestWithMetrics = request.withBodyStream(
           requestBodySize.fold(countBodyBytes(request.body, requestBodySizeRef))(_ => request.body)
@@ -269,6 +273,7 @@ object Metrics {
           context,
           requestBodySizeRef,
           responseBodySizeRef,
+          completionStartedRef,
         ),
         requestWithMetrics,
       )
@@ -308,36 +313,42 @@ object Metrics {
         response: Option[ResponsePrelude],
         terminationType: Option[TerminationType],
     ): F[Unit] =
-      for {
-        totalTime <- stopMetrics(metrics)
-        _ <- ops.recordTotalTime(
-          metrics.request,
-          response,
-          terminationType,
-          totalTime,
-          metrics.context,
-        )
-        requestBodySize <- metrics.requestBodySizeRef.get
-        _ <- ops.recordRequestBodySize(
-          metrics.request,
-          response,
-          terminationType,
-          requestBodySize,
-          metrics.context,
-        )
-        _ <- response.fold(F.unit) { resp =>
-          for {
-            responseBodySize <- metrics.responseBodySizeRef.get
-            _ <- ops.recordResponseBodySize(
-              metrics.request,
-              resp,
-              terminationType,
-              responseBodySize,
-              metrics.context,
-            )
-          } yield ()
-        }
-      } yield ()
+      F.uncancelable { _ =>
+        metrics.completionStartedRef.modify { completionStarted =>
+          if (completionStarted) (true, F.unit)
+          else
+            true -> (for {
+              totalTime <- stopMetrics(metrics)
+              _ <- ops.recordTotalTime(
+                metrics.request,
+                response,
+                terminationType,
+                totalTime,
+                metrics.context,
+              )
+              requestBodySize <- metrics.requestBodySizeRef.get
+              _ <- ops.recordRequestBodySize(
+                metrics.request,
+                response,
+                terminationType,
+                requestBodySize,
+                metrics.context,
+              )
+              _ <- response.fold(F.unit) { resp =>
+                for {
+                  responseBodySize <- metrics.responseBodySizeRef.get
+                  _ <- ops.recordResponseBodySize(
+                    metrics.request,
+                    resp,
+                    terminationType,
+                    responseBodySize,
+                    metrics.context,
+                  )
+                } yield ()
+              }
+            } yield ())
+        }.flatten
+      }
 
     Kleisli { request =>
       val metricsRequest = MetricsRequest.fromRequest(request)

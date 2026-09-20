@@ -291,4 +291,133 @@ final class MetricsSuite extends Http4sSuite {
       assertEquals(state.responseBodies, Nil)
     }
   }
+
+  test("MetricsOps2 retains a response body error recovered by the resource consumer") {
+    val failure = new RuntimeException("body failed")
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.raiseError[IO](failure))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain.attempt.void)
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+      assertEquals(
+        state.requestBodies.map(_.terminationType),
+        List(Some(TerminationType.Error(failure))),
+      )
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 records an unrecovered response body error once") {
+    val failure = new RuntimeException("body failed")
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.raiseError[IO](failure))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      result <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain).attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(state.active, 0L)
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+    }
+  }
+
+  test("MetricsOps2 retains a response body cleanup error recovered by the resource consumer") {
+    val failure = new RuntimeException("body cleanup failed")
+    val body = Stream.emit(0.toByte).covary[IO].onFinalize(IO.raiseError(failure))
+    val client =
+      Client[IO]((_: Request[IO]) => Resource.pure(Response[IO](Status.Ok).withBodyStream(body)))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain.attempt.void)
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+    }
+  }
+
+  test("MetricsOps2 records a resource consumer error after a successful response body") {
+    val failure = new RuntimeException("consumer failed")
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emit(0.toByte).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      result <- Metrics[IO](ops)(client)
+        .run(req)
+        .use(response => response.body.compile.drain >> IO.raiseError[Unit](failure))
+        .attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(state.active, 0L)
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+    }
+  }
+
+  test("MetricsOps2 prefers a response body error to a later resource consumer error") {
+    val bodyFailure = new RuntimeException("body failed")
+    val consumerFailure = new RuntimeException("consumer failed")
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.raiseError[IO](bodyFailure))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      result <- Metrics[IO](ops)(client)
+        .run(req)
+        .use(response =>
+          response.body.compile.drain.attempt >> IO.raiseError[Unit](consumerFailure)
+        )
+        .attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(consumerFailure))
+      assertEquals(state.active, 0L)
+      assertEquals(
+        state.totals.map(_.terminationType),
+        List(Some(TerminationType.Error(bodyFailure))),
+      )
+    }
+  }
+
+  test("MetricsOps2 records response body cancellation once") {
+    for {
+      ready <- Deferred[IO, Unit]
+      ops <- TestMetricsOps2.create
+      client = Client[IO]((_: Request[IO]) =>
+        Resource.pure(
+          Response[IO](Status.Ok)
+            .withBodyStream(Stream.eval(ready.complete(()) >> IO.never[Byte]))
+        )
+      )
+      fiber <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain).start
+      _ <- ready.get
+      _ <- fiber.cancel
+      _ <- fiber.join
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+    }
+  }
 }

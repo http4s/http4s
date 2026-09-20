@@ -18,19 +18,25 @@ package org.http4s.server.middleware
 
 import cats.data.Kleisli
 import cats.data.OptionT
+import cats.effect.Deferred
 import cats.effect.IO
+import cats.effect.Ref
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
 import org.http4s.Request.Connection
 import org.http4s._
 import org.http4s.headers.`Content-Length`
+import org.http4s.metrics.MetricsOps2
+import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
 import org.http4s.metrics.TestMetricsOps2
 import org.http4s.syntax.literals._
 import org.typelevel.vault.Vault
+
+import scala.concurrent.duration.FiniteDuration
 
 final class MetricsSuite extends Http4sSuite {
 
@@ -292,6 +298,136 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(response.status, Status.Accepted)
       assertEquals(state, TestMetricsOps2.State.empty)
+    }
+  }
+
+  test("MetricsOps2 records terminal metrics once when a response body is replayed") {
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok).withBodyStream(Stream.emit(0.toByte).covary[IO])
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      _ <- response.body.compile.drain
+      _ <- response.body.compile.drain
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.decreases.size, 1)
+      assertEquals(state.totals.size, 1)
+      assertEquals(state.requestBodies.size, 1)
+      assertEquals(state.responseBodies.size, 1)
+    }
+  }
+
+  test("MetricsOps2 records terminal metrics once when a response body is replayed concurrently") {
+    for {
+      entered <- Ref.of[IO, Int](0)
+      bothEntered <- Deferred[IO, Unit]
+      body = Stream.eval(
+        entered
+          .updateAndGet(_ + 1)
+          .flatMap(count => bothEntered.complete(()).void.whenA(count == 2)) >> bothEntered.get
+      ) >> Stream.emit(0.toByte)
+      app = HttpApp.pure[IO](Response[IO](Status.Ok).withBodyStream(body))
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      _ <- List.fill(2)(response.body.compile.drain).parSequence_
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.decreases.size, 1)
+      assertEquals(state.totals.size, 1)
+      assertEquals(state.requestBodies.size, 1)
+      assertEquals(state.responseBodies.size, 1)
+    }
+  }
+
+  test("MetricsOps2 does not finish again after the first response body evaluation is canceled") {
+    for {
+      evaluations <- Ref.of[IO, Int](0)
+      firstStarted <- Deferred[IO, Unit]
+      body = Stream.eval(evaluations.getAndUpdate(_ + 1)).flatMap {
+        case 0 => Stream.eval(firstStarted.complete(())) >> Stream.never[IO]
+        case _ => Stream.emit(0.toByte)
+      }
+      app = HttpApp.pure[IO](Response[IO](Status.Ok).withBodyStream(body))
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      first <- response.body.compile.drain.start
+      _ <- firstStarted.get
+      _ <- first.cancel
+      _ <- first.join
+      _ <- response.body.compile.drain
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.decreases.size, 1)
+      assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+      assertEquals(state.requestBodies.size, 1)
+      assertEquals(state.responseBodies.size, 1)
+    }
+  }
+
+  test("MetricsOps2 keeps completion claimed when a terminal callback fails") {
+    val failure = new RuntimeException("record total failed")
+
+    for {
+      active <- Ref.of[IO, Long](0L)
+      totalAttempts <- Ref.of[IO, Int](0)
+      ops = new MetricsOps2[IO] {
+        type Context = Unit
+
+        def createContext(request: MetricsRequest): IO[Option[Context]] = IO.pure(Some(()))
+
+        def increaseActiveRequests(request: MetricsRequest, context: Context): IO[Unit] =
+          active.update(_ + 1L)
+
+        def decreaseActiveRequests(request: MetricsRequest, context: Context): IO[Unit] =
+          active.update(_ - 1L)
+
+        def recordHeadersTime(
+            request: MetricsRequest,
+            elapsed: FiniteDuration,
+            context: Context,
+        ): IO[Unit] = IO.unit
+
+        def recordTotalTime(
+            request: MetricsRequest,
+            response: Option[ResponsePrelude],
+            terminationType: Option[TerminationType],
+            elapsed: FiniteDuration,
+            context: Context,
+        ): IO[Unit] = totalAttempts.update(_ + 1) >> IO.raiseError(failure)
+
+        def recordRequestBodySize(
+            request: MetricsRequest,
+            response: Option[ResponsePrelude],
+            terminationType: Option[TerminationType],
+            bodySizeBytes: Long,
+            context: Context,
+        ): IO[Unit] = IO.unit
+
+        def recordResponseBodySize(
+            request: MetricsRequest,
+            response: ResponsePrelude,
+            terminationType: Option[TerminationType],
+            bodySizeBytes: Long,
+            context: Context,
+        ): IO[Unit] = IO.unit
+      }
+      response <- Metrics[IO](ops)(HttpApp.pure[IO](Response[IO](Status.NoContent)))
+        .run(Request[IO]())
+      firstResult <- response.body.compile.drain.attempt
+      secondResult <- response.body.compile.drain.attempt
+      activeRequests <- active.get
+      attempts <- totalAttempts.get
+    } yield {
+      assertEquals(firstResult, Left(failure))
+      assertEquals(secondResult, Right(()))
+      assertEquals(activeRequests, 0L)
+      assertEquals(attempts, 1)
     }
   }
 }

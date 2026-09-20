@@ -76,7 +76,8 @@ object Metrics {
     * then wrap it with compression, retry, and other higher-level middleware. This placement sees
     * encoded bodies and records retries as individual transport attempts. A known request length
     * remains the declared size if sending ends early; response size is recorded only after the body
-    * is fully consumed.
+    * is fully consumed. Response body failures remain part of the recorded termination even if the
+    * resource consumer recovers from them after they cross the instrumented stream boundary.
     *
     * @example
     * {{{
@@ -165,6 +166,36 @@ object Metrics {
     ): fs2.Stream[F, Byte] =
       body ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
 
+    def terminationTypeFromExitCase(exitCase: Resource.ExitCase): Option[TerminationType] =
+      exitCase match {
+        case Resource.ExitCase.Succeeded => None
+        case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
+          Some(TerminationType.Timeout)
+        case Resource.ExitCase.Errored(e) => Some(TerminationType.Error(e))
+        case Resource.ExitCase.Canceled => Some(TerminationType.Canceled)
+      }
+
+    def isError(terminationType: TerminationType): Boolean =
+      terminationType match {
+        case TerminationType.Canceled => false
+        case _ => true
+      }
+
+    def observeBodyTermination(
+        body: fs2.Stream[F, Byte],
+        bodyTerminationTypeRef: Ref[F, Option[TerminationType]],
+    ): fs2.Stream[F, Byte] =
+      // The inner scope makes failures from body-owned finalizers visible to the observer before a
+      // consumer outside this instrumentation boundary can recover from them.
+      body.scope.onFinalizeCase(exitCase =>
+        terminationTypeFromExitCase(exitCase).traverse_ { observed =>
+          bodyTerminationTypeRef.update {
+            case current @ Some(value) if isError(value) => current
+            case _ => Some(observed)
+          }
+        }
+      )
+
     val requestBodySize = req.contentLength
 
     Resource.eval(ops.createContext(request)).flatMap {
@@ -180,22 +211,24 @@ object Metrics {
           )
           requestBodySizeRef <- Resource.eval(F.ref(requestBodySize.getOrElse(0L)))
           responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
+          responseBodyTerminationTypeRef <- Resource.eval(
+            F.ref(Option.empty[TerminationType])
+          )
           _ <- Resource.onFinalizeCase { exitCase =>
-            val terminationType = exitCase match {
-              case Resource.ExitCase.Succeeded => None
-              case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
-                Some(TerminationType.Timeout)
-              case Resource.ExitCase.Errored(e) => Some(TerminationType.Error(e))
-              case Resource.ExitCase.Canceled => Some(TerminationType.Canceled)
-            }
-
             for {
+              responseBodyTerminationType <- responseBodyTerminationTypeRef.get
+              resourceTerminationType = terminationTypeFromExitCase(exitCase)
+              combinedTerminationType = responseBodyTerminationType
+                .filter(isError)
+                .orElse(resourceTerminationType.filter(isError))
+                .orElse(responseBodyTerminationType)
+                .orElse(resourceTerminationType)
               response <- responseRef.get
               now <- F.monotonic
               _ <- ops.recordTotalTime(
                 request,
                 response,
-                terminationType,
+                combinedTerminationType,
                 now - start,
                 context,
               )
@@ -203,7 +236,7 @@ object Metrics {
               _ <- ops.recordRequestBodySize(
                 request,
                 response,
-                terminationType,
+                combinedTerminationType,
                 requestBodySize,
                 context,
               )
@@ -214,7 +247,7 @@ object Metrics {
                     ops.recordResponseBodySize(
                       request,
                       response,
-                      terminationType,
+                      combinedTerminationType,
                       responseBodySize,
                       context,
                     )
@@ -236,8 +269,12 @@ object Metrics {
             if (req.method == Method.HEAD || !resp.status.isEntityAllowed) Some(0L)
             else resp.contentLength
           respWithMetrics = resp.withBodyStream(
-            responseBodySize.fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
-              markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
+            observeBodyTermination(
+              responseBodySize
+                .fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
+                  markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
+                ),
+              responseBodyTerminationTypeRef,
             )
           )
         } yield respWithMetrics
