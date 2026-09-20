@@ -19,11 +19,13 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
+import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.GenSocketAddress
 import fs2._
 import fs2.concurrent.Channel
+import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import org.http4s.ember.core.h2.H2Connection.ContinuationProgress
 import org.typelevel.log4cats.Logger
@@ -42,6 +44,7 @@ private[h2] class H2Connection[F[_]](
     localSettings: H2Frame.Settings.ConnectionSettings,
     val mapRef: Ref[F, Map[Int, H2Stream[F]]],
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
+    val pendingReadCredit: SignallingRef[F, Int],
     val outgoing: cats.effect.std.Queue[F, Chunk[H2Frame]],
     // val outgoingData: cats.effect.std.Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
 
@@ -65,18 +68,33 @@ private[h2] class H2Connection[F[_]](
     case H2Connection.ConnectionType.Client => Duration.Inf
   }
 
-  /** Whether some stream leaves the peer nothing to send, so silence from it is
-    * a peer waiting on us rather than an idle connection.
+  /** Whether the peer is waiting for local response handling or receive-window credit.
     */
-  private[this] def peerAwaitingResponse: F[Boolean] =
-    mapRef.get
-      .flatMap(_.values.toList.traverse(_.state.get.map(_.state)))
-      .map(_.exists {
-        case H2Stream.StreamState.Idle | H2Stream.StreamState.ReservedLocal |
-            H2Stream.StreamState.HalfClosedRemote =>
-          true
-        case _ => false
-      })
+  private[this] def peerAwaitingUs: F[Boolean] =
+    (state.get, mapRef.get.flatMap(_.values.toList.traverse(_.state.get))).mapN {
+      (connection, streams) =>
+        streams.exists { stream =>
+          stream.state match {
+            case H2Stream.StreamState.Idle | H2Stream.StreamState.ReservedLocal |
+                H2Stream.StreamState.HalfClosedRemote =>
+              true
+            case H2Stream.StreamState.Open | H2Stream.StreamState.HalfClosedLocal =>
+              connection.advertisedReadWindow <= 0 || stream.advertisedReadWindow <= 0
+            case _ => false
+          }
+        }
+    }
+
+  /** Whether a frame for a stream missing from the map is for one we have
+    * already closed and forgotten rather than one that was never opened.
+    */
+  private[this] def isClosedStream(id: Int, st: H2Connection.State[F]): Boolean = {
+    val remoteParity = connectionType match {
+      case H2Connection.ConnectionType.Server => id % 2 != 0
+      case H2Connection.ConnectionType.Client => id % 2 == 0
+    }
+    id > 0 && (if (remoteParity) id <= st.remoteHighestStream else id <= st.highestStream)
+  }
 
   // An unauthenticated peer can open streams without limit.  The 4x
   // gives us slack to reap the closed streams in a graceful fashion,
@@ -102,7 +120,9 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.bounded[F, Either[Throwable, ByteVector]](128)
+    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    bodyDone <- Deferred[F, Either[Throwable, Unit]]
+    readBufferLock <- Semaphore[F](1)
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -115,6 +135,9 @@ private[h2] class H2Connection[F[_]](
         body,
         None,
         None,
+        0,
+        localSettings.initialWindowSize.windowSize.toLong,
+        remoteReset = false,
       )
     )
     stream = new H2Stream(
@@ -124,10 +147,13 @@ private[h2] class H2Connection[F[_]](
       connectionType,
       state.get.map(_.remoteSettings),
       refState,
+      bodyDone,
+      readBufferLock,
       hpack,
       outgoing,
       closedStreams.offer(id),
       goAway,
+      creditReadWindow,
       logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
@@ -147,7 +173,9 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.bounded[F, Either[Throwable, ByteVector]](128)
+    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    bodyDone <- Deferred[F, Either[Throwable, Unit]]
+    readBufferLock <- Semaphore[F](1)
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -160,6 +188,9 @@ private[h2] class H2Connection[F[_]](
         body,
         None,
         None,
+        0,
+        localSettings.initialWindowSize.windowSize.toLong,
+        remoteReset = false,
       )
     )
     stream = new H2Stream(
@@ -169,10 +200,13 @@ private[h2] class H2Connection[F[_]](
       connectionType,
       state.get.map(_.remoteSettings),
       refState,
+      bodyDone,
+      readBufferLock,
       hpack,
       outgoing,
       closedStreams.offer(id),
       goAway,
+      creditReadWindow,
       logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
@@ -183,6 +217,28 @@ private[h2] class H2Connection[F[_]](
       )
     )
   } yield stream
+
+  /** Records consumed or discarded bytes without waiting for the outgoing queue.
+    * Every positive credit wakes the sender: a stream grant may be due even when the
+    * connection has not yet accumulated half a window of credit.
+    */
+  def creditReadWindow(n: Int): F[Unit] =
+    pendingReadCredit.update(_ + n).whenA(n > 0)
+
+  /** One sender per connection coalesces connection and stream grants.
+    * It is canceled with the write loop, so an offer cannot hold up connection shutdown.
+    */
+  private def sendReadWindowUpdates: Stream[F, Nothing] =
+    // Equal observations can represent new credit after a grant; do not use changes.
+    pendingReadCredit.discrete.filter(_ > 0).foreach { pending =>
+      // Only this sender subtracts credit; preserve additions since this notification.
+      // Skip updates below the threshold so the sender does not notify itself forever.
+      (pendingReadCredit.update(_ - pending) >>
+        state.update(s => s.copy(readWindow = s.readWindow + pending)) >>
+        outgoing.offer(Chunk.singleton(H2Frame.WindowUpdate(0, pending))))
+        .whenA(pending >= localSettings.initialWindowSize.windowSize / 2) >>
+        mapRef.get.flatMap(_.values.toList.traverse_(_.sendReadWindowUpdate))
+    }
 
   def goAway(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
@@ -226,6 +282,21 @@ private[h2] class H2Connection[F[_]](
       } >> state.update(_.copy(closed = true)) >>
         H2Connection.KillWithoutMessage().raiseError
 
+    // readWindow includes reserved grants so a fast peer reply is accepted even
+    // before socket.write completes. Idle detection uses only transmitted credit.
+    def recordReadCredit(frames: Chunk[H2Frame]): F[Unit] =
+      frames.traverse_ {
+        case H2Frame.WindowUpdate(0, size) =>
+          state.update(s => s.copy(advertisedReadWindow = s.advertisedReadWindow + size))
+        case H2Frame.WindowUpdate(id, size) =>
+          mapRef.get.flatMap(
+            _.get(id).traverse_(
+              _.state.update(s => s.copy(advertisedReadWindow = s.advertisedReadWindow + size))
+            )
+          )
+        case _ => F.unit
+      }
+
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {
         case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
@@ -238,6 +309,7 @@ private[h2] class H2Connection[F[_]](
           acc ++ H2Frame.toByteVector(frame)
         }
         withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
+          recordReadCredit(chunk) >>
           state.update(s =>
             s.copy(writeWindow = s.writeWindow - fullDataSize, stallStart = None)
           ) >>
@@ -252,6 +324,7 @@ private[h2] class H2Connection[F[_]](
           acc ++ H2Frame.toByteVector(frame)
         }
         withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
+          recordReadCredit(nonData) >>
           nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
           { // avoid stalling if only control frames were written
             if (after.isEmpty) state.update(s => s.copy(stallStart = None))
@@ -273,15 +346,13 @@ private[h2] class H2Connection[F[_]](
     Stream
       .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
       .foreach(writeChunk)
+      .concurrently(sendReadWindowUpdates)
       .handleErrorWith(ex =>
         Stream.exec(
           logger.debug(ex)("writeLoop terminated") >>
             state.update(_.copy(closed = true))
         )
       )
-
-  // TODO Split Frames between Data and Others Hold Data If we are at cap
-  //  Currently will backpressure at the data frame till its cleared
 
   def readLoop: F[Unit] = {
 
@@ -290,7 +361,15 @@ private[h2] class H2Connection[F[_]](
       val read = socket.read(localSettings.initialWindowSize.windowSize)
       readIdleTimeout match {
         case timeout: FiniteDuration =>
-          F.race(read, F.sleep(timeout).untilM_(peerAwaitingResponse.map(!_))).flatMap {
+          // Give the peer a full interval after local backpressure is released.
+          def awaitIdle: F[Unit] =
+            F.untilM_(
+              F.whileM_(peerAwaitingUs)(F.sleep(timeout)) >> F.sleep(timeout)
+            )(
+              peerAwaitingUs.map(!_)
+            )
+
+          F.race(read, awaitIdle).flatMap {
             case Left(chunk) => F.pure(chunk)
             case Right(_) =>
               logger.debug(s"$addrStr readLoop idle timeout exceeded ($timeout)") >>
@@ -334,7 +413,7 @@ private[h2] class H2Connection[F[_]](
       // Headers if not closed MUST
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _),
+            H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _, _),
           ) =>
         if (headers.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -350,6 +429,11 @@ private[h2] class H2Connection[F[_]](
                 mapRef.get.map(_.get(id)).flatMap {
                   case Some(s) =>
                     s.receiveHeaders(headers)
+                  case None if isClosedStream(id, s) =>
+                    logger.debug(
+                      s"$addrStr Received Headers for Closed Stream $id - Closing Connection"
+                    ) >>
+                      goAway(H2Error.ProtocolError)
                   case None =>
                     streamCreateAndHeaders.use(_ =>
                       for {
@@ -363,7 +447,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _),
+            H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _, _),
           ) =>
         if (pushPromise.first.promisedStreamId != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -393,7 +477,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _),
+            H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _, _),
           ) =>
         if (pushPromise.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -410,7 +494,7 @@ private[h2] class H2Connection[F[_]](
 
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _),
+            H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _, _),
           ) =>
         if (headers.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -423,13 +507,13 @@ private[h2] class H2Connection[F[_]](
             case Some(updated) =>
               state.update(s => s.copy(headersInProgress = updated.some))
           }
-      case (f, H2Connection.State(_, _, _, _, _, _, _, Some(_), None, _)) =>
+      case (f, H2Connection.State(_, _, _, _, _, _, _, Some(_), None, _, _)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
         ) >>
           goAway(H2Error.ProtocolError)
-      case (f, H2Connection.State(_, _, _, _, _, _, _, None, Some(_), _)) =>
+      case (f, H2Connection.State(_, _, _, _, _, _, _, None, Some(_), _, _)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for push promise in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
@@ -443,12 +527,17 @@ private[h2] class H2Connection[F[_]](
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
               s.receiveHeaders(h)
+            case None if isClosedStream(i, s) =>
+              logger.debug(
+                s"$addrStr Received Headers for Closed Stream $i - Closing Connection"
+              ) >>
+                goAway(H2Error.ProtocolError)
             case None =>
               val isValidToCreate = connectionType match {
                 case H2Connection.ConnectionType.Server => i % 2 != 0
                 case H2Connection.ConnectionType.Client => i % 2 == 0
               }
-              if (!isValidToCreate || i <= s.remoteHighestStream) {
+              if (!isValidToCreate) {
                 logger.warn(
                   s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error - Issuing GoAway"
                 ) >>
@@ -578,7 +667,7 @@ private[h2] class H2Connection[F[_]](
       case (H2Frame.WindowUpdate(_, 0), _) =>
         logger.warn("Encountered 0 Sized Window Update - Procol Error - Issuing GoAway") >>
           goAway(H2Error.ProtocolError)
-      case (w @ H2Frame.WindowUpdate(i, size), _) =>
+      case (w @ H2Frame.WindowUpdate(i, size), st) =>
         i match {
           case 0 =>
             for {
@@ -603,44 +692,35 @@ private[h2] class H2Connection[F[_]](
             mapRef.get.map(_.get(otherwise)).flatMap {
               case Some(s) =>
                 s.receiveWindowUpdate(w)
+              case None if isClosedStream(i, st) =>
+                logger.debug(s"$addrStr Received WindowUpdate for Closed Stream $i - Ignoring")
               case None =>
-                logger.warn(s"Received WindowUpdate for Closed or Idle Stream - $w, $i") >>
+                logger.warn(s"Received WindowUpdate for Idle Stream - $w, $i") >>
                   goAway(H2Error.ProtocolError)
             }
         }
 
       case (d @ H2Frame.Data(i, _, _, _), _) =>
-        mapRef.get.map(_.get(i)).flatMap {
-          case Some(s) =>
-            for {
-              st <- state.get
-              newSize = st.readWindow - d.data.size.toInt
-
-              needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
-              _ <- state.update(s =>
-                s.copy(readWindow =
-                  if (needsWindowUpdate) localSettings.initialWindowSize.windowSize
-                  else newSize.toInt
-                )
-              )
-              _ <-
-                if (needsWindowUpdate)
-                  outgoing.offer(
-                    Chunk.singleton(
-                      H2Frame.WindowUpdate(
-                        0,
-                        st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
-                      )
-                    )
-                  )
-                else Applicative[F].unit
-              _ <- s.receiveData(d)
-            } yield ()
-          case None =>
-            state.get.flatMap { st =>
-              if (i <= st.remoteHighestStream)
-                logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
-              else
+        val size = d.flowControlSize
+        val reserveWindow = state.modify { s =>
+          val remaining = s.readWindow - size
+          (
+            s.copy(
+              readWindow = remaining,
+              advertisedReadWindow = s.advertisedReadWindow - size,
+            ),
+            remaining >= 0,
+          )
+        }
+        reserveWindow.flatMap {
+          case false =>
+            logger.warn(
+              s"Received Data Frame exceeding the connection window - Flow Control Error - Issuing GoAway"
+            ) >> goAway(H2Error.FlowControlError)
+          case true =>
+            mapRef.get.map(_.get(i)).flatMap {
+              case Some(s) => s.receiveData(d)
+              case None =>
                 logger.warn(
                   s"Received Data Frame for Idle Stream $i - Protocol Error - Issuing GoAway"
                 ) >>
@@ -648,13 +728,15 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-      case (rst @ H2Frame.RstStream(i, _), _) =>
+      case (rst @ H2Frame.RstStream(i, _), st) =>
         mapRef.get.map(_.get(i)).flatMap {
           case Some(s) =>
             s.receiveRstStream(rst)
+          case None if isClosedStream(i, st) =>
+            logger.debug(s"$addrStr Received RstStream for Closed Stream $i - Ignoring")
           case None =>
             logger.warn(
-              s"Received RstStream for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
+              s"Received RstStream for Idle Stream $i - Protocol Error - Issuing GoAway"
             ) >>
               goAway(H2Error.ProtocolError)
         }
@@ -701,6 +783,7 @@ private[h2] object H2Connection {
       headersInProgress: Option[ContinuationProgress[F, H2Frame.Headers]],
       pushPromiseInProgress: Option[ContinuationProgress[F, H2Frame.PushPromise]],
       stallStart: Option[FiniteDuration],
+      advertisedReadWindow: Long,
   )
 
   /** Helper class to buffer continuations to a header or push promise.
@@ -762,8 +845,9 @@ private[h2] object H2Connection {
       writeWindow: SettingsInitialWindowSize,
       readWindow: SettingsInitialWindowSize,
   )(implicit F: Async[F]): F[Ref[F, State[F]]] =
-    Deferred[F, Either[Throwable, Unit]].flatMap { writeBlock =>
-      val state = H2Connection.State(
+    for {
+      writeBlock <- Deferred[F, Either[Throwable, Unit]]
+      state = H2Connection.State(
         remoteSettings,
         writeWindow.windowSize,
         writeBlock,
@@ -774,9 +858,10 @@ private[h2] object H2Connection {
         headersInProgress = None,
         pushPromiseInProgress = None,
         stallStart = None,
+        advertisedReadWindow = readWindow.windowSize.toLong,
       )
-      F.ref(state)
-    }
+      ref <- F.ref(state)
+    } yield ref
 
   final case class KillWithoutMessage()
       extends RuntimeException

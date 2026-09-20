@@ -19,10 +19,12 @@ package org.http4s.ember.core.h2
 import cats.effect._
 import cats.effect.std.Queue
 import cats.effect.std.Semaphore
+import cats.effect.testkit.TestControl
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
+import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
 import org.http4s.Http4sSuite
@@ -36,8 +38,10 @@ import scala.concurrent.duration._
   * `timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)`.
   *
   * A server peer that goes silent, either before the preface or after it, must not
-  * hold its connection, and one of `maxConnections` slots, indefinitely. An open
-  * stream suspends the timeout so a long lived request or response is not reaped.
+  * hold its connection, and one of `maxConnections` slots, indefinitely. The timeout
+  * is suspended while the peer waits for a response or receive-window credit: an
+  * exhausted window prevents a conforming peer from continuing its upload. Once
+  * credit is available again, the peer gets a full idle interval to resume sending.
   */
 class H2IdleTimeoutSuite extends Http4sSuite {
 
@@ -81,6 +85,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize,
         localSettings.initialWindowSize,
       )
+      pendingReadCredit <- SignallingRef[IO, Int](0)
       outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
@@ -96,6 +101,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
       localSettings,
       mapRef,
       stateRef,
+      pendingReadCredit,
       outgoing,
       created,
       closed,
@@ -198,5 +204,48 @@ class H2IdleTimeoutSuite extends Http4sSuite {
       closed <- h2.state.get.map(_.closed)
       _ = assert(closed, clue("readLoop gave up but left the connection open"))
     } yield ()
+  }
+
+  List("connection", "stream").foreach { exhausted =>
+    test(s"readLoop suspends idle timeout until the $exhausted receive window reopens") {
+      TestControl.executeEmbed {
+        val window: Int = localSettings.initialWindowSize.windowSize
+        for {
+          h2 <- mkConnection
+          stream <- h2.initiateRemoteStreamById(1)
+          _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+          _ <-
+            if (exhausted == "connection")
+              h2.state.update(_.copy(readWindow = 0, advertisedReadWindow = 0))
+            else stream.state.update(_.copy(readWindow = 0, advertisedReadWindow = 0))
+          _ <- h2.readLoop.background.use { loop =>
+            for {
+              _ <- IO.sleep(idleTimeout * 3 + idleTimeout / 2)
+              before <- h2.state.get
+              _ = assert(
+                !before.closed,
+                s"Timed out while the $exhausted receive window was exhausted",
+              )
+              _ <- h2.state.update(
+                _.copy(readWindow = window, advertisedReadWindow = window.toLong)
+              )
+              _ <- stream.state.update(
+                _.copy(readWindow = window, advertisedReadWindow = window.toLong)
+              )
+              resumed <- IO.monotonic
+              _ <- loop.flatMap(_.embedNever).timeout(patience)
+              expired <- IO.monotonic
+              after <- h2.state.get
+            } yield {
+              assert(after.closed, "Idle timeout did not resume after receive credit was restored")
+              assert(
+                expired - resumed >= idleTimeout,
+                "The peer did not get a full idle interval after credit was restored",
+              )
+            }
+          }
+        } yield ()
+      }
+    }
   }
 }
