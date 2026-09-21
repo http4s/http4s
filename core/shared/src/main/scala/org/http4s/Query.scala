@@ -165,6 +165,29 @@ final class Query private (value: Either[Vector[KeyValue], String])
       CollectionCompat.mapValues(m.toMap)(_.toList)
     }
 
+  /** Creates a new encoded `Self` with all the specified parameters in the [[Query]].
+    * If the list of parameters is empty, it will return the original `Self`.
+    */
+  def encode: Self =
+    if (query.toVector.isEmpty) {
+      query
+    } else {
+      val result = query.toVector.map {
+        case (k, None) => k -> None
+        case (k, Some(v)) =>
+          k -> Some(
+            UriCoding.encode(
+              v,
+              StandardCharsets.UTF_8,
+              spaceIsPlus = false,
+              toSkip = UriCoding.QueryNoEncode,
+            )
+          )
+      }
+
+      Query.fromVector(result)
+    }
+
   override def equals(that: Any): Boolean =
     that match {
       case that: Query => that.toVector == toVector
