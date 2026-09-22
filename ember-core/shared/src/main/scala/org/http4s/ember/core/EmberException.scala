@@ -43,11 +43,11 @@ object EmberException {
     override def getMessage: String = message
   }
 
-  final case class EmptyStream() extends EmberException {
+  final case class EmptyStream() extends EmberException with NoStackTrace {
     override def getMessage: String = "Cannot Parse Empty Stream"
   }
 
-  final case class ReachedEndOfStream() extends EmberException {
+  final case class ReachedEndOfStream() extends EmberException with NoStackTrace {
     override def getMessage: String = "Reached End Of Stream While Reading"
   }
 

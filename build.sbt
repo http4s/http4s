@@ -37,6 +37,9 @@ ThisBuild / jsEnv := {
   )
 }
 
+ThisBuild / libraryDependencySchemes +=
+  "org.scala-native" %% "test-interface_native0.5" % VersionScheme.Always
+
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,
@@ -51,7 +54,6 @@ lazy val modules: List[CompositeProject] = List(
   jawn,
   circe,
   bench,
-  jsArtifactSizeTest,
   unidocs,
   examples,
   examplesDocker,
@@ -223,7 +225,6 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       catsLaws.value,
       disciplineCore.value,
       ip4sTestKit.value,
-      scalacheck.value,
       scalacheckEffectMunit.value,
       munitCatsEffect.value,
     ),
@@ -251,7 +252,6 @@ lazy val tests = libraryCrossProject("tests")
     libraryDependencies ++= Seq(
       munitCatsEffect.value,
       munitDiscipline.value,
-      scalacheck.value,
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
@@ -419,8 +419,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      munit.value,
-      munitCatsEffect.value,
+      munitCatsEffect.value
     ),
     mimaPreviousArtifacts := Set.empty,
   )
@@ -453,6 +452,57 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.throwable"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.complete"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$3"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$5"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$6"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$7"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$8"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.copy$default$9"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState.apply"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._3"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._5"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._6"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._7"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._8"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#HeaderP#ParserState._9"
+      ),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.apply"),
       ProblemFilters
@@ -516,6 +566,27 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "org.http4s.ember.core.h2.H2Stream#State._8"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.Hpack#Impl.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.apply"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -536,6 +607,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ),
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.ember.core.h2.H2Frame#*.toRaw"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Keys.H2cUpgrade"
           ),
         )
       else Seq.empty
@@ -629,6 +703,9 @@ lazy val emberClient = libraryCrossProject("ember-client")
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.defaultUnixSockets"
+      ),
     ),
   )
   .jvmSettings(
@@ -693,40 +770,8 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
-    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
-
-lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .settings(
-    startYear := Some(2022),
-    // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
-    // By placing the app in Test scope it gets linked as part of that CI step
-    Test / scalaJSUseMainModuleInitializer := true,
-    Test / scalaJSUseTestModuleInitializer := false,
-    Test / scalaJSStage := FullOptStage,
-    Test / test := {
-      val log = streams.value.log
-      val file = (Test / fullOptJS).value.data
-      val size = io.Using.fileInputStream(file) { in =>
-        var size = 0L
-        IO.gzip(in, _ => size += 1)
-        size
-      }
-      val sizeKB = size / 1000
-      // not a hard target. increase *moderately* if need be
-      // linking MimeDB results in a 100 KB increase. don't let that happen :)
-      // linking java.time.* results in a 70 KB increase
-      val targetKB = 280
-      val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
-      if (sizeKB < targetKB)
-        log.info(msg)
-      else
-        sys.error(msg)
-    },
-  )
-  .dependsOn(client.js, circe.js)
 
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
@@ -748,7 +793,6 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
-    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -782,7 +826,6 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -793,7 +836,6 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     tlFatalWarnings := false,
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -807,7 +849,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
@@ -911,7 +952,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.34").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },

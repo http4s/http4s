@@ -32,12 +32,16 @@ private[authentication] object NonceKeeperF {
       staleTimeout: Duration,
       nonceCleanupInterval: Duration,
       bits: Int,
+      maxNonces: Int,
   )(implicit F: Async[F]): F[NonceKeeperF[F]] = for {
     // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
     semaphore <- Semaphore[F](1)
     current <- F.monotonic
     lastCleanupMillis <- Ref[F].of(current)
-    nonces = new LinkedHashMap[String, NonceF[F]]
+    nonces = new LinkedHashMap[String, NonceF[F]] { self =>
+      override def removeEldestEntry(e: java.util.Map.Entry[String, NonceF[F]]): Boolean =
+        self.size() >= maxNonces
+    }
     random <- SecureRandom.javaSecuritySecureRandom[F]
   } yield new NonceKeeperF(
     staleTimeout,
@@ -48,6 +52,14 @@ private[authentication] object NonceKeeperF {
     nonces,
     random,
   )
+
+  @deprecated("Retained for binary compatibility.", "0.23.35")
+  def apply[F[_]](
+      staleTimeout: Duration,
+      nonceCleanupInterval: Duration,
+      bits: Int,
+  )(implicit F: Async[F]): F[NonceKeeperF[F]] =
+    apply(staleTimeout, nonceCleanupInterval, bits, Int.MaxValue)
 }
 
 /** A thread-safe class used to manage a database of nonces.
@@ -83,7 +95,7 @@ private[authentication] class NonceKeeperF[F[_]](
               // Because we are using an LinkedHashMap, the keys will be returned in the order they were
               // inserted. Therefore, once we reach a non-stale value, the remaining values are also not stale.
               F.tailRecM[ju.Iterator[NonceF[F]], Unit](nonces.values().iterator()) {
-                case it if it.hasNext && staleTimeout > now - it.next().created =>
+                case it if it.hasNext && now - it.next().created >= staleTimeout =>
                   F.delay(Left {
                     it.remove()
                     it
@@ -124,7 +136,7 @@ private[authentication] class NonceKeeperF[F[_]](
           case n: NonceF[F] =>
             n.nc.modify { lastNc =>
               if (nc > lastNc) {
-                (lastNc + 1, NonceKeeper.OKReply)
+                (nc, NonceKeeper.OKReply)
               } else
                 (lastNc, NonceKeeper.BadNCReply)
             }

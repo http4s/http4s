@@ -20,7 +20,8 @@ import cats.data._
 import com.comcast.ip4s
 import fs2.Stream
 import org.typelevel.ci.CIString
-import org.typelevel.scalaccompat.annotation._
+import org.typelevel.scalaccompat.annotation.nowarn212
+import org.typelevel.scalaccompat.annotation.unused
 
 package object http4s {
 
@@ -92,7 +93,7 @@ package object http4s {
       throw new UnsupportedOperationException
   }
 
-  implicit private[http4s] class Fs2IoPathOps(p: fs2.io.file.Path) {
+  implicit private[http4s] class Fs2IoPathOps(@unused p: fs2.io.file.Path) {
     def toNioPath: java.nio.file.Path = throw new UnsupportedOperationException
   }
 
@@ -102,7 +103,7 @@ package object http4s {
       throw new UnsupportedOperationException
   }
 
-  implicit private[http4s] class Ip4sIpv4AddressOps(ip: ip4s.Ipv4Address) {
+  implicit private[http4s] class Ip4sIpv4AddressOps(@unused ip: ip4s.Ipv4Address) {
     def toInetAddress: java.net.Inet4Address = throw new UnsupportedOperationException
   }
 
@@ -112,11 +113,11 @@ package object http4s {
       throw new UnsupportedOperationException
   }
 
-  implicit private[http4s] class Ip4sIpv6AddressOps(ip: ip4s.Ipv6Address) {
+  implicit private[http4s] class Ip4sIpv6AddressOps(@unused ip: ip4s.Ipv6Address) {
     def toInetAddress: java.net.Inet6Address = throw new UnsupportedOperationException
   }
 
-  implicit private[http4s] class Ip4sIpAddressOps(ip: ip4s.IpAddress) {
+  implicit private[http4s] class Ip4sIpAddressOps(@unused ip: ip4s.IpAddress) {
     def toInetAddress: java.net.InetAddress = throw new UnsupportedOperationException
   }
 }

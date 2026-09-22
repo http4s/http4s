@@ -25,17 +25,21 @@ import fs2.concurrent.Channel
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.Message
+import org.http4s.ember.core.EmberException
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 import java.util.concurrent.CancellationException
 import scala.annotation.nowarn
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 // Will eventually hold client/server through single interface matching that of the designed paradigm
 // in StreamState
 @nowarn("msg=implicit numeric widening")
-private[h2] class H2Stream[F[_]: Concurrent](
+private[h2] class H2Stream[F[_]: Temporal](
     val id: Int,
+    sendTimeout: Duration,
     localSettings: H2Frame.Settings.ConnectionSettings,
     connectionType: H2Connection.ConnectionType,
     val remoteSettings: F[H2Frame.Settings.ConnectionSettings],
@@ -78,23 +82,17 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def sendMessageBody(mess: Message[F]): F[Unit] = {
     val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
     val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
-    maxFrameSize.flatMap(maxFrameSize =>
-      mess.body
-        .ifEmpty[F, Byte](
-          Stream.exec(sendData(ByteVector.empty, endStream = true).whenA(noTrailers))
-        )
-        .chunkLimit(maxFrameSize)
-        .zipWithNext
-        .foreach { case (c, nextChunk) =>
-          val isEndStream = nextChunk.isEmpty && noTrailers
-          sendData(c.toByteVector, isEndStream)
-        }
-        .compile
-        .drain
-        .onError { case _ =>
-          rstStream(H2Error.InternalError)
-        }
-    )
+    maxFrameSize.flatMap { maxFrameSize =>
+      val sendBody =
+        mess.body
+          .chunkLimit(maxFrameSize)
+          .foreach(c => sendData(c.toByteVector, endStream = false))
+          .compile
+          .drain >> sendData(ByteVector.empty, endStream = true).whenA(noTrailers)
+      sendBody.onError { case _ =>
+        rstStream(H2Error.InternalError)
+      }
+    }
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =
@@ -159,6 +157,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                   s.copy(
                     state = newState,
                     writeWindow = s.writeWindow - bv.size.toInt,
+                    stallStart = None,
                   ),
                   newState,
                 )
@@ -176,13 +175,38 @@ private[h2] class H2Stream[F[_]: Concurrent](
                 val frame = H2Frame.Data(id, head, None, endStream = false)
                 enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
               }
-          } else s.writeBlock.get.rethrow >> sendData(bv, endStream)
+          } else {
+            Temporal[F].monotonic
+              .flatMap(now =>
+                state.modify { st =>
+                  val start = st.stallStart.getOrElse(now)
+                  (st.copy(stallStart = Some(start)), now - start)
+                }
+              )
+              .flatMap { elapsed =>
+                val remaining = sendTimeout - elapsed
+                if (remaining <= Duration.Zero)
+                  logger.debug(s"stream stall timeout exceeded ($elapsed)") >>
+                    rstStream(H2Error.ProtocolError)
+                else
+                  Temporal[F].timeout(s.writeBlock.get.rethrow, remaining).attempt.flatMap[Unit] {
+                    case Right(_) => sendData(bv, endStream)
+                    case Left(_: java.util.concurrent.TimeoutException) =>
+                      logger.debug(s"stream stall timeout exceeded") >>
+                        rstStream(H2Error.ProtocolError)
+                    case Left(e) => e.raiseError
+                  }
+              }
+          }
         }
       case _ => new IllegalStateException("Stream Was Closed").raiseError
     }
   }
 
-  def receiveHeaders(headers: H2Frame.Headers, continuations: H2Frame.Continuation*): F[Unit] = {
+  def receiveHeaders(
+      headers: H2Frame.Headers,
+      continuations: List[H2Frame.Continuation],
+  ): F[Unit] = {
 
     def checkLengthOf(mess: Message[Pure]): F[Unit] =
       mess.contentLength.traverse_ { length =>
@@ -203,8 +227,12 @@ private[h2] class H2Stream[F[_]: Concurrent](
             case (acc, cont) => acc ++ cont.headerBlockFragment
           }
           for {
-            h <- hpack.decodeHeaders(block).onError { case e =>
-              logger.error(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
+            h <- hpack.decodeHeaders(block).onError {
+              case e @ EmberException.MessageTooLong(_) =>
+                logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
+
+              case e =>
+                logger.error(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
             }
             newstate =
               if (headers.endStream) s.state match {
@@ -271,7 +299,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
   def receivePushPromise(
       headers: H2Frame.PushPromise,
-      continuations: H2Frame.Continuation*
+      continuations: List[H2Frame.Continuation],
   ): F[Unit] = state.get.flatMap { s =>
     connectionType match {
       case H2Connection.ConnectionType.Client =>
@@ -281,8 +309,12 @@ private[h2] class H2Stream[F[_]: Concurrent](
               case (acc, cont) => acc ++ cont.headerBlockFragment
             }
             for {
-              h <- hpack.decodeHeaders(block).onError { case e =>
-                logger.error(e)("Issue in headers"); goAway(H2Error.CompressionError)
+              h <- hpack.decodeHeaders(block).onError {
+                case e @ EmberException.MessageTooLong(_) =>
+                  logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
+
+                case e =>
+                  logger.error(e)("Issue in headers") >> goAway(H2Error.CompressionError)
               }
               _ <- state.update(s => s.copy(state = StreamState.ReservedRemote))
               _ <- PseudoHeaders.headersToRequestNoBody(h) match {
@@ -431,6 +463,7 @@ private[h2] object H2Stream {
       trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
       readBuffer: Channel[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
+      stallStart: Option[FiniteDuration],
   ) {
     override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"

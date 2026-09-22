@@ -34,7 +34,7 @@ object `Content-Language` {
   private[http4s] val parser: Parser[headers.`Content-Language`] = {
     val languageTag: Parser[LanguageTag] =
       (Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0).map {
-        case (main: String, sub: collection.Seq[String]) =>
+        case (main, sub) =>
           LanguageTag(main, QValue.One, sub)
       }
     CommonRules.headerRep1(languageTag).map { tags =>

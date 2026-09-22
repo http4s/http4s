@@ -64,4 +64,6 @@ package object websocket {
       case _ =>
         throw new UnknownOpcodeException(opcode)
     }
+
+  private[http4s] val DefaultMaxMessageSize: Int = 64 * 1024 * 1024
 }

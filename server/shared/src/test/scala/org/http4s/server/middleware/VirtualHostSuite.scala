@@ -82,6 +82,46 @@ class VirtualHostSuite extends Http4sSuite {
     vhostExact(req).map(_.status).assertEquals(NotFound)
   }
 
+  private val vhostSubdomain = VirtualHost(
+    VirtualHost.subdomain(routesA, "routesA", None)
+  ).orNotFound
+
+  test("subdomain should not match exact") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("routesA"))
+
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
+  }
+
+  test("subdomain should match prefix") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("www.routesA"))
+
+    vhostSubdomain(req).flatMap(_.as[String]).assertEquals("routesA")
+  }
+
+  test("subdomain should not match suffix") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("routesA.service"))
+
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
+  }
+
+  test("subdomain should not match prefix and suffix") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("www.routesA.service"))
+
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
+  }
+
+  test("subdomain should not match prefix without dot") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("not-routesA"))
+
+    vhostSubdomain(req).map(_.status).assertEquals(NotFound)
+  }
+
+  @annotation.nowarn("cat=deprecation")
   private val vhostWildcard = VirtualHost(
     VirtualHost.wildcard(routesA, "routesa", None),
     VirtualHost.wildcard(routesB, "*.service", Some(80)),
@@ -115,7 +155,7 @@ class VirtualHostSuite extends Http4sSuite {
     }
   }
 
-  test("wildcard not match a route with an abscent wildcard") {
+  test("wildcard not match a route with an absent wildcard") {
     val req = Request[IO](GET, uri"/numbers/1")
     val reqs =
       List(req.withHeaders(Host(".service", Some(80))), req.withHeaders(Host("service", Some(80))))
@@ -123,5 +163,58 @@ class VirtualHostSuite extends Http4sSuite {
     reqs.parTraverse_ { req =>
       vhostWildcard(req).map(_.status).assertEquals(NotFound)
     }
+  }
+
+  private val vhostMatchesSubstring = VirtualHost(
+    VirtualHost.matchesSubstring(routesA, "routesa", None),
+    VirtualHost.matchesSubstring(routesB, """.*\.service""", Some(80)),
+    VirtualHost.matchesSubstring(default, """^.*\.anchored-service$""", Some(80)),
+  ).orNotFound
+
+  test("matchesSubstring match an exact route") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("routesa", Some(80)))
+
+    vhostMatchesSubstring(req).flatMap(_.as[String]).assertEquals("routesA")
+  }
+
+  test("matchesSubstring should match when not anchored") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("test.service.example.com", Some(80)))
+
+    vhostMatchesSubstring(req).flatMap(_.as[String]).assertEquals("routesB")
+  }
+
+  test("matchesSubstring should not match suffix when anchored") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("test.anchored-service.example.com", Some(80)))
+
+    vhostMatchesSubstring(req).map(_.status).assertEquals(NotFound)
+  }
+
+  private val vhostMatches = VirtualHost(
+    VirtualHost.matches(routesA, "routesa", None),
+    VirtualHost.matches(routesB, """route-.\.service""", Some(80)),
+  ).orNotFound
+
+  test("matches should match an exact route") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("routesa", Some(80)))
+
+    vhostMatches(req).flatMap(_.as[String]).assertEquals("routesA")
+  }
+
+  test("matches should match a wildcard route") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("route-b.service", Some(80)))
+
+    vhostMatches(req).flatMap(_.as[String]).assertEquals("routesB")
+  }
+
+  test("matches does not match when not anchored") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("route-b.service.prod", Some(80)))
+
+    vhostMatches(req).map(_.status).assertEquals(NotFound)
   }
 }

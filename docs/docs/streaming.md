@@ -77,13 +77,14 @@ import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream
+import fs2.io.net.Network
 import fs2.io.stdout
 import fs2.text.{lines, utf8}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
 import org.typelevel.jawn.Facade
 
-class TWStream[F[_]: Async] {
+class TWStream[F[_]: Async: Network] {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f: Facade[Json] = new io.circe.jawn.CirceSupportParser(None, false).facade
 

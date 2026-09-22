@@ -92,7 +92,7 @@ object EmberServerH2Example extends IOApp {
         .build
     } yield ()
 
-    // Can Test Both http2-prior-knowledge, and h2c
+    // Can Test http2-prior-knowledge
     def testCleartext[F[_]: Async: Console: Network] =
       EmberServerBuilder
         .default[F]

@@ -82,6 +82,22 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
+  test(
+    "Return a 400 on a relative link even if it's inside the context, obscured by percent-encoded separator"
+  ) {
+    val relativePath = "test-lib/1.0.0/sub/..%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
+  test("Return a 400 on a percent-encoded backslash for Windows safety") {
+    val relativePath = "test-lib/1.0.0/sub/..%5Ctestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
   test("Return a 400 if the request tries to escape the context") {
     val relativePath = "../../../testresource.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
@@ -90,6 +106,15 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val req = Request[IO](uri = uri)
     IO(file.exists()).assertEquals(true) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
+
+  test(
+    "Return a 400 if the request tries to escape the context, obscured by percent-encoded separators"
+  ) {
+    val relativePath = "..%2F..%2F..%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("Return a 400 if the request tries to escape the context with /") {

@@ -24,6 +24,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Encoding`
 import org.http4s.headers.`Content-Length`
 import org.http4s.syntax.literals._
+import org.typelevel.ci._
 
 class GZipSuite extends Http4sSuite {
   private val service = server.middleware.GZip(HttpApp[IO] {
@@ -34,6 +35,16 @@ class GZipSuite extends Http4sSuite {
     case _ => NotFound()
   })
   private val gzipClient = GZip()(Client.fromHttpApp(service))
+
+  private val xGzipService: HttpApp[IO] = HttpApp[IO] { req =>
+    service.run(req).map {
+      case resp if resp.headers.contains[`Content-Encoding`] =>
+        resp.putHeaders(Header.Raw(ci"Content-Encoding", "x-gzip"))
+      case r => r
+    }
+  }
+
+  private val xGzipClient = GZip()(Client.fromHttpApp(xGzipService))
 
   test("Client Gzip should return data correctly") {
     gzipClient
@@ -63,5 +74,16 @@ class GZipSuite extends Http4sSuite {
       .map { body =>
         assertEquals(body, "")
       }
+  }
+
+  test("Client Gzip should decompress a legacy x-gzip response") {
+    xGzipClient
+      .get(uri"/gziptest") { response =>
+        assertEquals(response.status, Status.Ok)
+        assertEquals(response.headers.get[`Content-Encoding`], None)
+        assertEquals(response.headers.get[`Content-Length`], None)
+        response.as[String]
+      }
+      .map(assertEquals(_, "Dummy response"))
   }
 }

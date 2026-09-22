@@ -42,6 +42,10 @@ import org.http4s.util.SizedSeq0
   */
 object Metrics {
 
+  // The fromInt can't fail, but being more safe than adding a yolo here.
+  // 499 is used as "client closed request" code in nginx, which seems the closest thing.
+  val CanceledStatus: Status = Status.fromInt(499).getOrElse(Status.InternalServerError)
+
   private[this] final case class MetricsEntry(
       method: Method,
       startTime: Long,
@@ -52,7 +56,9 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
-    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
+    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register.
+    *        Returning `None` excludes the request from [[org.http4s.metrics.MetricsOps.recordTotalTime]], and therefore
+    *        from the backend's request counter. The abnormal termination is recorded either way.
     * @param classifierF a function that allows to add a classifier that can be customized per request
     * @return the metrics middleware
     */
@@ -92,7 +98,9 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
-    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
+    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register.
+    *        Returning `None` excludes the request from [[org.http4s.metrics.MetricsOps.recordTotalTime]], and therefore
+    *        from the backend's request counter. The abnormal termination is recorded either way.
     * @param classifierF a function that allows to add a classifier that can be customized per request
     * @return the metrics middleware
     */
@@ -171,16 +179,9 @@ object Metrics {
           case (Outcome.Succeeded(_), Some(status)) => recordTotal(status)
 
           case (Outcome.Errored(e), None) =>
-            // If an error occurred, and the status is empty, this means
-            // the error occurred before the routes could generate a response.
-            ops.recordHeadersTime(
-              metrics.method,
-              totalTime,
-              metrics.classifier,
-              customLabelValues,
-            ) *>
-              recordAbnormal(Error(e)) *>
-              errorResponseHandler(e).traverse_(recordTotal)
+            // No response, so no headers were sent. recordHeadersTime is skipped rather than
+            // called with the elapsed time, which would be a sample for a send that never happened.
+            recordAbnormal(Error(e)) *> errorResponseHandler(e).traverse_(recordTotal)
 
           case (Outcome.Errored(e), Some(status)) =>
             // If an error occurred, but the status is non-empty, this means
@@ -189,7 +190,11 @@ object Metrics {
             // so we do not need to invoke it here.
             recordAbnormal(Abnormal(e)) *> recordTotal(status)
 
-          case (Outcome.Canceled(), _) => recordAbnormal(Canceled)
+          case (Outcome.Canceled(), maybeStatus) =>
+            // recordTotal as well as recordAbnormal, so canceled requests reach the backend's
+            // counter. `maybeStatus` is defined only when cancellation happened mid-body, in which
+            // case that status really was sent; otherwise CanceledStatus stands in.
+            recordAbnormal(Canceled) *> recordTotal(maybeStatus.getOrElse(CanceledStatus))
         }
       }
     }(C)(

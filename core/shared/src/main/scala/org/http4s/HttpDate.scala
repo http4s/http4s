@@ -32,8 +32,10 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import scala.concurrent.duration._
 
-import Parser.{char, string}
-import Rfc5234.{digit, sp}
+import Parser.char
+import Parser.string
+import Rfc5234.digit
+import Rfc5234.sp
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it

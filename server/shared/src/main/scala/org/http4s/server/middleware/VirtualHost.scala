@@ -24,6 +24,8 @@ import org.http4s.Status.BadRequest
 import org.http4s.Status.NotFound
 import org.http4s.headers.Host
 
+import java.util.Locale
+
 /** Middleware for virtual host mapping
   *
   * The `VirtualHost` middleware allows multiple services to be mapped
@@ -47,13 +49,41 @@ object VirtualHost {
       http: Http[F, G],
       requestHost: String,
       port: Option[Int] = None,
-  ): HostService[F, G] =
-    HostService(http, h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
+  ): HostService[F, G] = {
+    val lowerCaseHost = requestHost.toLowerCase(Locale.ROOT)
+    HostService(
+      http,
+      h => h.host.toLowerCase(Locale.ROOT) == lowerCaseHost && (port.isEmpty || port == h.port),
+    )
+  }
+
+  /** Create a [[HostService]] that will match if the host string in `"." + domain``,
+    * discounting case, and matches the port, if the port is given. If the port
+    * is not given, it is ignored. It will *not* match `domain` alone, only a subdomain.
+    */
+  def subdomain[F[_], G[_]](
+      http: Http[F, G],
+      domain: String,
+      port: Option[Int] = None,
+  ): HostService[F, G] = {
+    val lowerCaseDomain = "." + domain.toLowerCase(Locale.ROOT)
+
+    HostService(
+      http,
+      h =>
+        h.host.toLowerCase(Locale.ROOT).endsWith(lowerCaseDomain) &&
+          (port.isEmpty || port == h.port),
+    )
+  }
 
   /** Create a [[HostService]] that will match based on the host string allowing
     * for wildcard matching of the lowercase host string and port, if the port is
     * given. If the port is not given, it is ignored.
     */
+  @deprecated(
+    message = "Use VirtualHost.subdomain or VirtualHost.matches instead",
+    since = "0.23.35",
+  )
   def wildcard[F[_], G[_]](
       http: Http[F, G],
       wildcardHost: String,
@@ -61,11 +91,30 @@ object VirtualHost {
   ): HostService[F, G] =
     regex(http, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
-  /** Create a [[HostService]] that uses a regular expression to match the host
+  /** Create a [[HostService]] that uses a regular expression to find a match in the host
     * string (which will be provided in lower case form) and port, if the port
     * is given. If the port is not given, it is ignored.
+    *
+    * Note: the pattern may only match a substring. Use `VirtualHost.pattern` to require the entire string to match.
     */
+  @deprecated(
+    message =
+      "Use VirtualHost.matches for entire string matching, or VirtualHost.matchesSubstring to preserve the current substring matching behavior",
+    since = "0.23.35",
+  )
   def regex[F[_], G[_]](
+      http: Http[F, G],
+      hostRegex: String,
+      port: Option[Int] = None,
+  ): HostService[F, G] = matchesSubstring(http, hostRegex, port)
+
+  /** Create a [[HostService]] that uses a regular expression to find a substring
+    * match in the host string (which will be provided in lower case form) and
+    * port, if the port is given. If the port * is not given, it is ignored.
+    *
+    * Note: the pattern may only match a substring. Use `VirtualHost.pattern` to require the entire string to match.
+    */
+  def matchesSubstring[F[_], G[_]](
       http: Http[F, G],
       hostRegex: String,
       port: Option[Int] = None,
@@ -73,7 +122,26 @@ object VirtualHost {
     val r = hostRegex.r
     HostService(
       http,
-      h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port),
+      h =>
+        r.findFirstIn(h.host.toLowerCase(Locale.ROOT)).nonEmpty && (port.isEmpty || port == h.port),
+    )
+  }
+
+  /** Create a [[HostService]] that uses a regular expression to match the host
+    * string (which will be provided in lower case form) and port, if the port
+    * is given. If the port is not given, it is ignored. Unlike [[regex]], this
+    * method requires the entire hostname to match.
+    */
+  def matches[F[_], G[_]](
+      http: Http[F, G],
+      hostRegex: String,
+      port: Option[Int] = None,
+  ): HostService[F, G] = {
+    val pattern = hostRegex.r.pattern
+    HostService(
+      http,
+      h =>
+        pattern.matcher(h.host.toLowerCase(Locale.ROOT)).matches && (port.isEmpty || port == h.port),
     )
   }
 

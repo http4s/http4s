@@ -52,35 +52,53 @@ class ContentCodingSuite extends Http4sSuite {
       ContentCoding.`*`.matches(a)
     }
   }
+
   test("ContentCoding should always matches itself") {
     forAll { (a: ContentCoding) =>
       a.matches(a)
     }
   }
 
-  test("parses should parse plain coding") {
+  test("ContentCoding.parse should parse plain coding") {
     assertEquals(ContentCoding.parse("gzip"), ParseResult.success(ContentCoding.gzip))
   }
-  test("parses should parse custom codings") {
+
+  test("ContentCoding.parse should parse legacy x-gzip coding") {
+    assertEquals(ContentCoding.parse("x-gzip"), ParseResult.success(ContentCoding.legacy.`x-gzip`))
+  }
+
+  test("ContentCoding.parse should parse legacy x-compress coding") {
+    assertEquals(
+      ContentCoding.parse("x-compress"),
+      ParseResult.success(ContentCoding.legacy.`x-compress`),
+    )
+  }
+
+  test("ContentCoding.parse should parse custom codings") {
     assertEquals(ContentCoding.parse("mycoding"), ContentCoding.fromString("mycoding"))
   }
-  test("parses should parse with quality") {
+
+  test("ContentCoding.parse should parse with quality") {
     assertEquals(
       ContentCoding.parse("gzip;q=0.8"),
       Right(ContentCoding.gzip.withQValue(qValue"0.8")),
     )
   }
-  test("parses should fail on empty") {
+
+  test("ContentCoding.parse should fail on empty") {
     assert(ContentCoding.parse("").isLeft)
     assert(ContentCoding.parse(";q=0.8").isLeft)
   }
-  test("parses should fail on non token") {
+
+  test("ContentCoding.parse should fail on non token") {
     assert(ContentCoding.parse("\\\\").isLeft)
   }
-  test("parses should parse *") {
+
+  test("ContentCoding.parse should parse *") {
     assertEquals(ContentCoding.parse("*"), ParseResult.success(ContentCoding.`*`))
   }
-  test("parses should parse tokens starting with *") {
+
+  test("ContentCoding.parse should parse tokens starting with *") {
     // Strange content coding but valid
     assertEquals(
       ContentCoding.parse("*fahon"),

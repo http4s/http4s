@@ -97,7 +97,7 @@ class ConnectionSuite extends Http4sSuite {
 
   def clientResource(host: ip4s.SocketAddress[ip4s.Host]): Resource[IO, TestClient] =
     for {
-      socket <- Network[IO].client(host)
+      socket <- Network[IO].connect(host)
     } yield TestClient(socket)
 
   private def fixture(

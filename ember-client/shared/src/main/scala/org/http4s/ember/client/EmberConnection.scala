@@ -24,6 +24,7 @@ import cats.effect.std.Hotswap
 import cats.syntax.all._
 import fs2.Chunk
 
+@annotation.nowarn("cat=deprecation")
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     chunkSize: Int,
@@ -38,16 +39,14 @@ private[ember] final case class EmberConnection[F[_]](
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
 
-  /** For the connection to be valid, the socket must be open,
-    * and its pre-emptive read must not have terminated in an error or EOF.
+  /** For the connection to be valid, its pre-emptive read must not have terminated in an error or EOF.
     */
   def isValid: F[Boolean] = {
-    val isOpen = keySocket.socket.isOpen
     val isEof = nextRead.get.flatMap(_.tryGet).map {
       case Some(result) => result.fold(_ => true, _.isEmpty) // if Left or None this socket is dead
       case None => false // no read yet, which is good!
     }
-    (isOpen, isEof).mapN((open, eof) => open && !eof)
+    isEof.map(eof => !eof)
   }
 
   /** We must start the next read after completing a request/response pair,
@@ -72,6 +71,7 @@ private[ember] final case class EmberConnection[F[_]](
       shutdown.attempt.void
 }
 
+@annotation.nowarn("cat=deprecation")
 private[ember] object EmberConnection {
   def apply[F[_]](
       keySocketResource: Resource[F, RequestKeySocket[F]],

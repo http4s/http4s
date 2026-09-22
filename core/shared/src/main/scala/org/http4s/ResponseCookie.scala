@@ -38,9 +38,12 @@ import java.time.DateTimeException
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
-/** @param extension The extension attributes of the cookie.  If there is more
+/** Representation of a cookie as sent as the value of a `Set-Cookie` field.
+  *
+  * @param extension The extension attributes of the cookie.  If there is more
   * than one, they are joined by semi-colon, which must not appear in an
-  * attribute value.
+  * attribute value.  It is the caller's responsibility to sanitize illegal
+  * semi-colons from untrusted values.
   */
 final case class ResponseCookie(
     name: String,
@@ -56,20 +59,35 @@ final case class ResponseCookie(
 ) extends Renderable { self =>
   override lazy val renderString: String = super.renderString
 
+  /** Renders the cookie.  For security, control characters are stripped from
+    * are stripped from `name`, `content`, `domain`, `path`, and `extension`.
+    * Semi-colons are additionally stripped from `name`, `content`, `domain`,
+    * and `path`.
+    */
   override def render(writer: Writer): writer.type = {
-    writer.append(name).append('=').append(content)
+    writer.append(sanitize(name)).append('=').append(sanitize(content))
     expires.foreach { e =>
       writer.append("; Expires=").append(e)
     }
     maxAge.foreach(writer.append("; Max-Age=").append(_))
-    domain.foreach(writer.append("; Domain=").append(_))
-    path.foreach(writer.append("; Path=").append(_))
+    domain.foreach(d => writer.append("; Domain=").append(sanitize(d)))
+    path.foreach(p => writer.append("; Path=").append(sanitize(p)))
     sameSite.foreach(writer.append("; SameSite=").append(_))
     if (secure || sameSite.contains(SameSite.None)) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
-    extension.foreach(writer.append("; ").append(_))
+    extension.foreach(e => writer.append("; ").append(sanitizeExtension(e)))
     writer
   }
+
+  // This is looser than in RFC6265, specifically around comma and
+  // backslash, but should be enough to prevent injection.
+  private[this] def sanitize(value: String): String =
+    value.filter(c => c != ';' && c >= ' ' && c != '\u007f')
+
+  // Extension should have been modeled as a List, but we're stuck
+  // with a string and can't strip the semi-colon.
+  private[this] def sanitizeExtension(value: String): String =
+    value.filter(c => c >= ' ' && c != '\u007f')
 
   def clearCookie: ResponseCookie =
     copy(content = "", expires = Some(HttpDate.Epoch))

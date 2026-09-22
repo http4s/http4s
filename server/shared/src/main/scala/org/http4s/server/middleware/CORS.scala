@@ -166,7 +166,15 @@ object CORS {
     CORSPolicy.AllowCredentials.Deny,
     CORSPolicy.ExposeHeaders.None,
     CORSPolicy.AllowMethods.In(
-      Set(Method.GET, Method.HEAD, Method.PUT, Method.PATCH, Method.POST, Method.DELETE)
+      Set(
+        Method.GET,
+        Method.HEAD,
+        Method.PUT,
+        Method.PATCH,
+        Method.POST,
+        Method.DELETE,
+        Method.QUERY,
+      )
     ),
     CORSPolicy.AllowHeaders.Reflect,
     CORSPolicy.MaxAge.Default,
