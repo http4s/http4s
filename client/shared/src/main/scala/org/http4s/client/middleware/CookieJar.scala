@@ -21,6 +21,7 @@ import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
+import org.typelevel.ci.CIString
 
 import java.util.Locale
 
@@ -77,33 +78,52 @@ object CookieJar {
       } yield out
     }
 
-  /** Constructor which builds a non-exposed CookieJar
-    * and applies it to the client.
-    */
+  @deprecated("Call overload with a PublicSuffixMatcher.", "0.23.38")
   def impl[F[_]: Async](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
-  /** Like [[impl]] except it allows the creation of the middleware in a
-    * different HKT than the client is in.
+  /** Constructor which builds a non-exposed CookieJar
+    * and applies it to the client.
     */
+  def impl[F[_]: Async](psl: PublicSuffixMatcher)(c: Client[F]): F[Client[F]] =
+    in[F, F](psl)(c)
+
+  @deprecated("Call overload with a PublicSuffixMatcher.", "0.23.38")
   def in[F[_]: Async, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
 
-  /** Jar Constructor
+  /** Like `impl` except it allows the creation of the middleware in a
+    * different HKT than the client is in.
     */
+  def in[F[_]: Async, G[_]: Sync](psl: PublicSuffixMatcher)(c: Client[F]): G[Client[F]] =
+    jarIn[F, G](psl).map(apply(_)(c))
+
+  @deprecated("Call overload with a PublicSuffixMatcher.", "0.23.38")
   def jarImpl[F[_]: Async]: F[CookieJar[F]] =
     jarIn[F, F]
 
-  /** Like [[jarImpl]] except it allows the creation of the CookieJar in a
-    * different HKT than the client is in.
+  /** Jar Constructor
     */
+  def jarImpl[F[_]: Async](psl: PublicSuffixMatcher): F[CookieJar[F]] =
+    jarIn[F, F](psl)
+
+  @deprecated("Call overload with a PublicSuffixMatcher.", "0.23.38")
   def jarIn[F[_]: Async, G[_]: Sync]: G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
-      new CookieJarRefImpl[F](ref) {}
+      new CookieJarRefImpl[F](ref, PublicSuffixMatcher.default) {}
+    }
+
+  /** Like `jarImpl` except it allows the creation of the CookieJar in a
+    * different HKT than the client is in.
+    */
+  def jarIn[F[_]: Async, G[_]: Sync](psl: PublicSuffixMatcher): G[CookieJar[F]] =
+    Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
+      new CookieJarRefImpl[F](ref, psl) {}
     }
 
   private[CookieJar] class CookieJarRefImpl[F[_]: Async](
-      ref: Ref[F, Map[CookieKey, CookieValue]]
+      ref: Ref[F, Map[CookieKey, CookieValue]],
+      psl: PublicSuffixMatcher,
   ) extends CookieJar[F] {
     override def evictExpired: F[Unit] =
       for {
@@ -120,13 +140,13 @@ object CookieJar {
     override def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit] =
       for {
         now <- HttpDate.current[F]
-        out <- ref.update(extractFromResponseCookies(_)(cookies, now))
+        out <- ref.update(extractFromResponseCookies(_, psl)(cookies, now))
       } yield out
 
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {
         cookies <- ref.get.map(_.map(_._2.cookie).toList)
-      } yield cookiesForRequest(r, cookies)
+      } yield cookiesForRequest(r, cookies, psl)
         .foldLeft(r) { case (req, cookie) => req.addCookie(cookie) }
   }
 
@@ -171,25 +191,31 @@ object CookieJar {
       .getOrElse(default)
 
   private[middleware] def extractFromResponseCookies[G[_]: Foldable](
-      m: Map[CookieKey, CookieValue]
+      m: Map[CookieKey, CookieValue],
+      psl: PublicSuffixMatcher,
   )(
       cookies: G[(ResponseCookie, Uri)],
       httpDate: HttpDate,
   ): Map[CookieKey, CookieValue] =
     cookies
       .foldRight(Eval.now(m)) { case ((rc, uri), eM) =>
-        eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri))
+        eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri, psl))
       }
       .value
 
   private[middleware] def extractFromResponseCookie(
       m: Map[CookieKey, CookieValue]
-  )(c: ResponseCookie, httpDate: HttpDate, uri: Uri): Map[CookieKey, CookieValue] = {
+  )(
+      c: ResponseCookie,
+      httpDate: HttpDate,
+      uri: Uri,
+      psl: PublicSuffixMatcher,
+  ): Map[CookieKey, CookieValue] = {
     val storedDomain = c.domain match {
       case Some(d) =>
-        if (uri.host.exists(domainMatches(_, d))) Some(d) else None
+        if (uri.host.exists(domainMatches(_, d, psl))) Some(canonicalDomain(d)) else None
       case None =>
-        uri.host.map(_.value)
+        uri.host.map(h => canonicalDomain(h.value))
     }
     storedDomain match {
       case Some(domainS) =>
@@ -206,18 +232,26 @@ object CookieJar {
   private[middleware] def responseCookieToRequestCookie(r: ResponseCookie): RequestCookie =
     RequestCookie(r.name, r.content)
 
-  private def domainMatches(host: Uri.Host, cookieDomain: String): Boolean = {
-    val requestHost = host.value.toLowerCase(Locale.ROOT)
-    val domain = cookieDomain.toLowerCase(Locale.ROOT).stripPrefix(".")
+  private def domainMatches(
+      host: Uri.Host,
+      cookieDomain: String,
+      psl: PublicSuffixMatcher,
+  ): Boolean = {
+    val requestHost = canonicalDomain(host.value)
+    val domain = canonicalDomain(cookieDomain)
     domain.nonEmpty && {
       host match {
         case _: Uri.Ipv4Address | _: Uri.Ipv6Address =>
           requestHost == domain
         case _: Uri.RegName =>
-          requestHost == domain || requestHost.endsWith("." + domain)
+          requestHost == domain ||
+          (requestHost.endsWith("." + domain) && !psl.isPublicSuffix(CIString(domain)))
       }
     }
   }
+
+  private def canonicalDomain(s: String): String =
+    s.toLowerCase(Locale.ROOT).stripPrefix(".").stripSuffix(".")
 
   private def pathMatches(requestPath: Uri.Path, cookiePath: String): Boolean = {
     val requestPathStr = if (requestPath.isEmpty) "/" else requestPath.renderString
@@ -229,9 +263,10 @@ object CookieJar {
   private[middleware] def cookieAppliesToRequest[N[_]](
       r: Request[N],
       c: ResponseCookie,
+      psl: PublicSuffixMatcher,
   ): Boolean = {
     def domainApplies =
-      c.domain.exists(s => r.uri.host.exists(host => domainMatches(host, s)))
+      c.domain.exists(s => r.uri.host.exists(host => domainMatches(host, s, psl)))
     def pathApplies = c.path.forall(s => pathMatches(r.uri.path, s))
     def secureSatisfied =
       if (c.secure)
@@ -245,9 +280,41 @@ object CookieJar {
   private[middleware] def cookiesForRequest[N[_]](
       r: Request[N],
       l: List[ResponseCookie],
+      psl: PublicSuffixMatcher,
   ): List[RequestCookie] =
     l.foldLeft(List.empty[RequestCookie]) { case (list, cookie) =>
-      if (cookieAppliesToRequest(r, cookie)) responseCookieToRequestCookie(cookie) :: list
+      if (cookieAppliesToRequest(r, cookie, psl)) responseCookieToRequestCookie(cookie) :: list
       else list
     }
+}
+
+/** Pluggable public-suffix check used to prevent cookies from being scoped to
+  * a public suffix (e.g. `com`).
+  *
+  * @param domain the domain, with leading dot stripped
+  * @return `true` if `domain` is a public suffix.
+  * @see https://datatracker.ietf.org/doc/html/rfc6265#section-5.3
+  */
+trait PublicSuffixMatcher {
+  def isPublicSuffix(domain: CIString): Boolean
+}
+
+object PublicSuffixMatcher {
+
+  /** Treats any single-label domain (no internal dot) as a public suffix.
+    * Multi-label suffixes (e.g. `co.uk`) require a full PSL matcher.
+    */
+  val default: PublicSuffixMatcher = new PublicSuffixMatcher {
+    def isPublicSuffix(domain: CIString): Boolean =
+      domain.nonEmpty && !domain.toString.contains('.')
+  }
+
+  /** Disables public-suffix checking, restoring the behaviour that
+    * GHSA-wv64-j4fq-5f9x and GHSA-jc8x-g44q-5x7j describe: a server can scope a
+    * cookie to a top level domain and have it replayed to unrelated hosts under
+    * it. Only reach for this if you validate cookie domains elsewhere.
+    */
+  val none: PublicSuffixMatcher = new PublicSuffixMatcher {
+    def isPublicSuffix(domain: CIString): Boolean = false
+  }
 }

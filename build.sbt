@@ -395,6 +395,18 @@ lazy val client = libraryCrossProject("client")
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
           ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.cookieAppliesToRequest"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.cookiesForRequest"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.extractFromResponseCookie"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.extractFromResponseCookies"
+          ),
         )
       else Seq.empty
     },
