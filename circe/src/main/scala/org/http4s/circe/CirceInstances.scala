@@ -293,22 +293,15 @@ object CirceInstances {
       case None => Pull.output(emptyArray)
       case Some((hd, tl)) =>
         Pull.output(
-          Chunk.concat(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
+          CirceInstances.openBrace ++ fromJsonToChunk(printer)(hd)
         ) >> // Output First Json As Chunk with leading `[`
-          tl.repeatPull {
-            _.uncons.flatMap {
-              case None => Pull.pure(None)
-              case Some((hd, tl)) =>
-                val interspersed = {
-                  val bldr = Chunk.newBuilder[Byte]
-                  hd.foreach { o =>
-                    bldr += CirceInstances.comma
-                    bldr += fromJsonToChunk(printer)(o)
-                  }
-                  bldr.result
-                }
-                Pull.output(interspersed) >> Pull.pure(Some(tl))
+          tl.mapChunks { c =>
+            val bldr = Chunk.newBuilder[Byte]
+            c.foreach { o =>
+              bldr += CirceInstances.comma
+              bldr += fromJsonToChunk(printer)(o)
             }
+            bldr.result
           }.pull
             .echo >>
           Pull.output(closeBrace)
