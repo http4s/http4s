@@ -35,21 +35,29 @@ final case class ServerSentEvent(
     retry: Option[FiniteDuration] = None,
     comment: Option[String] = None,
 ) extends Renderable {
+  import ServerSentEvent._
+
+  /** Renders this event.  Since 0.23.38, if an illegal newline, carriage return, or null
+    * character is found, throws an IllegalArgumentException.
+    */
+  // TODO in a breaking release, this validation should move to
+  // construction into an Either.
   def render(writer: Writer): writer.type = {
-    data.foreach(writer << "data: " << _ << "\n")
-    comment.foreach(writer << ": " << _ << "\n")
-    eventType.foreach(writer << "event: " << _ << "\n")
+    data.foreach { d =>
+      normalizeCr(d).split("\n", -1).foreach(writer << "data: " << _ << "\n")
+    }
+    comment.foreach { c =>
+      normalizeCr(c).split("\n", -1).foreach(writer << ": " << _ << "\n")
+    }
+    eventType.foreach(e => writer << "event: " << validate("event", e) << "\n")
     id match {
       case None =>
       case Some(EventId.reset) => writer << "id\n"
-      case Some(EventId(id)) => writer << "id: " << id << "\n"
+      case Some(EventId(id)) => writer << "id: " << validate("id", id) << "\n"
     }
     retry.foreach(writer << "retry: " << _.toMillis << "\n")
     writer << "\n"
   }
-
-  override def toString: String =
-    s"ServerSentEvent($data,$eventType,$id,$retry)"
 }
 
 object ServerSentEvent {
@@ -147,4 +155,16 @@ object ServerSentEvent {
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =
     _.map(_.renderString).through(utf8.encode)
+
+  private def normalizeCr(s: String): String =
+    s.replace("\r\n", "\n").replace('\r', '\n')
+
+  private def validate(field: String, value: String): String =
+    if (value.exists(c => c == '\r' || c == '\n'))
+      throw new IllegalArgumentException(
+        s"ServerSentEvent $field field may not contain CR or LF"
+      )
+    else if (field == "id" && value.contains('\u0000'))
+      throw new IllegalArgumentException("ServerSentEvent id field may not contain NUL")
+    else value
 }
