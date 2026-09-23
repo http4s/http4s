@@ -237,6 +237,7 @@ class EmberServerSuite extends Http4sSuite {
           .default[IO]
           .withHttp2
           .withHttpApp(app)
+          .withPort(port"0")
           .build,
         EmberClientBuilder
           .default[IO]

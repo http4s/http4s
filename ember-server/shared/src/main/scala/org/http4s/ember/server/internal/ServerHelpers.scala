@@ -496,7 +496,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       }
 
     Stream
-      .eval(Queue.unbounded[F, Option[Chunk[Byte]]].product(Deferred[F, Option[Throwable]]))
+      .eval(Queue.bounded[F, Option[Chunk[Byte]]](1).product(Deferred[F, Option[Throwable]]))
       .flatMap { case (queue, closed) =>
         val readFromQueue: Read[F] = timeoutMaybe(queue.take, idleTimeout)
         val read: Read[F] = readFromQueue
