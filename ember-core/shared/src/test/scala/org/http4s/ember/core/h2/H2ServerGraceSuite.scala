@@ -22,9 +22,13 @@ import cats.effect.std.Queue
 import cats.effect.testkit.TestControl
 import cats.syntax.all._
 import com.comcast.ip4s._
-import fs2.{Chunk, Pipe, Stream}
-import fs2.io.net.{Socket, SocketOption}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Stream
+import fs2.io.net.Socket
+import fs2.io.net.SocketOption
 import org.http4s._
+import org.http4s.syntax.literals._
 import org.typelevel.ci.CIString
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
@@ -89,7 +93,7 @@ class H2ServerGraceSuite extends Http4sSuite {
           deliver <- Deferred[IO, Unit]
           hpack <- Hpack.create[IO](4096)
           logger <- NoOpFactory[IO].fromClass(classOf[H2ServerGraceSuite])
-          request = Request[IO](Method.POST, Uri.unsafeFromString("http://localhost/"))
+          request = Request[IO](Method.POST, uri"http://localhost/")
           first <- hpack.encodeHeaders(PseudoHeaders.requestToHeaders(request))
           late <-
             if (trailers)

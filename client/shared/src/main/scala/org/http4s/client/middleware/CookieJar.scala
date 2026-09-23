@@ -57,6 +57,16 @@ trait CookieJar[F[_]] {
   * jar creation, as well as the middleware
   */
 object CookieJar {
+  // RFC6265 6.1 says "at least 3000 cookies total", and I like powers
+  // of two.
+  private[middleware] val DefaultMaxCookies = 4096
+
+  // It also says at least 50 cookies per domain.  A low cap prevents
+  // one malicious response from overwhelming us.  Not implemented is
+  // fairness, so multiple mischievous responses don't monopolize the
+  // cookie jar.  If the dog bites us once, shame on http4s; if the
+  // same same dog bites you twice, shame on you.
+  private[middleware] val DefaultMaxCookiesPerResponse = 64
 
   /** Middleware Constructor Using a Provided [[CookieJar]].
     */
@@ -72,6 +82,7 @@ object CookieJar {
         out <- client.run(modRequest)
         _ <- Resource.eval(
           out.cookies
+            .take(DefaultMaxCookiesPerResponse)
             .traverse_(alg.addCookie(_, req.uri))
         )
       } yield out
@@ -109,7 +120,7 @@ object CookieJar {
   @deprecated("Call overload with a PublicSuffixMatcher.", "0.23.38")
   def jarIn[F[_]: Async, G[_]: Sync]: G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
-      new CookieJarRefImpl[F](ref, PublicSuffixMatcher.default) {}
+      new CookieJarRefImpl[F](ref, PublicSuffixMatcher.default, DefaultMaxCookies) {}
     }
 
   /** Like `jarImpl` except it allows the creation of the CookieJar in a
@@ -117,12 +128,13 @@ object CookieJar {
     */
   def jarIn[F[_]: Async, G[_]: Sync](psl: PublicSuffixMatcher): G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
-      new CookieJarRefImpl[F](ref, psl) {}
+      new CookieJarRefImpl[F](ref, psl, DefaultMaxCookies) {}
     }
 
   private[CookieJar] class CookieJarRefImpl[F[_]: Async](
       ref: Ref[F, Map[CookieKey, CookieValue]],
       psl: PublicSuffixMatcher,
+      maxCookies: Int,
   ) extends CookieJar[F] {
     override def evictExpired: F[Unit] =
       for {
@@ -139,8 +151,24 @@ object CookieJar {
     override def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit] =
       for {
         now <- HttpDate.current[F]
-        out <- ref.update(extractFromResponseCookies(_, psl)(cookies, now))
+        out <- ref.update(m => trim(extractFromResponseCookies(m, psl)(cookies, now)))
       } yield out
+
+    private def trim(
+        m: Map[CookieKey, CookieValue]
+    ): Map[CookieKey, CookieValue] =
+      if (m.size <= maxCookies) m
+      else {
+        // A priority queue would probably be faster, but it's a lot
+        // of machinery for what's not a bothersome number.
+        //
+        // If lots of cookies share the same epoch second, the tiebreaker
+        // is non-deterministic.
+        m.toList
+          .sortBy(_._2.setAt.epochSecond)(Ordering[Long].reverse)
+          .take(maxCookies)
+          .toMap
+      }
 
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {

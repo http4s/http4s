@@ -17,11 +17,13 @@
 package org.http4s.client.middleware
 
 import cats.effect._
+import cats.effect.testkit.TestControl
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client._
 import org.http4s.dsl.io._
 import org.http4s.headers.Cookie
+import org.http4s.headers.`Set-Cookie`
 import org.http4s.implicits._
 
 import scala.annotation.nowarn
@@ -418,5 +420,59 @@ class CookieJarSuite extends Http4sSuite {
       ),
       "host-only cookie must still be sent to the exact host",
     )
+  }
+
+  test("addCookies should bound the stored cookies, evicting the oldest first") {
+    import scala.concurrent.duration._
+    val cap = CookieJar.DefaultMaxCookies
+    val oldC = (0 until cap).toList.map { i =>
+      (ResponseCookie(s"old$i", "v", domain = Some("example.com")), uri"http://example.com/")
+    }
+    val newC = (0 until 100).toList.map { i =>
+      (ResponseCookie(s"new$i", "v", domain = Some("example.com")), uri"http://example.com/")
+    }
+
+    val prog = for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookies(oldC)
+      _ <- IO.sleep(2.seconds)
+      _ <- jar.addCookies(newC)
+      enriched <- jar.enrichRequest(Request[IO](Method.GET, uri"http://example.com/"))
+      names = enriched.headers
+        .get[Cookie]
+        .fold(List.empty[String])(_.values.toList.map(_.name))
+    } yield names
+
+    TestControl.executeEmbed(prog).map { names =>
+      val kept = names.toSet
+      (0 until 100).foreach(i => assert(kept.contains(s"new$i"), s"new$i evicted"))
+      assertEquals(kept.size, CookieJar.DefaultMaxCookies)
+      assertEquals(kept.count(_.startsWith("new")), 100)
+      assertEquals(kept.count(_.startsWith("old")), CookieJar.DefaultMaxCookies - 100)
+    }
+  }
+
+  test("set-cookie should bound the number of stored cookies per response") {
+    val n = CookieJar.DefaultMaxCookiesPerResponse + 16
+    val setCookies =
+      (0 until n)
+        .map(i => `Set-Cookie`(ResponseCookie(s"c$i", "v", domain = Some("example.com"))))
+        .toList
+
+    val app = HttpApp[IO] { req =>
+      req.headers.get[Cookie] match {
+        case Some(c) => Response[IO](Status.Ok).withEntity(c.values.length.toString).pure[IO]
+        case None => Response[IO](Status.Ok).putHeaders(setCookies).pure[IO]
+      }
+    }
+
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      testClient = CookieJar(jar)(Client.fromHttpApp(app))
+      _ <- testClient.successful(Request[IO](Method.GET, uri"http://example.com/"))
+      count <- testClient
+        .expect[String](Request[IO](Method.GET, uri"http://example.com/"))
+        .map(_.toInt)
+    } yield assertEquals(count, CookieJar.DefaultMaxCookiesPerResponse)
   }
 }
