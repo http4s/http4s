@@ -301,6 +301,33 @@ class H2ConnectionSuite extends Http4sSuite {
     }
   }
 
+  test("data and rst stream on stream 0 are a connection error") {
+    def goAwaysFor(frame: H2Frame, connectionType: H2Connection.ConnectionType): IO[Vector[Int]] =
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          encode(frame),
+          Duration.Inf,
+          writes,
+          connectionType = connectionType,
+        )
+        _ <- h2.readLoop
+        frames <- drainOutgoing(h2)
+      } yield goAways(frames)
+
+    List(H2Connection.ConnectionType.Server, H2Connection.ConnectionType.Client).traverse_ {
+      connectionType =>
+        for {
+          onData <- goAwaysFor(data(0, 10), connectionType)
+          onRst <- goAwaysFor(H2Error.Cancel.toRst(0), connectionType)
+        } yield {
+          assertEquals(onData, Vector(H2Error.ProtocolError.value), clue(connectionType))
+          assertEquals(onRst, Vector(H2Error.ProtocolError.value), clue(connectionType))
+        }
+    }
+  }
+
   test("continunation frames within maxHeaderListSize accumulate without GoAway") {
     val headers =
       H2Frame.Headers(1, None, endStream = false, endHeaders = false, ByteVector.fill(40)(0), None)

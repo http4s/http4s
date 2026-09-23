@@ -180,16 +180,30 @@ private[h2] class H2Connection[F[_]](
   } yield stream
 
   // Whether a stream was opened before ("closed") or never was ("idle").
+  // Note stream 0 is the connection itself and never counts as opened.
+  //
   // RFC 9113 5.1.1: "The identifier of a newly established stream MUST be numerically
   // greater than all streams that the initiating endpoint has opened or reserved."
   // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1.1
-  private[this] def wasOpened(id: Int, s: H2Connection.State[F]): Boolean = {
-    val openedByPeer = connectionType match {
-      case H2Connection.ConnectionType.Server => id % 2 != 0
-      case H2Connection.ConnectionType.Client => id % 2 == 0
+  //
+  // RFC 9113 6.1: "DATA frames MUST be associated with a stream. If a DATA frame
+  // is received whose Stream Identifier field is 0x00, the recipient MUST respond
+  // with a connection error of type PROTOCOL_ERROR."
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.6.1
+  //
+  // RFC 9113 6.4: "RST_STREAM frames MUST be associated with a stream. If a RST_STREAM
+  // frame is received with a stream identifier of 0x00, the recipient MUST treat this
+  // as a connection error of type PROTOCOL_ERROR."
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.6.4
+  private[this] def wasOpened(id: Int, s: H2Connection.State[F]): Boolean =
+    id != 0 && {
+      val openedByPeer = connectionType match {
+        case H2Connection.ConnectionType.Server => id % 2 != 0
+        case H2Connection.ConnectionType.Client => id % 2 == 0
+      }
+
+      if (openedByPeer) id <= s.remoteHighestStream else id <= s.highestStream
     }
-    if (openedByPeer) id <= s.remoteHighestStream else id <= s.highestStream
-  }
 
   def goAway(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
