@@ -16,21 +16,20 @@
 
 package org.http4s.ember.core.h2
 
-import cats._
-import cats.syntax.all._
-import fs2.io.net.tls.TLSSocket
+import cats.effect.IO
+import org.http4s.Http4sSuite
 
-private[ember] object H2TLS extends H2TLSPlatform {
+class H2TLSSuite extends Http4sSuite {
 
-  def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
-    protocol(tlsSocket.applicationProtocol)
-
-  private[h2] def protocol[F[_]: MonadThrow](applicationProtocol: F[String]): F[Option[String]] =
-    applicationProtocol
-      .map(protocol => Option(protocol).filter(_.nonEmpty))
-      .handleErrorWith {
-        case _: NoSuchElementException => Option.empty.pure[F]
-        case e => e.raiseError[F, Option[String]]
-      }
+  List(
+    "" -> None,
+    "h2" -> Some("h2"),
+    "http/1.1" -> Some("http/1.1"),
+    "unknown" -> Some("unknown"),
+  ).foreach { case (applicationProtocol, expected) =>
+    test(s"normalize ALPN protocol '$applicationProtocol' to $expected") {
+      H2TLS.protocol(IO.pure(applicationProtocol)).map(result => assertEquals(result, expected))
+    }
+  }
 
 }
