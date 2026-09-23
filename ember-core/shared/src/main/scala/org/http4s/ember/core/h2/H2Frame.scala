@@ -174,6 +174,11 @@ private[ember] object H2Frame {
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
 
     def toRaw: RawFrame = Data.toRaw(this)
+
+    // RFC 9113 6.1: "The entire DATA frame payload is included in flow control, including the
+    // Pad Length and Padding fields if present."
+    // https://httpwg.org/specs/rfc9113.html#rfc.section.6.1
+    def flowControlledSize: Int = data.size.toInt + pad.fold(0)(_.size.toInt + 1)
   }
   object Data {
     final val `type` = 0x0

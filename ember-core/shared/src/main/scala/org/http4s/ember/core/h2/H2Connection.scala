@@ -280,6 +280,27 @@ private[h2] class H2Connection[F[_]](
         )
       )
 
+  // RFC 9113 6.9: "A receiver that receives a flow-controlled frame MUST always account for its
+  // contribution against the connection flow-control window, unless the receiver treats this as
+  // a connection error". The peer already counted the frame against its window when sending it,
+  // so any frame we don't count is credit the peer never gets back.
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.6.9
+  private[this] def consumeConnectionWindow(data: H2Frame.Data): F[Unit] = {
+    val windowSize = localSettings.initialWindowSize.windowSize
+    state
+      .modify { s =>
+        val newSize = s.readWindow - data.flowControlledSize
+        // Once half the window is used, refill it by exactly what was consumed.
+        if (newSize <= windowSize / 2) (s.copy(readWindow = windowSize), Some(windowSize - newSize))
+        else (s.copy(readWindow = newSize), None)
+      }
+      .flatMap(
+        _.traverse_(increment =>
+          outgoing.offer(Chunk.singleton(H2Frame.WindowUpdate(0, increment)))
+        )
+      )
+  }
+
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 
@@ -588,34 +609,15 @@ private[h2] class H2Connection[F[_]](
       case (d @ H2Frame.Data(i, _, _, _), _) =>
         mapRef.get.map(_.get(i)).flatMap {
           case Some(s) =>
-            for {
-              st <- state.get
-              newSize = st.readWindow - d.data.size.toInt
-
-              needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
-              _ <- state.update(s =>
-                s.copy(readWindow =
-                  if (needsWindowUpdate) localSettings.initialWindowSize.windowSize
-                  else newSize.toInt
-                )
-              )
-              _ <-
-                if (needsWindowUpdate)
-                  outgoing.offer(
-                    Chunk.singleton(
-                      H2Frame.WindowUpdate(
-                        0,
-                        st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
-                      )
-                    )
-                  )
-                else Applicative[F].unit
-              _ <- s.receiveData(d)
-            } yield ()
+            consumeConnectionWindow(d) >> s.receiveData(d)
           case None =>
             state.get.flatMap { st =>
               if (i <= st.remoteHighestStream)
-                logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
+                // RFC 9113 5.1: frames on a closed stream are discarded, but "the content of
+                // DATA frames counts toward the connection flow-control window".
+                // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1
+                consumeConnectionWindow(d) >>
+                  logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
               else
                 logger.warn(
                   s"Received Data Frame for Idle Stream $i - Protocol Error - Issuing GoAway"

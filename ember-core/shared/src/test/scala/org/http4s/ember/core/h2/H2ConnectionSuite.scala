@@ -78,12 +78,14 @@ class H2ConnectionSuite extends Http4sSuite {
       input: ByteVector,
       idleTimeout: Duration,
       writes: Ref[IO, ByteVector],
+      remoteSettings: H2Frame.Settings.ConnectionSettings =
+        H2Frame.Settings.ConnectionSettings.default,
   ): IO[H2Connection[IO]] =
     for {
       socket <- stubSocket(input, writes)
       mapRef <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       stateRef <- H2Connection.initState[IO](
-        H2Frame.Settings.ConnectionSettings.default,
+        remoteSettings,
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize,
         localSettings.initialWindowSize,
       )
@@ -170,6 +172,71 @@ class H2ConnectionSuite extends Http4sSuite {
         ),
       )
     } yield ()
+  }
+
+  private def data(id: Int, size: Int, padding: Option[Int] = None): H2Frame.Data =
+    H2Frame.Data(
+      id,
+      ByteVector.fill(size.toLong)(0),
+      padding.map(p => ByteVector.fill(p.toLong)(0)),
+      endStream = false,
+    )
+
+  private def encode(frames: H2Frame*): ByteVector =
+    frames.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
+
+  private def windowUpdates(id: Int, frames: Vector[H2Frame]): Vector[Int] =
+    frames.collect { case H2Frame.WindowUpdate(`id`, increment) => increment }
+
+  test("data for a closed stream counts toward the connection flow-control window") {
+    for {
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(data(1, 16384), data(1, 16384)),
+      )
+      _ <- h2.initiateRemoteStreamById(1)
+      _ <- h2.mapRef.set(Map.empty)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+  }
+
+  test("connection window refills return exactly the bytes received") {
+    val remoteSettings =
+      H2Frame.Settings.ConnectionSettings.default.copy(
+        initialWindowSize = H2Frame.Settings.SettingsInitialWindowSize(1 << 20)
+      )
+
+    for {
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(data(1, 16384), data(1, 16384)),
+        Duration.Inf,
+        writes,
+        remoteSettings,
+      )
+      stream <- h2.initiateRemoteStreamById(1)
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+  }
+
+  test("padding counts toward the connection and stream flow-control windows") {
+    for {
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(data(1, 16000, padding = Some(383)), data(1, 16000, padding = Some(383))),
+      )
+      stream <- h2.initiateRemoteStreamById(1)
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield {
+      assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+      assertEquals(windowUpdates(1, frames), Vector(32768), clue(frames))
+    }
   }
 
   test("continunation frames within maxHeaderListSize accumulate without GoAway") {

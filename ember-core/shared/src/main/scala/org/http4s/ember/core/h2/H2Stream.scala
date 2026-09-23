@@ -340,7 +340,7 @@ private[h2] class H2Stream[F[_]: Temporal](
       case StreamState.Open | StreamState.HalfClosedLocal =>
         import localSettings.initialWindowSize.windowSize
 
-        val newSize = s.readWindow - data.data.size.toInt
+        val newSize = s.readWindow - data.flowControlledSize
         val newState = if (data.endStream) s.state match {
           case StreamState.Open => StreamState.HalfClosedRemote
           case StreamState.HalfClosedLocal => StreamState.Closed
