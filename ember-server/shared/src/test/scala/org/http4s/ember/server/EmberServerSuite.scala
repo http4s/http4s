@@ -23,6 +23,7 @@ import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
 import org.http4s._
+import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.EmberException
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
@@ -42,6 +43,10 @@ class EmberServerSuite extends Http4sSuite {
           Ok("Hello!")
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
+        case POST -> Root / "ignore" =>
+          Ok()
+        case POST -> Root / "ignore-slowly" =>
+          IO.sleep(1.second) >> Ok()
         case GET -> Root / "failed-stream" =>
           Ok(Stream.raiseError[IO](new RuntimeException("BOOM")).covaryOutput[String])
       }
@@ -173,6 +178,44 @@ class EmberServerSuite extends Http4sSuite {
         .withEntity("hello")
         .withAttribute(Http2PriorKnowledge, ())
       client.expect[String](req).assertEquals("hello")
+    }
+  }
+
+  private val http2 =
+    (
+      EmberServerBuilder.default[IO].withPort(port"0").withHttp2.withHttpApp(service).build,
+      EmberClientBuilder.default[IO].withHttp2.build,
+    ).tupled
+
+  private def upload(server: Server, path: String): Request[IO] =
+    Request[IO](Method.POST, uri = url(server.addressIp4s, path))
+      .withEntity("a" * (4 * 1024 * 1024))
+      .withAttribute(Http2PriorKnowledge, ())
+
+  private def connectionStillWorks(server: Server, client: Client[IO]): IO[Unit] = {
+    val body = "b" * (256 * 1024)
+    val echo = Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo"))
+      .withEntity(body)
+      .withAttribute(Http2PriorKnowledge, ())
+    val hello = Request[IO](uri = url(server.addressIp4s)).withAttribute(Http2PriorKnowledge, ())
+    client.expect[String](echo).timeout(10.seconds).assertEquals(body) >>
+      client.expect[String](hello).timeout(10.seconds).assertEquals("Hello!")
+  }
+
+  test("HTTP/2 connection keeps working after a response that ignores the request body") {
+    http2.use { case (server, client) =>
+      client
+        .run(upload(server, "/ignore"))
+        .use(resp => IO.sleep(250.millis).as(resp.status))
+        .assertEquals(Status.Ok) >>
+        connectionStillWorks(server, client)
+    }
+  }
+
+  test("HTTP/2 connection keeps working after a slow response that ignores the request body") {
+    http2.use { case (server, client) =>
+      client.status(upload(server, "/ignore-slowly")).assertEquals(Status.Ok) >>
+        connectionStillWorks(server, client)
     }
   }
 

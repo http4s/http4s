@@ -90,7 +90,12 @@ private[h2] class H2Stream[F[_]: Temporal](
           .compile
           .drain >> sendData(ByteVector.empty, endStream = true).whenA(noTrailers)
       sendBody.onError { case _ =>
-        rstStream(H2Error.InternalError)
+        // RFC 9113 5.4.2: "To avoid looping, an endpoint MUST NOT send a RST_STREAM in response
+        // to a RST_STREAM frame." A body that failed because the stream was reset needs no reset.
+        // https://httpwg.org/specs/rfc9113.html#rfc.section.5.4.2
+        state.get.flatMap { s =>
+          rstStream(H2Error.InternalError).unlessA(s.state == StreamState.Closed)
+        }
       }
     }
   }
@@ -357,7 +362,8 @@ private[h2] class H2Stream[F[_]: Temporal](
         for {
           _ <- state.update(s =>
             s.copy(
-              state = newState,
+              // Keep a close that happened since we looked, see closeAfterResponse.
+              state = if (s.state == StreamState.Closed) s.state else newState,
               readWindow = if (needsWindowUpdate) windowSize else newSize,
               contentLengthCheck = s.contentLengthCheck.map { case (max, current) =>
                 (max, current + data.data.size)
@@ -368,8 +374,12 @@ private[h2] class H2Stream[F[_]: Temporal](
             if (sizeReadOk) s.readBuffer.send(Right(data.data)).void
             else rstStream(H2Error.ProtocolError)
 
+          // The send waits while readBuffer is full, and the stream can close meanwhile.
+          // RFC 9113 5.1: "An endpoint MUST NOT send frames other than PRIORITY on a closed
+          // stream."
+          closed <- state.get.map(_.state == StreamState.Closed)
           _ <-
-            if (needsWindowUpdate && !isClosed && sizeReadOk) {
+            if (needsWindowUpdate && sizeReadOk && !closed) {
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
           _ <-
@@ -380,8 +390,16 @@ private[h2] class H2Stream[F[_]: Temporal](
         } yield ()
       case StreamState.Idle =>
         goAway(H2Error.ProtocolError)
-      case StreamState.HalfClosedRemote | StreamState.Closed =>
+      case StreamState.HalfClosedRemote =>
+        // RFC 9113 5.1: "If an endpoint receives additional frames, other than WINDOW_UPDATE,
+        // PRIORITY, or RST_STREAM, for a stream that is in this state, it MUST respond with a
+        // stream error (Section 5.4.2) of type STREAM_CLOSED."
+        // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1
         rstStream(H2Error.StreamClosed)
+      case StreamState.Closed =>
+        // RFC 9113 5.1: frames on a closed stream are discarded, and a closed stream gets no
+        // frames other than PRIORITY. The connection has already counted this one.
+        Applicative[F].unit
       case StreamState.ReservedLocal | StreamState.ReservedRemote =>
         goAway(H2Error.InternalError) // Not Implemented Push promise Support
     }
@@ -450,6 +468,30 @@ private[h2] class H2Stream[F[_]: Temporal](
     case Left(ex) => Stream.raiseError(ex)
   }
 
+  /** Drops whatever request body the application didn't read. */
+  def discardUnreadBody: F[Unit] =
+    state.get.flatMap(s => s.readBuffer.close >> s.readBuffer.stream.compile.drain)
+
+  /** Ends the stream once the response is complete, even if the request isn't.
+    *
+    * RFC 9113 8.1: "A server can send a complete response prior to the client sending an entire
+    * request [...]. When this is true, a server MAY request that the client abort transmission of
+    * a request without error by sending a RST_STREAM with an error code of NO_ERROR after sending
+    * a complete response".
+    * https://httpwg.org/specs/rfc9113.html#rfc.section.8.1
+    */
+  def closeAfterResponse: F[Unit] =
+    for {
+      requestUnfinished <- state.modify { s =>
+        s.state match {
+          case StreamState.HalfClosedLocal => (s.copy(state = StreamState.Closed), true)
+          case _ => (s, false)
+        }
+      }
+      _ <- discardUnreadBody // Release the read loop before offering the reset
+      _ <- enqueue.offer(Chunk.singleton(H2Error.NoError.toRst(id))).whenA(requestUnfinished)
+    } yield ()
+
 }
 
 private[h2] object H2Stream {
@@ -479,7 +521,9 @@ private[h2] object H2Stream {
       writeBlock.complete(ex) *>
         request.complete(ex) *>
         response.complete(ex) *>
-        readBuffer.send(ex) *>
+        // Unlike send, this never waits for room: a full buffer that nobody reads would
+        // otherwise block whoever cancels the stream, which can be the read or write loop.
+        readBuffer.closeWithElement(ex) *>
         trailers.complete(ex).void
     }
 

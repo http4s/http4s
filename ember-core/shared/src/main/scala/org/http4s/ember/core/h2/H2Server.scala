@@ -194,20 +194,26 @@ private[ember] object H2Server {
         val permit =
           if (streamIx % 2 != 0) maxStreams.tryPermit else Resource.pure[F, Boolean](true)
 
-        permit.use {
-          case true =>
-            for {
-              req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
-              resp <- httpApp(req)
-              _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
-              _ <- fulfillPushPromises(resp)
-              _ <- stream.sendMessageBody(resp) // Initial Resp Body
-              _ <- stream.sendTrailerHeaders(resp)
-              _ <- h2.mapRef.update(_ - streamIx) // Remove stream from map on normal termination
-            } yield ()
+        permit
+          .use {
+            case true =>
+              for {
+                req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+                resp <- httpApp(req)
+                _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
+                _ <- fulfillPushPromises(resp)
+                _ <- stream.sendMessageBody(resp) // Initial Resp Body
+                _ <- stream.sendTrailerHeaders(resp)
+                // Remove stream from map on normal termination. Frames the client still sends
+                // for it are then handled as frames for a closed stream.
+                _ <- h2.mapRef.update(_ - streamIx)
+                _ <- stream.closeAfterResponse
+              } yield ()
 
-          case false => stream.rstStream(H2Error.RefusedStream)
-        }
+            case false => stream.rstStream(H2Error.RefusedStream)
+          }
+          // Nothing reads the request body after this, however the response ended.
+          .guarantee(stream.discardUnreadBody)
       }
     }
 
