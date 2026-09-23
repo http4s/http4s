@@ -72,7 +72,6 @@ object CookieJar {
         out <- client.run(modRequest)
         _ <- Resource.eval(
           out.cookies
-            .map(r => r.domain.fold(r.copy(domain = req.uri.host.map(_.value)))(_ => r))
             .traverse_(alg.addCookie(_, req.uri))
         )
       } yield out
@@ -145,8 +144,8 @@ object CookieJar {
 
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {
-        cookies <- ref.get.map(_.map(_._2.cookie).toList)
-      } yield cookiesForRequest(r, cookies, psl)
+        values <- ref.get.map(_.values.toList)
+      } yield cookiesForRequest(r, values, psl)
         .foldLeft(r) { case (req, cookie) => req.addCookie(cookie) }
   }
 
@@ -160,13 +159,15 @@ object CookieJar {
       val setAt: HttpDate,
       val expiresAt: HttpDate,
       val cookie: ResponseCookie,
+      val hostOnly: Boolean,
   ) {
     override def equals(obj: Any): Boolean =
       obj match {
         case c: CookieValue =>
           setAt == c.setAt &&
           expiresAt == c.expiresAt &&
-          cookie == c.cookie
+          cookie == c.cookie &&
+          hostOnly == c.hostOnly
         case _ => false
       }
   }
@@ -176,7 +177,8 @@ object CookieJar {
         setAt: HttpDate,
         expiresAt: HttpDate,
         cookie: ResponseCookie,
-    ): CookieValue = new CookieValue(setAt, expiresAt, cookie)
+        hostOnly: Boolean,
+    ): CookieValue = new CookieValue(setAt, expiresAt, cookie, hostOnly)
   }
 
   private[middleware] def expiresAt(
@@ -211,18 +213,19 @@ object CookieJar {
       uri: Uri,
       psl: PublicSuffixMatcher,
   ): Map[CookieKey, CookieValue] = {
-    val storedDomain = c.domain match {
+    val (storedDomain, hostOnly) = c.domain match {
       case Some(d) =>
-        if (uri.host.exists(domainMatches(_, d, psl))) Some(canonicalDomain(d)) else None
+        if (uri.host.exists(domainMatches(_, d, psl))) (Some(canonicalDomain(d)), false)
+        else (None, false)
       case None =>
-        uri.host.map(h => canonicalDomain(h.value))
+        (uri.host.map(h => canonicalDomain(h.value)), true)
     }
     storedDomain match {
       case Some(domainS) =>
         val key = CookieKey(c.name, domainS, c.path)
         val newCookie = c.copy(domain = domainS.some)
         val expires: HttpDate = expiresAt(httpDate, c, HttpDate.MaxValue)
-        val value = CookieValue(httpDate, expires, newCookie)
+        val value = CookieValue(httpDate, expires, newCookie, hostOnly)
         m + (key -> value)
       case None => // Ignore Cookies We Can't get a domain for
         m
@@ -264,9 +267,15 @@ object CookieJar {
       r: Request[N],
       c: ResponseCookie,
       psl: PublicSuffixMatcher,
+      hostOnly: Boolean,
   ): Boolean = {
     def domainApplies =
-      c.domain.exists(s => r.uri.host.exists(host => domainMatches(host, s, psl)))
+      c.domain.exists(s =>
+        r.uri.host.exists { host =>
+          if (hostOnly) canonicalDomain(host.value) == canonicalDomain(s)
+          else domainMatches(host, s, psl)
+        }
+      )
     def pathApplies = c.path.forall(s => pathMatches(r.uri.path, s))
     def secureSatisfied =
       if (c.secure)
@@ -279,11 +288,12 @@ object CookieJar {
 
   private[middleware] def cookiesForRequest[N[_]](
       r: Request[N],
-      l: List[ResponseCookie],
+      l: List[CookieValue],
       psl: PublicSuffixMatcher,
   ): List[RequestCookie] =
-    l.foldLeft(List.empty[RequestCookie]) { case (list, cookie) =>
-      if (cookieAppliesToRequest(r, cookie, psl)) responseCookieToRequestCookie(cookie) :: list
+    l.foldLeft(List.empty[RequestCookie]) { case (list, value) =>
+      if (cookieAppliesToRequest(r, value.cookie, psl, value.hostOnly))
+        responseCookieToRequestCookie(value.cookie) :: list
       else list
     }
 }
