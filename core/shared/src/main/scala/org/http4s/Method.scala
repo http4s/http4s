@@ -51,6 +51,8 @@ final class Method private (val name: String, val isSafe: Boolean, val isIdempot
       case _ => false
     }
 
+  val hasPayload: Boolean = Method.hasPayload(this)
+
   override def hashCode(): Int = MurmurHash3.stringHash(name, Method.HashSeed)
 
   override def toString(): String = name
@@ -73,6 +75,11 @@ object Method {
     new Method(name, isSafe = false, isIdempotent = true)
   private def safe(name: String) =
     new Method(name, isSafe = true, isIdempotent = true)
+
+  private val NoPayloadMethods: Set[Method] =
+    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+
+  def hasPayload(method: Method): Boolean = !NoPayloadMethods(method)
 
   val ACL: Method = idempotent("ACL")
   val `BASELINE-CONTROL`: Method = idempotent("BASELINE-CONTROL")
