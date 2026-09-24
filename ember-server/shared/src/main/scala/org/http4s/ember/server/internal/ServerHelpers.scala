@@ -432,7 +432,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
   ): F[Unit] =
     Encoder
-      .respToBytes[F](resp)
+      .respToBytes[F](request, resp)
       .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
       .compile
       .drain
