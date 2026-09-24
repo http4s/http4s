@@ -22,9 +22,11 @@ import cats.effect.Resource
 import fs2.Stream
 import org.http4s._
 import org.http4s.client.Client
+import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
+import org.http4s.metrics.TestMetricsOps2
 import org.http4s.syntax.all._
 
 final class MetricsSuite extends Http4sSuite {
@@ -75,6 +77,218 @@ final class MetricsSuite extends Http4sSuite {
       assertEquals(state.statuses, List(Status.Accepted))
       assertEquals(state.headersTime.size, 1)
       assertEquals(state.active, 0L)
+    }
+  }
+
+  test("MetricsOps2 receives request and response preludes") {
+    val request = Request[IO](method = Method.POST, uri = uri"/metrics")
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
+    val client =
+      Client[IO](request =>
+        Resource.eval(
+          request.body.compile.drain.as(
+            Response[IO](Status.Created)
+              .withBodyStream(Stream.emits("response".getBytes).covary[IO])
+          )
+        )
+      )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(request).use(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.contexts, List(request.requestPrelude -> Some("POST")))
+      assertEquals(state.connectionInfos, List(None))
+      assertEquals(state.increases, state.contexts)
+      assertEquals(state.decreases, state.contexts)
+      assertEquals(state.headers.map(_._1), List(request.requestPrelude))
+      assertEquals(state.headers.map(_._3), List(Some("POST")))
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Created))
+      assertEquals(state.totals.map(_.terminationType), List(None))
+      assertEquals(state.totals.map(_.context), List(Some("POST")))
+      assertEquals(state.requestBodies.map(_.request), List(request.requestPrelude))
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(7L))
+      assertEquals(state.responseBodies.flatMap(_.response.map(_.status)), List(Status.Created))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(8L))
+      assertEquals(state.requestBodies.map(_.context), List(Some("POST")))
+      assertEquals(state.responseBodies.map(_.context), List(Some("POST")))
+    }
+  }
+
+  test("MetricsOps2 records empty bodies as zero bytes") {
+    val client = Client[IO]((_: Request[IO]) => Resource.pure(Response[IO](Status.NoContent)))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
+    }
+  }
+
+  test("MetricsOps2 bypasses instrumentation when createContext returns None") {
+    val client = Client[IO]((request: Request[IO]) =>
+      Resource.eval(request.body.compile.drain.as(Response[IO](Status.Accepted)))
+    )
+    val request = Request[IO]().withEntity("request")
+
+    for {
+      ops <- TestMetricsOps2.create(_ => false)
+      response <- Metrics[IO](ops)(client).run(request).use(IO.pure)
+      state <- ops.state
+    } yield {
+      assertEquals(response.status, Status.Accepted)
+      assertEquals(state, TestMetricsOps2.State.empty)
+    }
+  }
+
+  test("MetricsOps2 prefers Content-Length to counting body chunks") {
+    val request = Request[IO](method = Method.POST, uri = uri"/metrics")
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
+      .putHeaders(`Content-Length`.unsafeFromLong(70L))
+    val client = Client[IO](request =>
+      Resource.eval(
+        request.body.compile.drain.as(
+          Response[IO](Status.Ok)
+            .withBodyStream(Stream.emits("response".getBytes).covary[IO])
+            .putHeaders(`Content-Length`.unsafeFromLong(80L))
+        )
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(request).use(_.body.compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(70L))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(80L))
+    }
+  }
+
+  test("MetricsOps2 treats a HEAD response body as empty despite Content-Length") {
+    val request = Request[IO](method = Method.HEAD, uri = uri"/metrics")
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).putHeaders(`Content-Length`.unsafeFromLong(80L))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(request).use(_.body.compile.drain)
+      state <- ops.state
+    } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
+  }
+
+  test("MetricsOps2 does not record Content-Length for an unconsumed response body") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok)
+          .withBodyStream(Stream.emits("response".getBytes).covary[IO])
+          .putHeaders(`Content-Length`.unsafeFromLong(8L))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).status(req)
+      state <- ops.state
+    } yield assertEquals(state.responseBodies, Nil)
+  }
+
+  test("MetricsOps2 skips response body size when the response body is not consumed") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      status <- Metrics[IO](ops)(client).status(req)
+      state <- ops.state
+    } yield {
+      assertEquals(status, Status.Ok)
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Ok))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 skips response body size when the response body is partially consumed") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.take(1).compile.drain)
+      state <- ops.state
+    } yield {
+      assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Ok))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 records a replayable response body size once") {
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use { response =>
+        response.body.compile.drain >> response.body.compile.drain
+      }
+      state <- ops.state
+    } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(8L))
+  }
+
+  test("MetricsOps2 records cancellation before a response without inventing a status") {
+    for {
+      ready <- Deferred[IO, Unit]
+      ops <- TestMetricsOps2.create
+      fiber <- Metrics[IO](ops)(hangingClient(ready)).run(req).use_.start
+      _ <- ready.get
+      _ <- fiber.cancel
+      _ <- fiber.join
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.contexts.size, 1)
+      assertEquals(state.increases, state.contexts)
+      assertEquals(state.decreases, state.contexts)
+      assertEquals(state.headers, Nil)
+      assertEquals(state.totals.map(_.response), List(None))
+      assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+      assertEquals(state.requestBodies.map(_.request), List(req.requestPrelude))
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 records an error before a response without headers or response size") {
+    val failure = new RuntimeException("boom")
+    val client = Client[IO]((_: Request[IO]) => Resource.eval(IO.raiseError(failure)))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use_.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      assertEquals(state.headers, Nil)
+      assertEquals(state.totals.map(_.response), List(None))
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
+      assertEquals(state.responseBodies, Nil)
     }
   }
 }

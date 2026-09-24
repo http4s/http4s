@@ -20,13 +20,19 @@ import cats.effect.Clock
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Resource
+import cats.effect.Temporal
 import cats.syntax.all._
+import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Response
+import org.http4s.ResponsePrelude
 import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.MetricsOps2
+import org.http4s.metrics.MetricsRequest
+import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.metrics.TerminationType.Timeout
@@ -63,6 +69,27 @@ object Metrics {
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     effect(ops, classifierF.andThen(_.pure[F]))(client)
 
+  /** Wraps a [[Client]] with a middleware capable of recording metrics.
+    *
+    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. For
+    * transport-level measurements, install this middleware directly around the underlying client,
+    * then wrap it with compression, retry, and other higher-level middleware. This placement sees
+    * encoded bodies and records retries as individual transport attempts. A known request length
+    * remains the declared size if sending ends early; response size is recorded only after the body
+    * is fully consumed.
+    *
+    * @example
+    * {{{
+    * val transport: Client[F] = ???
+    * val measuredTransport = Metrics(ops)(transport)
+    * val client = GZip()(measuredTransport)
+    * }}}
+    */
+  def apply[F[_]](
+      ops: MetricsOps2[F]
+  )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
+    Client(withMetrics2(client, ops))
+
   def withCustomLabels[F[_], SL <: SizedSeq[String]](
       ops: CustomMetricsOps[F, SL],
       customLabelValues: SL,
@@ -74,7 +101,7 @@ object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
-    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects or examining the body.
+    * Same as `apply`, but can classify requests effectually, e.g. performing side-effects or examining the body.
     * Failed attempt to classify the request (e.g. failing with `F.raiseError`) leads to not recording metrics for that request.
     *
     * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
@@ -98,6 +125,124 @@ object Metrics {
       classifierF: Request[F] => F[Option[String]],
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     Client(withMetrics(client, ops, customLabelValues, classifierF))
+
+  private def withMetrics2[F[_]](
+      client: Client[F],
+      ops: MetricsOps2[F],
+  )(req: Request[F])(implicit F: Temporal[F]): Resource[F, Response[F]] = {
+    val request = MetricsRequest.fromRequest(req)
+
+    def countBodyBytes(
+        body: fs2.Stream[F, Byte],
+        sizeRef: Ref[F, Long],
+    ): fs2.Stream[F, Byte] =
+      fs2.Stream.suspend {
+        var size = 0L
+        body
+          .mapChunks { chunk =>
+            size += chunk.size.toLong
+            chunk
+          }
+          .onFinalize(sizeRef.update(_ + size))
+      }
+
+    def countCompletedBodyBytes(
+        body: fs2.Stream[F, Byte],
+        completedSizeRef: Ref[F, Option[Long]],
+    ): fs2.Stream[F, Byte] =
+      fs2.Stream.suspend {
+        var size = 0L
+        body.mapChunks { chunk =>
+          size += chunk.size.toLong
+          chunk
+        } ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
+      }
+
+    def markCompletedBodyBytes(
+        body: fs2.Stream[F, Byte],
+        size: Long,
+        completedSizeRef: Ref[F, Option[Long]],
+    ): fs2.Stream[F, Byte] =
+      body ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
+
+    val requestBodySize = req.contentLength
+
+    Resource.eval(ops.createContext(request)).flatMap {
+      case None =>
+        client.run(req)
+
+      case Some(context) =>
+        for {
+          start <- Resource.eval(F.monotonic)
+          responseRef <- Resource.eval(F.ref(Option.empty[ResponsePrelude]))
+          _ <- Resource.make(ops.increaseActiveRequests(request, context))(_ =>
+            ops.decreaseActiveRequests(request, context)
+          )
+          requestBodySizeRef <- Resource.eval(F.ref(requestBodySize.getOrElse(0L)))
+          responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
+          _ <- Resource.onFinalizeCase { exitCase =>
+            val terminationType = exitCase match {
+              case Resource.ExitCase.Succeeded => None
+              case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
+                Some(TerminationType.Timeout)
+              case Resource.ExitCase.Errored(e) => Some(TerminationType.Error(e))
+              case Resource.ExitCase.Canceled => Some(TerminationType.Canceled)
+            }
+
+            for {
+              response <- responseRef.get
+              now <- F.monotonic
+              _ <- ops.recordTotalTime(
+                request,
+                response,
+                terminationType,
+                now - start,
+                context,
+              )
+              requestBodySize <- requestBodySizeRef.get
+              _ <- ops.recordRequestBodySize(
+                request,
+                response,
+                terminationType,
+                requestBodySize,
+                context,
+              )
+              _ <- response.fold(F.unit) { response =>
+                for {
+                  responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
+                  _ <- responseBodyCompletedSize.fold(F.unit) { responseBodySize =>
+                    ops.recordResponseBodySize(
+                      request,
+                      response,
+                      terminationType,
+                      responseBodySize,
+                      context,
+                    )
+                  }
+                } yield ()
+              }
+            } yield ()
+          }
+          reqWithMetrics = req.withBodyStream(
+            requestBodySize.fold(countBodyBytes(req.body, requestBodySizeRef))(_ => req.body)
+          )
+          resp <- client.run(reqWithMetrics)
+          _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
+          now <- Resource.eval(F.monotonic)
+          _ <- Resource.eval(
+            ops.recordHeadersTime(request, now - start, context)
+          )
+          responseBodySize =
+            if (req.method == Method.HEAD || !resp.status.isEntityAllowed) Some(0L)
+            else resp.contentLength
+          respWithMetrics = resp.withBodyStream(
+            responseBodySize.fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
+              markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
+            )
+          )
+        } yield respWithMetrics
+    }
+  }
 
   private def withMetrics[F[_], SL <: SizedSeq[String]](
       client: Client[F],

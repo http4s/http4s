@@ -23,12 +23,16 @@ import cats.syntax.all._
 import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.MetricsOps2
+import org.http4s.metrics.MetricsRequest
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Server middleware to record metrics for the http4s server.
   *
@@ -52,6 +56,14 @@ object Metrics {
       classifier: Option[String],
   )
 
+  private[this] final case class MetricsEntry2[F[_], Context](
+      request: MetricsRequest,
+      startTime: FiniteDuration,
+      context: Context,
+      requestBodySizeRef: Ref[F, Long],
+      responseBodySizeRef: Ref[F, Long],
+  )
+
   /** A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
@@ -72,6 +84,24 @@ object Metrics {
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
 
+  /** A server middleware capable of recording transport-level metrics.
+    *
+    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. Apply
+    * routing fallbacks, error recovery, compression, and other body-transforming middleware before
+    * `Metrics`, then pass the measured [[HttpApp]] directly to the server backend. This ensures
+    * metrics observe the actual response sent by the application. A known length remains the
+    * declared size if processing ends early.
+    *
+    * @example
+    * {{{
+    * val routes: HttpRoutes[F] = ???
+    * val app = GZip(routes).orNotFound
+    * val measuredApp = Metrics(ops)(app)
+    * }}}
+    */
+  def apply[F[_]](ops: MetricsOps2[F])(app: HttpApp[F])(implicit F: Temporal[F]): HttpApp[F] =
+    withMetrics2(ops)(app)
+
   def withCustomLabels[F[_], SL <: SizedSeq[String]](
       ops: CustomMetricsOps[F, SL],
       customLabelValues: SL,
@@ -91,7 +121,7 @@ object Metrics {
 
   /** A server middleware capable of recording metrics
     *
-    * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects.
+    * Same as `apply`, but can classify requests effectually, e.g. performing side-effects.
     * Failed attempt to classify the request (e.g. failing with `F.raiseError`) leads to not recording metrics for that request.
     *
     * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
@@ -202,6 +232,138 @@ object Metrics {
         routes(req).semiflatMap(metricHeaders(metrics, _))
       }
     )
+  }
+
+  private def withMetrics2[F[_]](
+      ops: MetricsOps2[F]
+  )(app: HttpApp[F])(implicit F: Temporal[F]): HttpApp[F] = {
+    def countBodyBytes(body: EntityBody[F], sizeRef: Ref[F, Long]): EntityBody[F] =
+      fs2.Stream.suspend {
+        var size = 0L
+        body
+          .mapChunks { chunk =>
+            size += chunk.size.toLong
+            chunk
+          }
+          .onFinalize(sizeRef.update(_ + size))
+      }
+
+    def startMetrics(
+        request: Request[F],
+        metricsRequest: MetricsRequest,
+        context: ops.Context,
+    ): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
+      val requestBodySize = request.contentLength
+      for {
+        startTime <- F.monotonic
+        requestBodySizeRef <- F.ref(requestBodySize.getOrElse(0L))
+        responseBodySizeRef <- F.ref(0L)
+        _ <- ops.increaseActiveRequests(metricsRequest, context)
+        requestWithMetrics = request.withBodyStream(
+          requestBodySize.fold(countBodyBytes(request.body, requestBodySizeRef))(_ => request.body)
+        )
+      } yield ContextRequest(
+        MetricsEntry2(
+          metricsRequest,
+          startTime,
+          context,
+          requestBodySizeRef,
+          responseBodySizeRef,
+        ),
+        requestWithMetrics,
+      )
+    }
+
+    def stopMetrics(metrics: MetricsEntry2[F, ops.Context]): F[FiniteDuration] =
+      for {
+        endTime <- F.monotonic
+        _ <- ops.decreaseActiveRequests(metrics.request, metrics.context)
+      } yield endTime - metrics.startTime
+
+    def metricHeaders(
+        metrics: MetricsEntry2[F, ops.Context],
+        response: Response[F],
+    ): F[ContextResponse[F, ResponsePrelude]] =
+      for {
+        now <- F.monotonic
+        _ <- ops.recordHeadersTime(
+          metrics.request,
+          now - metrics.startTime,
+          metrics.context,
+        )
+        prelude = response.responsePrelude
+        responseBodySize =
+          if (
+            metrics.request.requestPrelude.method == Method.HEAD || !response.status.isEntityAllowed
+          ) Some(0L)
+          else response.contentLength
+        _ <- responseBodySize.traverse_(metrics.responseBodySizeRef.set)
+        respWithMetrics = responseBodySize.fold(
+          response.withBodyStream(countBodyBytes(response.body, metrics.responseBodySizeRef))
+        )(_ => response)
+      } yield ContextResponse(prelude, respWithMetrics)
+
+    def finishMetrics(
+        metrics: MetricsEntry2[F, ops.Context],
+        response: Option[ResponsePrelude],
+        terminationType: Option[TerminationType],
+    ): F[Unit] =
+      for {
+        totalTime <- stopMetrics(metrics)
+        _ <- ops.recordTotalTime(
+          metrics.request,
+          response,
+          terminationType,
+          totalTime,
+          metrics.context,
+        )
+        requestBodySize <- metrics.requestBodySizeRef.get
+        _ <- ops.recordRequestBodySize(
+          metrics.request,
+          response,
+          terminationType,
+          requestBodySize,
+          metrics.context,
+        )
+        _ <- response.fold(F.unit) { resp =>
+          for {
+            responseBodySize <- metrics.responseBodySizeRef.get
+            _ <- ops.recordResponseBodySize(
+              metrics.request,
+              resp,
+              terminationType,
+              responseBodySize,
+              metrics.context,
+            )
+          } yield ()
+        }
+      } yield ()
+
+    Kleisli { request =>
+      val metricsRequest = MetricsRequest.fromRequest(request)
+
+      ops.createContext(metricsRequest).flatMap {
+        case Some(context) =>
+          BracketRequestResponse
+            .bracketRequestResponseCaseApp_[F, MetricsEntry2[F, ops.Context], ResponsePrelude](
+              req => startMetrics(req, metricsRequest, context)
+            ) { case (metrics, response, outcome) =>
+              val terminationType = outcome match {
+                case Outcome.Succeeded(_) => None
+                case Outcome.Errored(e) =>
+                  Some(response.fold[TerminationType](Error(e))(_ => Abnormal(e)))
+                case Outcome.Canceled() => Some(Canceled)
+              }
+              finishMetrics(metrics, response, terminationType)
+            }(F)(Kleisli { case ContextRequest(metrics, requestWithMetrics) =>
+              app(requestWithMetrics).flatMap(metricHeaders(metrics, _))
+            })
+            .run(request)
+
+        case None =>
+          app(request)
+      }
+    }
   }
 
 }
