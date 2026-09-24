@@ -135,57 +135,72 @@ private[ember] object Parser {
           }
         } else {
           val current = message(idx)
-          // If crlf is next we have completed the header value
-          if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
-            // RFC 9110 5.5: field values are octets, historically ISO-8859-1.
-            // Decoding with the platform charset (UTF-8) would let multi-byte
-            // sequences become single non-ASCII codepoints that
-            // equalsIgnoreCase then Unicode-case-folds (e.g. U+212A KELVIN
-            // SIGN -> 'k'), bypassing the framing-header checks below.
-            val hValue =
-              new String(message, start, idx - start - 1, StandardCharsets.ISO_8859_1).trim
+          if (idx > 0 && message(idx - 1) == cr && current != lf) {
+            // RFC 9112 2.2: previous byte was CR not followed by LF -> bare CR
+            progress = Progress.Errored(InvalidHeaderWhitespace)
+          } else if (current == lf) {
+            // If crlf is next we have completed the header value
+            if (idx > 0 && message(idx - 1) == cr) {
+              // RFC 9110 5.5: field values are octets, historically ISO-8859-1.
+              // Decoding with the platform charset (UTF-8) would let multi-byte
+              // sequences become single non-ASCII codepoints that
+              // equalsIgnoreCase then Unicode-case-folds (e.g. U+212A KELVIN
+              // SIGN -> 'k'), bypassing the framing-header checks below.
+              val hValue =
+                new String(message, start, idx - start - 1, StandardCharsets.ISO_8859_1).trim
 
-            val hName = name // copy var to val
-            name = null // set name back to null
-            val newHeader = Header.Raw(CIString(hName), hValue) // create header
-            if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
-              if (hValue.isEmpty || !hValue.forall(CharPredicate.Digit))
-                // RFC 9110 8.6: Content-Length = 1*DIGIT. Anything else (sign
-                // prefix, hex, whitespace, list) is a framing ambiguity and
-                // must be rejected to prevent request smuggling.
-                progress = Progress.Errored(InvalidContentLength)
-              else
-                try {
-                  val len = hValue.toLong
-                  if (contentLength.exists(_ != len))
-                    // RFC 9112 6.3: differing Content-Length values are an
-                    // unrecoverable framing error; a repeated identical value
-                    // MAY be collapsed to one.
-                    progress = Progress.Errored(DuplicateContentLength)
-                  else
-                    contentLength = Some(len)
-                } catch {
-                  case scala.util.control.NonFatal(_) =>
-                    progress = Progress.Errored(InvalidContentLength)
-                }
-            } else if (
-              hName
-                .equalsIgnoreCase(transferEncodingS)
-            ) { // Check if this is Transfer-encoding
-              // RFC 9112 7: transfer-coding names are case-insensitive.
-              // RFC 9112 6.1: a server SHOULD reject any transfer coding it
-              // does not understand. Ember implements only chunked, so any
-              // other token (in any Transfer-Encoding field-line) is a framing
-              // ambiguity and a request-smuggling differential.
-              val codings = hValue.split(',')
-              if (codings.isEmpty || codings.exists(c => !c.trim.equalsIgnoreCase(chunkedS)))
-                progress = Progress.Errored(UnsupportedTransferEncoding)
-              else
-                chunked = true
+              val hName = name // copy var to val
+              name = null // set name back to null
+              val newHeader = Header.Raw(CIString(hName), hValue) // create header
+              if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
+                if (hValue.isEmpty || !hValue.forall(CharPredicate.Digit))
+                  // RFC 9110 8.6: Content-Length = 1*DIGIT. Anything else (sign
+                  // prefix, hex, whitespace, list) is a framing ambiguity and
+                  // must be rejected to prevent request smuggling.
+                  progress = Progress.Errored(InvalidContentLength)
+                else
+                  try {
+                    val len = hValue.toLong
+                    if (contentLength.exists(_ != len))
+                      // RFC 9112 6.3: differing Content-Length values are an
+                      // unrecoverable framing error; a repeated identical value
+                      // MAY be collapsed to one.
+                      progress = Progress.Errored(DuplicateContentLength)
+                    else
+                      contentLength = Some(len)
+                  } catch {
+                    case scala.util.control.NonFatal(_) =>
+                      progress = Progress.Errored(InvalidContentLength)
+                  }
+              } else if (
+                hName
+                  .equalsIgnoreCase(transferEncodingS)
+              ) { // Check if this is Transfer-encoding
+                // RFC 9112 7: transfer-coding names are case-insensitive.
+                // RFC 9112 6.1: a server SHOULD reject any transfer coding it
+                // does not understand. Ember implements only chunked, so any
+                // other token (in any Transfer-Encoding field-line) is a framing
+                // ambiguity and a request-smuggling differential.
+                val codings = hValue.split(',')
+                if (codings.isEmpty || codings.exists(c => !c.trim.equalsIgnoreCase(chunkedS)))
+                  progress = Progress.Errored(UnsupportedTransferEncoding)
+                else
+                  chunked = true
+              }
+              start = idx + 1 // Next Start is after the CRLF
+              headers = newHeader :: headers // Add Header
+              state = false // Go back to Looking for HeaderName or Termination
+            } else {
+              // RFC 9112 2.2: bare LF (not preceded by CR) inside header value
+              progress = Progress.Errored(InvalidHeaderWhitespace)
             }
-            start = idx + 1 // Next Start is after the CRLF
-            headers = newHeader :: headers // Add Header
-            state = false // Go back to Looking for HeaderName or Termination
+          } else if (current == cr) {
+            if (idx < message.length - 1 && message(idx + 1) != lf) {
+              progress = Progress.Errored(InvalidHeaderWhitespace)
+            }
+          } else if ((current >= nul && current < space && current != htab) || current == 0x7f) {
+            // RFC 9110 5.5: Reject NUL, DEL, and control characters except HTAB
+            progress = Progress.Errored(InvalidHeaderWhitespace)
           }
         }
         idx += 1 // Single Advance Every Iteration
@@ -687,7 +702,9 @@ private[ember] object Parser {
     }
   }
 
-  private[this] final val space = 32 // ' '
-  private[this] final val cr = 13 // '\r'
+  private[this] final val nul = 0 // '\0'
+  private[this] final val htab = 9 // '\t'
   private[this] final val lf = 10 // '\n'
+  private[this] final val cr = 13 // '\r'
+  private[this] final val space = 32 // ' '
 }
