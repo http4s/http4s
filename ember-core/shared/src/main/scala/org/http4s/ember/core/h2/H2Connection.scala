@@ -176,13 +176,34 @@ private[h2] class H2Connection[F[_]](
       logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
-    _ <- state.update(s =>
-      s.copy(
-        highestStream = Math.max(s.highestStream, id),
-        remoteHighestStream = Math.max(s.remoteHighestStream, id),
-      )
-    )
+    _ <- state.update(s => s.copy(remoteHighestStream = Math.max(s.remoteHighestStream, id)))
   } yield stream
+
+  // Whether a stream was opened before ("closed") or never was ("idle").
+  // Note stream 0 is the connection itself and never counts as opened.
+  //
+  // RFC 9113 5.1.1: "The identifier of a newly established stream MUST be numerically
+  // greater than all streams that the initiating endpoint has opened or reserved."
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1.1
+  //
+  // RFC 9113 6.1: "DATA frames MUST be associated with a stream. If a DATA frame
+  // is received whose Stream Identifier field is 0x00, the recipient MUST respond
+  // with a connection error of type PROTOCOL_ERROR."
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.6.1
+  //
+  // RFC 9113 6.4: "RST_STREAM frames MUST be associated with a stream. If a RST_STREAM
+  // frame is received with a stream identifier of 0x00, the recipient MUST treat this
+  // as a connection error of type PROTOCOL_ERROR."
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.6.4
+  private[this] def wasOpened(id: Int, s: H2Connection.State[F]): Boolean =
+    id != 0 && {
+      val openedByPeer = connectionType match {
+        case H2Connection.ConnectionType.Server => id % 2 != 0
+        case H2Connection.ConnectionType.Client => id % 2 == 0
+      }
+
+      if (openedByPeer) id <= s.remoteHighestStream else id <= s.highestStream
+    }
 
   def goAway(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
@@ -279,6 +300,27 @@ private[h2] class H2Connection[F[_]](
             state.update(_.copy(closed = true))
         )
       )
+
+  // RFC 9113 6.9: "A receiver that receives a flow-controlled frame MUST always account for its
+  // contribution against the connection flow-control window, unless the receiver treats this as
+  // a connection error". The peer already counted the frame against its window when sending it,
+  // so any frame we don't count is credit the peer never gets back.
+  // https://httpwg.org/specs/rfc9113.html#rfc.section.6.9
+  private[this] def consumeConnectionWindow(data: H2Frame.Data): F[Unit] = {
+    val windowSize = localSettings.initialWindowSize.windowSize
+    state
+      .modify { s =>
+        val newSize = s.readWindow - data.flowControlledSize
+        // Once half the window is used, refill it by exactly what was consumed.
+        if (newSize <= windowSize / 2) (s.copy(readWindow = windowSize), Some(windowSize - newSize))
+        else (s.copy(readWindow = newSize), None)
+      }
+      .flatMap(
+        _.traverse_(increment =>
+          outgoing.offer(Chunk.singleton(H2Frame.WindowUpdate(0, increment)))
+        )
+      )
+  }
 
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
@@ -440,7 +482,7 @@ private[h2] class H2Connection[F[_]](
               }
               if (!isValidToCreate || i <= s.remoteHighestStream) {
                 logger.warn(
-                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error - Issuing GoAway"
+                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.remoteHighestStream} - Protocol Error - Issuing GoAway"
                 ) >>
                   goAway(H2Error.ProtocolError)
               } else {
@@ -554,7 +596,7 @@ private[h2] class H2Connection[F[_]](
       case (H2Frame.WindowUpdate(_, 0), _) =>
         logger.warn("Encountered 0 Sized Window Update - Procol Error - Issuing GoAway") >>
           goAway(H2Error.ProtocolError)
-      case (w @ H2Frame.WindowUpdate(i, size), _) =>
+      case (w @ H2Frame.WindowUpdate(i, size), st) =>
         i match {
           case 0 =>
             for {
@@ -579,8 +621,17 @@ private[h2] class H2Connection[F[_]](
             mapRef.get.map(_.get(otherwise)).flatMap {
               case Some(s) =>
                 s.receiveWindowUpdate(w)
+              case None if wasOpened(otherwise, st) =>
+                // RFC 9113 6.9: "a receiver could receive a WINDOW_UPDATE frame on a stream in a
+                // "half-closed (remote)" or "closed" state. A receiver MUST NOT treat this as an
+                // error".
+                // https://httpwg.org/specs/rfc9113.html#rfc.section.6.9
+                logger.debug(s"$addrStr Received WindowUpdate for Closed Stream $i - Ignoring")
               case None =>
-                logger.warn(s"Received WindowUpdate for Closed or Idle Stream - $w, $i") >>
+                // RFC 9113 5.1: on an idle stream, "Receiving any frame other than HEADERS or
+                // PRIORITY [...] MUST be treated as a connection error".
+                // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1
+                logger.warn(s"Received WindowUpdate for Idle Stream - $w, $i") >>
                   goAway(H2Error.ProtocolError)
             }
         }
@@ -588,34 +639,15 @@ private[h2] class H2Connection[F[_]](
       case (d @ H2Frame.Data(i, _, _, _), _) =>
         mapRef.get.map(_.get(i)).flatMap {
           case Some(s) =>
-            for {
-              st <- state.get
-              newSize = st.readWindow - d.data.size.toInt
-
-              needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
-              _ <- state.update(s =>
-                s.copy(readWindow =
-                  if (needsWindowUpdate) localSettings.initialWindowSize.windowSize
-                  else newSize.toInt
-                )
-              )
-              _ <-
-                if (needsWindowUpdate)
-                  outgoing.offer(
-                    Chunk.singleton(
-                      H2Frame.WindowUpdate(
-                        0,
-                        st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
-                      )
-                    )
-                  )
-                else Applicative[F].unit
-              _ <- s.receiveData(d)
-            } yield ()
+            consumeConnectionWindow(d) >> s.receiveData(d)
           case None =>
             state.get.flatMap { st =>
-              if (i <= st.remoteHighestStream)
-                logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
+              if (wasOpened(i, st))
+                // RFC 9113 5.1: frames on a closed stream are discarded, but "the content of
+                // DATA frames counts toward the connection flow-control window".
+                // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1
+                consumeConnectionWindow(d) >>
+                  logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
               else
                 logger.warn(
                   s"Received Data Frame for Idle Stream $i - Protocol Error - Issuing GoAway"
@@ -624,13 +656,22 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-      case (rst @ H2Frame.RstStream(i, _), _) =>
+      case (rst @ H2Frame.RstStream(i, _), st) =>
         mapRef.get.map(_.get(i)).flatMap {
           case Some(s) =>
             s.receiveRstStream(rst)
+          case None if wasOpened(i, st) =>
+            // RFC 9113 5.1: an endpoint that closed a stream "might receive a WINDOW_UPDATE or
+            // RST_STREAM frame from its peer in the time before the peer receives and processes
+            // the frame that closes the stream".
+            // https://httpwg.org/specs/rfc9113.html#rfc.section.5.1
+            logger.debug(s"$addrStr Received RstStream for Closed Stream $i - Ignoring")
           case None =>
+            // RFC 9113 6.4: "If a RST_STREAM frame identifying an idle stream is received, the
+            // recipient MUST treat this as a connection error".
+            // https://httpwg.org/specs/rfc9113.html#rfc.section.6.4
             logger.warn(
-              s"Received RstStream for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
+              s"Received RstStream for Idle Stream $i - Protocol Error - Issuing GoAway"
             ) >>
               goAway(H2Error.ProtocolError)
         }
