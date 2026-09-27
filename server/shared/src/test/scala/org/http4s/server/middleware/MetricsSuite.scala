@@ -212,7 +212,7 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
-  test("MetricsOps2 prefers Content-Length to counting body chunks") {
+  test("MetricsOps2 uses Content-Length after the body stream completes") {
     val request = Request[IO](method = Method.PUT, uri = uri"/metrics")
       .withBodyStream(Stream.emits("request".getBytes).covary[IO])
       .putHeaders(`Content-Length`.unsafeFromLong(70L))
@@ -234,6 +234,63 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(state.requestBodies.map(_.bodySizeBytes), List(70L))
       assertEquals(state.responseBodies.map(_.bodySizeBytes), List(80L))
+    }
+  }
+
+  test("MetricsOps2 omits a declared-length request body that is not evaluated") {
+    val request = Request[IO](method = Method.POST)
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
+      .putHeaders(`Content-Length`.unsafeFromLong(70L))
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(HttpApp.pure[IO](Response[IO](Status.NoContent))).run(request)
+      _ <- response.body.compile.drain
+      state <- ops.state
+    } yield assertEquals(state.requestBodies, Nil)
+  }
+
+  test("MetricsOps2 omits a declared-length response body that fails") {
+    val failure = new RuntimeException("body failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok)
+        .withBodyStream(
+          Stream.emits("response".getBytes).covary[IO] ++ Stream.raiseError[IO](failure)
+        )
+        .putHeaders(`Content-Length`.unsafeFromLong(80L))
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      _ <- response.body.compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.responseBodies, Nil)
+      assert(state.totals.head.terminationType.exists(_.isInstanceOf[TerminationType.Abnormal]))
+    }
+  }
+
+  test("MetricsOps2 records partial bytes when an undeclared response body fails") {
+    val failure = new RuntimeException("body failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok).withBodyStream(
+        Stream.emits("response".getBytes).covary[IO] ++ Stream.raiseError[IO](failure)
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      _ <- response.body.compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(8L))
+      assert(
+        state.responseBodies.head.terminationType.exists(
+          _.isInstanceOf[TerminationType.Abnormal]
+        )
+      )
     }
   }
 

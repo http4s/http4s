@@ -25,6 +25,12 @@ import scala.concurrent.duration.FiniteDuration
   *
   * Unlike [[MetricsOps]], this algebra provides enough information to fill out all required and
   * optional [[https://opentelemetry.io/docs/specs/semconv/http/http-metrics OpenTelemetry attributes]].
+  * For bodies without a declared length, body-size callbacks receive the number of bytes observed
+  * through the instrumented stream, including partial or zero-byte observations. For bodies with a
+  * declared length, callbacks receive `Content-Length` only after successful stream completion and
+  * are omitted if the stream is incomplete. These values only approximate bytes transferred by the
+  * transport: middleware placement determines whether encoded or decoded bytes are observed, and
+  * stream evaluation does not prove socket delivery.
   */
 trait MetricsOps2[F[_]] { self =>
 

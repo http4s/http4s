@@ -21,6 +21,7 @@ import cats.effect.Clock
 import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
+import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.MetricsOps2
@@ -60,8 +61,8 @@ object Metrics {
       request: MetricsRequest,
       startTime: FiniteDuration,
       context: Context,
-      requestBodySizeRef: Ref[F, Long],
-      responseBodySizeRef: Ref[F, Long],
+      requestBodySizeRef: Ref[F, Option[Long]],
+      responseBodySizeRef: Ref[F, Option[Long]],
       completionStartedRef: Ref[F, Boolean],
   )
 
@@ -87,13 +88,14 @@ object Metrics {
 
   /** A server middleware capable of recording transport-level metrics.
     *
-    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. Apply
-    * routing fallbacks, error recovery, compression, and other body-transforming middleware before
-    * `Metrics`, then pass the measured [[HttpApp]] directly to the server backend. This ensures
-    * metrics observe the actual response sent by the application. A known length remains the
-    * declared size if processing ends early. Response bodies have single-consumption semantics.
-    * If a body is nevertheless evaluated more than once, terminal metrics are attempted at most
-    * once for the exchange.
+    * @note Bodies without `Content-Length` are counted through the instrumented streams, including
+    * partial or zero-byte bodies. A declared length avoids per-chunk counting and is recorded only
+    * after the body stream completes successfully. Apply routing fallbacks, error recovery,
+    * compression, and other body-transforming middleware before `Metrics`, then pass the measured
+    * [[HttpApp]] directly to the server backend. This placement observes encoded response bytes and
+    * most closely approximates transport-level measurements. Response bodies have single-consumption
+    * semantics. If a body is nevertheless evaluated more than once, terminal metrics are attempted
+    * at most once for the exchange.
     *
     * @example
     * {{{
@@ -240,7 +242,7 @@ object Metrics {
   private def withMetrics2[F[_]](
       ops: MetricsOps2[F]
   )(app: HttpApp[F])(implicit F: Temporal[F]): HttpApp[F] = {
-    def countBodyBytes(body: EntityBody[F], sizeRef: Ref[F, Long]): EntityBody[F] =
+    def countBodyBytes(body: EntityBody[F], sizeRef: Ref[F, Option[Long]]): EntityBody[F] =
       fs2.Stream.suspend {
         var size = 0L
         body
@@ -248,23 +250,31 @@ object Metrics {
             size += chunk.size.toLong
             chunk
           }
-          .onFinalize(sizeRef.update(_ + size))
+          .onFinalize(sizeRef.update(_.orElse(Some(size))))
+      }
+
+    def measureBodyBytes(
+        body: EntityBody[F],
+        contentLength: Option[Long],
+        sizeRef: Ref[F, Option[Long]],
+    ): EntityBody[F] =
+      contentLength.fold(countBodyBytes(body, sizeRef)) { declaredSize =>
+        body ++ fs2.Stream.exec(sizeRef.update(_.orElse(Some(declaredSize))))
       }
 
     def startMetrics(
         request: Request[F],
         metricsRequest: MetricsRequest,
         context: ops.Context,
-    ): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] = {
-      val requestBodySize = request.contentLength
+    ): F[ContextRequest[F, MetricsEntry2[F, ops.Context]]] =
       for {
         startTime <- F.monotonic
-        requestBodySizeRef <- F.ref(requestBodySize.getOrElse(0L))
-        responseBodySizeRef <- F.ref(0L)
+        requestBodySizeRef <- F.ref(Option.empty[Long])
+        responseBodySizeRef <- F.ref(Option.empty[Long])
         completionStartedRef <- F.ref(false)
         _ <- ops.increaseActiveRequests(metricsRequest, context)
         requestWithMetrics = request.withBodyStream(
-          requestBodySize.fold(countBodyBytes(request.body, requestBodySizeRef))(_ => request.body)
+          measureBodyBytes(request.body, request.contentLength, requestBodySizeRef)
         )
       } yield ContextRequest(
         MetricsEntry2(
@@ -277,7 +287,6 @@ object Metrics {
         ),
         requestWithMetrics,
       )
-    }
 
     def stopMetrics(metrics: MetricsEntry2[F, ops.Context]): F[FiniteDuration] =
       for {
@@ -297,15 +306,18 @@ object Metrics {
           metrics.context,
         )
         prelude = response.responsePrelude
-        responseBodySize =
-          if (
-            metrics.request.requestPrelude.method == Method.HEAD || !response.status.isEntityAllowed
-          ) Some(0L)
-          else response.contentLength
-        _ <- responseBodySize.traverse_(metrics.responseBodySizeRef.set)
-        respWithMetrics = responseBodySize.fold(
-          response.withBodyStream(countBodyBytes(response.body, metrics.responseBodySizeRef))
-        )(_ => response)
+        responseHasNoBody =
+          metrics.request.requestPrelude.method == Method.HEAD || !response.status.isEntityAllowed
+        _ <- metrics.responseBodySizeRef.set(
+          if (responseHasNoBody) Some(0L)
+          else None
+        )
+        respWithMetrics =
+          if (responseHasNoBody) response
+          else
+            response.withBodyStream(
+              measureBodyBytes(response.body, response.contentLength, metrics.responseBodySizeRef)
+            )
       } yield ContextResponse(prelude, respWithMetrics)
 
     def finishMetrics(
@@ -327,23 +339,41 @@ object Metrics {
                 metrics.context,
               )
               requestBodySize <- metrics.requestBodySizeRef.get
-              _ <- ops.recordRequestBodySize(
-                metrics.request,
-                response,
-                terminationType,
-                requestBodySize,
-                metrics.context,
-              )
+              // For either body, no observed size means zero only without Content-Length;
+              // a declared length alone does not prove the body was consumed.
+              _ <- requestBodySize
+                .orElse(
+                  metrics.request.requestPrelude.headers
+                    .get[`Content-Length`]
+                    .fold[Option[Long]](Some(0L))(_ => None)
+                )
+                .traverse_ { size =>
+                  ops.recordRequestBodySize(
+                    metrics.request,
+                    response,
+                    terminationType,
+                    size,
+                    metrics.context,
+                  )
+                }
               _ <- response.fold(F.unit) { resp =>
                 for {
                   responseBodySize <- metrics.responseBodySizeRef.get
-                  _ <- ops.recordResponseBodySize(
-                    metrics.request,
-                    resp,
-                    terminationType,
-                    responseBodySize,
-                    metrics.context,
-                  )
+                  _ <- responseBodySize
+                    .orElse(
+                      resp.headers
+                        .get[`Content-Length`]
+                        .fold[Option[Long]](Some(0L))(_ => None)
+                    )
+                    .traverse_ { size =>
+                      ops.recordResponseBodySize(
+                        metrics.request,
+                        resp,
+                        terminationType,
+                        size,
+                        metrics.context,
+                      )
+                    }
                 } yield ()
               }
             } yield ())

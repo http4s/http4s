@@ -28,6 +28,7 @@ import org.http4s.Response
 import org.http4s.ResponsePrelude
 import org.http4s.Status
 import org.http4s.client.Client
+import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.MetricsOps2
@@ -71,13 +72,14 @@ object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics.
     *
-    * @note Body size uses `Content-Length` when present and otherwise counts the body stream. For
-    * transport-level measurements, install this middleware directly around the underlying client,
-    * then wrap it with compression, retry, and other higher-level middleware. This placement sees
-    * encoded bodies and records retries as individual transport attempts. A known request length
-    * remains the declared size if sending ends early; response size is recorded only after the body
-    * is fully consumed. Response body failures remain part of the recorded termination even if the
-    * resource consumer recovers from them after they cross the instrumented stream boundary.
+    * @note Bodies without `Content-Length` are counted through the instrumented streams, including
+    * partial or zero-byte bodies. A declared length avoids per-chunk counting and is recorded only
+    * after the body stream completes successfully. For transport-level approximations, install this
+    * middleware directly around the underlying client, then wrap it with compression, retry, and
+    * other higher-level middleware. This placement sees encoded bodies and records retries as
+    * individual transport attempts. Response body failures remain part of the recorded termination
+    * even if the resource consumer recovers from them after they cross the instrumented stream
+    * boundary.
     *
     * @example
     * {{{
@@ -135,7 +137,7 @@ object Metrics {
 
     def countBodyBytes(
         body: fs2.Stream[F, Byte],
-        sizeRef: Ref[F, Long],
+        sizeRef: Ref[F, Option[Long]],
     ): fs2.Stream[F, Byte] =
       fs2.Stream.suspend {
         var size = 0L
@@ -144,27 +146,17 @@ object Metrics {
             size += chunk.size.toLong
             chunk
           }
-          .onFinalize(sizeRef.update(_ + size))
+          .onFinalize(sizeRef.update(_.orElse(Some(size))))
       }
 
-    def countCompletedBodyBytes(
+    def measureBodyBytes(
         body: fs2.Stream[F, Byte],
-        completedSizeRef: Ref[F, Option[Long]],
+        contentLength: Option[Long],
+        sizeRef: Ref[F, Option[Long]],
     ): fs2.Stream[F, Byte] =
-      fs2.Stream.suspend {
-        var size = 0L
-        body.mapChunks { chunk =>
-          size += chunk.size.toLong
-          chunk
-        } ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
+      contentLength.fold(countBodyBytes(body, sizeRef)) { declaredSize =>
+        body ++ fs2.Stream.exec(sizeRef.update(_.orElse(Some(declaredSize))))
       }
-
-    def markCompletedBodyBytes(
-        body: fs2.Stream[F, Byte],
-        size: Long,
-        completedSizeRef: Ref[F, Option[Long]],
-    ): fs2.Stream[F, Byte] =
-      body ++ fs2.Stream.exec(completedSizeRef.update(_.orElse(Some(size))))
 
     def terminationTypeFromExitCase(exitCase: Resource.ExitCase): Option[TerminationType] =
       exitCase match {
@@ -196,8 +188,6 @@ object Metrics {
         }
       )
 
-    val requestBodySize = req.contentLength
-
     Resource.eval(ops.createContext(request)).flatMap {
       case None =>
         client.run(req)
@@ -209,8 +199,8 @@ object Metrics {
           _ <- Resource.make(ops.increaseActiveRequests(request, context))(_ =>
             ops.decreaseActiveRequests(request, context)
           )
-          requestBodySizeRef <- Resource.eval(F.ref(requestBodySize.getOrElse(0L)))
-          responseBodyCompletedSizeRef <- Resource.eval(F.ref(Option.empty[Long]))
+          requestBodySizeRef <- Resource.eval(F.ref(Option.empty[Long]))
+          responseBodySizeRef <- Resource.eval(F.ref(Option.empty[Long]))
           responseBodyTerminationTypeRef <- Resource.eval(
             F.ref(Option.empty[TerminationType])
           )
@@ -233,31 +223,43 @@ object Metrics {
                 context,
               )
               requestBodySize <- requestBodySizeRef.get
-              _ <- ops.recordRequestBodySize(
-                request,
-                response,
-                combinedTerminationType,
-                requestBodySize,
-                context,
-              )
+              // For either body, no observed size means zero only without Content-Length;
+              // a declared length alone does not prove the body was consumed.
+              _ <- requestBodySize
+                .orElse(req.contentLength.fold[Option[Long]](Some(0L))(_ => None))
+                .traverse_ { size =>
+                  ops.recordRequestBodySize(
+                    request,
+                    response,
+                    combinedTerminationType,
+                    size,
+                    context,
+                  )
+                }
               _ <- response.fold(F.unit) { response =>
                 for {
-                  responseBodyCompletedSize <- responseBodyCompletedSizeRef.get
-                  _ <- responseBodyCompletedSize.fold(F.unit) { responseBodySize =>
-                    ops.recordResponseBodySize(
-                      request,
-                      response,
-                      combinedTerminationType,
-                      responseBodySize,
-                      context,
+                  responseBodySize <- responseBodySizeRef.get
+                  _ <- responseBodySize
+                    .orElse(
+                      response.headers
+                        .get[`Content-Length`]
+                        .fold[Option[Long]](Some(0L))(_ => None)
                     )
-                  }
+                    .traverse_ { size =>
+                      ops.recordResponseBodySize(
+                        request,
+                        response,
+                        combinedTerminationType,
+                        size,
+                        context,
+                      )
+                    }
                 } yield ()
               }
             } yield ()
           }
           reqWithMetrics = req.withBodyStream(
-            requestBodySize.fold(countBodyBytes(req.body, requestBodySizeRef))(_ => req.body)
+            measureBodyBytes(req.body, req.contentLength, requestBodySizeRef)
           )
           resp <- client.run(reqWithMetrics)
           _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
@@ -265,15 +267,17 @@ object Metrics {
           _ <- Resource.eval(
             ops.recordHeadersTime(request, now - start, context)
           )
-          responseBodySize =
-            if (req.method == Method.HEAD || !resp.status.isEntityAllowed) Some(0L)
-            else resp.contentLength
+          responseHasNoBody = req.method == Method.HEAD || !resp.status.isEntityAllowed
+          _ <- Resource.eval(
+            responseBodySizeRef.set(
+              if (responseHasNoBody) Some(0L)
+              else None
+            )
+          )
           respWithMetrics = resp.withBodyStream(
             observeBodyTermination(
-              responseBodySize
-                .fold(countCompletedBodyBytes(resp.body, responseBodyCompletedSizeRef))(
-                  markCompletedBodyBytes(resp.body, _, responseBodyCompletedSizeRef)
-                ),
+              if (responseHasNoBody) resp.body
+              else measureBodyBytes(resp.body, resp.contentLength, responseBodySizeRef),
               responseBodyTerminationTypeRef,
             )
           )

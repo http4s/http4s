@@ -146,7 +146,7 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
-  test("MetricsOps2 prefers Content-Length to counting body chunks") {
+  test("MetricsOps2 uses Content-Length after the body stream completes") {
     val request = Request[IO](method = Method.POST, uri = uri"/metrics")
       .withBodyStream(Stream.emits("request".getBytes).covary[IO])
       .putHeaders(`Content-Length`.unsafeFromLong(70L))
@@ -185,7 +185,7 @@ final class MetricsSuite extends Http4sSuite {
     } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
   }
 
-  test("MetricsOps2 does not record Content-Length for an unconsumed response body") {
+  test("MetricsOps2 omits an unconsumed response body with Content-Length") {
     val client = Client[IO]((_: Request[IO]) =>
       Resource.pure(
         Response[IO](Status.Ok)
@@ -201,7 +201,7 @@ final class MetricsSuite extends Http4sSuite {
     } yield assertEquals(state.responseBodies, Nil)
   }
 
-  test("MetricsOps2 skips response body size when the response body is not consumed") {
+  test("MetricsOps2 records zero when the response body is not consumed") {
     val client = Client[IO]((_: Request[IO]) =>
       Resource.pure(
         Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
@@ -215,14 +215,16 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(status, Status.Ok)
       assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Ok))
-      assertEquals(state.responseBodies, Nil)
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
     }
   }
 
-  test("MetricsOps2 skips response body size when the response body is partially consumed") {
+  test("MetricsOps2 records bytes from a partially consumed response body") {
     val client = Client[IO]((_: Request[IO]) =>
       Resource.pure(
-        Response[IO](Status.Ok).withBodyStream(Stream.emits("response".getBytes).covary[IO])
+        Response[IO](Status.Ok).withBodyStream(
+          Stream.emits("response".getBytes).flatMap(Stream.emit(_)).covary[IO]
+        )
       )
     )
 
@@ -232,7 +234,7 @@ final class MetricsSuite extends Http4sSuite {
       state <- ops.state
     } yield {
       assertEquals(state.totals.flatMap(_.response.map(_.status)), List(Status.Ok))
-      assertEquals(state.responseBodies, Nil)
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(1L))
     }
   }
 
@@ -274,6 +276,60 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
+  test("MetricsOps2 omits a declared-length request body that is not evaluated") {
+    val failure = new RuntimeException("request failed")
+    val request = Request[IO](method = Method.POST)
+      .withBodyStream(Stream.emits("request".getBytes).covary[IO])
+      .putHeaders(`Content-Length`.unsafeFromLong(70L))
+    val client = Client[IO]((_: Request[IO]) => Resource.eval(IO.raiseError(failure)))
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(request).use_.attempt
+      state <- ops.state
+    } yield assertEquals(state.requestBodies, Nil)
+  }
+
+  test("MetricsOps2 omits a declared-length response body that fails") {
+    val failure = new RuntimeException("body failed")
+    val client = Client[IO]((_: Request[IO]) =>
+      Resource.pure(
+        Response[IO](Status.Ok)
+          .withBodyStream(
+            Stream.emits("response".getBytes).covary[IO] ++ Stream.raiseError[IO](failure)
+          )
+          .putHeaders(`Content-Length`.unsafeFromLong(80L))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      _ <- Metrics[IO](ops)(client).run(req).use(_.body.compile.drain.attempt.void)
+      state <- ops.state
+    } yield {
+      assertEquals(state.responseBodies, Nil)
+      assertEquals(state.totals.map(_.terminationType), List(Some(TerminationType.Error(failure))))
+    }
+  }
+
+  test("MetricsOps2 observes encoded response bytes when placed inside decompression") {
+    val content = "a" * 1024
+    val transport = Client.fromHttpApp(
+      org.http4s.server.middleware.GZip(
+        HttpApp.pure[IO](Response[IO](Status.Ok).withEntity(content))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      decoded <- GZip()(Metrics[IO](ops)(transport)).expect[String](req)
+      state <- ops.state
+    } yield {
+      assertEquals(decoded, content)
+      assert(state.responseBodies.head.bodySizeBytes < content.getBytes.length.toLong)
+    }
+  }
+
   test("MetricsOps2 records an error before a response without headers or response size") {
     val failure = new RuntimeException("boom")
     val client = Client[IO]((_: Request[IO]) => Resource.eval(IO.raiseError(failure)))
@@ -311,7 +367,7 @@ final class MetricsSuite extends Http4sSuite {
         state.requestBodies.map(_.terminationType),
         List(Some(TerminationType.Error(failure))),
       )
-      assertEquals(state.responseBodies, Nil)
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
     }
   }
 
@@ -336,7 +392,7 @@ final class MetricsSuite extends Http4sSuite {
 
   test("MetricsOps2 retains a response body cleanup error recovered by the resource consumer") {
     val failure = new RuntimeException("body cleanup failed")
-    val body = Stream.emit(0.toByte).covary[IO].onFinalize(IO.raiseError(failure))
+    val body = Stream.emit(0.toByte).covary[IO].onFinalize(IO.raiseError[Unit](failure))
     val client =
       Client[IO]((_: Request[IO]) => Resource.pure(Response[IO](Status.Ok).withBodyStream(body)))
 
