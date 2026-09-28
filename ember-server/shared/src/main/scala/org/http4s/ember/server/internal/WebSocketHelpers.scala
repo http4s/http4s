@@ -185,10 +185,12 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
                 case Some(TranscodeErrorReason.MaxFrameSizeExceeded) => Some(1009)
                 case _ => Some(1002)
               }
-            case _: WebSocketFrameDefragmenter.MessageTooLong
-                 | _: WebSocketFrameDefragmenter.TooManyFragments => Some(1009)
+            case _: WebSocketFrameDefragmenter.MessageTooLong |
+                _: WebSocketFrameDefragmenter.TooManyFragments =>
+              Some(1009)
             case _: ProtocolException => Some(1002)
-            case EndOfStreamError() | _: IOException | _: TimeoutException => None // connection is likely gone
+            case EndOfStreamError() | _: IOException | _: TimeoutException =>
+              None // connection is likely gone
             case _ => Some(1011)
           }
 
