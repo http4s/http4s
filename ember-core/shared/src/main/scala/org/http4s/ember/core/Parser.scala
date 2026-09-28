@@ -469,6 +469,13 @@ private[ember] object Parser {
 
         (headerP, finalBuffer) = y
 
+        _ <-
+          if (headerP.chunked && headerP.contentLength.isDefined)
+            Concurrent[F].raiseError[Unit](
+              HeaderP.ParseHeadersError(HeaderP.ContentLengthAndTransferEncoding)
+            )
+          else Concurrent[F].unit
+
         baseResp = org.http4s.Response[F](
           httpVersion = prelude.version,
           status = prelude.status,

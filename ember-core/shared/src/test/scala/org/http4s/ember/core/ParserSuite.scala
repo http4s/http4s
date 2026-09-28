@@ -733,6 +733,29 @@ class ParserSuite extends Http4sSuite {
     }
   }
 
+  test("Response.parser should reject Transfer-Encoding combined with Content-Length") {
+    val raw =
+      "HTTP/1.1 200 OK\r\n" +
+        "Transfer-Encoding: chunked\r\n" +
+        "Content-Length: 38\r\n" +
+        "\r\n" +
+        "0\r\n" +
+        "\r\n" +
+        "HTTP/1.1 200 OK\r\n" +
+        "Content-Length: 9\r\n" +
+        "\r\n" +
+        "smuggled!"
+    Helpers
+      .taking[IO, Byte](
+        Stream.chunk(Chunk.array(raw.getBytes(StandardCharsets.ISO_8859_1)))
+      )
+      .flatMap { take =>
+        interceptMessageIO[ParseHeadersError](
+          "Encountered Error Attempting to Parse Headers - ContentLengthAndTransferEncoding"
+        )(Parser.Response.parser[IO](4096)(Array.emptyByteArray, take))
+      }
+  }
+
   test("HeaderP should reject a Content-Length that is not 1*DIGIT") {
     def parse(headers: String) = {
       val raw = Helpers.httpifyString(s"$headers\n\n")
