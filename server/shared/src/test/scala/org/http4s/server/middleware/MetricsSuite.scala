@@ -21,6 +21,7 @@ import cats.data.OptionT
 import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Ref
+import cats.effect.testkit.TestControl
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
@@ -291,6 +292,230 @@ final class MetricsSuite extends Http4sSuite {
           _.isInstanceOf[TerminationType.Abnormal]
         )
       )
+    }
+  }
+
+  test("MetricsOps2 reports a failing weak response body finalizer") {
+    val failure = new RuntimeException("weak body cleanup failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok).withBodyStream(
+        Stream.emit(42.toByte).covary[IO].onFinalizeWeak(IO.raiseError[Unit](failure))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      result <- response.body.compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(state.active, 0L)
+      assertEquals(
+        state.totals.map(_.terminationType),
+        List(Some(TerminationType.Abnormal(failure))),
+      )
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(1L))
+      assertEquals(
+        state.responseBodies.map(_.terminationType),
+        List(Some(TerminationType.Abnormal(failure))),
+      )
+    }
+  }
+
+  test("MetricsOps2 reports a failing weak finalizer with Content-Length") {
+    val failure = new RuntimeException("weak body cleanup failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok)
+        .withBodyStream(
+          Stream.emit(42.toByte).covary[IO].onFinalizeWeak(IO.raiseError[Unit](failure))
+        )
+        .putHeaders(`Content-Length`.unsafeFromLong(1L))
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      result <- response.body.compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(state.active, 0L)
+      assertEquals(
+        state.totals.map(_.terminationType),
+        List(Some(TerminationType.Abnormal(failure))),
+      )
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 reports a failing strong response body finalizer") {
+    val failure = new RuntimeException("strong body cleanup failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok)
+        .withBodyStream(
+          Stream.emit(42.toByte).covary[IO].onFinalize(IO.raiseError[Unit](failure))
+        )
+        .putHeaders(`Content-Length`.unsafeFromLong(1L))
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      result <- response.body.compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(
+        state.totals.map(_.terminationType),
+        List(Some(TerminationType.Abnormal(failure))),
+      )
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 reports evaluation and weak cleanup failures together") {
+    val evaluationFailure = new RuntimeException("body evaluation failed")
+    val cleanupFailure = new RuntimeException("body cleanup failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok)
+        .withBodyStream(
+          Stream
+            .raiseError[IO](evaluationFailure)
+            .onFinalizeWeak(IO.raiseError[Unit](cleanupFailure))
+        )
+        .putHeaders(`Content-Length`.unsafeFromLong(1L))
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      result <- response.body.compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(state.active, 0L)
+      result match {
+        case Left(error) =>
+          assertEquals(
+            state.totals.map(_.terminationType),
+            List(Some(TerminationType.Abnormal(error))),
+          )
+        case Right(_) => fail("expected body evaluation and cleanup to fail")
+      }
+      assertEquals(state.responseBodies, Nil)
+    }
+  }
+
+  test("MetricsOps2 finalizes a weak body cleanup before an appended stream") {
+    for {
+      events <- Ref.of[IO, List[String]](Nil)
+      body = Stream
+        .emit(42.toByte)
+        .covary[IO]
+        .onFinalizeWeak(events.update(_ :+ "body"))
+      app = HttpApp.pure[IO](Response[IO](Status.Ok).withBodyStream(body))
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      _ <- (response.body ++ Stream.exec(events.update(_ :+ "appended"))).compile.drain
+      observed <- events.get
+      state <- ops.state
+    } yield {
+      assertEquals(observed, List("body", "appended"))
+      assertEquals(state.totals.size, 1)
+      assertEquals(state.totals.head.context, Some("GET"))
+      assertEquals(state.responseBodies.head.context, Some("GET"))
+    }
+  }
+
+  test("MetricsOps2 observes early termination before weak cleanup fails on take") {
+    val failure = new RuntimeException("weak body cleanup failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok).withBodyStream(
+        (Stream.emit(42.toByte) ++ Stream.never[IO])
+          .onFinalizeWeak(IO.raiseError[Unit](failure))
+      )
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      result <- response.body.take(1).compile.drain.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(state.active, 0L)
+      assertEquals(state.increases.size, 1)
+      assertEquals(state.decreases.size, 1)
+      assertEquals(state.headers.size, 1)
+      assertEquals(state.totals.map(_.terminationType), List(None))
+      assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
+      assertEquals(state.requestBodies.map(_.terminationType), List(None))
+      assertEquals(state.responseBodies.map(_.bodySizeBytes), List(1L))
+      assertEquals(state.responseBodies.map(_.terminationType), List(None))
+    }
+  }
+
+  test("MetricsOps2 cancellation does not expose weak cleanup failure to terminal callbacks") {
+    val failure = new RuntimeException("expected weak cleanup failure during cancellation")
+
+    TestControl.executeEmbed {
+      for {
+        started <- Deferred[IO, Unit]
+        cleaned <- Ref.of[IO, Boolean](false)
+        compilerOutcome <- Ref.of[IO, Boolean](false)
+        ops <- TestMetricsOps2.create
+        body = (Stream.emit(42.toByte) ++ Stream.exec(started.complete(()).void) ++ Stream
+          .never[IO])
+          .onFinalizeWeak(cleaned.set(true) >> IO.raiseError[Unit](failure))
+        response <- Metrics[IO](ops)(HttpApp.pure[IO](Response[IO]().withBodyStream(body)))
+          .run(Request[IO]())
+        fiber <- response.body.compile.drain
+          .guaranteeCase(outcome => compilerOutcome.set(outcome.isCanceled))
+          .start
+        _ <- started.get >> fiber.cancel
+        outcome <- fiber.join
+        wasCleaned <- cleaned.get
+        compilerCanceled <- compilerOutcome.get
+        state <- ops.state
+      } yield {
+        assert(outcome.isCanceled)
+        assert(wasCleaned)
+        assert(compilerCanceled)
+        assertEquals(state.active, 0L)
+        assertEquals(state.increases.size, 1)
+        assertEquals(state.decreases.size, 1)
+        assertEquals(state.headers.size, 1)
+        assertEquals(state.totals.map(_.terminationType), List(Some(Canceled)))
+        assertEquals(state.requestBodies.map(_.bodySizeBytes), List(0L))
+        assertEquals(state.requestBodies.map(_.terminationType), List(Some(Canceled)))
+        assertEquals(state.responseBodies.map(_.bodySizeBytes), List(1L))
+        assertEquals(state.responseBodies.map(_.terminationType), List(Some(Canceled)))
+      }
+    }
+  }
+
+  test("MetricsOps2 reports weak cleanup through compile.resource") {
+    val failure = new RuntimeException("weak body cleanup failed")
+    val app = HttpApp.pure[IO](
+      Response[IO](Status.Ok)
+        .withBodyStream(
+          Stream.emit(42.toByte).covary[IO].onFinalizeWeak(IO.raiseError[Unit](failure))
+        )
+        .putHeaders(`Content-Length`.unsafeFromLong(1L))
+    )
+
+    for {
+      ops <- TestMetricsOps2.create
+      response <- Metrics[IO](ops)(app).run(Request[IO]())
+      result <- response.body.compile.resource.drain.use_.attempt
+      state <- ops.state
+    } yield {
+      assertEquals(result, Left(failure))
+      assertEquals(
+        state.totals.map(_.terminationType),
+        List(Some(TerminationType.Abnormal(failure))),
+      )
+      assertEquals(state.responseBodies, Nil)
     }
   }
 

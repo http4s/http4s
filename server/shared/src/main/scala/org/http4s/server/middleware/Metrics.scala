@@ -316,7 +316,13 @@ object Metrics {
           if (responseHasNoBody) response
           else
             response.withBodyStream(
-              measureBodyBytes(response.body, response.contentLength, metrics.responseBodySizeRef)
+              // Close body-owned cleanup before the bracket's weak completion callback on
+              // normal compilation, including compilation through a Resource.
+              measureBodyBytes(
+                response.body.scope,
+                response.contentLength,
+                metrics.responseBodySizeRef,
+              ).scope
             )
       } yield ContextResponse(prelude, respWithMetrics)
 
