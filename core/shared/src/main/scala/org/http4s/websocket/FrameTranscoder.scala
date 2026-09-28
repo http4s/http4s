@@ -16,12 +16,34 @@
 
 package org.http4s.websocket
 
+import org.http4s.websocket.FrameTranscoder.TranscodeError
 import scodec.bits.ByteVector
 
 import java.nio.ByteBuffer
+import scala.util.control.NoStackTrace
 
 private[http4s] object FrameTranscoder {
-  final class TranscodeError(val message: String) extends Exception(message)
+  final class TranscodeError(val message: String, val reason: Option[TranscodeErrorReason])
+      extends Exception(message)
+      with NoStackTrace {
+    @deprecated(
+      "Preserved for binary compatibility; use the constructor with reason instead",
+      "0.23.38",
+    )
+    def this(message: String) = this(message, None)
+  }
+  object TranscodeError {
+    def invalidFrame(msg: String): TranscodeError =
+      new TranscodeError(msg, Some(TranscodeErrorReason.InvalidFrame))
+    def maxFrameSizeExceeded(msg: String): TranscodeError =
+      new TranscodeError(msg, Some(TranscodeErrorReason.MaxFrameSizeExceeded))
+  }
+
+  sealed abstract class TranscodeErrorReason extends Product with Serializable
+  object TranscodeErrorReason {
+    case object InvalidFrame extends TranscodeErrorReason
+    case object MaxFrameSizeExceeded extends TranscodeErrorReason
+  }
 
   private def decodeBinary(in: ByteBuffer, mask: Array[Byte]) = {
     val data = new Array[Byte](in.remaining)
@@ -37,7 +59,7 @@ private[http4s] object FrameTranscoder {
     if (len < 126) 2
     else if (len == 126) 4
     else if (len == 127) 10
-    else throw new FrameTranscoder.TranscodeError("Length error!")
+    else throw TranscodeError.invalidFrame("Length error!")
   }
 
   private def getMask(in: ByteBuffer): Array[Byte] = {
@@ -60,9 +82,9 @@ private[http4s] object FrameTranscoder {
       // truncate into a 32-bit signed Int.  That's fine for reasonable
       // values, but can result in a negative
       if (java.lang.Long.compareUnsigned(l, Int.MaxValue) > 0)
-        throw new FrameTranscoder.TranscodeError("Frame is too long")
+        throw TranscodeError.invalidFrame("Frame is too long")
       else l.toInt
-    } else throw new FrameTranscoder.TranscodeError("Length error")
+    } else throw TranscodeError.invalidFrame("Length error")
   }
 
   private def getMsgLength(in: ByteBuffer, maxFrameSize: Int) = {
@@ -79,7 +101,7 @@ private[http4s] object FrameTranscoder {
     else {
       val payloadLen = bodyLength(in)
       if (payloadLen > maxFrameSize) {
-        throw new FrameTranscoder.TranscodeError(
+        throw TranscodeError.maxFrameSizeExceeded(
           s"Frame length $payloadLen exceeds limit of $maxFrameSize bytes"
         )
       }
@@ -109,7 +131,7 @@ class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
     val opcode = in.opcode
 
     if (in.length > 125 && (opcode == PING || opcode == PONG || opcode == CLOSE))
-      throw new FrameTranscoder.TranscodeError("Invalid PING frame: frame too long: " + in.length)
+      throw TranscodeError.invalidFrame("Invalid PING frame: frame too long: " + in.length)
 
     // First byte. Finished, reserved, and OP CODE
     val b1 = if (in.last) opcode | FINISHED else opcode
@@ -180,9 +202,9 @@ class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
       //   * a client MUST close a connection if it detects a masked frame;
       //   * a server MUST close a connection upon receiving an unmasked frame.
       if (masked && isClient)
-        throw new FrameTranscoder.TranscodeError("Client received a masked frame")
+        throw TranscodeError.invalidFrame("Client received a masked frame")
       else if (!masked && !isClient)
-        throw new FrameTranscoder.TranscodeError("Server received an unmasked frame")
+        throw TranscodeError.invalidFrame("Server received an unmasked frame")
 
       var bodyOffset = FrameTranscoder.lengthOffset(in)
 
