@@ -37,9 +37,15 @@ import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers._
 import org.http4s.syntax.all._
-import org.http4s.websocket.{FrameTranscoder, Rfc6455, WebSocketCombinedPipe, WebSocketContext, WebSocketFrame, WebSocketFrameDefragmenter, WebSocketSeparatePipe}
+import org.http4s.websocket.FrameTranscoder
 import org.http4s.websocket.FrameTranscoder.TranscodeError
 import org.http4s.websocket.FrameTranscoder.TranscodeErrorReason
+import org.http4s.websocket.Rfc6455
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketContext
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrameDefragmenter
+import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import scodec.bits.ByteVector
