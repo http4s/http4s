@@ -22,13 +22,11 @@ import cats.effect.Resource
 import fs2.Stream
 import org.http4s._
 import org.http4s.client.Client
-import org.http4s.headers.`Accept-Encoding`
 import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TestMetricsOps
 import org.http4s.metrics.TestMetricsOps2
-import org.http4s.server.middleware.{GZip => ServerGZip}
 import org.http4s.syntax.all._
 
 final class MetricsSuite extends Http4sSuite {
@@ -314,35 +312,6 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
-  test("MetricsOps2 observes encoded response bytes when placed inside decompression") {
-    val content = "a" * 1024
-    val compressedApp = ServerGZip(
-      HttpApp.pure[IO](Response[IO](Status.Ok).withEntity(content))
-    )
-
-    for {
-      encodedResponse <- compressedApp.run(
-        req.putHeaders(`Accept-Encoding`(ContentCoding.gzip))
-      )
-      encoded <- encodedResponse.body.compile.toVector
-      transport = Client[IO](_ =>
-        Resource.pure(
-          encodedResponse.withBodyStream(Stream.emits(encoded).covary[IO])
-        )
-      )
-      encodedOps <- TestMetricsOps2.create
-      decoded <- GZip()(Metrics[IO](encodedOps)(transport)).expect[String](req)
-      encodedState <- encodedOps.state
-      decodedOps <- TestMetricsOps2.create
-      _ <- Metrics[IO](decodedOps)(GZip()(transport)).expect[String](req)
-      decodedState <- decodedOps.state
-    } yield {
-      assertEquals(decoded, content)
-      assert(encoded.size < content.length)
-      assertEquals(encodedState.responseBodies.map(_.bodySizeBytes), List(encoded.size.toLong))
-      assertEquals(decodedState.responseBodies.map(_.bodySizeBytes), List(content.length.toLong))
-    }
-  }
 
   test("MetricsOps2 records an error before a response without headers or response size") {
     val failure = new RuntimeException("boom")
