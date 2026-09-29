@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core.h2
 
+import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Queue
 import cats.effect.std.Semaphore
@@ -24,6 +25,7 @@ import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
+import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
 import org.http4s.Http4sSuite
@@ -33,6 +35,11 @@ import scodec.bits.ByteVector
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.DurationInt
 
+/** Covers connection frame processing, protocol limits, and write stalls.
+  * Unread DATA must not block WINDOW_UPDATE processing. Late frames for closed
+  * streams must preserve connection credit and HPACK state without reopening the
+  * stream or terminating the connection.
+  */
 class H2ConnectionSuite extends Http4sSuite {
 
   private val addr = SocketAddress(ip"127.0.0.1", port"0")
@@ -78,6 +85,7 @@ class H2ConnectionSuite extends Http4sSuite {
       input: ByteVector,
       idleTimeout: Duration,
       writes: Ref[IO, ByteVector],
+      connectionType: H2Connection.ConnectionType = H2Connection.ConnectionType.Server,
   ): IO[H2Connection[IO]] =
     for {
       socket <- stubSocket(input, writes)
@@ -87,6 +95,7 @@ class H2ConnectionSuite extends Http4sSuite {
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize,
         localSettings.initialWindowSize,
       )
+      pendingReadCredit <- SignallingRef[IO, Int](0)
       outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
@@ -98,12 +107,13 @@ class H2ConnectionSuite extends Http4sSuite {
       logger <- NoOpFactory[IO].fromClass(classOf[H2ConnectionSuite])
     } yield new H2Connection[IO](
       addr,
-      H2Connection.ConnectionType.Server,
+      connectionType,
       Duration.Inf,
       idleTimeout,
       localSettings,
       mapRef,
       stateRef,
+      pendingReadCredit,
       outgoing,
       created,
       closed,
@@ -151,25 +161,100 @@ class H2ConnectionSuite extends Http4sSuite {
     H2Frame.Settings.ConnectionSettings.default
       .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderListSize)))
 
-  test("data for a stream that has already been answered is ignored") {
-    val data = H2Frame.Data(1, ByteVector.empty, None, endStream = true)
+  test("unread DATA does not block a subsequent connection WINDOW_UPDATE") {
+    val data = H2Frame.toByteVector(H2Frame.Data(1, ByteVector(1.toByte), None, endStream = false))
+    val input = ByteVector.concat(List.fill(200)(data)) ++
+      H2Frame.toByteVector(H2Frame.WindowUpdate(0, 1))
     for {
-      h2 <- mkConnection(
-        H2Frame.Settings.ConnectionSettings.default,
-        H2Frame.toByteVector(data),
-      )
+      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, input)
+      stream <- h2.initiateRemoteStreamById(1)
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+      _ <- h2.state.update(_.copy(writeWindow = 0))
+      _ <- h2.readLoop.timeout(2.seconds)
+      connectionState <- h2.state.get
+      streamState <- stream.state.get
+    } yield {
+      assertEquals(connectionState.writeWindow, 1)
+      assertEquals(streamState.unreadBytes, 200)
+    }
+  }
+
+  test("data exceeding the connection window is a flow control error") {
+    val window = H2Frame.Settings.ConnectionSettings.default.initialWindowSize.windowSize
+    val settings = H2Frame.Settings.ConnectionSettings.default
+      .copy(maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(window))
+    val input =
+      H2Frame.toByteVector(H2Frame.Data(1, ByteVector.fill(window.toLong)(0), None, false)) ++
+        H2Frame.toByteVector(H2Frame.Data(1, ByteVector.fill(1)(0), None, false))
+    for {
+      h2 <- mkConnection(settings, input)
+      stream <- h2.initiateRemoteStreamById(1)
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield assertEquals(
+      frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
+      Some(H2Error.FlowControlError.value),
+      clue(frames),
+    )
+  }
+
+  test("window update for an answered stream is ignored") {
+    val w = H2Frame.WindowUpdate(1, 10)
+    for {
+      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, H2Frame.toByteVector(w))
       _ <- h2.initiateRemoteStreamById(1)
       _ <- h2.mapRef.set(Map.empty)
       _ <- h2.readLoop
       frames <- drainOutgoing(h2)
-      _ = assert(
-        !frames.exists(_.isInstanceOf[H2Frame.GoAway]),
-        clue(
-          s"a peer that sends END_STREAM after we have answered and dropped the " +
-            s"stream must not take the whole connection down, got $frames"
-        ),
+    } yield assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
+  }
+
+  test("HEADERS for stream 0 terminates the connection") {
+    for {
+      hpack <- Hpack.create[IO](4096)
+      request <- hpack.encodeHeaders(
+        NonEmptyList.of(
+          (":method", "GET", false),
+          (":scheme", "http", false),
+          (":path", "/", false),
+          (":authority", "localhost", false),
+          ("x-checksum", "abc", false),
+        )
       )
-    } yield ()
+      input = H2Frame.toByteVector(H2Frame.Headers(0, None, true, true, request, None))
+      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, input)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield assertEquals(
+      frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
+      Some(H2Error.ProtocolError.value),
+      clue(frames),
+    )
+  }
+
+  test("rst for a stream that has already been answered is ignored") {
+    val rst = H2Frame.RstStream(1, H2Error.Cancel.value)
+    for {
+      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, H2Frame.toByteVector(rst))
+      _ <- h2.initiateRemoteStreamById(1)
+      _ <- h2.mapRef.set(Map.empty)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
+  }
+
+  test("rst for an idle stream is a protocol error") {
+    val rst = H2Frame.RstStream(3, H2Error.Cancel.value)
+    for {
+      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, H2Frame.toByteVector(rst))
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2)
+    } yield assertEquals(
+      frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
+      Some(H2Error.ProtocolError.value),
+      clue(frames),
+    )
   }
 
   test("continunation frames within maxHeaderListSize accumulate without GoAway") {

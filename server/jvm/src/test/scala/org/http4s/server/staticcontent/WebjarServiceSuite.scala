@@ -182,4 +182,24 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       b.assertEquals(testWebjarResourceGzipped)
     }
   }
+
+  @annotation.nowarn("cat=deprecation")
+  def deprecatedRoutes: HttpRoutes[IO] =
+    WebjarService[IO](WebjarService.Config[IO]())
+
+  test("Return a 200 Ok file (deprecated constructor)") {
+    val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")
+    val rb = runReq(req, routes = deprecatedRoutes)
+    rb.flatMap { case (b, r) =>
+      assertEquals(r.status, Status.Ok)
+      b.assertEquals(testWebjarResource)
+    }
+  }
+
+  test("Return a 400 escaping via fully percent-encoded dot-dots (deprecated constructor)") {
+    val relativePath = "test-lib/1.0.0/%2E%2E%2F%2E%2E%2F%2E%2E%2Ftestresource.txt"
+    val uri = Uri.unsafeFromString("/" + relativePath)
+    val req = Request[IO](uri = uri)
+    deprecatedRoutes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+  }
 }
