@@ -28,7 +28,7 @@ private[http4s] object FrameTranscoder {
       with NoStackTrace {
     @deprecated(
       "Preserved for binary compatibility; use the constructor with reason instead",
-      "0.23.38",
+      "0.23.39",
     )
     def this(message: String) = this(message, None)
   }
