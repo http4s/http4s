@@ -27,6 +27,8 @@ import com.comcast.ip4s._
 import fs2.Stream
 import org.http4s.Request.Connection
 import org.http4s._
+import org.http4s.headers.`Accept-Encoding`
+import org.http4s.headers.`Content-Encoding`
 import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.MetricsOps2
 import org.http4s.metrics.MetricsRequest
@@ -536,9 +538,7 @@ final class MetricsSuite extends Http4sSuite {
   test("MetricsOps2 observes encoded response bytes when placed outside compression") {
     val content = "a" * 1024
     val app = HttpApp.pure[IO](Response[IO](Status.Ok).withEntity(content))
-    val request = Request[IO]().putHeaders(
-      org.http4s.headers.`Accept-Encoding`(ContentCoding.gzip)
-    )
+    val request = Request[IO]().putHeaders(`Accept-Encoding`(ContentCoding.gzip))
 
     for {
       encodedOps <- TestMetricsOps2.create
@@ -552,8 +552,8 @@ final class MetricsSuite extends Http4sSuite {
     } yield {
       assertEquals(response.contentLength, None)
       assertEquals(
-        response.headers.get[org.http4s.headers.`Content-Encoding`],
-        Some(org.http4s.headers.`Content-Encoding`(ContentCoding.gzip)),
+        response.headers.get[`Content-Encoding`],
+        Some(`Content-Encoding`(ContentCoding.gzip)),
       )
       assert(encoded.size < content.length)
       assertEquals(encodedState.responseBodies.map(_.bodySizeBytes), List(encoded.size.toLong))
