@@ -312,7 +312,6 @@ final class MetricsSuite extends Http4sSuite {
     }
   }
 
-
   test("MetricsOps2 records an error before a response without headers or response size") {
     val failure = new RuntimeException("boom")
     val client = Client[IO]((_: Request[IO]) => Resource.eval(IO.raiseError(failure)))
