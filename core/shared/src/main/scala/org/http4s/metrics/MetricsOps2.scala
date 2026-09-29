@@ -25,12 +25,24 @@ import scala.concurrent.duration.FiniteDuration
   *
   * Unlike [[MetricsOps]], this algebra provides enough information to fill out all required and
   * optional [[https://opentelemetry.io/docs/specs/semconv/http/http-metrics OpenTelemetry attributes]].
-  * For bodies without a declared length, body-size callbacks receive the number of bytes observed
-  * through the instrumented stream, including partial or zero-byte observations. For bodies with a
-  * declared length, callbacks receive `Content-Length` only after successful stream completion and
-  * are omitted if the stream is incomplete. These values only approximate bytes transferred by the
-  * transport: middleware placement determines whether encoded or decoded bytes are observed, and
-  * stream evaluation does not prove socket delivery.
+  *
+  * Client and server middleware record request and response body sizes as follows:
+  *  - Without `Content-Length`, count the bytes in each chunk read from the body. Count the whole
+  *    chunk even if the caller uses only part of it, such as with `take(1)`. Record zero if the
+  *    body was not read, and the count so far if reading stops early, fails, or is canceled.
+  *  - With `Content-Length`, use the header value without checking the actual byte count. Record
+  *    it only after the stream ends and its finalizers succeed. Otherwise, skip the size metric,
+  *    even if the header says zero. `take(n)` can read the last byte without running the stream
+  *    to its end.
+  *  - Record zero for HEAD responses and statuses that cannot have a body, regardless of
+  *    `Content-Length`. Do not record a response size if there is no response.
+  *
+  * Read each body once. The client records these metrics when the response resource is released.
+  * The server records them when the response body finishes. If a server response body is never
+  * run, its completion metrics are never recorded.
+  *
+  * Middleware order determines whether sizes include compressed or decompressed bytes. A socket
+  * write can fail after bytes have been counted, so these sizes can differ from bytes sent.
   */
 trait MetricsOps2[F[_]] { self =>
 

@@ -314,19 +314,31 @@ final class MetricsSuite extends Http4sSuite {
 
   test("MetricsOps2 observes encoded response bytes when placed inside decompression") {
     val content = "a" * 1024
-    val transport = Client.fromHttpApp(
-      org.http4s.server.middleware.GZip(
-        HttpApp.pure[IO](Response[IO](Status.Ok).withEntity(content))
-      )
+    val compressedApp = org.http4s.server.middleware.GZip(
+      HttpApp.pure[IO](Response[IO](Status.Ok).withEntity(content))
     )
 
     for {
-      ops <- TestMetricsOps2.create
-      decoded <- GZip()(Metrics[IO](ops)(transport)).expect[String](req)
-      state <- ops.state
+      encodedResponse <- compressedApp.run(
+        req.putHeaders(org.http4s.headers.`Accept-Encoding`(ContentCoding.gzip))
+      )
+      encoded <- encodedResponse.body.compile.toVector
+      transport = Client[IO](_ =>
+        Resource.pure(
+          encodedResponse.withBodyStream(Stream.emits(encoded).covary[IO])
+        )
+      )
+      encodedOps <- TestMetricsOps2.create
+      decoded <- GZip()(Metrics[IO](encodedOps)(transport)).expect[String](req)
+      encodedState <- encodedOps.state
+      decodedOps <- TestMetricsOps2.create
+      _ <- Metrics[IO](decodedOps)(GZip()(transport)).expect[String](req)
+      decodedState <- decodedOps.state
     } yield {
       assertEquals(decoded, content)
-      assert(state.responseBodies.head.bodySizeBytes < content.getBytes.length.toLong)
+      assert(encoded.size < content.length)
+      assertEquals(encodedState.responseBodies.map(_.bodySizeBytes), List(encoded.size.toLong))
+      assertEquals(decodedState.responseBodies.map(_.bodySizeBytes), List(content.length.toLong))
     }
   }
 

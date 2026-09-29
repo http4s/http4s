@@ -86,16 +86,18 @@ object Metrics {
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
 
-  /** A server middleware capable of recording transport-level metrics.
+  /** Records metrics for an [[HttpApp]].
     *
-    * @note Bodies without `Content-Length` are counted through the instrumented streams, including
-    * partial or zero-byte bodies. A declared length avoids per-chunk counting and is recorded only
-    * after the body stream completes successfully. Apply routing fallbacks, error recovery,
-    * compression, and other body-transforming middleware before `Metrics`, then pass the measured
-    * [[HttpApp]] directly to the server backend. This placement observes encoded response bytes and
-    * most closely approximates transport-level measurements. Response bodies have single-consumption
-    * semantics. If a body is nevertheless evaluated more than once, terminal metrics are attempted
-    * at most once for the exchange.
+    * @note Without `Content-Length`, count whole chunks read from the body, including a chunk
+    * that the caller only partly uses. With `Content-Length`, record the header value only after
+    * the stream ends and its finalizers succeed. Otherwise, skip the size metric. HEAD responses
+    * and statuses that cannot have a body record zero when metrics complete. A socket write can
+    * fail after bytes have been counted. See [[org.http4s.metrics.MetricsOps2]] for details.
+    *
+    * Apply routing fallbacks, error handling, compression, and other body changes before
+    * wrapping the app with `Metrics`. Pass that app to the server. This counts compressed
+    * response bytes. Read the response body once. If it is read again, completion metrics
+    * are still attempted only once.
     *
     * @example
     * {{{
@@ -258,8 +260,9 @@ object Metrics {
         contentLength: Option[Long],
         sizeRef: Ref[F, Option[Long]],
     ): EntityBody[F] =
-      contentLength.fold(countBodyBytes(body, sizeRef)) { declaredSize =>
-        body ++ fs2.Stream.exec(sizeRef.update(_.orElse(Some(declaredSize))))
+      // Close body-owned cleanup before considering a declared length complete.
+      contentLength.fold(countBodyBytes(body.scope, sizeRef)) { declaredSize =>
+        body.scope ++ fs2.Stream.exec(sizeRef.update(_.orElse(Some(declaredSize))))
       }
 
     def startMetrics(
@@ -319,7 +322,7 @@ object Metrics {
               // Close body-owned cleanup before the bracket's weak completion callback on
               // normal compilation, including compilation through a Resource.
               measureBodyBytes(
-                response.body.scope,
+                response.body,
                 response.contentLength,
                 metrics.responseBodySizeRef,
               ).scope

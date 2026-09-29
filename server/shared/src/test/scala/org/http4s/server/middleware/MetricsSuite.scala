@@ -533,6 +533,34 @@ final class MetricsSuite extends Http4sSuite {
     } yield assertEquals(state.responseBodies.map(_.bodySizeBytes), List(0L))
   }
 
+  test("MetricsOps2 observes encoded response bytes when placed outside compression") {
+    val content = "a" * 1024
+    val app = HttpApp.pure[IO](Response[IO](Status.Ok).withEntity(content))
+    val request = Request[IO]().putHeaders(
+      org.http4s.headers.`Accept-Encoding`(ContentCoding.gzip)
+    )
+
+    for {
+      encodedOps <- TestMetricsOps2.create
+      response <- Metrics[IO](encodedOps)(GZip(app)).run(request)
+      encoded <- response.body.compile.toVector
+      encodedState <- encodedOps.state
+      decodedOps <- TestMetricsOps2.create
+      decodedResponse <- GZip(Metrics[IO](decodedOps)(app)).run(request)
+      _ <- decodedResponse.body.compile.drain
+      decodedState <- decodedOps.state
+    } yield {
+      assertEquals(response.contentLength, None)
+      assertEquals(
+        response.headers.get[org.http4s.headers.`Content-Encoding`],
+        Some(org.http4s.headers.`Content-Encoding`(ContentCoding.gzip)),
+      )
+      assert(encoded.size < content.length)
+      assertEquals(encodedState.responseBodies.map(_.bodySizeBytes), List(encoded.size.toLong))
+      assertEquals(decodedState.responseBodies.map(_.bodySizeBytes), List(content.length.toLong))
+    }
+  }
+
   test("MetricsOps2 receives server connection information") {
     val connection = Connection(
       SocketAddress(ip"127.0.0.1", port"443"),

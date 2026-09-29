@@ -72,14 +72,15 @@ object Metrics {
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics.
     *
-    * @note Bodies without `Content-Length` are counted through the instrumented streams, including
-    * partial or zero-byte bodies. A declared length avoids per-chunk counting and is recorded only
-    * after the body stream completes successfully. For transport-level approximations, install this
-    * middleware directly around the underlying client, then wrap it with compression, retry, and
-    * other higher-level middleware. This placement sees encoded bodies and records retries as
-    * individual transport attempts. Response body failures remain part of the recorded termination
-    * even if the resource consumer recovers from them after they cross the instrumented stream
-    * boundary.
+    * @note Without `Content-Length`, count whole chunks read from the body, including a chunk
+    * that the caller only partly uses. With `Content-Length`, record the header value only after
+    * the stream ends and its finalizers succeed. Otherwise, skip the size metric. HEAD responses
+    * and statuses that cannot have a body record zero when metrics complete. A socket write can
+    * fail after bytes have been counted. See [[org.http4s.metrics.MetricsOps2]] for details.
+    *
+    * Wrap the underlying client with `Metrics`, then add compression, retries, and other
+    * middleware. This counts compressed bytes and records each retry separately. If reading
+    * the response body fails, metrics still record the error when the caller catches it.
     *
     * @example
     * {{{
@@ -154,8 +155,9 @@ object Metrics {
         contentLength: Option[Long],
         sizeRef: Ref[F, Option[Long]],
     ): fs2.Stream[F, Byte] =
-      contentLength.fold(countBodyBytes(body, sizeRef)) { declaredSize =>
-        body ++ fs2.Stream.exec(sizeRef.update(_.orElse(Some(declaredSize))))
+      // Close body-owned cleanup before considering a declared length complete.
+      contentLength.fold(countBodyBytes(body.scope, sizeRef)) { declaredSize =>
+        body.scope ++ fs2.Stream.exec(sizeRef.update(_.orElse(Some(declaredSize))))
       }
 
     def terminationTypeFromExitCase(exitCase: Resource.ExitCase): Option[TerminationType] =
