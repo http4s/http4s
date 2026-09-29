@@ -329,64 +329,69 @@ object Metrics {
             )
       } yield ContextResponse(prelude, respWithMetrics)
 
+    def recordCompletion(
+        metrics: MetricsEntry2[F, ops.Context],
+        response: Option[ResponsePrelude],
+        terminationType: Option[TerminationType],
+    ): F[Unit] =
+      for {
+        totalTime <- stopMetrics(metrics)
+        _ <- ops.recordTotalTime(
+          metrics.request,
+          response,
+          terminationType,
+          totalTime,
+          metrics.context,
+        )
+        requestBodySize <- metrics.requestBodySizeRef.get
+        // For either body, no observed size means zero only without Content-Length;
+        // a declared length alone does not prove the body was consumed.
+        _ <- requestBodySize
+          .orElse(
+            metrics.request.requestPrelude.headers
+              .get[`Content-Length`]
+              .fold[Option[Long]](Some(0L))(_ => None)
+          )
+          .traverse_ { size =>
+            ops.recordRequestBodySize(
+              metrics.request,
+              response,
+              terminationType,
+              size,
+              metrics.context,
+            )
+          }
+        _ <- response.fold(F.unit) { resp =>
+          for {
+            responseBodySize <- metrics.responseBodySizeRef.get
+            _ <- responseBodySize
+              .orElse(
+                resp.headers
+                  .get[`Content-Length`]
+                  .fold[Option[Long]](Some(0L))(_ => None)
+              )
+              .traverse_ { size =>
+                ops.recordResponseBodySize(
+                  metrics.request,
+                  resp,
+                  terminationType,
+                  size,
+                  metrics.context,
+                )
+              }
+          } yield ()
+        }
+      } yield ()
+
     def finishMetrics(
         metrics: MetricsEntry2[F, ops.Context],
         response: Option[ResponsePrelude],
         terminationType: Option[TerminationType],
     ): F[Unit] =
-      F.uncancelable { _ =>
-        metrics.completionStartedRef.modify { completionStarted =>
-          if (completionStarted) (true, F.unit)
-          else
-            true -> (for {
-              totalTime <- stopMetrics(metrics)
-              _ <- ops.recordTotalTime(
-                metrics.request,
-                response,
-                terminationType,
-                totalTime,
-                metrics.context,
-              )
-              requestBodySize <- metrics.requestBodySizeRef.get
-              // For either body, no observed size means zero only without Content-Length;
-              // a declared length alone does not prove the body was consumed.
-              _ <- requestBodySize
-                .orElse(
-                  metrics.request.requestPrelude.headers
-                    .get[`Content-Length`]
-                    .fold[Option[Long]](Some(0L))(_ => None)
-                )
-                .traverse_ { size =>
-                  ops.recordRequestBodySize(
-                    metrics.request,
-                    response,
-                    terminationType,
-                    size,
-                    metrics.context,
-                  )
-                }
-              _ <- response.fold(F.unit) { resp =>
-                for {
-                  responseBodySize <- metrics.responseBodySizeRef.get
-                  _ <- responseBodySize
-                    .orElse(
-                      resp.headers
-                        .get[`Content-Length`]
-                        .fold[Option[Long]](Some(0L))(_ => None)
-                    )
-                    .traverse_ { size =>
-                      ops.recordResponseBodySize(
-                        metrics.request,
-                        resp,
-                        terminationType,
-                        size,
-                        metrics.context,
-                      )
-                    }
-                } yield ()
-              }
-            } yield ())
-        }.flatten
+      // Both bracket release paths run with cancellation masked.
+      metrics.completionStartedRef.getAndSet(true).flatMap {
+        case true => F.unit
+        case false => recordCompletion(metrics, response, terminationType)
       }
 
     Kleisli { request =>
