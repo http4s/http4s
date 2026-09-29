@@ -55,12 +55,13 @@ import scala.concurrent.duration._
 
 @annotation.nowarn("cat=deprecation")
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: MonadThrow: Network](
+  def requestToSocketWithKey[F[_]: Temporal: Network](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
+      connectTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -69,6 +70,7 @@ private[client] object ClientHelpers {
       enableEndpointValidation,
       enableServerNameIndication,
       additionalSocketOptions,
+      connectTimeout,
     )
   }
 
@@ -91,17 +93,21 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: MonadThrow: Network](
+  def requestKeyToSocketWithKey[F[_]: Temporal: Network](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
+      connectTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
-        val s = Network[F].connect(address, options = additionalSocketOptions)
+        val s = timeoutMaybeResource(
+          Network[F].connect(address, options = additionalSocketOptions),
+          connectTimeout,
+        )
         elevateSocket(
           requestKey,
           s,
@@ -111,6 +117,15 @@ private[client] object ClientHelpers {
           Some(address),
         )
       }
+
+  private def timeoutMaybeResource[F[_]: Temporal, A](
+      resource: Resource[F, A],
+      duration: Duration,
+  ): Resource[F, A] =
+    duration match {
+      case duration: FiniteDuration => resource.timeout(duration)
+      case _ => resource
+    }
 
   def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
