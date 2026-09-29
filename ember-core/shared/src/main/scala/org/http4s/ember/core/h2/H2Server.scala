@@ -22,6 +22,7 @@ import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
+import fs2.concurrent.SignallingRef
 import fs2.io.net._
 import org.http4s._
 import org.http4s.ember.core.EmberException
@@ -107,6 +108,7 @@ private[ember] object H2Server {
         defaultSettings.initialWindowSize,
         localSettings.initialWindowSize,
       )
+      pendingReadCredit <- SignallingRef[F, Int](0)
       queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
@@ -124,6 +126,7 @@ private[ember] object H2Server {
       localSettings,
       ref,
       stateRef,
+      pendingReadCredit,
       queue,
       created,
       closed,
@@ -196,17 +199,21 @@ private[ember] object H2Server {
 
         permit.use {
           case true =>
-            for {
+            val respond = for {
               req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
               resp <- httpApp(req)
               _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
               _ <- fulfillPushPromises(resp)
               _ <- stream.sendMessageBody(resp) // Initial Resp Body
               _ <- stream.sendTrailerHeaders(resp)
-              _ <- h2.mapRef.update(_ - streamIx) // Remove stream from map on normal termination
+              _ <- stream.finish(H2Error.NoError)
             } yield ()
 
-          case false => stream.rstStream(H2Error.RefusedStream)
+            respond.onError { case _ =>
+              stream.finish(H2Error.InternalError) >> h2.mapRef.update(_ - streamIx)
+            }
+
+          case false => stream.finish(H2Error.RefusedStream)
         }
       }
     }

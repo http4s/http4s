@@ -39,6 +39,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.headers.{Cookie => HCookie}
 import org.typelevel.ci._
+import org.typelevel.scalaccompat.annotation.unused
 import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
 
@@ -316,8 +317,6 @@ object CSRF {
   ): F[CSRFBuilder[F, G]] =
     buildSigningKey(keyBytes).map(k => apply(k, headerCheck))
 
-  // /
-
   class CSRFBuilder[F[_], G[_]] private[middleware] (
       headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
@@ -327,7 +326,7 @@ object CSRF {
       key: SecretKey[HmacAlgorithm],
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G],
-  )(implicit F: Sync[F], G: Applicative[G]) {
+  )(implicit F: Sync[F], @unused G: Applicative[G]) {
     private def copy(
         headerName: CIString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
