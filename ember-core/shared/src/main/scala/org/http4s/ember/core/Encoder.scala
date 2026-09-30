@@ -59,10 +59,10 @@ private[ember] object Encoder {
       }
     }
 
-      // Per RFC 9112 section 6.3, rule 1, framing headers are not needed for status codes 1xx, 204
-      // and 304, or HEAD request responses.
-      def skipFramingHeader =
-        req.exists(_.method == Method.HEAD) ||
+    // Per RFC 9112 section 6.3, rule 1, framing headers are not needed for status codes 1xx, 204
+    // and 304, or HEAD request responses.
+    def skipFramingHeader =
+      req.exists(_.method == Method.HEAD) ||
         resp.status.responseClass == Status.Informational ||
         resp.status == Status.NoContent ||
         resp.status == Status.NotModified

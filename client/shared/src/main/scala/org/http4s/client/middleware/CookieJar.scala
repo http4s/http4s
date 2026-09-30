@@ -109,7 +109,6 @@ object CookieJar {
   def impl[F[_]: Sync](psl: PublicSuffixMatcher)(c: Client[F]): F[Client[F]] =
     in[F, F](psl)(c)
 
-
   /** Like `impl` except it allows the creation of the middleware in a
     * different HKT than the client is in.
     */
