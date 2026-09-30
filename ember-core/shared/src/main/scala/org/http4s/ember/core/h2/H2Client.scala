@@ -22,6 +22,7 @@ import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2._
+import fs2.concurrent.SignallingRef
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s.Uri.Authority
@@ -190,6 +191,7 @@ private[ember] class H2Client[F[_]](
           defaultSettings.initialWindowSize,
           localSettings.initialWindowSize,
         )
+        pendingReadCredit <- SignallingRef[F, Int](0)
         queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
         hpack <- Hpack.create[F](
           localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
@@ -207,6 +209,7 @@ private[ember] class H2Client[F[_]](
         localSettings,
         ref,
         stateRef,
+        pendingReadCredit,
         queue,
         created,
         closed,
@@ -241,6 +244,7 @@ private[ember] class H2Client[F[_]](
             case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
             case Outcome.Succeeded(f) => f
           }.attempt
+          _ <- stream.finish(H2Error.Cancel)
           _ <- h2.mapRef.update(_ - i)
           out <- outE.liftTo[F]
         } yield out)
@@ -305,7 +309,10 @@ private[ember] class H2Client[F[_]](
             stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
           )
         )
-      )(stream => connection.mapRef.update(m => m - stream.id))
+      )(stream =>
+        connection.state.get.map(_.closed).ifM(F.unit, stream.finish(H2Error.Cancel).start.void) >>
+          connection.mapRef.update(m => m - stream.id)
+      )
       _ <- (stream.sendMessageBody(req) >> stream.sendTrailerHeaders(req)).background
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp

@@ -212,8 +212,19 @@ trait WSClient[F[_]] extends WSClientHighLevel[F] { outer =>
 }
 
 object WSClient {
+  val DefaultMaxMessageSize: Long = 64L * 1024L * 1024L
+  val DefaultMaxFragmentCount = 1024
+
+  final class MessageTooLong(val maxBytes: Long)
+      extends Exception(s"WebSocket message exceeds the maximum of $maxBytes bytes")
+
+  final class TooManyFragments(val maxFragments: Int)
+      extends Exception(s"WebSocket message exceeds the maximum of $maxFragments fragments")
+
   def apply[F[_]](
-      respondToPings: Boolean
+      respondToPings: Boolean,
+      maxMessageSize: Long,
+      maxFragmentCount: Int,
   )(f: WSRequest => Resource[F, WSConnection[F]])(implicit F: Concurrent[F]): WSClient[F] =
     new WSClient[F] {
       override def connect(request: WSRequest) = f(request)
@@ -226,6 +237,22 @@ object WSClient {
           override def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]): F[Unit] =
             conn.sendMany(wsfs)
           override def receive: F[Option[WSDataFrame]] = {
+            def checkLimits(byteCount: Long, fragmentCount: Int): F[Unit] =
+              for {
+                _ <-
+                  if (byteCount > maxMessageSize) {
+                    val e = new MessageTooLong(maxMessageSize)
+                    conn.send(WSFrame.Close(1009, e.getMessage())) *>
+                      Concurrent[F].raiseError(e)
+                  } else Concurrent[F].unit
+                _ <-
+                  if (fragmentCount > maxFragmentCount) {
+                    val e = new TooManyFragments(maxFragmentCount)
+                    conn.send(
+                      WSFrame.Close(1009, e.getMessage())
+                    ) *> Concurrent[F].raiseError(e)
+                  } else Concurrent[F].unit
+              } yield {}
             def receiveDataFrame: OptionT[F, WSDataFrame] =
               OptionT(conn.receive).flatMap { wsf =>
                 OptionT.liftF(wsf match {
@@ -238,27 +265,49 @@ object WSClient {
                   case _ => receiveDataFrame
                 })
               }
-            def defrag(text: Chain[String], binary: ByteVector): OptionT[F, WSDataFrame] =
+            def defrag(
+                text: Chain[String],
+                binary: ByteVector,
+                frameCount: Int,
+                stringBytes: Long,
+            ): OptionT[F, WSDataFrame] =
               receiveDataFrame.flatMap {
                 case WSFrame.Text(t, finalFrame) =>
                   val nextText = text :+ t
-                  if (finalFrame) {
-                    val sb = new StringBuilder(nextText.foldMap(_.length))
-                    nextText.iterator.foreach(sb ++= _)
-                    OptionT.pure[F](WSFrame.Text(sb.mkString))
-                  } else
-                    defrag(nextText, binary)
+                  val textByteCount = stringBytes + (t.length * 2)
+                  val newFrameCount = frameCount + 1
+                  OptionT
+                    .liftF(checkLimits(textByteCount, newFrameCount))
+                    .flatMap(_ =>
+                      if (finalFrame) {
+                        val sb = new StringBuilder(nextText.foldMap(_.length))
+                        nextText.iterator.foreach(sb ++= _)
+                        OptionT.pure[F](WSFrame.Text(sb.mkString))
+                      } else
+                        defrag(nextText, binary, newFrameCount, textByteCount)
+                    )
                 case WSFrame.Binary(b, finalFrame) =>
                   val nextBinary = binary ++ b
-                  if (finalFrame)
-                    OptionT.pure[F](WSFrame.Binary(nextBinary))
-                  else
-                    defrag(text, nextBinary)
+                  val binaryByteCount = nextBinary.length
+                  val newFrameCount = frameCount + 1
+                  OptionT
+                    .liftF(checkLimits(binaryByteCount, newFrameCount))
+                    .flatMap(_ =>
+                      if (finalFrame)
+                        OptionT.pure[F](WSFrame.Binary(nextBinary))
+                      else
+                        defrag(text, nextBinary, newFrameCount, stringBytes)
+                    )
               }
-            defrag(Chain.empty, ByteVector.empty).value
+            defrag(Chain.empty, ByteVector.empty, 0, 0L).value
           }
           override def subprotocol: Option[String] = conn.subprotocol
           override def closeFrame: DeferredSource[F, WSFrame.Close] = recvCloseFrame
         }
     }
+
+  def apply[F[_]](
+      respondToPings: Boolean
+  )(f: WSRequest => Resource[F, WSConnection[F]])(implicit F: Concurrent[F]): WSClient[F] =
+    apply(respondToPings, DefaultMaxMessageSize, DefaultMaxFragmentCount)(f)
 }

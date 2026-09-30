@@ -927,4 +927,26 @@ class MultipartParserSuite extends Http4sSuite {
         )
       }
   }
+
+  test("fail when the part count exceeds the default limit") {
+    val boundaryTest = Boundary("a")
+
+    def emptyParts(n: Int): Stream[IO, Byte] = {
+      val body =
+        "--a" + ("\r\n\r\n\r\n--a" * n) + "\r\n\r\n\r\n--a--"
+      Stream.emits(body.getBytes(StandardCharsets.US_ASCII).toList)
+    }
+
+    emptyParts(51)
+      .through(MultipartParser.parseToPartsStream[IO](boundaryTest))
+      .compile
+      .toVector
+      .attempt
+      .map(result =>
+        assert(
+          result.left.exists(_.isInstanceOf[MalformedMessageBodyFailure]),
+          s"expected MalformedMessageBodyFailure, got $result",
+        )
+      )
+  }
 }

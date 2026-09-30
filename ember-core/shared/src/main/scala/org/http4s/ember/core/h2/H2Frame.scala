@@ -173,6 +173,9 @@ private[ember] object H2Frame {
     override def toString: String =
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
 
+    /** Payload size as counted by flow control, padding and its length byte included. */
+    def flowControlSize: Int = data.size.toInt + pad.fold(0)(_.size.toInt + 1)
+
     def toRaw: RawFrame = Data.toRaw(this)
   }
   object Data {

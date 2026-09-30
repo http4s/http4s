@@ -41,6 +41,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.headers.{Cookie => HCookie}
 import org.typelevel.ci._
+import org.typelevel.scalaccompat.annotation.unused
 import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
 
@@ -94,7 +95,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def this(
       headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
-      clock: Clock,
+      @unused clock: Clock,
       onFailure: Response[G],
       createIfNotFound: Boolean,
       key: SecretKey[HmacAlgorithm],
@@ -343,12 +344,13 @@ object CSRF {
       key: SecretKey[HmacAlgorithm],
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G],
-  )(implicit F: Async[F], G: Applicative[G]) {
+  )(implicit F: Async[F], @unused G: Applicative[G]) {
 
+    @deprecated("Use the constructor without the `java.time.Clock`", "v1.0.0-M49")
     def this(
         headerName: CIString,
         cookieSettings: CSRF.CookieSettings,
-        clock: Clock,
+        @unused clock: Clock,
         onFailure: Response[G],
         createIfNotFound: Boolean,
         key: SecretKey[HmacAlgorithm],

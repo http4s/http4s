@@ -59,8 +59,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
 
       Files[IO].deleteIfExists(path) *>
         (server *> client).use { client =>
-          IO.sleep(4.seconds) *>
-            client.expect[String](request).assertEquals(msg) *>
+          client.expect[String](request).assertEquals(msg) *>
             client.expect[String](request).assertEquals(msg)
         }
     }
