@@ -143,21 +143,24 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxWebSocketFrameSize: Int,
   ): Stream[F, Nothing] = {
     val server =
-      // Our interface has an issue
       Stream
-        .eval(
-          ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
-            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), port"0"))
+        .resource(
+          Network[F].bind(
+            unixSocketAddress,
+            List(
+              SocketOption.unixSocketDeleteIfExists(deleteIfExists),
+              SocketOption.unixSocketDeleteOnClose(deleteOnClose),
+            ) ++ additionalSocketOptions,
           )
-        ) // Sketchy
-        .drain ++
-        Network[F].bindAndAccept(
-          unixSocketAddress,
-          List(
-            SocketOption.unixSocketDeleteIfExists(deleteIfExists),
-            SocketOption.unixSocketDeleteOnClose(deleteOnClose),
-          ) ++ additionalSocketOptions,
         )
+        .attempt
+        .evalTap(e =>
+          ready.complete(
+            e.as(SocketAddress(Ipv4Address.Wildcard, port"0"))
+          )
+        )
+        .rethrow
+        .flatMap(_.accept)
 
     serverInternal(
       server,
@@ -424,6 +427,14 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     } yield (req, resp, drain)
   }
 
+  // Encoder
+  //      .respToBytes[F](request, resp)
+  //      .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+  //      .compile
+  //      .drain
+  //      .onError { case err =>
+  //        onWriteFailure(request, resp, err)
+
   private[internal] def send[F[_]: Temporal](socket: Socket[F])(
       request: Option[Request[F]],
       resp: Response[F],
@@ -433,7 +444,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     val sendResponse =
       resp.entity match {
         case Entity.Strict(bytes) =>
-          val (initSection, chunked) = Encoder.initSection(resp)
+          val (initSection, chunked) = Encoder.initSection(request, resp)
           if (chunked) {
             resp.trailerHeaders.flatMap { trailers =>
               val encodedChunk = ChunkedEncoding.encodeChunk(Chunk.byteVector(bytes), trailers)
@@ -446,7 +457,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             )
           }
         case Entity.Empty =>
-          val (initSection, _) = Encoder.initSection(resp)
+          val (initSection, _) = Encoder.initSection(request, resp)
           timeoutMaybe(socket.write(Chunk.array(initSection)), idleTimeout)
         case Entity.Streamed(_, _) =>
           Encoder

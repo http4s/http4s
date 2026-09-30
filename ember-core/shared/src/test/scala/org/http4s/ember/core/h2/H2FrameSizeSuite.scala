@@ -24,6 +24,7 @@ import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
+import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
 import org.http4s.Http4sSuite
@@ -90,6 +91,7 @@ class H2FrameSizeSuite extends Http4sSuite {
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize,
         localSettings.initialWindowSize,
       )
+      pendingReadCredit <- SignallingRef[IO, Int](0)
       outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
@@ -106,6 +108,7 @@ class H2FrameSizeSuite extends Http4sSuite {
         localSettings,
         mapRef,
         stateRef,
+        pendingReadCredit,
         outgoing,
         created,
         closed,

@@ -29,7 +29,7 @@ package org.http4s
 import cats.Eq
 import cats.Order
 import cats.Show
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import cats.parse.Parser
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.util.StringWriter
