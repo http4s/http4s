@@ -104,10 +104,10 @@ private[client] object ClientHelpers {
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
-        val s = timeoutMaybeResource(
-          Network[F].connect(address, options = additionalSocketOptions),
-          connectTimeout,
-        )
+        val s =
+          Network[F]
+            .connect(address, options = additionalSocketOptions)
+            .timeout(connectTimeout)
         elevateSocket(
           requestKey,
           s,
@@ -117,15 +117,6 @@ private[client] object ClientHelpers {
           Some(address),
         )
       }
-
-  private def timeoutMaybeResource[F[_]: Temporal, A](
-      resource: Resource[F, A],
-      duration: Duration,
-  ): Resource[F, A] =
-    duration match {
-      case duration: FiniteDuration => resource.timeout(duration)
-      case _ => resource
-    }
 
   def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
