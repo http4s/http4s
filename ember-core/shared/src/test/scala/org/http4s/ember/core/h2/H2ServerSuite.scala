@@ -34,14 +34,11 @@ import scodec.bits.ByteVector
 import scala.concurrent.duration._
 
 class H2ServerSuite extends Http4sSuite {
-
-  // Reads come from `input`, one frame per read. Writes are recorded.
   private def stubSocket(input: Queue[IO, Chunk[Byte]], recorded: Ref[IO, ByteVector]): Socket[IO] =
     new Socket[IO] {
       def read(maxBytes: Int): IO[Option[Chunk[Byte]]] = input.take.map(Some(_))
       def write(bytes: Chunk[Byte]): IO[Unit] = recorded.update(_ ++ bytes.toByteVector)
       def peerAddress: GenSocketAddress = SocketAddress(ip"127.0.0.1", port"0")
-      // Implement only as necessary...
       def endOfInput: IO[Unit] = ???
       def endOfOutput: IO[Unit] = ???
       def isOpen: IO[Boolean] = ???
@@ -67,6 +64,7 @@ class H2ServerSuite extends Http4sSuite {
           }
         case None => acc
       }
+
     go(bv, Vector.empty)
   }
 
@@ -85,7 +83,6 @@ class H2ServerSuite extends Http4sSuite {
       send(H2Frame.Data(id, ByteVector.fill(size.toLong)(0), None, endStream = false))
   }
 
-  // Runs a server connection for `app` while `client` talks to it, then returns what it wrote.
   private def serve(app: HttpApp[IO])(client: Client => IO[Unit]): IO[Vector[H2Frame]] =
     for {
       input <- Queue.unbounded[IO, Chunk[Byte]]
@@ -125,7 +122,6 @@ class H2ServerSuite extends Http4sSuite {
         serve(ignoreBody) { client =>
           client.sendHeaders(1, Request(Method.POST, uri"http://localhost/"), endStream = false) >>
             IO.sleep(1.second) >>
-            // The rest of the upload, already on its way when the response went out.
             client.sendData(1, 16384) >>
             client.sendData(1, 16384) >>
             IO.sleep(1.second)
@@ -156,7 +152,6 @@ class H2ServerSuite extends Http4sSuite {
           frames <- serve(app) { client =>
             client
               .sendHeaders(1, Request(Method.POST, uri"http://localhost/"), endStream = false) >>
-              // More frames than the stream buffers, so the read loop waits for room.
               client.sendData(1, 1).replicateA_(130) >>
               IO.sleep(1.second) >>
               respond.complete(()) >>
