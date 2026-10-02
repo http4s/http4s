@@ -30,10 +30,10 @@ import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.CloseStatusCode
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.enums.Opcode
-import org.java_websocket.framing.CloseFrame
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import org.java_websocket.handshake.ServerHandshake
@@ -210,7 +210,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  fixture().test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
+  fixture().test("initiate close sequence with code=1000 (Normal) on stream termination") {
     case (server, dispatcher) =>
       createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
@@ -221,12 +221,12 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           _ <- client.messages.take
           _ <- client.remoteClosed.get
           code <- client.closeCode.get
-        } yield assertEquals(code, CloseFrame.NORMAL)
+        } yield assertEquals(code, CloseStatusCode.Normal.code)
       }
   }
 
   fixture().test(
-    "send a Close frame with code=1002 (PROTOCOL_ERROR) on receiving fragmented control frames"
+    "send a Close frame with code=1002 (ProtocolError) on receiving fragmented control frames"
   ) { case (server, dispatcher) =>
     createClient(
       URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
@@ -238,12 +238,12 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.ping(data, fin = false)
         _ <- client.remoteClosed.get
         code <- client.closeCode.get
-      } yield assertEquals(code, CloseFrame.PROTOCOL_ERROR)
+      } yield assertEquals(code, CloseStatusCode.ProtocolError.code)
     }
   }
 
   fixture(maxWebSocketMessageSize = 1024).test(
-    "send a Close frame with code=1009 (TOOBIG) on exceeding max frame size"
+    "send a Close frame with code=1009 (TooBig) on exceeding max frame size"
   ) { case (server, dispatcher) =>
     createClient(
       URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
@@ -255,12 +255,12 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.send(bigMsg)
         _ <- client.remoteClosed.get
         code <- client.closeCode.get
-      } yield assertEquals(code, CloseFrame.TOOBIG)
+      } yield assertEquals(code, CloseStatusCode.TooBig.code)
     }
   }
 
   fixture(maxWebSocketMessageSize = 1024).test(
-    "send a Close frame with code=1009 (TOOBIG) on exceeding max frame size for fragmented frames"
+    "send a Close frame with code=1009 (TooBig) on exceeding max frame size for fragmented frames"
   ) { case (server, dispatcher) =>
     createClient(
       URI.create(
@@ -275,11 +275,11 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.sendFragmentedFrame(msg, fin = true)
         _ <- client.remoteClosed.get
         code <- client.closeCode.get
-      } yield assertEquals(code, CloseFrame.TOOBIG)
+      } yield assertEquals(code, CloseStatusCode.TooBig.code)
     }
   }
 
-  fixture().test("send a Close frame with code=1011 (UNEXPECTED_CONDITION) on app errors") {
+  fixture().test("send a Close frame with code=1011 (UnexpectedCondition) on app errors") {
     case (server, dispatcher) =>
       createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-app-error"),
@@ -289,7 +289,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           _ <- client.connect
           _ <- client.remoteClosed.get
           code <- client.closeCode.get
-        } yield assertEquals(code, CloseFrame.UNEXPECTED_CONDITION)
+        } yield assertEquals(code, CloseStatusCode.UnexpectedCondition.code)
       }
   }
 
@@ -328,13 +328,13 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         code <- client.closeCode.get
       } yield {
         assertEquals(serverResponse, List.fill(512)("42"))
-        assertEquals(code, CloseFrame.NORMAL)
+        assertEquals(code, CloseStatusCode.Normal.code)
       }
     }
   }
 
   fixture().test(
-    "combined pipe: server initiates close sequence with code=1000 (NORMAL) on stream completion"
+    "combined pipe: server initiates close sequence with code=1000 (Normal) on stream completion"
   ) { case (server, dispatcher) =>
     createClient(
       URI.create(
@@ -349,7 +349,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         code <- client.closeCode.get
       } yield {
         assertEquals(msg, "foo")
-        assertEquals(code, CloseFrame.NORMAL)
+        assertEquals(code, CloseStatusCode.Normal.code)
       }
     }
   }
