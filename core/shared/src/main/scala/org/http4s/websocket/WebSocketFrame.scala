@@ -234,14 +234,29 @@ object WebSocketFrame {
     if (code < 1000 || code > 4999) Left(new InvalidCloseCodeException(code))
     else Right(ByteVector.view(toUnsignedShort(code)))
 
+  private def encodeCode(code: Int): ByteVector =
+    ByteVector.view(toUnsignedShort(code))
+
   object Close {
     def apply(code: Int): Either[InvalidCloseDataException, Close] =
       closeCodeToBytes(code).map(Close(_))
 
+    def apply(statusCode: CloseStatusCode): Close =
+      new Close(encodeCode(statusCode.code))
+
     def apply(code: Int, reason: String): Either[InvalidCloseDataException, Close] =
       for {
-        c <- closeCodeToBytes(code): Either[InvalidCloseDataException, ByteVector]
+        c <- closeCodeToBytes(code)
         r <- reasonToBytes(reason)
       } yield Close(c ++ r)
+
+    def apply(
+        statusCode: CloseStatusCode,
+        reason: String,
+    ): Either[InvalidCloseDataException, Close] =
+      for {
+        r <- reasonToBytes(reason)
+        c = encodeCode(statusCode.code)
+      } yield new Close(c ++ r)
   }
 }
