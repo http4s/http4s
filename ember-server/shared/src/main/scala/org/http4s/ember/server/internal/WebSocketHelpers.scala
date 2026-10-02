@@ -68,7 +68,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       req: Request[F],
       ctx: WebSocketContext[F],
       buffer: Array[Byte],
-      receiveBufferSize: Int,
+      read: Read[F],
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       errorHandler: Throwable => F[Response[F]],
@@ -94,7 +94,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       _ <- ServerHelpers.send(socket)(Some(req), response, idleTimeout, onWriteFailure)
       _ <-
         if (response.status == Status.SwitchingProtocols)
-          runConnection(socket, ctx, buffer, receiveBufferSize, idleTimeout)
+          runConnection(socket, ctx, buffer, read, idleTimeout)
         else F.unit
     } yield ()
 
@@ -114,12 +114,10 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       socket: Socket[F],
       ctx: WebSocketContext[F],
       buffer: Array[Byte],
-      receiveBufferSize: Int,
+      read: Read[F],
       idleTimeout: Duration,
   )(implicit F: Temporal[F]): F[Unit] =
     Mutex[F].flatMap { mut =>
-      val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
-
       // Writes without locking, so concurrent calls may result in interleaving of frame chunks
       // and race on `close`. Use `mut` to guard the state.
       def writeFrameUnsafe(frame: WebSocketFrame): F[Unit] =
