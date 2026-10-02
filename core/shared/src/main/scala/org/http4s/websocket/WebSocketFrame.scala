@@ -117,6 +117,103 @@ object WebSocketFrame {
       else s"Close"
   }
 
+  /** Encodes the predefined and reserved status codes for a WebSocket Close frame.
+    * These codes indicate the reason for closing an established connection.
+    *
+    * @see [[https://datatracker.ietf.org/doc/html/rfc6455#section-7.4.1]]
+    * @see [[https://www.iana.org/assignments/websocket#close-code-number]]
+    */
+  sealed abstract class CloseStatusCode(val code: Int) extends Product with Serializable
+
+  object CloseStatusCode {
+
+    /** Indicates a normal closure, meaning that the purpose for
+      * which the connection was established has been fulfilled.
+      */
+    case object Normal extends CloseStatusCode(1000)
+
+    /** Indicates that an endpoint is "going away", such as a server going down, or a browser
+      * having navigated away from a page.
+      */
+    case object GoingAway extends CloseStatusCode(1001)
+
+    /** Indicates that an endpoint is terminating the connection due to a protocol error.
+      */
+    case object ProtocolError extends CloseStatusCode(1002)
+
+    /** Indicates that an endpoint is terminating the connection because it has received
+      * a type of data it cannot accept.
+      */
+    case object UnsupportedType extends CloseStatusCode(1003)
+
+    /* Reserved. The specific meaning might be defined in the future. */
+    case object Reserved extends CloseStatusCode(1004)
+
+    /** Reserved value and MUST NOT be set as a status code in a Close control frame by an endpoint.
+      * It is designated for use in applications expecting a status code to indicate that no status
+      * code was actually present.
+      */
+    case object NoCode extends CloseStatusCode(1005)
+
+    /** Reserved value and MUST NOT be set as a status code in a Close control frame by an endpoint.
+      * It is designated for use in applications expecting a status code to indicate that the connection
+      * was closed abnormally
+      */
+    case object AbnormalClose extends CloseStatusCode(1006)
+
+    /** Indicates that an endpoint is terminating the connection because it has received data
+      * within a message that was not consistent with the type of the message.
+      */
+    case object NoUtf8 extends CloseStatusCode(1007)
+
+    /** Indicates that an endpoint is terminating the connection because it has received a message
+      * that violates its policy. This is a generic status code that can be returned when there is no
+      * other more suitable status code (e.g. 1003 or 1009), or if there is a need to hide specific
+      * details about the policy.
+      */
+    case object PolicyValidation extends CloseStatusCode(1008)
+
+    /** Indicates that an endpoint is terminating the connection because it has received a message
+      * which is too big for it to process.
+      */
+    case object TooBig extends CloseStatusCode(1009)
+
+    /** Indicates that an endpoint (client) is terminating the connection because it has expected
+      * the server to negotiate one or more extensions, but the server didn't return them in the
+      * response message of the WebSocket handshake. The list of extensions that are needed SHOULD
+      * appear in the `reason` part of the Close frame. Note that this status code is not used by the
+      * server, because it can fail the WebSocket handshake instead.
+      */
+    case object Extension extends CloseStatusCode(1010)
+
+    /** Indicates that a server is terminating the connection because it encountered an unexpected
+      * condition that prevented it from fulfilling the request.
+      */
+    case object UnexpectedCondition extends CloseStatusCode(1011)
+
+    /** Indicates that the service is restarted. A client may reconnect, and if it chooses to do,
+      * should reconnect using a randomized delay of 5-30 seconds.
+      */
+    case object ServiceRestart extends CloseStatusCode(1012)
+
+    /** Indicates that the service is experiencing overload. A client should only connect to a
+      * different IP (when there are multiple for the target) or reconnect to the same IP upon user
+      * action.
+      */
+    case object TryAgainLater extends CloseStatusCode(1013)
+
+    /** Indicates that the server was acting as a gateway or proxy and received an invalid
+      * response from the upstream server. This is similar to 502 HTTP Status Code.
+      */
+    case object BadGateway extends CloseStatusCode(1014)
+
+    /** Reserved value and MUST NOT be set as a status code in a Close control frame by an
+      * endpoint. It is designated for use in applications expecting a status code to indicate that the
+      * connection was closed due to a failure to perform a TLS handshake.
+      */
+    case object TlsError extends CloseStatusCode(1015)
+  }
+
   sealed abstract class InvalidCloseDataException extends RuntimeException
   // scalafix:off Http4sGeneralLinters.leakingSealedHierarchy; bincompat until 1.0
   class InvalidCloseCodeException(val i: Int) extends InvalidCloseDataException
