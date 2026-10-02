@@ -44,6 +44,7 @@ import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.CloseStatusCode
 import org.http4s.websocket.WebSocketFrameDefragmenter
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
@@ -153,8 +154,8 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
             }
         }
 
-        def sendClosingFrame(code: Int = 1000): F[Unit] =
-          F.fromEither(WebSocketFrame.Close(code)).flatMap(writeClosingFrame)
+        def sendClosingFrame(statusCode: CloseStatusCode = CloseStatusCode.Normal): F[Unit] =
+          writeClosingFrame(WebSocketFrame.Close(statusCode))
 
         val (stream, onClose) = ctx.webSocket match {
           case WebSocketCombinedPipe(receiveSend, onClose) =>
@@ -182,16 +183,16 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
           val closeCode = err match {
             case transcode: TranscodeError =>
               transcode.reason match {
-                case Some(TranscodeErrorReason.MaxFrameSizeExceeded) => Some(1009)
-                case _ => Some(1002)
+                case Some(TranscodeErrorReason.MaxFrameSizeExceeded) => Some(CloseStatusCode.TooBig)
+                case _ => Some(CloseStatusCode.ProtocolError)
               }
             case _: WebSocketFrameDefragmenter.MessageTooLong |
                 _: WebSocketFrameDefragmenter.TooManyFragments =>
-              Some(1009)
-            case _: ProtocolException => Some(1002)
+              Some(CloseStatusCode.TooBig)
+            case _: ProtocolException => Some(CloseStatusCode.ProtocolError)
             case EndOfStreamError() | _: IOException | _: TimeoutException =>
               None // connection is likely gone
-            case _ => Some(1011)
+            case _ => Some(CloseStatusCode.UnexpectedCondition)
           }
 
           closeCode.traverse_(sendClosingFrame).attempt.void
@@ -234,7 +235,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               case Open =>
                 // Peer closed first, so we answer and then handshake is complete.
                 for {
-                  frame <- F.fromEither(WebSocketFrame.Close(1000))
+                  frame <- F.pure(WebSocketFrame.Close(CloseStatusCode.Normal))
                   _ <- writeFrame(frame)
                   _ <- closeState.set(BothClosed)
                 } yield ()

@@ -29,6 +29,7 @@ import org.http4s.Headers
 import org.http4s.Method
 import org.http4s.Uri
 import org.http4s.internal.reduceComparisons
+import org.http4s.websocket.WebSocketFrame.CloseStatusCode
 import scodec.bits.ByteVector
 
 /** A websocket request.
@@ -242,14 +243,14 @@ object WSClient {
                 _ <-
                   if (byteCount > maxMessageSize) {
                     val e = new MessageTooLong(maxMessageSize)
-                    conn.send(WSFrame.Close(1009, e.getMessage())) *>
+                    conn.send(WSFrame.Close(CloseStatusCode.TooBig.code, e.getMessage())) *>
                       Concurrent[F].raiseError(e)
                   } else Concurrent[F].unit
                 _ <-
                   if (fragmentCount > maxFragmentCount) {
                     val e = new TooManyFragments(maxFragmentCount)
                     conn.send(
-                      WSFrame.Close(1009, e.getMessage())
+                      WSFrame.Close(CloseStatusCode.TooBig.code, e.getMessage())
                     ) *> Concurrent[F].raiseError(e)
                   } else Concurrent[F].unit
               } yield {}
