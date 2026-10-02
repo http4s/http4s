@@ -62,6 +62,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     ],
     private val maxDrainBytes: Long,
     private val drainTimeout: Duration,
+    val connectTimeout: Duration,
 ) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
@@ -85,6 +86,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       ] = self.pushPromiseSupport,
       maxDrainBytes: Long = self.maxDrainBytes,
       drainTimeout: Duration = self.drainTimeout,
+      connectTimeout: Duration = self.connectTimeout,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -105,6 +107,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       pushPromiseSupport = pushPromiseSupport,
       maxDrainBytes = maxDrainBytes,
       drainTimeout = drainTimeout,
+      connectTimeout = connectTimeout,
     )
 
   /** Sets a custom `TLSContext`.
@@ -138,6 +141,14 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   /** Sets the idle timeout on connections.  The timeout is reset with each read or write. */
   def withIdleConnectionTime(idleConnectionTime: Duration): EmberClientBuilder[F] =
     copy(idleConnectionTime = idleConnectionTime)
+
+  /** Sets the timeout for establishing a new connection, i.e. the socket connect
+    * (and, for https, the LTS handshake). Unlike, `withIdleConnectionTime`, which
+    * only applies once a connection exists, this bounds connection setup.
+    * By default, this is disabled with `Duration.Inf`
+    */
+  def withConnectTimeout(connectTimeout: Duration): EmberClientBuilder[F] =
+    copy(connectTimeout = connectTimeout)
 
   /** Sets the `Logger`. */
   def withLogger(logger: Logger[F]): EmberClientBuilder[F] = copy(logger = logger)
@@ -280,6 +291,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   checkEndpointIdentification,
                   serverNameIndication,
                   additionalSocketOptions,
+                  connectTimeout,
                 ),
               chunkSize,
             ) <* Resource
@@ -432,6 +444,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       pushPromiseSupport = None,
       maxDrainBytes = 64L * 1024L,
       drainTimeout = 5.seconds,
+      connectTimeout = Duration.Inf,
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
