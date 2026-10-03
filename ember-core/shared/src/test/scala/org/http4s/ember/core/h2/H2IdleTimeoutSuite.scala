@@ -86,7 +86,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[IO, Int](0)
-      outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
+      outgoing <- Queue.unbounded[IO, H2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize))

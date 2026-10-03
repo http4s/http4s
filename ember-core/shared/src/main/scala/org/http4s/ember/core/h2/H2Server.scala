@@ -109,7 +109,7 @@ private[ember] object H2Server {
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[F, Int](0)
-      queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
+      queue <- cats.effect.std.Queue.bounded[F, H2Frame](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
       )
@@ -241,7 +241,7 @@ private[ember] object H2Server {
     for {
       h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
+      _ <- Resource.eval(h2.outgoing.offer(settingsFrame))
       _ <- h2.readLoop.background
       maxStreams <- Resource.eval(
         Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)

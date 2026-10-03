@@ -96,7 +96,7 @@ class H2ConnectionSuite extends Http4sSuite {
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[IO, Int](0)
-      outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
+      outgoing <- Queue.unbounded[IO, H2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](
@@ -139,8 +139,8 @@ class H2ConnectionSuite extends Http4sSuite {
     go(bv, Vector.empty)
   }
 
-  private def dataFrame(size: Int): Chunk[H2Frame] =
-    Chunk.singleton(H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, endStream = false))
+  private def dataFrame(size: Int): H2Frame =
+    H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, endStream = false)
 
   private def increaseWindowSize(h2: H2Connection[IO], size: Int): IO[Unit] =
     Deferred[IO, Either[Throwable, Unit]].flatMap { next =>
@@ -151,7 +151,7 @@ class H2ConnectionSuite extends Http4sSuite {
 
   private def drainOutgoing(h2: H2Connection[IO]): IO[Vector[H2Frame]] =
     h2.outgoing.tryTake.flatMap {
-      case Some(c) => drainOutgoing(h2).map(c.toVector ++ _)
+      case Some(c) => drainOutgoing(h2).map(c +: _)
       case None => IO.pure(Vector.empty)
     }
 
@@ -431,7 +431,7 @@ class H2ConnectionSuite extends Http4sSuite {
         )
         _ <- h2.state.update(_.copy(writeWindow = 0))
         loop <- h2.writeLoop.compile.drain.start
-        _ <- h2.outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+        _ <- h2.outgoing.offer(H2Frame.Ping.ack)
         _ <- IO.sleep(idle * 10)
         _ <- loop.cancel
         st <- h2.state.get

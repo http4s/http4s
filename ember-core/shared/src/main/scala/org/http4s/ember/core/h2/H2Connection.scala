@@ -45,7 +45,7 @@ private[h2] class H2Connection[F[_]](
     val mapRef: Ref[F, Map[Int, H2Stream[F]]],
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
     val pendingReadCredit: SignallingRef[F, Int],
-    val outgoing: cats.effect.std.Queue[F, Chunk[H2Frame]],
+    val outgoing: cats.effect.std.Queue[F, H2Frame],
     // val outgoingData: cats.effect.std.Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
 
     val createdStreams: cats.effect.std.Queue[F, Int],
@@ -235,7 +235,7 @@ private[h2] class H2Connection[F[_]](
       // Skip updates below the threshold so the sender does not notify itself forever.
       (pendingReadCredit.update(_ - pending) >>
         state.update(s => s.copy(readWindow = s.readWindow + pending)) >>
-        outgoing.offer(Chunk.singleton(H2Frame.WindowUpdate(0, pending))))
+        outgoing.offer(H2Frame.WindowUpdate(0, pending)))
         .whenA(pending >= localSettings.initialWindowSize.windowSize / 2) >>
         mapRef.get.flatMap(_.values.toList.traverse_(_.sendReadWindowUpdate))
     }
@@ -243,7 +243,7 @@ private[h2] class H2Connection[F[_]](
   def goAway(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
       val g = error.toGoAway(i)
-      outgoing.offer(Chunk.singleton(g))
+      outgoing.offer(g)
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
@@ -344,7 +344,8 @@ private[h2] class H2Connection[F[_]](
 
   def writeLoop: Stream[F, Nothing] =
     Stream
-      .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
+      .fromQueueUnterminated[F, H2Frame](outgoing, Int.MaxValue)
+      .chunks
       .foreach(writeChunk)
       .concurrently(sendReadWindowUpdates)
       .handleErrorWith(ex =>
@@ -644,7 +645,7 @@ private[h2] class H2Connection[F[_]](
               stream.modifyWriteWindow(difference)
             }
           }
-          _ <- outgoing.offer(Chunk.singleton(H2Frame.Settings.Ack))
+          _ <- outgoing.offer(H2Frame.Settings.Ack)
           _ <- settingsAck.complete(Either.right(settings)).void
 
         } yield ()
@@ -655,11 +656,11 @@ private[h2] class H2Connection[F[_]](
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
         mapRef.get.flatMap { m =>
           m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-        } >> outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+        } >> outgoing.offer(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
       case (H2Frame.Ping(0, false, bv), _) =>
-        outgoing.offer(Chunk.singleton(H2Frame.Ping.ack.copy(data = bv)))
+        outgoing.offer(H2Frame.Ping.ack.copy(data = bv))
       case (H2Frame.Ping(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Ping(_, _, _), _) =>
         goAway(H2Error.ProtocolError)
