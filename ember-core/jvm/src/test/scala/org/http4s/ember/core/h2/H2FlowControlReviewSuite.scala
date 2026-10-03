@@ -352,8 +352,8 @@ class H2FlowControlReviewSuite extends Http4sSuite {
           )
           stream <- receiveBody(h2, 1, window)
           // The handler is streaming a response while the upload remains open.
-          // Each write finishes before the write timeout, but together they
-          // delay the receive-window updates queued behind them.
+          // Each write finishes before the write timeout, but the slow socket
+          // delays when the receive-window updates reach the peer.
           _ <- outgoing
             .offer(Chunk.singleton(H2Frame.Data(1, ByteVector.fill(4096)(0), None, false)))
             .replicateA_(4)
@@ -363,16 +363,14 @@ class H2FlowControlReviewSuite extends Http4sSuite {
                 _ <- IO.sleep(100.millis)
                 _ <- stream.readBody.take(window.toLong).compile.drain
                 _ <- IO.sleep(2100.millis)
-                bytes <- written.get
+                sentAt <- creditSent.get
+                now <- IO.monotonic
                 state <- h2.state.get
-                creditDelivered = writeDelay == Duration.Zero
-                _ = assertEquals(granted(bytes) > 0, creditDelivered)
                 _ = assertEquals(
                   state.closed,
-                  creditDelivered,
+                  now - sentAt >= 1.second,
                   "The peer cannot resume its upload until WINDOW_UPDATE is written",
                 )
-                sentAt <- creditSent.get
                 _ <- reader.flatMap(_.embedNever).timeout(10.seconds)
                 expiredAt <- IO.monotonic
               } yield assert(

@@ -500,7 +500,7 @@ class H2StreamSuite extends Http4sSuite {
     }
   }
 
-  test("END_STREAM releases the stream credit sender and preserves the body") {
+  test("stream grants don't wait for room in the outgoing queue") {
     TestControl.executeEmbed {
       for {
         sq <- streamAndQueue(
@@ -512,16 +512,19 @@ class H2StreamSuite extends Http4sSuite {
         _ <- stream
           .receiveData(H2Frame.Data(1, ByteVector.fill(16384)(0), None, false))
           .replicateA_(2)
-        count <- stream.readBody.compile.count.background.use { reader =>
-          IO.sleep(1.second) >>
-            stream.sendReadWindowUpdate.background.use { sender =>
-              IO.sleep(1.second) >>
-                stream.receiveData(emptyData(endStream = true)) >>
-                sender.flatMap(_.embedNever).timeout(2.seconds) >>
-                reader.flatMap(_.embedNever).timeout(2.seconds)
-            }
+        result <- stream.readBody.compile.count.background.use { reader =>
+          for {
+            _ <- IO.sleep(1.second)
+            grant <- stream.readWindowUpdate.timeout(2.seconds)
+            _ <- stream.receiveData(emptyData(endStream = true))
+            count <- reader.flatMap(_.embedNever).timeout(2.seconds)
+          } yield (grant, count)
         }
-      } yield assertEquals(count, 32768L)
+        (grant, count) = result
+      } yield {
+        assertEquals(grant, Some(H2Frame.WindowUpdate(1, 32768)))
+        assertEquals(count, 32768L)
+      }
     }
   }
 
@@ -579,14 +582,15 @@ class H2StreamSuite extends Http4sSuite {
       sq <- streamAndQueue(defaultSettings, creditConnection = n => credited.update(_ + n))
       (stream, outgoing) = sq
       _ <- stream.receiveData(H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, false))
-      onReceipt <- outgoing.tryTakeN(None)
+      onReceipt <- stream.readWindowUpdate
       _ <- stream.readBody.take(size.toLong).compile.drain
-      _ <- stream.sendReadWindowUpdate
-      onConsume <- outgoing.tryTakeN(None).map(_.flatMap(_.toList))
+      onConsume <- stream.readWindowUpdate
+      queued <- outgoing.tryTakeN(None)
       toConnection <- credited.get
     } yield {
-      assertEquals(onReceipt, Nil)
-      assertEquals(onConsume, List(H2Frame.WindowUpdate(1, size)))
+      assertEquals(onReceipt, None)
+      assertEquals(onConsume, Some(H2Frame.WindowUpdate(1, size)))
+      assertEquals(queued, Nil)
       assertEquals(toConnection, size)
     }
   }
@@ -651,8 +655,8 @@ class H2StreamSuite extends Http4sSuite {
   test("padding-only DATA must replenish the stream window") {
     for {
       sq <- streamAndQueue(defaultSettings)
-      (stream, outgoing) = sq
-      _ <- stream.readBody.compile.drain.background.use { _ =>
+      (stream, _) = sq
+      grant <- stream.readBody.compile.drain.background.use { _ =>
         stream
           .receiveData(
             H2Frame.Data(1, ByteVector.empty, Some(ByteVector.fill(127)(0)), false)
@@ -660,14 +664,13 @@ class H2StreamSuite extends Http4sSuite {
           .replicateA_(511) >>
           stream.receiveData(
             H2Frame.Data(1, ByteVector.empty, Some(ByteVector.fill(126)(0)), false)
-          ) >> stream.sendReadWindowUpdate
+          ) >> stream.readWindowUpdate
       }
-      frames <- outgoing.tryTakeN(None).map(_.flatMap(_.toList))
       state <- stream.state.get
     } yield {
       assertEquals(state.unreadBytes, 0)
       assert(
-        frames.exists { case H2Frame.WindowUpdate(1, n) => n > 0; case _ => false },
+        grant.exists { case H2Frame.WindowUpdate(1, n) => n > 0; case _ => false },
         s"Padding exhausted the stream window (${state.readWindow}) without a WINDOW_UPDATE",
       )
     }

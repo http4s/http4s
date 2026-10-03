@@ -226,18 +226,32 @@ private[h2] class H2Connection[F[_]](
     pendingReadCredit.update(_ + n).whenA(n > 0)
 
   /** One sender per connection coalesces connection and stream grants.
-    * It is canceled with the write loop, so an offer cannot hold up connection shutdown.
+    * Grants skip the outgoing queue, where DATA can wait on the peer's credit while
+    * the peer waits on ours. The write loop writes them as soon as it is free, even
+    * while DATA waits, so the sender never waits on the writer.
     */
-  private def sendReadWindowUpdates: Stream[F, Nothing] =
+  private def sendReadWindowUpdates(grants: SignallingRef[F, Chunk[H2Frame]]): Stream[F, Nothing] =
     // Equal observations can represent new credit after a grant; do not use changes.
     pendingReadCredit.discrete.filter(_ > 0).foreach { pending =>
       // Only this sender subtracts credit; preserve additions since this notification.
       // Skip updates below the threshold so the sender does not notify itself forever.
-      (pendingReadCredit.update(_ - pending) >>
-        state.update(s => s.copy(readWindow = s.readWindow + pending)) >>
-        outgoing.offer(Chunk.singleton(H2Frame.WindowUpdate(0, pending))))
-        .whenA(pending >= localSettings.initialWindowSize.windowSize / 2) >>
-        mapRef.get.flatMap(_.values.toList.traverse_(_.sendReadWindowUpdate))
+      val connectionGrant =
+        if (pending >= localSettings.initialWindowSize.windowSize / 2)
+          pendingReadCredit.update(_ - pending) >>
+            state
+              .update(s => s.copy(readWindow = s.readWindow + pending))
+              .as(List(H2Frame.WindowUpdate(0, pending)))
+        else F.pure(List.empty[H2Frame.WindowUpdate])
+
+      for {
+        connection <- connectionGrant
+        streams <- mapRef.get.flatMap(_.values.toList.traverse(_.readWindowUpdate))
+        due = Chunk.from[H2Frame](connection ++ streams.flatten)
+        wasEmpty <- grants.modify(g => (g ++ due, g.isEmpty))
+        // An idle writer waits on the queue. A full queue means it is busy, and it
+        // writes grants after every chunk anyway.
+        _ <- outgoing.tryOffer(Chunk.empty).whenA(due.nonEmpty && wasEmpty)
+      } yield ()
     }
 
   def goAway(error: H2Error): F[Unit] =
@@ -247,7 +261,9 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
-  private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
+  private[this] def writeChunk(
+      grants: SignallingRef[F, Chunk[H2Frame]]
+  )(chunk: Chunk[H2Frame]): F[Unit] = {
     def withStallTimeout[A](fa: F[A]): F[A] =
       Temporal[F].monotonic
         .flatMap { now =>
@@ -297,6 +313,21 @@ private[h2] class H2Connection[F[_]](
         case _ => F.unit
       }
 
+    def writeGrants: F[Unit] =
+      grants.getAndSet(Chunk.empty).flatMap { due =>
+        val bv = due.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
+        (socket.write(Chunk.byteVector(bv)) >>
+          recordReadCredit(due) >>
+          due.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))).whenA(due.nonEmpty)
+      }
+
+    // The peer may only grant more once it reads what our grants let it send.
+    def awaitWriteWindow(writeBlock: Deferred[F, Either[Throwable, Unit]]): F[Unit] =
+      F.race(writeBlock.get.rethrow, grants.waitUntil(_.nonEmpty)).flatMap {
+        case Left(_) => F.unit
+        case Right(_) => writeGrants >> awaitWriteWindow(writeBlock)
+      }
+
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {
         case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
@@ -328,7 +359,7 @@ private[h2] class H2Connection[F[_]](
           nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
           { // avoid stalling if only control frames were written
             if (after.isEmpty) state.update(s => s.copy(stallStart = None))
-            else withStallTimeout(s.writeBlock.get.rethrow) >> go(after)
+            else withStallTimeout(awaitWriteWindow(s.writeBlock)) >> go(after)
           }
       }
     }
@@ -339,14 +370,23 @@ private[h2] class H2Connection[F[_]](
       } >> state.update(s => s.copy(closed = true))
     }
 
-    firstGoAway.getOrElse(F.unit) >> go(chunk)
+    // An empty chunk only wakes the writer to send grants.
+    (firstGoAway.getOrElse(F.unit) >> go(chunk)).whenA(chunk.nonEmpty) >>
+      grants.get.flatMap { due =>
+        (withStallTimeout(writeGrants) >> state.update(_.copy(stallStart = None)))
+          .whenA(due.nonEmpty)
+      }
   }
 
   def writeLoop: Stream[F, Nothing] =
     Stream
-      .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
-      .foreach(writeChunk)
-      .concurrently(sendReadWindowUpdates)
+      .eval(SignallingRef[F, Chunk[H2Frame]](Chunk.empty))
+      .flatMap { grants =>
+        Stream
+          .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
+          .foreach(writeChunk(grants)(_))
+          .concurrently(sendReadWindowUpdates(grants))
+      }
       .handleErrorWith(ex =>
         Stream.exec(
           logger.debug(ex)("writeLoop terminated") >>
