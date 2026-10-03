@@ -428,15 +428,11 @@ private[h2] class H2Stream[F[_]: Temporal](
   private[h2] def readWindowUpdate: F[Option[H2Frame.WindowUpdate]] =
     state.modify { s =>
       val pending = windowSize - s.readWindow - s.unreadBytes
-      val grant = s.state match {
+      s.state match {
         case StreamState.Open | StreamState.HalfClosedLocal if pending >= windowSize / 2 =>
-          (s.copy(readWindow = s.readWindow + pending), Some(H2Frame.WindowUpdate(id, grant)))
+          (s.copy(readWindow = s.readWindow + pending), Some(H2Frame.WindowUpdate(id, pending)))
         case _ => (s, None)
-}
-      (
-        s.copy(readWindow = s.readWindow + grant),
-        if (grant > 0) Some(H2Frame.WindowUpdate(id, grant)) else None,
-      )
+      }
     }
 
   /** The channel permits only one consumer. An active reader performs this
