@@ -241,7 +241,7 @@ private[ember] object H2Server {
     for {
       h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(h2.outgoing.offer(settingsFrame))
+      _ <- Resource.eval(h2.offerFrame(settingsFrame))
       _ <- h2.readLoop.background
       maxStreams <- Resource.eval(
         Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)

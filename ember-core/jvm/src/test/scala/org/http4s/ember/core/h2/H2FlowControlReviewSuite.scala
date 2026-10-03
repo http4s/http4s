@@ -354,8 +354,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
           // The handler is streaming a response while the upload remains open.
           // Each write finishes before the write timeout, but together they
           // delay the receive-window updates queued behind them.
-          _ <- outgoing
-            .offer(H2Frame.Data(1, ByteVector.fill(4096)(0), None, false))
+          _ <- h2.offerFrame(H2Frame.Data(1, ByteVector.fill(4096)(0), None, false)).start
           _ <- (h2.readLoop.background, h2.writeLoop.compile.drain.background).tupled.use {
             case (reader, _) =>
               for {

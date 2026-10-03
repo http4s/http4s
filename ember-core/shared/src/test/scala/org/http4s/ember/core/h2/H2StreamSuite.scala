@@ -94,7 +94,7 @@ class H2StreamSuite extends Http4sSuite {
         bodyDone,
         readBufferLock,
         hpack,
-        outgoing,
+        outgoing.offer,
         IO.unit,
         _ => IO.unit,
         creditConnection,
@@ -144,7 +144,7 @@ class H2StreamSuite extends Http4sSuite {
         bodyDone,
         readBufferLock,
         hpack,
-        enqueue,
+        enqueue.offer,
         IO.unit,
         _ => IO.unit,
         _ => IO.unit,
@@ -356,8 +356,10 @@ class H2StreamSuite extends Http4sSuite {
         Stream("world").through(utf8.encode)
 
     def assertFrame(chunk: H2Frame, expected: String, endStream: Boolean) = {
-      val frame = chunk match { case data: H2Frame.Data => data
-      case other: H2Frame => fail("unexpected frame", clues(other)) }
+      val frame = chunk match {
+        case data: H2Frame.Data => data
+        case other: H2Frame => fail("unexpected frame", clues(other))
+      }
 
       assertEquals(frame.data.decodeUtf8, Right(expected))
       assertEquals(frame.endStream, endStream)

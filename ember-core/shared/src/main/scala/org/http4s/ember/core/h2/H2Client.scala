@@ -262,7 +262,7 @@ private[ember] class H2Client[F[_]](
 
     def processSettings(h2: H2Connection[F]): F[Unit] = {
       val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
-      h2.outgoing.offer(localSetts)
+      h2.offerFrame(localSetts)
     }
 
     for {

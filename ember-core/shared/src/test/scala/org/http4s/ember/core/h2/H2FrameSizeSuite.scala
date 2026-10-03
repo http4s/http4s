@@ -27,13 +27,12 @@ import fs2.Stream
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
-import org.http4s.Http4sSuite
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
 
-class H2FrameSizeSuite extends Http4sSuite {
+class H2FrameSizeSuite extends H2Suite {
 
   private val addr = SocketAddress(ip"127.0.0.1", port"0")
 
@@ -49,7 +48,10 @@ class H2FrameSizeSuite extends Http4sSuite {
   private val dataFrameType: Byte = 0x0
 
   /** Replays `bytes` and records how many of them it handed over. */
-  private def countingSocket(bytes: ByteVector): IO[(Socket[IO], IO[Long])] =
+  private def countingSocket(
+      bytes: ByteVector,
+      recorded: Ref[IO, ByteVector],
+  ): IO[(Socket[IO], IO[Long])] =
     (Ref[IO].of(bytes), Ref[IO].of(0L)).tupled.map { case (remaining, consumed) =>
       val socket = new Socket[IO] {
         def read(maxBytes: Int): IO[Option[Chunk[Byte]]] =
@@ -71,7 +73,9 @@ class H2FrameSizeSuite extends Http4sSuite {
         def readN(numBytes: Int): IO[Chunk[Byte]] = ???
         def reads: Stream[IO, Byte] = ???
         def remoteAddress: IO[SocketAddress[IpAddress]] = IO.pure(addr)
-        def write(bytes: Chunk[Byte]): IO[Unit] = IO.unit
+        def write(bytes: Chunk[Byte]): IO[Unit] =
+          recorded.update(_ ++ bytes.toByteVector)
+
         def writes: Pipe[IO, Byte, Nothing] = ???
         def address: GenSocketAddress = addr
         def getOption[A](key: SocketOption.Key[A]): IO[Option[A]] = IO.pure(None)
@@ -81,9 +85,10 @@ class H2FrameSizeSuite extends Http4sSuite {
       (socket, consumed.get)
     }
 
-  private def mkConnection(input: ByteVector): IO[(H2Connection[IO], IO[Long])] =
+  private def mkConnection(input: ByteVector): IO[(H2Connection[IO], IO[Long], Ref[IO, ByteVector])] =
     for {
-      t <- countingSocket(input)
+      writes <- Ref.of[IO, ByteVector](ByteVector.empty)
+      t <- countingSocket(input, writes)
       (socket, consumed) = t
       mapRef <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       stateRef <- H2Connection.initState[IO](
@@ -120,13 +125,8 @@ class H2FrameSizeSuite extends Http4sSuite {
         logger,
       ),
       consumed,
+      writes
     )
-
-  private def drainOutgoing(h2: H2Connection[IO]): IO[Vector[H2Frame]] =
-    h2.outgoing.tryTake.flatMap {
-      case Some(c) => drainOutgoing(h2).map(c +: _)
-      case None => IO.pure(Vector.empty)
-    }
 
   private def rawFrame(frameType: Byte, declaredLength: Int, payload: ByteVector): ByteVector =
     H2Frame.RawFrame.toByteVector(
@@ -148,10 +148,10 @@ class H2FrameSizeSuite extends Http4sSuite {
 
     for {
       t <- mkConnection(input)
-      (h2, consumed) = t
+      (h2, consumed, writes) = t
       _ <- h2.readLoop
       n <- consumed
-      frames <- drainOutgoing(h2)
+      frames <- writes.get.map(decodeFrames)
       goAway = firstGoAway(frames)
       _ = assert(goAway.nonEmpty, clue(frames))
       _ = assertEquals(
@@ -178,9 +178,9 @@ class H2FrameSizeSuite extends Http4sSuite {
 
     for {
       t <- mkConnection(input)
-      (h2, _) = t
+      (h2, _, writes) = t
       _ <- h2.readLoop
-      frames <- drainOutgoing(h2)
+      frames <- writes.get.map(decodeFrames)
       goAway = firstGoAway(frames)
       _ = assert(goAway.nonEmpty, clue(frames))
       _ = assertEquals(
@@ -203,9 +203,9 @@ class H2FrameSizeSuite extends Http4sSuite {
 
       for {
         t <- mkConnection(input)
-        (h2, _) = t
+        (h2, _, writes) = t
         _ <- h2.readLoop
-        frames <- drainOutgoing(h2)
+        frames <- writes.get.map(decodeFrames)
         goAway = firstGoAway(frames)
         _ = assert(goAway.nonEmpty, clue(frames))
         _ = assertEquals(
