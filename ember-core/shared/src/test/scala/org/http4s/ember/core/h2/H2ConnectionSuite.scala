@@ -485,7 +485,7 @@ class H2ConnectionSuite extends Http4sSuite {
     )
   }
 
-  test("an idle writer sends window updates as soon as they are due") {
+  test("window updates are written while the write loop is idle") {
     TestControl.executeEmbed(
       for {
         writes <- Ref[IO].of(ByteVector.empty)

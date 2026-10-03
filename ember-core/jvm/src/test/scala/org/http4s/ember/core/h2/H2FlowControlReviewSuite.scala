@@ -383,6 +383,26 @@ class H2FlowControlReviewSuite extends Http4sSuite {
     }
   }
 
+  test("a window update that can not be written closes the connection") {
+    TestControl.executeEmbed {
+      for {
+        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+        h2 <- connection(outgoing, _ => IO.never, idleTimeout = 1.second)
+        stream <- receiveBody(h2, 1, 32768)
+        start <- IO.monotonic
+        _ <- h2.writeLoop.compile.drain.background.use { loop =>
+          stream.readBody.take(32768L).compile.drain >>
+            loop.flatMap(_.embedNever).timeout(2.seconds)
+        }
+        end <- IO.monotonic
+        state <- h2.state.get
+      } yield {
+        assert(state.closed, "A stalled window update must close the connection")
+        assertEquals(end - start, 1.second)
+      }
+    }
+  }
+
   test("idle timeout resumes after credit is sent with an exhausted connection send window") {
     TestControl.executeEmbed {
       val window: Int = settings.initialWindowSize.windowSize
