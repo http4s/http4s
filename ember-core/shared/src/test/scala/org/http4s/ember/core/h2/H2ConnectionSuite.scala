@@ -278,7 +278,7 @@ class H2ConnectionSuite extends Http4sSuite {
     h2.writeLoop.compile.drain.background.surround(IO.sleep(1.second)) >>
       writes.get.map(decodeFrames)
 
-  test("data for a closed stream counts toward the connection flow-control window") {
+  test("data for a forgotten stream is reset and counts toward the connection window") {
     TestControl.executeEmbed {
       for {
         writes <- Ref[IO].of(ByteVector.empty)
@@ -292,7 +292,11 @@ class H2ConnectionSuite extends Http4sSuite {
         _ <- h2.mapRef.set(Map.empty)
         _ <- h2.readLoop
         frames <- written(h2, writes)
-      } yield assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+      } yield {
+        assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+        assertEquals(resets(1, frames), Vector.fill(2)(H2Error.StreamClosed.value), clue(frames))
+        assertEquals(goAways(frames), Vector.empty, clue(frames))
+      }
     }
   }
 
@@ -346,6 +350,9 @@ class H2ConnectionSuite extends Http4sSuite {
   private def goAways(frames: Vector[H2Frame]): Vector[Int] =
     frames.collect { case g: H2Frame.GoAway => g.errorCode.toInt }
 
+  private def resets(id: Int, frames: Vector[H2Frame]): Vector[Int] =
+    frames.collect { case H2Frame.RstStream(`id`, code) => code.toInt }
+
   test("window update and rst stream for a closed stream are ignored") {
     for {
       h2 <- mkConnection(
@@ -382,6 +389,7 @@ class H2ConnectionSuite extends Http4sSuite {
         frames <- written(h2, writes)
       } yield {
         assertEquals(goAways(frames), Vector.empty, clue(frames))
+        assertEquals(resets(1, frames), Vector.empty, clue(frames))
         assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
       }
     }

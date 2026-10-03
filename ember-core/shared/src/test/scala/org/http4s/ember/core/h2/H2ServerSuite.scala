@@ -121,7 +121,7 @@ class H2ServerSuite extends Http4sSuite {
       .executeEmbed(
         serve(ignoreBody) { client =>
           client.sendHeaders(1, Request(Method.POST, uri"http://localhost/"), endStream = false) >>
-            IO.sleep(1.second) >>
+            IO.sleep(500.millis) >>
             client.sendData(1, 16384) >>
             client.sendData(1, 16384) >>
             IO.sleep(1.second)
@@ -137,6 +137,35 @@ class H2ServerSuite extends Http4sSuite {
           clue(frames),
         )
         assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
+      }
+  }
+
+  test("data long after a stream was reset gets a STREAM_CLOSED reset") {
+    val ignoreBody = HttpApp[IO](_ => Response[IO](Status.Ok).pure[IO])
+    TestControl
+      .executeEmbed(
+        serve(ignoreBody) { client =>
+          client.sendHeaders(1, Request(Method.POST, uri"http://localhost/"), endStream = false) >>
+            IO.sleep(2.seconds) >> // Past the second the server rembers closed streams
+            client.sendData(1, 16384) >>
+            client.sendData(1, 16384) >>
+            client.sendHeaders(3, Request(Method.GET, uri"http://localhost/"), endStream = true) >>
+            IO.sleep(1.second)
+        }
+      )
+      .map { frames =>
+        assertEquals(
+          frames.collect { case H2Frame.RstStream(1, code) => code.toInt },
+          Vector(H2Error.NoError, H2Error.StreamClosed, H2Error.StreamClosed).map(_.value),
+          clue(frames),
+        )
+        assertEquals(
+          frames.collect { case H2Frame.WindowUpdate(0, increment) => increment },
+          Vector(32768),
+          clue(frames),
+        )
+        assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
+        assert(frames.exists(ends(3)), clue(frames))
       }
   }
 
