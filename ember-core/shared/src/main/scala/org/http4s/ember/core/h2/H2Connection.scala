@@ -225,19 +225,47 @@ private[h2] class H2Connection[F[_]](
   def creditReadWindow(n: Int): F[Unit] =
     pendingReadCredit.update(_ + n).whenA(n > 0)
 
-  /** One sender per connection coalesces connection and stream grants.
-    * It is canceled with the write loop, so an offer cannot hold up connection shutdown.
+  private[this] def recordReadCredit(frames: Chunk[H2Frame]): F[Unit] =
+    frames.traverseVoid {
+      case H2Frame.WindowUpdate(0, size) =>
+        state.update(s => s.copy(advertisedReadWindow = s.advertisedReadWindow + size))
+      case H2Frame.WindowUpdate(id, size) =>
+        mapRef.get.flatMap(
+          _.get(id).traverseVoid(
+            _.state.update(s => s.copy(advertisedReadWindow = s.advertisedReadWindow + size))
+          )
+        )
+      case _ => F.unit
+    }
+
+  /** One sender per connection coalesces connection and stream grants, and writes
+    * them itself. The write loop can wait with DATA on the peer's credit while the
+    * peer waits on ours, so our credit must not go through the write loop.
     */
   private def sendReadWindowUpdates: Stream[F, Nothing] =
     // Equal observations can represent new credit after a grant; do not use changes.
     pendingReadCredit.discrete.filter(_ > 0).foreach { pending =>
       // Only this sender subtracts credit; preserve additions since this notification.
       // Skip updates below the threshold so the sender does not notify itself forever.
-      (pendingReadCredit.update(_ - pending) >>
-        state.update(s => s.copy(readWindow = s.readWindow + pending)) >>
-        outgoing.offer(Chunk.singleton(H2Frame.WindowUpdate(0, pending))))
-        .whenA(pending >= localSettings.initialWindowSize.windowSize / 2) >>
-        mapRef.get.flatMap(_.values.toList.traverse_(_.sendReadWindowUpdate))
+      val connectionGrant =
+        if (pending >= localSettings.initialWindowSize.windowSize / 2)
+          pendingReadCredit.update(_ - pending) >>
+            state
+              .update(s => s.copy(readWindow = s.readWindow + pending))
+              .as(List(H2Frame.WindowUpdate(0, pending)))
+        else F.pure(List.empty[H2Frame.WindowUpdate])
+
+      for {
+        connection <- connectionGrant
+        streams <- mapRef.get.flatMap(_.values.toList.traverse(_.readWindowUpdate))
+        due = Chunk.from[H2Frame](connection ++ streams.flatten)
+        bv = due.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
+        _ <- Temporal[F]
+          .timeout(socket.write(Chunk.byteVector(bv)), idleTimeout)
+          .whenA(due.nonEmpty)
+        _ <- recordReadCredit(due)
+        _ <- due.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
+      } yield ()
     }
 
   def goAway(error: H2Error): F[Unit] =
@@ -282,21 +310,6 @@ private[h2] class H2Connection[F[_]](
       } >> state.update(_.copy(closed = true)) >>
         H2Connection.KillWithoutMessage().raiseError
 
-    // readWindow includes reserved grants so a fast peer reply is accepted even
-    // before socket.write completes. Idle detection uses only transmitted credit.
-    def recordReadCredit(frames: Chunk[H2Frame]): F[Unit] =
-      frames.traverse_ {
-        case H2Frame.WindowUpdate(0, size) =>
-          state.update(s => s.copy(advertisedReadWindow = s.advertisedReadWindow + size))
-        case H2Frame.WindowUpdate(id, size) =>
-          mapRef.get.flatMap(
-            _.get(id).traverse_(
-              _.state.update(s => s.copy(advertisedReadWindow = s.advertisedReadWindow + size))
-            )
-          )
-        case _ => F.unit
-      }
-
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {
         case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
@@ -309,7 +322,6 @@ private[h2] class H2Connection[F[_]](
           acc ++ H2Frame.toByteVector(frame)
         }
         withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
-          recordReadCredit(chunk) >>
           state.update(s =>
             s.copy(writeWindow = s.writeWindow - fullDataSize, stallStart = None)
           ) >>
@@ -324,7 +336,6 @@ private[h2] class H2Connection[F[_]](
           acc ++ H2Frame.toByteVector(frame)
         }
         withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
-          recordReadCredit(nonData) >>
           nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
           { // avoid stalling if only control frames were written
             if (after.isEmpty) state.update(s => s.copy(stallStart = None))
