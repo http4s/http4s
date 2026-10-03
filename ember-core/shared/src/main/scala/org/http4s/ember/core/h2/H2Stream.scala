@@ -430,9 +430,9 @@ private[h2] class H2Stream[F[_]: Temporal](
       val pending = windowSize - s.readWindow - s.unreadBytes
       val grant = s.state match {
         case StreamState.Open | StreamState.HalfClosedLocal if pending >= windowSize / 2 =>
-          pending
-        case _ => 0
-      }
+          (s.copy(readWindow = s.readWindow + pending), Some(H2Frame.WindowUpdate(id, grant)))
+        case _ => (s, None)
+}
       (
         s.copy(readWindow = s.readWindow + grant),
         if (grant > 0) Some(H2Frame.WindowUpdate(id, grant)) else None,
