@@ -32,6 +32,7 @@ import fs2.text.utf8
 import org.http4s.Headers
 import org.http4s.Http4sSuite
 import org.http4s.HttpVersion
+import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
@@ -54,13 +55,16 @@ class H2StreamSuite extends Http4sSuite {
       config: H2Frame.Settings.ConnectionSettings,
       creditConnection: Int => IO[Unit] = _ => IO.unit,
       outgoingQueue: IO[Queue[IO, Chunk[H2Frame]]] = Queue.unbounded[IO, Chunk[H2Frame]],
+      readBufferCapacity: Option[Int] = None,
   ): IO[(H2Stream[IO], Queue[IO, Chunk[H2Frame]])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
       resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
       trailers <- Deferred[IO, Either[Throwable, Headers]]
-      readBuffer <- Channel.unbounded[IO, Either[Throwable, ByteVector]]
+      readBuffer <- readBufferCapacity.fold(
+        Channel.unbounded[IO, Either[Throwable, ByteVector]]
+      )(Channel.bounded[IO, Either[Throwable, ByteVector]](_))
       bodyDone <- Deferred[IO, Either[Throwable, Unit]]
       readBufferLock <- Semaphore[IO](1)
 
@@ -705,4 +709,70 @@ class H2StreamSuite extends Http4sSuite {
     }
   }
 
+  private def sent(queue: Queue[IO, Chunk[H2Frame]]): IO[Vector[H2Frame]] =
+    queue.tryTakeN(None).map(_.flatMap(_.toList).toVector)
+
+  private def data(size: Int): H2Frame.Data =
+    H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, endStream = false)
+
+  test("finish releases a DATA frame waiting on a full read buffer") {
+    TestControl.executeEmbed {
+      for {
+        sq <- streamAndQueue(defaultSettings, readBufferCapacity = Some(1))
+        (stream, queue) = sq
+        _ <- stream.receiveData(data(16384))
+        waiting <- stream.receiveData(data(16384)).start
+        _ <- IO.sleep(1.second)
+        _ <- stream.state.update(_.copy(state = H2Stream.StreamState.HalfClosedLocal))
+        _ <- stream.finish(H2Error.NoError)
+        _ <- waiting.joinWithNever
+        frames <- sent(queue)
+      } yield assertEquals(frames, Vector[H2Frame](H2Error.NoError.toRst(1)))
+    }
+  }
+
+  test("finish doesn't reset a stream whose request is complete") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Closed))
+      _ <- stream.finish(H2Error.NoError)
+      frames <- sent(queue)
+    } yield assertEquals(frames, Vector.empty[H2Frame])
+  }
+
+  test("data for a closed stream is dropped") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Closed))
+      _ <- stream.receiveData(data(10))
+      frames <- sent(queue)
+    } yield assertEquals(frames, Vector.empty[H2Frame])
+  }
+
+  test("rstStream doesn't wait for room in a full read buffer") {
+    TestControl.executeEmbed {
+      for {
+        sq <- streamAndQueue(defaultSettings, readBufferCapacity = Some(1))
+        (stream, queue) = sq
+        _ <- stream.receiveData(data(10))
+        _ <- stream.rstStream(H2Error.RefusedStream)
+        frames <- sent(queue)
+      } yield assertEquals(frames, Vector[H2Frame](H2Error.RefusedStream.toRst(1)))
+    }
+  }
+
+  test("a stream reset by the peer is not reset back") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      _ <- stream.receiveRstStream(H2Error.NoError.toRst(1))
+      body <- stream.sendMessageBody(Request[IO](Method.POST).withEntity("hello")).attempt
+      frames <- sent(queue)
+    } yield {
+      assert(body.isLeft, clue(body))
+      assertEquals(frames, Vector.empty[H2Frame])
+    }
+  }
 }
