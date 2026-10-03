@@ -242,7 +242,7 @@ private[h2] class H2Connection[F[_]](
     * them itself. The write loop can wait with DATA on the peer's credit while the
     * peer waits on ours, so our credit must not go through the write loop.
     */
-  private def sendReadWindowUpdates(writeLock: Resource[F, Unit]): Stream[F, Nothing] =
+  private def sendReadWindowUpdates: Stream[F, Nothing] =
     // Equal observations can represent new credit after a grant; do not use changes.
     pendingReadCredit.discrete.filter(_ > 0).foreach { pending =>
       // Only this sender subtracts credit; preserve additions since this notification.
@@ -255,19 +255,17 @@ private[h2] class H2Connection[F[_]](
               .as(List(H2Frame.WindowUpdate(0, pending)))
         else F.pure(List.empty[H2Frame.WindowUpdate])
 
-      writeLock
-        .surround(for {
-          connection <- connectionGrant
-          streams <- mapRef.get.flatMap(_.values.toList.traverse(_.readWindowUpdate))
-          due = Chunk.from[H2Frame](connection ++ streams.flatten)
-          bv = due.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
-          _ <- Temporal[F]
-            .timeout(socket.write(Chunk.byteVector(bv)), idleTimeout)
-            .whenA(due.nonEmpty)
-        } yield due)
-        .flatMap { due =>
-          recordReadCredit(due) >> due.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
-        }
+      for {
+        connection <- connectionGrant
+        streams <- mapRef.get.flatMap(_.values.toList.traverse(_.readWindowUpdate))
+        due = Chunk.from[H2Frame](connection ++ streams.flatten)
+        bv = due.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
+        _ <- Temporal[F]
+          .timeout(socket.write(Chunk.byteVector(bv)), idleTimeout)
+          .whenA(due.nonEmpty)
+        _ <- recordReadCredit(due)
+        _ <- due.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
+      } yield ()
     }
 
   def goAway(error: H2Error): F[Unit] =
@@ -277,7 +275,7 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
-  private[this] def writeChunk(writeLock: Resource[F, Unit])(chunk: Chunk[H2Frame]): F[Unit] = {
+  private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
     def withStallTimeout[A](fa: F[A]): F[A] =
       Temporal[F].monotonic
         .flatMap { now =>
@@ -306,15 +304,11 @@ private[h2] class H2Connection[F[_]](
       state.get.map(_.remoteHighestStream).flatMap { i =>
         // Last-ditch timeout in case TCP layer is stalled.
         Temporal[F].timeout(
-          writeLock
-            .surround(socket.write(Chunk.byteVector(H2Frame.toByteVector(error.toGoAway(i))))),
+          socket.write(Chunk.byteVector(H2Frame.toByteVector(error.toGoAway(i)))),
           idleTimeout,
         )
       } >> state.update(_.copy(closed = true)) >>
         H2Connection.KillWithoutMessage().raiseError
-
-    def write(bv: ByteVector): F[Unit] =
-      withStallTimeout(writeLock.surround(socket.write(Chunk.byteVector(bv))))
 
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {
@@ -327,7 +321,7 @@ private[h2] class H2Connection[F[_]](
         val bv = chunk.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-        write(bv) >>
+        withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
           state.update(s =>
             s.copy(writeWindow = s.writeWindow - fullDataSize, stallStart = None)
           ) >>
@@ -341,7 +335,7 @@ private[h2] class H2Connection[F[_]](
         val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-        write(bv) >>
+        withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
           nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
           { // avoid stalling if only control frames were written
             if (after.isEmpty) state.update(s => s.copy(stallStart = None))
@@ -361,13 +355,9 @@ private[h2] class H2Connection[F[_]](
 
   def writeLoop: Stream[F, Nothing] =
     Stream
-      .eval(Semaphore[F](1))
-      .flatMap { lock =>
-        Stream
-          .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
-          .foreach(writeChunk(lock.permit)(_))
-          .concurrently(sendReadWindowUpdates(lock.permit))
-      }
+      .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
+      .foreach(writeChunk)
+      .concurrently(sendReadWindowUpdates)
       .handleErrorWith(ex =>
         Stream.exec(
           logger.debug(ex)("writeLoop terminated") >>
