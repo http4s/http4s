@@ -230,7 +230,11 @@ class H2ConnectionSuite extends H2Suite {
     val rst = H2Frame.RstStream(1, H2Error.Cancel.value)
     for {
       writes <- Ref[IO].of(ByteVector.empty)
-      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, H2Frame.toByteVector(rst),writes)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        H2Frame.toByteVector(rst),
+        writes,
+      )
       _ <- h2.initiateRemoteStreamById(1)
       _ <- h2.mapRef.set(Map.empty)
       _ <- h2.readLoop
@@ -242,7 +246,11 @@ class H2ConnectionSuite extends H2Suite {
     val rst = H2Frame.RstStream(3, H2Error.Cancel.value)
     for {
       writes <- Ref[IO].of(ByteVector.empty)
-      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, H2Frame.toByteVector(rst), writes)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        H2Frame.toByteVector(rst),
+        writes,
+      )
       _ <- h2.readLoop
       frames <- writes.get.map(decodeFrames)
     } yield assertEquals(
@@ -296,7 +304,7 @@ class H2ConnectionSuite extends H2Suite {
     for {
       writes <- Ref[IO].of(ByteVector.empty)
       // 10 + 200 = 210 > 100
-      h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input, writes )
+      h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input, writes)
       _ <- h2.readLoop
       frames <- writes.get.map(decodeFrames)
       goAway = frames.collectFirst { case g: H2Frame.GoAway => g }

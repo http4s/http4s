@@ -20,7 +20,7 @@ import org.http4s.Http4sSuite
 import scodec.bits.ByteVector
 
 trait H2Suite extends Http4sSuite {
-   protected def decodeFrames(bv: ByteVector): Vector[H2Frame] = {
+  protected def decodeFrames(bv: ByteVector): Vector[H2Frame] = {
     @annotation.tailrec
     def go(rest: ByteVector, acc: Vector[H2Frame]): Vector[H2Frame] =
       H2Frame.RawFrame.fromByteVector(rest) match {

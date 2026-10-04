@@ -85,7 +85,9 @@ class H2FrameSizeSuite extends H2Suite {
       (socket, consumed.get)
     }
 
-  private def mkConnection(input: ByteVector): IO[(H2Connection[IO], IO[Long], Ref[IO, ByteVector])] =
+  private def mkConnection(
+      input: ByteVector
+  ): IO[(H2Connection[IO], IO[Long], Ref[IO, ByteVector])] =
     for {
       writes <- Ref.of[IO, ByteVector](ByteVector.empty)
       t <- countingSocket(input, writes)
@@ -125,7 +127,7 @@ class H2FrameSizeSuite extends H2Suite {
         logger,
       ),
       consumed,
-      writes
+      writes,
     )
 
   private def rawFrame(frameType: Byte, declaredLength: Int, payload: ByteVector): ByteVector =
