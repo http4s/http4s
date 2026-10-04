@@ -28,7 +28,6 @@ import fs2.Stream
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
-import org.http4s.Http4sSuite
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
 
@@ -439,6 +438,104 @@ class H2ConnectionSuite extends H2Suite {
       } yield {
         assert(frames.exists(_.isInstanceOf[H2Frame.Ping]), clue(frames))
         assert(!st.closed, clue(st.closed))
+      }
+    )
+  }
+  private val peerBody: ByteVector = {
+    val data = H2Frame.Data(1, ByteVector.fill(16384)(0), None, endStream = false)
+    H2Frame.toByteVector(data) ++ H2Frame.toByteVector(data)
+  }
+
+  private def openStream(h2: H2Connection[IO]): IO[H2Stream[IO]] =
+    for {
+      stream <- h2.initiateRemoteStreamById(1)
+      _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+    } yield stream
+
+  private def grantsIn(frames: Vector[H2Frame]): Vector[(Int, Int)] =
+    frames.collect { case H2Frame.WindowUpdate(id, increment) => (id, increment) }.sorted
+
+  test("window updates are written while DATA waits for the peer to grant more") {
+    TestControl.executeEmbed(
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          peerBody,
+          Duration.Inf,
+          writes,
+        )
+        stream <- openStream(h2)
+        _ <- h2.state.update(_.copy(writeWindow = 0))
+        loop <- h2.writeLoop.compile.drain.start
+        _ <- h2.offerFrame(dataFrame(16)).start
+        _ <- h2.readLoop
+        _ <- stream.readBody.take(32768).compile.drain
+        _ <- IO.sleep(1.second)
+        _ <- loop.cancel
+        out <- writes.get
+        frames = decodeFrames(out)
+      } yield {
+        assertEquals(grantsIn(frames), Vector((0, 32768), (1, 32768)), clue(frames))
+        assert(!frames.exists(_.isInstanceOf[H2Frame.Data]), clue(frames))
+      }
+    )
+  }
+
+  test("window updates are written while the write loop is idle") {
+    TestControl.executeEmbed(
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          peerBody,
+          Duration.Inf,
+          writes,
+        )
+        stream <- openStream(h2)
+        loop <- h2.writeLoop.compile.drain.start
+        _ <- h2.readLoop
+        _ <- stream.readBody.take(32768).compile.drain
+        _ <- IO.sleep(1.second)
+        _ <- loop.cancel
+        out <- writes.get
+      } yield assertEquals(grantsIn(decodeFrames(out)), Vector((0, 32768), (1, 32768)))
+    )
+  }
+
+  test("window updates written during a write stall don't extend it") {
+    val idle = 1.second
+    TestControl.executeEmbed(
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          peerBody,
+          idle,
+          writes,
+        )
+        stream <- openStream(h2)
+        _ <- h2.state.update(_.copy(writeWindow = 0))
+        start <- IO.monotonic
+        _ <- h2.writeLoop.compile.drain.start
+        send <- h2.offerFrame(dataFrame(16)).start
+        _ <- IO.sleep(idle / 2)
+        _ <- h2.readLoop
+        _ <- stream.readBody.take(32768).compile.drain
+        _ <- send.join
+        end <- IO.monotonic
+        st <- h2.state.get
+        out <- writes.get
+        frames = decodeFrames(out)
+      } yield {
+        assertEquals(grantsIn(frames), Vector((0, 32768), (1, 32768)), clue(frames))
+        assertEquals(end - start, idle)
+        assert(st.closed, clue(st.closed))
+        assertEquals(
+          frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
+          Some(H2Error.ProtocolError.value),
+          clue(frames),
+        )
       }
     )
   }
