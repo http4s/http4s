@@ -261,7 +261,7 @@ private[h2] class H2Connection[F[_]](
             (s, s.writeBlock.get.rethrow >> go)
         }.flatten
 
-        withStallTimeout(go).recoverWith { error =>
+        withStallTimeout(go).recoverWith { case error: Throwable =>
           state.get.flatMap(_.writeBlock.complete(Left(error)).void)
         }
       case other: H2Frame => outgoingQueue.offer(other)
