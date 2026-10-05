@@ -91,7 +91,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 )(implicit F: Async[F]) { self =>
   import CSRF._
 
-  @deprecated("Use the constructor without the `java.time.Clock`", "v1.0.0-M40")
+  @deprecated("Use the constructor without the `java.time.Clock`", "1.0.0-M40")
   def this(
       headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
@@ -346,7 +346,7 @@ object CSRF {
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G],
   )(implicit F: Async[F], @unused G: Applicative[G]) {
 
-    @deprecated("Use the constructor without the `java.time.Clock`", "v1.0.0-M49")
+    @deprecated("Use the constructor without the `java.time.Clock`", "1.0.0-M49")
     def this(
         headerName: CIString,
         cookieSettings: CSRF.CookieSettings,
@@ -391,7 +391,7 @@ object CSRF {
 
     @deprecated(
       "This method doesn't change anything since the `java.time.Clock` has been purged from CSRFBuilder",
-      "v1.0.0-M40",
+      "1.0.0-M40",
     )
     def withClock(clock: Clock): CSRFBuilder[F, G] = this
 
