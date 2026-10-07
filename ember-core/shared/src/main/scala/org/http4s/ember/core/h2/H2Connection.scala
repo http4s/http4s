@@ -246,8 +246,8 @@ private[h2] class H2Connection[F[_]](
       // Last-ditch timeout in case TCP layer is stalled.
       Temporal[F]
         .timeout(
-        socket.write(Chunk.byteVector(H2Frame.toByteVector(g))),
-        idleTimeout,
+          socket.write(Chunk.byteVector(H2Frame.toByteVector(g))),
+          idleTimeout,
         )
         .recoverWith(logger.warn(_)("Failed to send GOAWAY")) >> mapRef.get
         .flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(g)))
@@ -273,23 +273,27 @@ private[h2] class H2Connection[F[_]](
   private[this] def withStallTimeout[A](fa: F[Unit]): F[Unit] =
     Temporal[F].monotonic
       .flatMap { now =>
-        state.modify { st =>
-          val start = st.stallStart.getOrElse(now)
-          (st.copy(stallStart = Some(start)), now - start)
-        }
-      }
-      .flatMap { elapsed =>
-        val remaining = idleTimeout - elapsed
-        if (remaining <= Duration.Zero) {
-          logger.debug(s"connection stall timeout exceeded ($elapsed)") >>
-            goAway(H2Error.ProtocolError)
-        } else
-          Temporal[F].timeoutTo(
-            fa,
-            remaining,
-            logger.debug(s"stream stall timeout exceeded") >>
-              goAway(H2Error.ProtocolError),
-          )
+        state
+          .modify { st =>
+            val start = st.stallStart.getOrElse(now)
+            (st.copy(stallStart = Some(start)), now - start)
+          }
+          .flatMap { elapsed =>
+            val remaining = idleTimeout - elapsed
+            if (remaining <= Duration.Zero) {
+              logger.debug(s"connection stall timeout exceeded ($elapsed)") >>
+                goAway(H2Error.ProtocolError)
+            } else
+              Temporal[F].timeoutTo(
+                fa,
+                remaining,
+                logger.debug(s"stream stall timeout exceeded") >>
+                  goAway(H2Error.ProtocolError),
+              )
+          }
+          .onCancel(state.update { st =>
+            if (st.stallStart == Some(now)) st.copy(stallStart = None) else st
+          })
       }
 
   private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
