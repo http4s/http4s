@@ -18,6 +18,7 @@ package org.http4s.websocket
 
 import cats.syntax.all._
 import org.http4s.Http4sSuite
+import org.http4s.websocket.FrameTranscoder.TranscodeErrorReason
 import org.http4s.websocket.WebSocketFrame._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen._
@@ -167,7 +168,10 @@ class WebSocketSuite extends Http4sSuite {
     // 0x00c8 -> 200
     // 0x00, 0x00, 0x00, 0x00 -> masking key
     val frame = ByteVector(0x82, 0xfe, 0x00, 0xc8, 0x00, 0x00, 0x00, 0x00).toArray
-    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
+    val err =
+      intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
+
+    assertEquals(err.reason, Some(TranscodeErrorReason.MaxFrameSizeExceeded))
   }
 
   test("decode rejects a masked frame when used by a client") {
@@ -176,13 +180,19 @@ class WebSocketSuite extends Http4sSuite {
     // 0x01, 0x02, 0x03, 0x04 -> masking key
     val frame =
       ByteVector(0x81, 0x85, 0x01, 0x02, 0x03, 0x04, 0x4e, 0x6d, 0x73, 0x77, 0x20).toArray
-    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = true))
+    val err =
+      intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = true))
+
+    assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
   }
 
   test("decode rejects an unmasked frame when used by a server") {
     // 0x81 -> FIN=1
     // 0x05 -> MASK=0, payload length=5
     val frame = ByteVector(0x81, 0x05, 0x4f, 0x6f, 0x70, 0x73, 0x21).toArray
-    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false))
+    val err =
+      intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false))
+
+    assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
   }
 }
