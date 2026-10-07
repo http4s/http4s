@@ -244,10 +244,13 @@ private[h2] class H2Connection[F[_]](
     state.get.map(_.remoteHighestStream).flatMap { i =>
       val g = error.toGoAway(i)
       // Last-ditch timeout in case TCP layer is stalled.
-      Temporal[F].timeout(
+      Temporal[F]
+        .timeout(
         socket.write(Chunk.byteVector(H2Frame.toByteVector(g))),
         idleTimeout,
-      ) >> mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(g)))
+        )
+        .recoverWith(logger.warn(_)("Failed to send GOAWAY")) >> mapRef.get
+        .flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(g)))
     } >> state.update(_.copy(closed = true)) >> H2Connection.KillWithoutMessage().raiseError
 
   def offerFrame(frame: H2Frame): F[Unit] =
