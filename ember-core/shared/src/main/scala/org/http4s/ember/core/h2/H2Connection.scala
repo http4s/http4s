@@ -249,8 +249,8 @@ private[h2] class H2Connection[F[_]](
           socket.write(Chunk.byteVector(H2Frame.toByteVector(g))),
           idleTimeout,
         )
-        .recoverWith(logger.warn(_)("Failed to send GOAWAY")) >> mapRef.get
-        .flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(g)))
+        .recoverWith { case e: Throwable => logger.warn(e)("Failed to send GOAWAY") } >>
+        mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(g)))
     } >> state.update(_.copy(closed = true)) >> H2Connection.KillWithoutMessage().raiseError
 
   def offerFrame(frame: H2Frame): F[Unit] =
