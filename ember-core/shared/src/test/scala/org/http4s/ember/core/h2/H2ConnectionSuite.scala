@@ -348,7 +348,7 @@ class H2ConnectionSuite extends H2Suite {
         )
         _ <- h2.state.update(_.copy(writeWindow = 0))
         _ <- h2.writeLoop.compile.drain.start
-        _ <- h2.offerFrame(dataFrame(16))
+        _ <- h2.offerFrame(dataFrame(16)).attempt
         st <- (IO.sleep(idle) >> h2.state.get).iterateUntil(_.closed)
         out <- writes.get
         frames = decodeFrames(out)
