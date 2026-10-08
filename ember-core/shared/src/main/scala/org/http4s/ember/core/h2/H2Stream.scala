@@ -421,26 +421,19 @@ private[h2] class H2Stream[F[_]: Temporal](
 
   private def discardUnread: F[Unit] = discardUnread(Int.MaxValue)
 
-  /** Only the connection's credit sender waits on the outgoing queue. An abandoned
-    * grant needs no rollback: either this stream or the entire sender is terminating.
+  /** Reserves the credit returned since the last grant, once there is enough of it
+    * for a WINDOW_UPDATE. The connection's credit sender writes the grant without
+    * queueing it behind DATA, so reserving never waits on the outgoing queue.
     */
-  private[h2] def sendReadWindowUpdate: F[Unit] =
-    state
-      .modify { s =>
-        val pending = windowSize - s.readWindow - s.unreadBytes
-        val grant = s.state match {
-          case StreamState.Open | StreamState.HalfClosedLocal if pending >= windowSize / 2 =>
-            pending
-          case _ => 0
-        }
-        (s.copy(readWindow = s.readWindow + grant), (grant, s.trailers))
+  private[h2] def readWindowUpdate: F[Option[H2Frame.WindowUpdate]] =
+    state.modify { s =>
+      val pending = windowSize - s.readWindow - s.unreadBytes
+      s.state match {
+        case StreamState.Open | StreamState.HalfClosedLocal if pending >= windowSize / 2 =>
+          (s.copy(readWindow = s.readWindow + pending), Some(H2Frame.WindowUpdate(id, pending)))
+        case _ => (s, None)
       }
-      .flatMap { case (grant, trailers) =>
-        Temporal[F]
-          .race(enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, grant))), trailers.get)
-          .void
-          .whenA(grant > 0)
-      }
+    }
 
   /** The channel permits only one consumer. An active reader performs this
     * cleanup in its finalizer, so resetting a stream never waits for that reader.

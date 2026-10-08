@@ -240,8 +240,10 @@ private[ember] object H2Server {
 
     for {
       h2 <- Resource.eval(initH2Connection)
+      _ <- Resource.eval(
+        F.timeout(socket.write(Chunk.byteVector(H2Frame.toByteVector(settingsFrame))), idleTimeout)
+      )
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
       maxStreams <- Resource.eval(
         Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)
