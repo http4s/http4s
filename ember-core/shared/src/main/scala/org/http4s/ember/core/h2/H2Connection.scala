@@ -256,15 +256,26 @@ private[h2] class H2Connection[F[_]](
   def offerFrame(frame: H2Frame): F[Unit] =
     frame match {
       case data: H2Frame.Data =>
-        def go: F[Unit] = state.modify { s =>
+        def go(data: H2Frame.Data): F[Unit] = state.flatModifyFull { case (poll, s) =>
           val updatedWindow = s.writeWindow - data.flowControlSize
           if (updatedWindow >= 0)
             (s.copy(writeWindow = updatedWindow, stallStart = None), outgoingQueue.offer(data))
-          else
-            (s, s.writeBlock.get.rethrow >> go)
-        }.flatten
+          else if (s.writeWindow > 0) {
+            val bv = data.data
+            val head = bv.take(s.writeWindow.toLong)
+            val tail = bv.drop(s.writeWindow.toLong)
+            val headFrame = data.copy(data = head, pad = None, endStream = false)
+            val tailFrame = data.copy(data = tail)
+            (
+              // This should be the whole write window, since we don't actually use padding
+              s.copy(writeWindow = s.writeWindow - head.size.toInt),
+              outgoingQueue.offer(headFrame) >> poll(go(tailFrame)),
+            )
+          } else
+            (s, poll(s.writeBlock.get.rethrow >> go(data)))
+        }
 
-        withStallTimeout(go).onError { case error: Throwable =>
+        withStallTimeout(go(data)).onError { case error: Throwable =>
           state.get.flatMap(_.writeBlock.complete(Left(error)).void)
         }
       case other: H2Frame => outgoingQueue.offer(other)
