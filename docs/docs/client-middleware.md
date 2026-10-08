@@ -262,7 +262,6 @@ def server(socket: UnixSocketAddress) = EmberServerBuilder
   .withHttpApp(service.orNotFound)
   .withShutdownTimeout(1.second)
   .build
-  .evalTap(_ => IO.sleep(4.seconds))
 
 def client(socket: UnixSocketAddress) = EmberClientBuilder
   .default[IO]

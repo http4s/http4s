@@ -3,6 +3,52 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.38 (2026-09-28)
+
+## Security fixes
+
+* [`GHSA-jc8x-g44q-5x7j`](https://github.com/http4s/http4s/security/advisories/GHSA-jc8x-g44q-5x7j): CookieJar accepts public-suffix `Domain` attributes (e.g. `Domain=.com`), enabling cross-origin cookie injection
+* [`GHSA-674r-3w4m-554c`](https://github.com/http4s/http4s/security/advisories/GHSA-674r-3w4m-554c): Server-Sent Events injection in http4s `ServerSentEvent` rendering: multi-line fields are not split or escaped per the WHATWG specification
+* [`GHSA-f9r9-f7c2-m95p`](https://github.com/http4s/http4s/security/advisories/GHSA-f9r9-f7c2-m95p): Unbounded part count in the default implicit `EntityDecoder[Multipart[F]]` allows remote memory exhaustion (DoS) via ~9-byte empty parts
+* [`GHSA-j56h-2225-92vh`](https://github.com/http4s/http4s/security/advisories/GHSA-j56h-2225-92vh): WSClient.connectHighLevel defrag unbounded accumulation causes client OOM denial of service
+* [`GHSA-pgwq-c7vg-8jj5`](https://github.com/http4s/http4s/security/advisories/GHSA-pgwq-c7vg-8jj5): Ember HTTP/2: CONTINUATION fragment count is not constrained allowing unbounded memory growth
+* [`GHSA-xg73-pp4c-h9g6`](https://github.com/http4s/http4s/security/advisories/GHSA-xg73-pp4c-h9g6): CookieJar stores cookies in an unbounded, non-expiring map, allowing a remote server to exhaust client memory
+* [`GHSA-xmmj-wgv7-x3pq`](https://github.com/http4s/http4s/security/advisories/GHSA-xmmj-wgv7-x3pq): Ember HTTP/1 parser folds a bare LF into a header value, enabling CL.0 request smuggling
+* [`GHSA-53ph-fr68-m7r9`](https://github.com/http4s/http4s/security/advisories/GHSA-53ph-fr68-m7r9): Ember HTTP/2 server connection can deadlock when request body is not consumed
+* [`GHSA-m75g-6h7r-j48h`](https://github.com/http4s/http4s/security/advisories/GHSA-m75g-6h7r-j48h): WebjarService.apply(config) (deprecated) still vulnerable to percent-encoded separator path escape - incomplete fix of GHSA-crq5-92j2-j7wv
+* [`GHSA-qjwj-gvvp-8qrc`](https://github.com/http4s/http4s/security/advisories/GHSA-qjwj-gvvp-8qrc): CookieJar sends a host-only cookie (Set-Cookie without Domain) to every subdomain
+* [`GHSA-mf7r-59rg-r2cj`](https://github.com/http4s/http4s/security/advisories/GHSA-mf7r-59rg-r2cj): Ember HTTP/1.1 client response parser accepts Transfer-Encoding combined with Content-Length (client-side response smuggling)
+
+## What else changed
+### http4s-core
+
+* Reject unmasked WS frames on the server by @danicheg in https://github.com/http4s/http4s/pull/7950
+* Include framing header for empty 205 response by @reardonj in https://github.com/http4s/http4s/pull/7951
+### http4s-ember-core
+* Properly signal the start of an Ember Unix socket server by @rossabaker in https://github.com/http4s/http4s/pull/7941
+* Normalize empty ALPN protocol in Ember by @miciek in https://github.com/http4s/http4s/pull/7963
+
+### Behind the scenes
+
+<details>
+
+* Update scala3-library, ... to 3.3.8 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7865
+* Update http4s-circe, http4s-ember-client to 0.23.37 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7944
+* Update netty-buffer, netty-codec-http to 4.2.18.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7946
+* Add AI restriction to CONTRIBUTING.md by @reardonj in https://github.com/http4s/http4s/pull/7949
+* Update sbt-buildinfo to 0.13.2 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7952
+* Update jnr-unixsocket to 0.39.5 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7953
+* Update sbt-native-packager to 1.12.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7958
+* Update munit-cats-effect to 2.2.1 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7960
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7962
+
+</details>
+
+## New Contributors
+* @miciek made their first contribution in https://github.com/http4s/http4s/pull/7963
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.37...v0.23.38
+
 # v1.0.0-M48 (2026-09-08)
 
 This is a forward merge of all changes between v0.23.36 and v0.23.37, including its security patches.
