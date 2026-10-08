@@ -19,6 +19,7 @@ package org.http4s.multipart
 import cats.Applicative
 import cats.ApplicativeError
 import cats.effect.Concurrent
+import cats.effect.Ref
 import cats.effect.kernel.Resource
 import fs2.Chunk
 import fs2.Pipe
@@ -152,7 +153,44 @@ object PartReceiver {
       maxSizeBeforeFile: Int,
       chunkSize: Int = 8192,
   ): PartReceiver[F, Stream[F, Byte]] =
-    part => readToBuffer[F](part.body, maxSizeBeforeFile, chunkSize).map(Right(_))
+    part =>
+      Resource
+        .eval(Ref.of[F, Long](0L))
+        .flatMap(readToBuffer(part.body, _, maxSizeBeforeFile, chunkSize))
+        .map(Right(_))
+
+  /** Creates a PartReceiver that loads the part's body into an in-memory
+    * buffer, up until a specified maximum size or if the sum of multiple parts
+    * exceeds the maximum - at which point it will instead write the body to a
+    * temporary file.
+    *
+    * The temporary file created by this decoder (if any) will be released with
+    * the Resource returned by this receiver's `receive` method.
+    *
+    * @param totalBytesRead The cumulative total number of bytes read so far
+    *                       across (potentially) several parts sharing this
+    *                       counter.
+    * @param maxSizeBeforeFile The maximum number of bytes, summed across
+    *                          every part sharing `totalBytesRead`, that may
+    *                          be buffered in memory before all remaining
+    *                          data is instead written to a temporary file.
+    * @param chunkSize The chunk size used when reading data back from a
+    *                  temporary file created by its receiver
+    * @return A PartReceiver which dynamically decides whether to buffer the
+    *         part's body in memory or in a file
+    */
+  def toMixedBufferTotal[F[_]: Files: Concurrent](
+      totalBytesRead: Ref[F, Long],
+      maxSizeBeforeFile: Int,
+      chunkSize: Int = 8192,
+  ): PartReceiver[F, Stream[F, Byte]] =
+    part =>
+      readToBuffer(
+        part.body,
+        totalBytesRead,
+        maxSizeBeforeFile,
+        chunkSize,
+      ).map(Right(_))
 
   private def limitPartSize[F[_]](
       maxPartSizeBytes: Long
@@ -171,37 +209,43 @@ object PartReceiver {
 
   private def readToBuffer[F[_]: Files: Concurrent](
       input: Stream[F, Byte],
+      totalBytesRead: Ref[F, Long],
       maxSizeBeforeFile: Int,
       chunkSize: Int,
   ): Resource[F, Stream[F, Byte]] = {
-    def go(acc: Chunk[Byte], s: Stream[F, Byte]): Pull[F, Resource[F, Stream[F, Byte]], Unit] =
+
+    def accumulateUntilThreshold(
+        acc: Chunk[Byte],
+        s: Stream[F, Byte],
+    ): Pull[F, Resource[F, Stream[F, Byte]], Unit] =
       s.pull.uncons.flatMap {
         case Some((headChunk, tail)) =>
+          val newBytes = acc ++ headChunk
+
           // Append the incoming chunk of bytes to the accumulator
           // (should be cheap to do so thanks to Chunk's Queue encoding).
           // If the resulting buffer exceeds the threshold size, dump
           // it all to a temp file, along with any remaining bytes from
           // the `tail` stream. Otherwise, continue pulling and accumulating
           // the in-memory buffer.
-          val newBytes = acc ++ headChunk
-          if (newBytes.size > maxSizeBeforeFile) {
-            val toDump = Stream.chunk(newBytes) ++ tail
-            Pull.output1(
-              Files[F].tempFile
-                .evalTap { path =>
-                  toDump.through(Files[F].writeAll(path)).compile.drain
-                }
-                .map(Files[F].readAll(_, chunkSize, Flags.Read))
-            )
-          } else {
-            go(newBytes, tail)
+          Pull.eval(totalBytesRead.updateAndGet(_ + headChunk.size)).flatMap { total =>
+            if (total > maxSizeBeforeFile) {
+              val toDump = Stream.chunk(newBytes) ++ tail
+              Pull.output1(
+                Files[F].tempFile
+                  .evalTap(path => toDump.through(Files[F].writeAll(path)).compile.drain)
+                  .map(Files[F].readAll(_, chunkSize, Flags.Read))
+              )
+            } else {
+              accumulateUntilThreshold(newBytes, tail)
+            }
           }
-
-        case None =>
-          Pull.output1(Resource.pure(Stream.chunk[F, Byte](acc)))
+        case None => Pull.output1(Resource.pure(Stream.chunk[F, Byte](acc)))
       }
-    Resource.suspend {
-      go(Chunk.empty, input).stream.compile.lastOrError
-    }
+
+    Resource.suspend(
+      accumulateUntilThreshold(Chunk.empty, input).stream.compile.lastOrError
+    )
   }
+
 }

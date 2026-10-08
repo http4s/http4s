@@ -337,6 +337,52 @@ object EntityDecoder {
       chunkSize,
     )
 
+  /** Multipart decoder that streams all parts into a temporary file once the
+    * parts sum to at least `maxTotalSizeBeforeWrite`. The decoder is only
+    * valid inside the `Resource` scope; once the `Resource` is released all
+    * the created files are deleted.
+    *
+    * Note that no files are deleted until the `Resource` is released. Thus,
+    * sharing and reusing the resulting `EntityDecoder` is not recommended
+    * and can lead to disk space leaks.
+    *
+    * The intended way to use this is as follows:
+    * {{{
+    * mixedMultipartResourceTotalLimit[F]()
+    *   .flatTap(request.decodeWith(_, strict = true))
+    *   .use { multipart =>
+    *     // Use the decoded entity
+    *   }
+    * }}}
+    *
+    * @param headerLimit the max size for the headers, in bytes. This is required as
+    *                    headers are strictly evaluated and parsed.
+    * @param maxSizeBeforeWrite the maximum size across all parts before writing to a file is triggered
+    * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
+    *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
+    *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
+    *                 spec. You can control this by `failOnLimit`, by setting it to true if you want to raise
+    *                 an error if sending too many parts to a particular endpoint
+    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @param chunkSize the size of chunks created when reading data from temporary files.
+    * @return A multipart/form-data encoded vector of parts with some part bodies held in
+    *         temporary files.
+    */
+  def mixedMultipartResourceTotalLimit[F[_]: Concurrent: Files](
+      headerLimit: Int = 1024,
+      maxTotalSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 50,
+      failOnLimit: Boolean = false,
+      chunkSize: Int = 8192,
+  ): Resource[F, EntityDecoder[F, Multipart[F]]] =
+    MultipartDecoder.mixedMultipartResourceTotalLimit(
+      headerLimit = headerLimit,
+      maxTotalSizeBeforeWrite = maxTotalSizeBeforeWrite,
+      maxParts = maxParts,
+      failOnLimit = failOnLimit,
+      chunkSize = chunkSize,
+    )
+
   /** Multipart decoder that streams all parts past a threshold
     * (anything above maxSizeBeforeWrite) into a temporary file.
     *

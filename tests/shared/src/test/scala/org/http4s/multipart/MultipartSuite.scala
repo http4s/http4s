@@ -298,6 +298,49 @@ Content-Type: application/json
     testDeprecated
   }
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
+  multipartSpec("with total limited mixed resource decoder")(
+    MultipartDecoder.mixedMultipartResourceTotalLimit[IO]()
+  )
+
+  private def assertBufferedToDisk(
+      maxTotalSizeBeforeWrite: Int,
+      partSizes: List[Int],
+  )(expectedPartsBufferedToDisk: List[Boolean]): IO[Unit] = {
+    val parts = partSizes.zipWithIndex.map { case (n, i) =>
+      Part.fileData(
+        s"part$i",
+        s"file$i.bin",
+        Stream.constant[IO, Byte](0.toByte).take(n.toLong),
+      )
+    }
+    val decoder = MultipartDecoder.mixedMultipartResourceTotalLimit[IO](
+      maxTotalSizeBeforeWrite = maxTotalSizeBeforeWrite
+    )
+
+    multiparts.multipart(parts.toVector).flatMap { m =>
+      val request = Request[IO](
+        method = Method.POST,
+        uri = url,
+        headers = m.headers,
+        body = EntityEncoder[IO, Multipart[IO]].toEntity(m).body,
+      )
+
+      decoder
+        .use(_.decode(request, strict = true).value.rethrow)
+        .flatMap(_.parts.toList.traverse(_.body.compile.drain.attempt))
+        .map(_.map(_.isLeft))
+        .assertEquals(expectedPartsBufferedToDisk)
+    }
+  }
+  test("No disk buffering exactly at the limit")(
+    assertBufferedToDisk(10, List(10))(List(false))
+  )
+  test("Disk buffering when limit exceeds 1 byte")(
+    assertBufferedToDisk(10, List(11))(List(true))
+  )
+  test("Disk buffered when limit is reached across remaining parts") {
+    assertBufferedToDisk(20, List(8, 8, 8, 8))(List(false, false, true, true))
+  }
 
   private def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 
