@@ -3,6 +3,16 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M49 (2026-10-08)
+
+This is a forward merge of all changes from v0.23.38, including all security patches.
+
+## Behind the scenes
+* Merge series/0.23 into main by @danicheg in https://github.com/http4s/http4s/pull/7971
+* Tweak contributing guide for 2026 by @reardonj in https://github.com/http4s/http4s/pull/7948
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M48...v1.0.0-M49
+
 # v0.23.38 (2026-09-28)
 
 ## Security fixes
