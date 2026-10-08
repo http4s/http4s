@@ -30,9 +30,10 @@ import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.CloseStatusCode
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.framing.CloseFrame
+import org.java_websocket.enums.Opcode
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import org.java_websocket.handshake.ServerHandshake
@@ -44,7 +45,7 @@ import scala.concurrent.duration._
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
-  def service[F[_]](wsBuilder: WebSocketBuilder[F])(implicit F: Async[F]): HttpApp[F] = {
+  private def service[F[_]](wsBuilder: WebSocketBuilder[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -66,6 +67,14 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-replicated-response" =>
           val send = Stream(WebSocketFrame.Text("42")).repeatN(512)
           wsBuilder.build(send, _.void)
+        case GET -> Root / "ws-app-error" =>
+          val send = Stream.raiseError(new IllegalStateException("Oops"))
+          wsBuilder.build(send, _.void)
+        case GET -> Root / "ws-defragment-true" =>
+          val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.withFilter(_.opcode == 1)
+          wsBuilder
+            .withDefragment(true)
+            .build(sendReceive)
         case GET -> Root / "ws-filter-false" =>
           F.deferred[Unit].flatMap { deferred =>
             wsBuilder
@@ -82,14 +91,17 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .orNotFound
   }
 
-  val serverResource: Resource[IO, Server] =
+  private def serverResource(maxWebSocketMessageSize: Int): Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withPort(port"0")
       .withHttpWebSocketApp(service[IO])
+      .withMaxWebSocketMessageSize(maxWebSocketMessageSize)
       .build
 
-  private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
+  private def fixture(maxWebSocketMessageSize: Int = org.http4s.websocket.DefaultMaxMessageSize) =
+    (ResourceFunFixture(serverResource(maxWebSocketMessageSize)), dispatcher)
+      .mapN(FunFixture.map2(_, _))
 
   sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
@@ -105,9 +117,14 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     def close: IO[Unit] =
       IO(client.close()) >> waitClose.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def send(msg: String): IO[Unit] = IO(client.send(msg))
-    def ping(data: String): IO[Unit] = IO {
+    def sendFragmentedFrame(data: String, fin: Boolean): IO[Unit] = {
+      val bb = ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8))
+      IO(client.sendFragmentedFrame(Opcode.TEXT, bb, fin))
+    }
+    def ping(data: String, fin: Boolean = true): IO[Unit] = IO {
       val frame = new PingFrame()
       frame.setPayload(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)))
+      frame.setFin(fin)
       client.sendFrame(frame)
     }
   }
@@ -153,7 +170,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     Resource.make(acquire)(client => IO(client.client.closeBlocking()))
   }
 
-  fixture.test("open and close connection to server") { case (server, dispatcher) =>
+  fixture().test("open and close connection to server") { case (server, dispatcher) =>
     createClient(
       URI.create(s"ws://${server.address}/ws-echo"),
       dispatcher,
@@ -165,7 +182,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  fixture.test("send and receive a message") { case (server, dispatcher) =>
+  fixture().test("send and receive a message") { case (server, dispatcher) =>
     createClient(
       URI.create(s"ws://${server.address}/ws-echo"),
       dispatcher,
@@ -179,7 +196,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  fixture.test("respond to pings") { case (server, dispatcher) =>
+  fixture().test("respond to pings") { case (server, dispatcher) =>
     createClient(
       URI.create(s"ws://${server.address}/ws-echo"),
       dispatcher,
@@ -193,7 +210,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  fixture.test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
+  fixture().test("initiate close sequence with code=1000 (Normal) on stream termination") {
     case (server, dispatcher) =>
       createClient(
         URI.create(s"ws://${server.address}/ws-close"),
@@ -204,11 +221,79 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           _ <- client.messages.take
           _ <- client.remoteClosed.get
           code <- client.closeCode.get
-        } yield assertEquals(code, CloseFrame.NORMAL)
+        } yield assertEquals(code, CloseStatusCode.Normal.code)
       }
   }
 
-  fixture.test("server response and pong frames do not interfere") { case (server, dispatcher) =>
+  fixture().test(
+    "send a Close frame with code=1002 (ProtocolError) on receiving fragmented control frames"
+  ) { case (server, dispatcher) =>
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        data = List.fill(125)(0).mkString
+        _ <- client.ping(data, fin = false)
+        _ <- client.remoteClosed.get
+        code <- client.closeCode.get
+      } yield assertEquals(code, CloseStatusCode.ProtocolError.code)
+    }
+  }
+
+  fixture(maxWebSocketMessageSize = 1024).test(
+    "send a Close frame with code=1009 (TooBig) on exceeding max frame size"
+  ) { case (server, dispatcher) =>
+    createClient(
+      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        bigMsg = List.fill(2048)(0).mkString
+        _ <- client.send(bigMsg)
+        _ <- client.remoteClosed.get
+        code <- client.closeCode.get
+      } yield assertEquals(code, CloseStatusCode.TooBig.code)
+    }
+  }
+
+  fixture(maxWebSocketMessageSize = 1024).test(
+    "send a Close frame with code=1009 (TooBig) on exceeding max frame size for fragmented frames"
+  ) { case (server, dispatcher) =>
+    createClient(
+      URI.create(
+        s"ws://${server.address.getHostName}:${server.address.getPort}/ws-defragment-true"
+      ),
+      dispatcher,
+    ).use { client =>
+      for {
+        _ <- client.connect
+        msg = List.fill(600)(0).mkString
+        _ <- client.sendFragmentedFrame(msg, fin = false)
+        _ <- client.sendFragmentedFrame(msg, fin = true)
+        _ <- client.remoteClosed.get
+        code <- client.closeCode.get
+      } yield assertEquals(code, CloseStatusCode.TooBig.code)
+    }
+  }
+
+  fixture().test("send a Close frame with code=1011 (UnexpectedCondition) on app errors") {
+    case (server, dispatcher) =>
+      createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-app-error"),
+        dispatcher,
+      ).use { client =>
+        for {
+          _ <- client.connect
+          _ <- client.remoteClosed.get
+          code <- client.closeCode.get
+        } yield assertEquals(code, CloseStatusCode.UnexpectedCondition.code)
+      }
+  }
+
+  fixture().test("server response and pong frames do not interfere") { case (server, dispatcher) =>
     createClient(
       URI.create(
         s"ws://${server.address}/ws-replicated-response"
@@ -243,13 +328,13 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         code <- client.closeCode.get
       } yield {
         assertEquals(serverResponse, List.fill(512)("42"))
-        assertEquals(code, CloseFrame.NORMAL)
+        assertEquals(code, CloseStatusCode.Normal.code)
       }
     }
   }
 
-  fixture.test(
-    "combined pipe: server initiates close sequence with code=1000 (NORMAL) on stream completion"
+  fixture().test(
+    "combined pipe: server initiates close sequence with code=1000 (Normal) on stream completion"
   ) { case (server, dispatcher) =>
     createClient(
       URI.create(
@@ -264,12 +349,12 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         code <- client.closeCode.get
       } yield {
         assertEquals(msg, "foo")
-        assertEquals(code, CloseFrame.NORMAL)
+        assertEquals(code, CloseStatusCode.Normal.code)
       }
     }
   }
 
-  fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
+  fixture().test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
     createClient(
       URI.create(s"ws://${server.address}/ws-filter-false"),
       dispatcher,
@@ -282,7 +367,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
-  fixture.test("send and receive multiple messages") { case (server, dispatcher) =>
+  fixture().test("send and receive multiple messages") { case (server, dispatcher) =>
     val n = 10
     val messages = List.tabulate(n)(i => s"${i + 1}")
     createClient(
@@ -297,5 +382,4 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       } yield assertEquals(messagesReceived, messages)
     }
   }
-
 }
