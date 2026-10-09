@@ -31,9 +31,6 @@ import org.http4s.ember.core.Encoder
 import org.http4s.ember.core.Parser
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
-import org.http4s.ember.core.h2.H2Frame
-import org.http4s.ember.core.h2.H2Server
-import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
@@ -74,7 +71,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       idleTimeout: Duration,
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
-      enableHttp2: Boolean,
+      http2: Option[Http2Support[F]],
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       maxWebSocketFrameSize: Int,
@@ -108,7 +105,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       createRequestVault = true,
       webSocketKey,
-      enableHttp2 = enableHttp2,
+      http2 = http2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
       new WebSocketHelpers(maxWebSocketFrameSize),
@@ -135,7 +132,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       idleTimeout: Duration,
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
-      enableHttp2: Boolean,
+      http2: Option[Http2Support[F]],
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       maxWebSocketFrameSize: Int,
@@ -177,7 +174,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       createRequestVault = false,
       webSocketKey,
-      enableHttp2 = enableHttp2,
+      http2 = http2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
       new WebSocketHelpers(maxWebSocketFrameSize),
@@ -205,119 +202,113 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
-      enableHttp2: Boolean,
+      http2: Option[Http2Support[F]],
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
-    val h2FrameSettings = H2Frame.Settings.ConnectionSettings.default
-      .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
-
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         val handler: Stream[F, Nothing] = shutdown.trackConnection >>
           Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
+            .resource(upgradeSocket(connect, tlsInfoOpt, logger, http2))
             .handleErrorWith(err =>
               Stream.exec(logger.warn(err)("Failed to upgrade socket to TLS"))
             )
-            .flatMap {
-              case (socket, Some("h2")) =>
-                // ALPN H2 Strategy
-                Stream.exec(H2Server.requireConnectionPreface(socket, idleTimeout)) ++
-                  Stream
-                    .resource(
-                      H2Server
-                        .fromSocket[F](
+            .flatMap { case (socket, alpn) =>
+              (alpn, http2) match {
+                case (Some("h2"), Some(h2)) =>
+                  Stream.exec(h2.requirePreface(socket, idleTimeout)) ++
+                    Stream
+                      .resource(
+                        h2.serve(
                           socket,
                           httpApp,
                           requestHeaderReceiveTimeout,
                           idleTimeout,
-                          h2FrameSettings,
+                          maxHeaderSize,
                           logger,
                         )
-                    )
-                    .drain
-              case (socket, Some(_)) =>
-                // SSL Connection, not h2, will be http/1.1 but thats not how types align
-                // Prior Knowledge is only allowed over clear where application
-                // protocol has not been agreed via handshake
-                runConnection(
-                  socket,
-                  logger,
-                  idleTimeout,
-                  receiveBufferSize,
-                  maxHeaderSize,
-                  requestHeaderReceiveTimeout,
-                  httpApp,
-                  errorHandler,
-                  onWriteFailure,
-                  createRequestVault,
-                  webSocketKey,
-                  ByteVector.empty,
-                  requestLineParseErrorHandler,
-                  maxHeaderSizeErrorHandler,
-                  webSocketHelpers,
-                ).drain
-              case (socket, None) => // Cleartext Protocol
-                enableHttp2 match {
-                  case true =>
-                    // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
-                    // Otherwise this is now http1
-                    Stream.eval(H2Server.checkConnectionPreface(socket, idleTimeout)).flatMap {
-                      case Left(bv) =>
-                        runConnection(
-                          socket,
-                          logger,
-                          idleTimeout,
-                          receiveBufferSize,
-                          maxHeaderSize,
-                          requestHeaderReceiveTimeout,
-                          httpApp,
-                          errorHandler,
-                          onWriteFailure,
-                          createRequestVault,
-                          webSocketKey,
-                          bv, // Pass read bytes we thought might be the prelude
-                          requestLineParseErrorHandler,
-                          maxHeaderSizeErrorHandler,
-                          webSocketHelpers,
-                        ).drain
-                      case Right(_) =>
-                        Stream
-                          .resource(
-                            H2Server.fromSocket[F](
-                              socket,
-                              httpApp,
-                              requestHeaderReceiveTimeout,
-                              idleTimeout,
-                              h2FrameSettings,
-                              logger,
-                            )
+                      )
+                      .drain
+                case (Some(_), _) =>
+                  // SSL Connection, not h2, will be http/1.1 but thats not how types align
+                  // Prior Knowledge is only allowed over clear where application
+                  // protocol has not been agreed via handshake
+                  runConnection(
+                    socket,
+                    logger,
+                    idleTimeout,
+                    receiveBufferSize,
+                    maxHeaderSize,
+                    requestHeaderReceiveTimeout,
+                    httpApp,
+                    errorHandler,
+                    onWriteFailure,
+                    createRequestVault,
+                    webSocketKey,
+                    ByteVector.empty,
+                    requestLineParseErrorHandler,
+                    maxHeaderSizeErrorHandler,
+                    webSocketHelpers,
+                  ).drain
+                case (None, Some(h2)) => // Cleartext Protocol
+                  // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+                  // Otherwise this is now http1
+                  Stream.eval(h2.checkPreface(socket, idleTimeout)).flatMap {
+                    case Left(bv) =>
+                      runConnection(
+                        socket,
+                        logger,
+                        idleTimeout,
+                        receiveBufferSize,
+                        maxHeaderSize,
+                        requestHeaderReceiveTimeout,
+                        httpApp,
+                        errorHandler,
+                        onWriteFailure,
+                        createRequestVault,
+                        webSocketKey,
+                        bv, // Pass read bytes we thought might be the prelude
+                        requestLineParseErrorHandler,
+                        maxHeaderSizeErrorHandler,
+                        webSocketHelpers,
+                      ).drain
+                    case Right(_) =>
+                      Stream
+                        .resource(
+                          h2.serve(
+                            socket,
+                            httpApp,
+                            requestHeaderReceiveTimeout,
+                            idleTimeout,
+                            maxHeaderSize,
+                            logger,
                           )
-                          .drain
-                    }
-                  // Since its not enabled, run connection normally.
-                  case false =>
-                    runConnection(
-                      socket,
-                      logger,
-                      idleTimeout,
-                      receiveBufferSize,
-                      maxHeaderSize,
-                      requestHeaderReceiveTimeout,
-                      httpApp,
-                      errorHandler,
-                      onWriteFailure,
-                      createRequestVault,
-                      webSocketKey,
-                      ByteVector.empty,
-                      requestLineParseErrorHandler,
-                      maxHeaderSizeErrorHandler,
-                      webSocketHelpers,
-                    ).drain
-                }
+                        )
+                        .drain
+                  }
+                // Since its not enabled, run connection normally.
+                case (None, None) =>
+                  runConnection(
+                    socket,
+                    logger,
+                    idleTimeout,
+                    receiveBufferSize,
+                    maxHeaderSize,
+                    requestHeaderReceiveTimeout,
+                    httpApp,
+                    errorHandler,
+                    onWriteFailure,
+                    createRequestVault,
+                    webSocketKey,
+                    ByteVector.empty,
+                    requestLineParseErrorHandler,
+                    maxHeaderSizeErrorHandler,
+                    webSocketHelpers,
+                  ).drain
+              }
             }
 
         def fullConnectionErrorHandler(t: Throwable): F[Unit] =
@@ -354,15 +345,13 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F],
-      enableHttp2: Boolean,
+      http2: Option[Http2Support[F]],
   )(implicit F: MonadError[F, Throwable]): Resource[F, (Socket[F], Option[String])] =
     tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) {
       case (context, params) =>
-        val newParams = if (enableHttp2) {
-          // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
-          // As this is the only JVM specific code
-          H2TLS.transform(params)
-        } else params
+        // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
+        // As this is the only JVM specific code
+        val newParams = http2.fold(params)(_.transformTls(params))
 
         Resource
           .eval {
