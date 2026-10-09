@@ -44,6 +44,8 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
     */
   val → : impl.->.type = impl.->
 
+  lazy val PathVar: impl.PathVar.type = impl.PathVar
+
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
   val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
