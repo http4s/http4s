@@ -229,7 +229,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     "send a Close frame with code=1002 (ProtocolError) on receiving fragmented control frames"
   ) { case (server, dispatcher) =>
     createClient(
-      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      URI.create(s"ws://${server.address}/ws-echo"),
       dispatcher,
     ).use { client =>
       for {
@@ -246,7 +246,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     "send a Close frame with code=1009 (TooBig) on exceeding max frame size"
   ) { case (server, dispatcher) =>
     createClient(
-      URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+      URI.create(s"ws://${server.address}/ws-echo"),
       dispatcher,
     ).use { client =>
       for {
@@ -264,7 +264,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   ) { case (server, dispatcher) =>
     createClient(
       URI.create(
-        s"ws://${server.address.getHostName}:${server.address.getPort}/ws-defragment-true"
+        s"ws://${server.address}/ws-defragment-true"
       ),
       dispatcher,
     ).use { client =>
@@ -282,7 +282,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   fixture().test("send a Close frame with code=1011 (UnexpectedCondition) on app errors") {
     case (server, dispatcher) =>
       createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-app-error"),
+        URI.create(s"ws://${server.address}/ws-app-error"),
         dispatcher,
       ).use { client =>
         for {
