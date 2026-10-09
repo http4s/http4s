@@ -153,7 +153,7 @@ class H2FrameSizeSuite extends H2Suite {
       (h2, consumed, writes) = t
       _ <- h2.readLoop
       n <- consumed
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
       goAway = firstGoAway(frames)
       _ = assert(goAway.nonEmpty, clue(frames))
       _ = assertEquals(
@@ -182,7 +182,7 @@ class H2FrameSizeSuite extends H2Suite {
       t <- mkConnection(input)
       (h2, _, writes) = t
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
       goAway = firstGoAway(frames)
       _ = assert(goAway.nonEmpty, clue(frames))
       _ = assertEquals(
@@ -207,7 +207,7 @@ class H2FrameSizeSuite extends H2Suite {
         t <- mkConnection(input)
         (h2, _, writes) = t
         _ <- h2.readLoop
-        frames <- writes.get.map(decodeFrames)
+        frames <- drainOutgoing(h2, writes)
         goAway = firstGoAway(frames)
         _ = assert(goAway.nonEmpty, clue(frames))
         _ = assertEquals(

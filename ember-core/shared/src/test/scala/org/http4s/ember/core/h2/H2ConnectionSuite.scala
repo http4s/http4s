@@ -178,7 +178,7 @@ class H2ConnectionSuite extends H2Suite {
       stream <- h2.initiateRemoteStreamById(1)
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
     } yield assertEquals(
       frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
       Some(H2Error.FlowControlError.value),
@@ -198,7 +198,7 @@ class H2ConnectionSuite extends H2Suite {
       _ <- h2.initiateRemoteStreamById(1)
       _ <- h2.mapRef.set(Map.empty)
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
     } yield assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
   }
 
@@ -218,7 +218,7 @@ class H2ConnectionSuite extends H2Suite {
       writes <- Ref[IO].of(ByteVector.empty)
       h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, input, writes)
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
     } yield assertEquals(
       frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
       Some(H2Error.ProtocolError.value),
@@ -238,7 +238,7 @@ class H2ConnectionSuite extends H2Suite {
       _ <- h2.initiateRemoteStreamById(1)
       _ <- h2.mapRef.set(Map.empty)
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
     } yield assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
   }
 
@@ -252,7 +252,7 @@ class H2ConnectionSuite extends H2Suite {
         writes,
       )
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
     } yield assertEquals(
       frames.collectFirst { case g: H2Frame.GoAway => g.errorCode.toInt },
       Some(H2Error.ProtocolError.value),
@@ -270,7 +270,7 @@ class H2ConnectionSuite extends H2Suite {
       // input is 40+40, max is 100 ... it fits
       h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input, writes)
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
       _ = assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
       st <- h2.state.get
       _ = assertEquals(st.headersInProgress.map(_.size), Some(80L))
@@ -286,7 +286,7 @@ class H2ConnectionSuite extends H2Suite {
       writes <- Ref[IO].of(ByteVector.empty)
       h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input, writes)
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
       goAways = frames.collectFirst { case g: H2Frame.GoAway => g }
       _ = assert(goAways.nonEmpty, clue(frames))
       _ = assertEquals(goAways.get.errorCode.toInt, H2Error.EnhanceYourCalm.value)
@@ -306,7 +306,7 @@ class H2ConnectionSuite extends H2Suite {
       // 10 + 200 = 210 > 100
       h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input, writes)
       _ <- h2.readLoop
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
       goAway = frames.collectFirst { case g: H2Frame.GoAway => g }
       _ = assert(goAway.nonEmpty, clue(frames))
       _ = assertEquals(goAway.get.errorCode.toInt, H2Error.EnhanceYourCalm.value)
@@ -325,7 +325,7 @@ class H2ConnectionSuite extends H2Suite {
       // 10 + 30 <= 100; will fail HPACK decode but must not GoAway(EnhanceYourCalm)
       h2 <- mkConnection(settingsWithMaxHeaderListSize(100), input, writes)
       _ <- h2.readLoop.attempt
-      frames <- writes.get.map(decodeFrames)
+      frames <- drainOutgoing(h2, writes)
       _ = assert(
         !frames
           .collect { case g: H2Frame.GoAway => g }

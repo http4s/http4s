@@ -238,9 +238,16 @@ private[h2] class H2Connection[F[_]](
         mapRef.get.flatMap(_.values.toList.traverse_(_.sendReadWindowUpdate))
     }
 
+  def goAway(error: H2Error): F[Unit] =
+    state.get.map(_.remoteHighestStream).flatMap { i =>
+      val g = error.toGoAway(i)
+      offerFrame(g)
+    } >>
+      H2Connection.KillWithoutMessage().raiseError
+
   // Terminate the connection. Skips over the write queue, as it may be
   // triggered by a stall in writeChunk to begin with.
-  def goAway(error: H2Error): F[Unit] =
+  def goAwayImmediately(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
       val g = error.toGoAway(i)
       // Last-ditch timeout in case TCP layer is stalled.
@@ -250,8 +257,12 @@ private[h2] class H2Connection[F[_]](
           idleTimeout,
         )
         .recoverWith { case e: Throwable => logger.warn(e)("Failed to send GOAWAY") } >>
-        mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(g)))
-    } >> state.update(_.copy(closed = true)) >> H2Connection.KillWithoutMessage().raiseError
+        closeWithGoAway(g)
+    } >> H2Connection.KillWithoutMessage().raiseError
+
+  private def closeWithGoAway(goAway: H2Frame.GoAway) =
+    mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(goAway))) >>
+      state.update(s => s.copy(closed = true))
 
   def offerFrame(frame: H2Frame): F[Unit] =
     frame match {
@@ -293,13 +304,13 @@ private[h2] class H2Connection[F[_]](
             val remaining = idleTimeout - elapsed
             if (remaining <= Duration.Zero) {
               logger.debug(s"connection stall timeout exceeded ($elapsed)") >>
-                goAway(H2Error.ProtocolError)
+                goAwayImmediately(H2Error.ProtocolError)
             } else
               Temporal[F].timeoutTo(
                 fa,
                 remaining,
                 logger.debug(s"stream stall timeout exceeded") >>
-                  goAway(H2Error.ProtocolError),
+                  goAwayImmediately(H2Error.ProtocolError),
               )
           }
           .onCancel(state.update { st =>
@@ -327,10 +338,13 @@ private[h2] class H2Connection[F[_]](
       acc ++ H2Frame.toByteVector(frame)
     }
 
+    val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway => closeWithGoAway(g) }
+
     withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
       recordReadCredit(chunk) >>
       chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
-      state.update(s => s.copy(stallStart = None))
+      state.update(s => s.copy(stallStart = None)) >>
+      firstGoAway.getOrElse(F.unit)
   }
 
   def writeLoop: Stream[F, Nothing] =

@@ -16,10 +16,24 @@
 
 package org.http4s.ember.core.h2
 
+import cats.effect._
+import fs2.Stream
 import org.http4s.Http4sSuite
 import scodec.bits.ByteVector
 
+import scala.concurrent.duration.DurationInt
+
 trait H2Suite extends Http4sSuite {
+
+  protected def drainOutgoing(
+      h2: H2Connection[IO],
+      writes: Ref[IO, ByteVector],
+  ): IO[Vector[H2Frame]] =
+    h2.writeLoop
+      .interruptWhen(Stream.awakeEvery[IO](50.millis).evalMap(_ => h2.state.get.map(_.closed)))
+      .compile
+      .drain >> writes.get.map(decodeFrames)
+
   protected def decodeFrames(bv: ByteVector): Vector[H2Frame] = {
     @annotation.tailrec
     def go(rest: ByteVector, acc: Vector[H2Frame]): Vector[H2Frame] =

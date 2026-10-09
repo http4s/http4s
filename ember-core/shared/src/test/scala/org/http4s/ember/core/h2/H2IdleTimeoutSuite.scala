@@ -275,7 +275,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
       for {
         h2 <- mkConnection(stalledSocket)
         stream <- h2.initiateRemoteStreamById(1)
-        _ <- h2.goAway(H2Error.ProtocolError).attempt
+        _ <- h2.goAwayImmediately(H2Error.ProtocolError).attempt
         streamState <- stream.state.get.map(_.state)
         closed <- h2.state.get.map(_.closed)
       } yield {
