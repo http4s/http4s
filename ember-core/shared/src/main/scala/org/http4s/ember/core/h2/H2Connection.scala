@@ -210,12 +210,7 @@ private[h2] class H2Connection[F[_]](
       logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
-    _ <- state.update(s =>
-      s.copy(
-        highestStream = Math.max(s.highestStream, id),
-        remoteHighestStream = Math.max(s.remoteHighestStream, id),
-      )
-    )
+    _ <- state.update(s => s.copy(remoteHighestStream = Math.max(s.remoteHighestStream, id)))
   } yield stream
 
   /** Records consumed or discarded bytes without waiting for the outgoing queue.
@@ -700,7 +695,7 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-      case (d @ H2Frame.Data(i, _, _, _), _) =>
+      case (d @ H2Frame.Data(i, _, _, _), st) =>
         val size = d.flowControlSize
         val reserveWindow = state.modify { s =>
           val remaining = s.readWindow - size
@@ -720,6 +715,18 @@ private[h2] class H2Connection[F[_]](
           case true =>
             mapRef.get.map(_.get(i)).flatMap {
               case Some(s) => s.receiveData(d)
+              case None if isClosedStream(i, st) =>
+                creditReadWindow(size) >> (connectionType match {
+                  // We forget a stream as soon as we reset it, so its DATA may be in flight
+                  case H2Connection.ConnectionType.Client =>
+                    logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
+                  // We forget a stream a second after closing it, beyond any round trip
+                  case H2Connection.ConnectionType.Server =>
+                    logger.debug(
+                      s"$addrStr Received Data Frame for Closed Stream $i - Resetting"
+                    ) >>
+                      outgoing.tryOffer(Chunk.singleton(H2Error.StreamClosed.toRst(i))).void
+                })
               case None =>
                 logger.warn(
                   s"Received Data Frame for Idle Stream $i - Protocol Error - Issuing GoAway"
