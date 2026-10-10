@@ -17,6 +17,7 @@
 package org.http4s.ember.server
 
 import cats.effect._
+import cats.effect.kernel.Deferred
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
@@ -213,6 +214,45 @@ class EmberServerSuite extends Http4sSuite {
             serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
         }
     }
+  }
+
+  test("#6954 - request cancels if client close connection http1.1") {
+    import org.http4s.dsl.io._
+
+    for {
+      started <- Deferred[IO, Unit]
+      cancelled <- Deferred[IO, Unit]
+
+      app = HttpApp[IO] {
+        case GET -> Root / "cancel" =>
+          started.complete(()) *>
+            IO.never.onCancel(cancelled.complete(()).void)
+
+        case _ =>
+          NotFound()
+      }
+
+      _ <- (
+        EmberServerBuilder
+          .default[IO]
+          .withHttp2
+          .withHttpApp(app)
+          .withPort(port"0")
+          .build,
+        EmberClientBuilder
+          .default[IO]
+          .build,
+      ).tupled
+        .use { case (server, client) =>
+          val req = Request[IO](Method.GET, uri = url(server.addressIp4s, "/cancel"))
+          for {
+            reqFiber <- client.expect[String](req).start
+            _ <- started.get.timeout(5.seconds)
+            _ <- reqFiber.cancel
+            _ <- cancelled.get.timeout(5.seconds)
+          } yield ()
+        }
+    } yield ()
   }
 
 }
