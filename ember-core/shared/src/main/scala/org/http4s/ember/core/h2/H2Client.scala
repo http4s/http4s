@@ -188,11 +188,11 @@ private[ember] class H2Client[F[_]](
         ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
         stateRef <- H2Connection.initState[F](
           defaultSettings,
-          defaultSettings.initialWindowSize,
           localSettings.initialWindowSize,
         )
         pendingReadCredit <- SignallingRef[F, Int](0)
-        queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
+        writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
+        queue <- cats.effect.std.Queue.bounded[F, H2Frame](128)
         hpack <- Hpack.create[F](
           localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
         )
@@ -210,6 +210,7 @@ private[ember] class H2Client[F[_]](
         ref,
         stateRef,
         pendingReadCredit,
+        writeWindow,
         queue,
         created,
         closed,
@@ -262,7 +263,7 @@ private[ember] class H2Client[F[_]](
 
     def processSettings(h2: H2Connection[F]): F[Unit] = {
       val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
-      h2.outgoing.offer(Chunk.singleton(localSetts))
+      h2.offerFrame(localSetts)
     }
 
     for {

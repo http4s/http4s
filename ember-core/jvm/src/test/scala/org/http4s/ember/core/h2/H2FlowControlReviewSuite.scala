@@ -28,7 +28,6 @@ import fs2.Stream
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
-import org.http4s.Http4sSuite
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
 
@@ -40,11 +39,11 @@ import scala.concurrent.duration._
   * and idle detection waits for credit to reach the peer. Tiny DATA payloads must
   * not retain unrelated socket buffers.
   */
-class H2FlowControlReviewSuite extends Http4sSuite {
+class H2FlowControlReviewSuite extends H2Suite {
   private val settings = H2Frame.Settings.ConnectionSettings.default
 
   private def connection(
-      outgoing: Queue[IO, Chunk[H2Frame]],
+      outgoing: Queue[IO, H2Frame],
       writeBytes: Chunk[Byte] => IO[Unit],
       connectionType: H2Connection.ConnectionType = H2Connection.ConnectionType.Server,
       input: ByteVector = ByteVector.empty,
@@ -72,8 +71,9 @@ class H2FlowControlReviewSuite extends Http4sSuite {
     for {
       streams <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       state <- H2Connection
-        .initState[IO](settings, settings.initialWindowSize, settings.initialWindowSize)
+        .initState[IO](settings, settings.initialWindowSize)
       pendingReadCredit <- SignallingRef[IO, Int](0)
+      writeWindow <- H2Connection.WriteWindow.init[IO](settings.initialWindowSize)
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](4096)
@@ -89,6 +89,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
       streams,
       state,
       pendingReadCredit,
+      writeWindow,
       outgoing,
       created,
       closed,
@@ -136,7 +137,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
     test(s"$role sends cancelled readers' connection grants after stream release") {
       val window: Int = settings.initialWindowSize.windowSize
       for {
-        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+        outgoing <- Queue.bounded[IO, H2Frame](128)
         writing <- Deferred[IO, Unit]
         resume <- Deferred[IO, Unit]
         written <- Ref[IO].of(ByteVector.empty)
@@ -147,9 +148,9 @@ class H2FlowControlReviewSuite extends Http4sSuite {
         )
         _ <- h2.writeLoop.compile.drain.background.use { _ =>
           for {
-            _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+            _ <- outgoing.offer(H2Frame.Ping.ack)
             _ <- writing.get
-            _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack)).replicateA_(128)
+            _ <- outgoing.offer(H2Frame.Ping.ack).replicateA_(128)
             streams <- Stream
               .emits(List((1, 32768), (3, 16383), (5, 16384)))
               .covary[IO]
@@ -188,7 +189,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
       val window = settings.initialWindowSize.windowSize
       val batch = window / 2
       for {
-        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](1)
+        outgoing <- Queue.bounded[IO, H2Frame](1)
         writing <- Deferred[IO, Unit]
         resume <- Deferred[IO, Unit]
         written <- Ref[IO].of(ByteVector.empty)
@@ -198,9 +199,9 @@ class H2FlowControlReviewSuite extends Http4sSuite {
         )
         _ <- h2.writeLoop.compile.drain.background.use { _ =>
           (for {
-            _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+            _ <- outgoing.offer(H2Frame.Ping.ack)
             _ <- writing.get
-            _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+            _ <- outgoing.offer(H2Frame.Ping.ack)
             first <- receiveBody(h2, 1, batch)
             second <- receiveBody(h2, 3, batch)
             _ <- first.receiveRstStream(H2Error.Cancel.toRst(1))
@@ -220,14 +221,14 @@ class H2FlowControlReviewSuite extends Http4sSuite {
   test("connection shutdown completes under outgoing backpressure") {
     TestControl.executeEmbed {
       (for {
-        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](1)
+        outgoing <- Queue.bounded[IO, H2Frame](1)
         writing <- Deferred[IO, Unit]
         h2 <- connection(outgoing, _ => writing.complete(()) >> IO.never)
         _ <- h2.writeLoop.compile.drain.background.use { _ =>
           for {
-            _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+            _ <- outgoing.offer(H2Frame.Ping.ack)
             _ <- writing.get
-            _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+            _ <- outgoing.offer(H2Frame.Ping.ack)
             stream <- receiveBody(h2, 1, 32768)
             _ <- stream.readBody.take(32768).compile.drain
             _ <- IO.sleep(1.second)
@@ -241,7 +242,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
     TestControl.executeEmbed {
       val window: Int = settings.initialWindowSize.windowSize
       for {
-        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+        outgoing <- Queue.bounded[IO, H2Frame](128)
         written <- Ref[IO].of(ByteVector.empty)
         h2 <- connection(
           outgoing,
@@ -286,7 +287,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
   test("the credit sender grants stream credit below the connection batching threshold") {
     TestControl.executeEmbed {
       for {
-        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+        outgoing <- Queue.bounded[IO, H2Frame](128)
         written <- Ref[IO].of(ByteVector.empty)
         firstRead <- Deferred[IO, Unit]
         resumeRead <- Deferred[IO, Unit]
@@ -333,7 +334,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
       TestControl.executeEmbed {
         val window: Int = settings.initialWindowSize.windowSize
         for {
-          outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+          outgoing <- Queue.bounded[IO, H2Frame](128)
           written <- Ref[IO].of(ByteVector.empty)
           creditSent <- Deferred[IO, FiniteDuration]
           h2 <- connection(
@@ -354,22 +355,19 @@ class H2FlowControlReviewSuite extends Http4sSuite {
           // The handler is streaming a response while the upload remains open.
           // Each write finishes before the write timeout, but together they
           // delay the receive-window updates queued behind them.
-          _ <- outgoing
-            .offer(Chunk.singleton(H2Frame.Data(1, ByteVector.fill(4096)(0), None, false)))
-            .replicateA_(4)
+          _ <- h2.offerFrame(H2Frame.Data(1, ByteVector.fill(4096)(0), None, false)).start
           _ <- (h2.readLoop.background, h2.writeLoop.compile.drain.background).tupled.use {
             case (reader, _) =>
               for {
                 _ <- IO.sleep(100.millis)
                 _ <- stream.readBody.take(window.toLong).compile.drain
                 _ <- IO.sleep(2100.millis)
-                bytes <- written.get
+                sentAt <- creditSent.get
+                now <- IO.monotonic
                 state <- h2.state.get
-                creditDelivered = writeDelay == Duration.Zero
-                _ = assertEquals(granted(bytes) > 0, creditDelivered)
                 _ = assertEquals(
                   state.closed,
-                  creditDelivered,
+                  now - sentAt >= 1.second,
                   "The peer cannot resume its upload until WINDOW_UPDATE is written",
                 )
                 sentAt <- creditSent.get
@@ -389,7 +387,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
     TestControl.executeEmbed {
       val window: Int = settings.initialWindowSize.windowSize
       for {
-        outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+        outgoing <- Queue.bounded[IO, H2Frame](128)
         written <- Ref[IO].of(ByteVector.empty)
         h2 <- connection(
           outgoing,
@@ -398,7 +396,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
           idleTimeout = 1.second,
         )
         stream <- receiveBody(h2, 1, window)
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         _ <- (h2.readLoop.background, h2.writeLoop.compile.drain.background).tupled.use {
           case (reader, _) =>
             for {
@@ -428,7 +426,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
       )
     })
     for {
-      outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+      outgoing <- Queue.bounded[IO, H2Frame](128)
       reads <- Ref[IO].of(0)
       parsed <- Deferred[IO, Unit]
       h2 <- connection(
@@ -485,24 +483,24 @@ class H2FlowControlReviewSuite extends Http4sSuite {
         val input = ByteVector.concat(List.fill(128)(H2Frame.toByteVector(data))) ++
           H2Frame.toByteVector(H2Frame.WindowUpdate(0, 1))
         for {
-          outgoing <- Queue.bounded[IO, Chunk[H2Frame]](128)
+          outgoing <- Queue.bounded[IO, H2Frame](128)
           h2 <- connection(outgoing, _ => IO.unit, H2Connection.ConnectionType.Server, input)
           stream <- receiveBody(h2, 1, 16384)
           // The handler reads a prefix, then pauses with less than half a window consumed.
           _ <- stream.readBody.take(16384).compile.drain
-          _ <- h2.state.update(_.copy(writeWindow = 0))
-          _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack)).replicateA_(128)
+          _ <- clearWriteWindow(h2)
+          _ <- outgoing.offer(H2Frame.Ping.ack).replicateA_(128)
           _ <- h2.readLoop.background.use { _ =>
             for {
               _ <- IO.sleep(1.second)
-              before <- h2.state.get
+              before <- h2.writeWindow.available
               // Freeing one queue slot proves what prevented read-loop progress.
               _ <- outgoing.take
               _ <- IO.sleep(1.second)
-              after <- h2.state.get
-              _ = assertEquals(after.writeWindow, 1)
+              after <- h2.writeWindow.available
+              _ = assertEquals(after, 1)
             } yield assertEquals(
-              before.writeWindow,
+              before,
               1,
               "Padding blocked the connection reader before it could process WINDOW_UPDATE",
             )

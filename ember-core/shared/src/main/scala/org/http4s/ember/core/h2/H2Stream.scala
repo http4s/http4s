@@ -48,7 +48,7 @@ private[h2] class H2Stream[F[_]: Temporal](
     private[this] val bodyDone: Deferred[F, Either[Throwable, Unit]],
     private[this] val readBufferLock: Semaphore[F],
     val hpack: Hpack[F],
-    val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
+    val enqueue: H2Frame => F[Unit],
     val onClosed: F[Unit],
     val goAway: H2Error => F[Unit],
     val creditConnection: Int => F[Unit],
@@ -68,7 +68,7 @@ private[h2] class H2Stream[F[_]: Temporal](
                 h <- hpack.encodeHeaders(headers)
                 frame = H2Frame.PushPromise(originating, endHeaders = true, id, h, None)
                 _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
-                _ <- enqueue.offer(Chunk.singleton(frame))
+                _ <- enqueue(frame)
               } yield ()
             case _ =>
               new IllegalStateException(
@@ -121,7 +121,7 @@ private[h2] class H2Stream[F[_]: Temporal](
             StreamState.ReservedLocal =>
           hpack.encodeHeaders(headers).flatMap { bv =>
             val f = H2Frame.Headers(id, None, endStream, endHeaders = true, bv, None)
-            enqueue.offer(Chunk.singleton(f))
+            enqueue(f)
           } <*
             state
               .modify { b =>
@@ -149,7 +149,7 @@ private[h2] class H2Stream[F[_]: Temporal](
     s.state match {
       case StreamState.Open | StreamState.HalfClosedRemote =>
         if (bv.size.toInt <= s.writeWindow && s.writeWindow > 0) {
-          enqueue.offer(Chunk.singleton(H2Frame.Data(id, bv, None, endStream))) >>
+          enqueue(H2Frame.Data(id, bv, None, endStream)) >>
             state
               .modify { s =>
                 val newState = if (endStream) {
@@ -179,7 +179,7 @@ private[h2] class H2Stream[F[_]: Temporal](
               }
               .flatMap { case (head, tail) =>
                 val frame = H2Frame.Data(id, head, None, endStream = false)
-                enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
+                enqueue(frame) >> sendData(tail, endStream)
               }
           } else {
             Temporal[F].monotonic
@@ -437,7 +437,7 @@ private[h2] class H2Stream[F[_]: Temporal](
       }
       .flatMap { case (grant, trailers) =>
         Temporal[F]
-          .race(enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, grant))), trailers.get)
+          .race(enqueue(H2Frame.WindowUpdate(id, grant)), trailers.get)
           .void
           .whenA(grant > 0)
       }
@@ -485,7 +485,7 @@ private[h2] class H2Stream[F[_]: Temporal](
     for {
       s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
       _ <- cancelBody(s, s"Sending RstStream, cancelling: $rst")
-      _ <- enqueue.offer(Chunk.singleton(rst))
+      _ <- enqueue(rst)
       _ <- onClosed
     } yield ()
   }

@@ -77,16 +77,40 @@ class H2IdleTimeoutSuite extends Http4sSuite {
     def supportedOptions: IO[Set[SocketOption.Key[_]]] = IO.pure(Set.empty)
   }
 
-  private def mkConnection: IO[H2Connection[IO]] =
+  /** A connected socket that never delivers another byte and never closes,
+    * which is what a silent peer looks like to the read loop.
+    */
+  private val stalledSocket: Socket[IO] = new Socket[IO] {
+    def read(maxBytes: Int): IO[Option[Chunk[Byte]]] = IO.never
+    def readN(numBytes: Int): IO[Chunk[Byte]] = IO.never
+    def reads: Stream[IO, Byte] = Stream.never[IO]
+    def write(bytes: Chunk[Byte]): IO[Unit] = IO.never
+    def writes: Pipe[IO, Byte, Nothing] = stream => stream >> Stream.never[IO]
+    def endOfInput: IO[Unit] = IO.unit
+    def endOfOutput: IO[Unit] = IO.unit
+    def isOpen: IO[Boolean] = IO.pure(true)
+    def localAddress: IO[SocketAddress[IpAddress]] = IO.pure(addr)
+    def remoteAddress: IO[SocketAddress[IpAddress]] = IO.pure(addr)
+    def peerAddress: GenSocketAddress = addr
+    def address: GenSocketAddress = addr
+    def getOption[A](key: SocketOption.Key[A]): IO[Option[A]] = IO.pure(None)
+    def setOption[A](key: SocketOption.Key[A], value: A): IO[Unit] = IO.unit
+    def supportedOptions: IO[Set[SocketOption.Key[_]]] = IO.pure(Set.empty)
+  }
+
+  private def mkConnection(socket: Socket[IO]): IO[H2Connection[IO]] =
     for {
       mapRef <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       stateRef <- H2Connection.initState[IO](
         H2Frame.Settings.ConnectionSettings.default,
-        H2Frame.Settings.ConnectionSettings.default.initialWindowSize,
+
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[IO, Int](0)
-      outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
+      writeWindow <- H2Connection.WriteWindow.init[IO](
+        H2Frame.Settings.ConnectionSettings.default.initialWindowSize
+      )
+      outgoing <- Queue.unbounded[IO, H2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize))
@@ -102,6 +126,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
       mapRef,
       stateRef,
       pendingReadCredit,
+      writeWindow,
       outgoing,
       created,
       closed,
@@ -109,7 +134,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
       lock.permit,
       ack,
       ByteVector.empty,
-      silentSocket,
+      socket,
       logger,
     )
 
@@ -136,7 +161,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
 
   test("readLoop gives up on a peer that stops sending") {
     for {
-      h2 <- mkConnection
+      h2 <- mkConnection(silentSocket)
       // Some(outcome) if readLoop terminated on its own, either normally or in
       // error. None if it was still waiting on the socket when patience ran out.
       // Note the timeout has to be on the outside: cancelling readLoop runs its
@@ -159,7 +184,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
 
   test("readLoop keeps waiting for a stream opened while the timeout was running") {
     for {
-      h2 <- mkConnection
+      h2 <- mkConnection(silentSocket)
       _ <- (IO.sleep(idleTimeout / 2) >> h2.initiateRemoteStreamById(1)).start
       terminated <- h2.readLoop.attempt.as(true).timeoutTo(idleTimeout * 4, IO.pure(false))
       _ = assert(
@@ -174,7 +199,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
 
   test("readLoop keeps waiting while a stream awaits its response") {
     for {
-      h2 <- mkConnection
+      h2 <- mkConnection(silentSocket)
       stream <- h2.initiateRemoteStreamById(1)
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.HalfClosedRemote))
       terminated <- h2.readLoop.attempt.as(true).timeoutTo(idleTimeout * 4, IO.pure(false))
@@ -190,7 +215,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
 
   test("readLoop gives up on a peer that stalls mid request") {
     for {
-      h2 <- mkConnection
+      h2 <- mkConnection(silentSocket)
       stream <- h2.initiateRemoteStreamById(1)
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
       outcome <- h2.readLoop.attempt.map(Some(_)).timeoutTo(patience, IO.pure(None))
@@ -211,7 +236,7 @@ class H2IdleTimeoutSuite extends Http4sSuite {
       TestControl.executeEmbed {
         val window: Int = localSettings.initialWindowSize.windowSize
         for {
-          h2 <- mkConnection
+          h2 <- mkConnection(silentSocket)
           stream <- h2.initiateRemoteStreamById(1)
           _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
           _ <-
@@ -245,6 +270,21 @@ class H2IdleTimeoutSuite extends Http4sSuite {
             }
           }
         } yield ()
+      }
+    }
+  }
+
+  test("goAway closes streams even when the GOAWAY write stalls") {
+    TestControl.executeEmbed {
+      for {
+        h2 <- mkConnection(stalledSocket)
+        stream <- h2.initiateRemoteStreamById(1)
+        _ <- h2.goAwayImmediately(H2Error.ProtocolError).attempt
+        streamState <- stream.state.get.map(_.state)
+        closed <- h2.state.get.map(_.closed)
+      } yield {
+        assertEquals(streamState, H2Stream.StreamState.Closed)
+        assert(closed)
       }
     }
   }
