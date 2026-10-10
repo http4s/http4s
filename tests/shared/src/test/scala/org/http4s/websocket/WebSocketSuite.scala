@@ -198,7 +198,7 @@ class WebSocketSuite extends Http4sSuite {
 
   test("decode accepts control frames with a 125-byte payload") {
     val maskingKey = ByteVector(0x01, 0x02, 0x03, 0x04)
-    val data = Array.fill(125)(0x42.toByte)
+    val data = Array.fill(125)(0x42.toByte).view
 
     def pingFrame(masked: Boolean) =
       // 0x89 -> FIN=1, opcode=Ping
@@ -206,14 +206,14 @@ class WebSocketSuite extends Http4sSuite {
       // 0x7d -> MASK=0, 125
       if (masked) {
         val maskedArr =
-          data.zipWithIndex.map { case (b, i) => (b ^ maskingKey(i % 4L)).toByte }
+          data.zipWithIndex.map { case (b, i) => (b ^ maskingKey(i & 3L)).toByte }.toArray
 
         (ByteVector(0x89, 0xfd) ++ maskingKey).toArray ++ maskedArr
       } else
-        ByteVector(0x89, 0x7d).toArray ++ data
+        ByteVector(0x89, 0x7d).toArray ++ data.toArray
 
     def check(frame: Array[Byte], isClient: Boolean): Unit =
-      assertEquals(decode(frame, isClient), Ping(ByteVector.view(data)))
+      assertEquals(decode(frame, isClient), Ping(ByteVector(data)))
 
     check(pingFrame(masked = true), isClient = false)
     check(pingFrame(masked = false), isClient = true)
