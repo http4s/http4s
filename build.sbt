@@ -50,6 +50,8 @@ lazy val modules: List[CompositeProject] = List(
   emberCore,
   emberServer,
   emberClient,
+  wireTestkit,
+  wireTck,
   theDsl,
   jawn,
   circe,
@@ -442,6 +444,83 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     )
   )
   .dependsOn(client, theDsl, server, tests % Test)
+
+// Wire oracles deliberately have no dependency on an HTTP implementation.
+lazy val wireTestkit = libraryCrossProject("wire-testkit")
+  .enablePlugins(NoPublishPlugin, BuildInfoPlugin)
+  .settings(
+    startYear := Some(2026),
+    buildInfoPackage := "org.http4s.wire",
+    buildInfoObject := "TckBuild",
+    buildInfoKeys := Seq[BuildInfoKey](
+      scalaVersion,
+      BuildInfoKey.action("reportRoot") { ((ThisBuild / baseDirectory).value / "target" / "wire-tck-reports").getAbsolutePath },
+      BuildInfoKey.action("revision") {
+        WireTckBuild.revision((ThisBuild / baseDirectory).value)
+      },
+    ),
+    description := "Independent HTTP wire conformance test machinery",
+    libraryDependencies ++= Seq(
+      catsEffect.value,
+      fs2Io.value,
+      ip4sCore.value,
+      scodecBits.value,
+      munitCatsEffect.value,
+    ),
+    Test / parallelExecution := false,
+    Test / test := (Test / test).dependsOn(ThisBuild / tckIntegrity).value,
+  )
+
+lazy val wireTck = libraryCrossProject("wire-tck")
+  .enablePlugins(NoPublishPlugin)
+  .settings(
+    description := "Ember HTTP wire conformance tests",
+    startYear := Some(2026),
+    Test / parallelExecution := false,
+  )
+  .dependsOn(wireTestkit, emberClient, emberServer)
+
+// Intentionally not aggregated by root: protocol disagreements are diagnostic.
+lazy val wireTckCompare = libraryCrossProject("wire-tck-compare")
+  .enablePlugins(NoPublishPlugin)
+  .settings(
+    description := "Full HTTP wire conformance comparison, without ignores",
+    startYear := Some(2026),
+    Test / parallelExecution := false,
+  )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyCodecHttp,
+      "io.netty" % "netty-codec-http2" % V.netty,
+      "io.netty" % "netty-transport" % V.netty,
+      "io.netty" % "netty-handler" % V.netty,
+      nettyBuffer,
+    )
+  )
+  .dependsOn(wireTck)
+
+addCommandAlias("tckCheck", ";wire-testkit/test;wire-tck/test;wire-testkitJS/test;wire-tckJS/test;wire-testkitNative/test;wire-tckNative/test")
+
+// executeTests returns protocol failures as data, so every platform finishes before reconciliation.
+lazy val tckCompare = taskKey[Unit]("Run the complete wire catalog and reconcile comparison reports")
+lazy val tckIntegrity = taskKey[Unit]("Reject local suppression annotations and missing tracking records")
+ThisBuild / tckIntegrity := WireTckBuild.checkSources((ThisBuild / baseDirectory).value)
+lazy val tckComparePrepare = taskKey[Unit]("Clear comparison evidence from previous executions")
+lazy val tckCompareResults = taskKey[Unit]("Collect every platform before checking infrastructure")
+ThisBuild / tckComparePrepare := {
+  val reports = (ThisBuild / baseDirectory).value / "target" / "wire-tck-reports"
+  IO.delete(reports / (wireTestkit.jvm / scalaVersion).value / "comparison")
+  WireTckBuild.checkSources((ThisBuild / baseDirectory).value)
+}
+ThisBuild / tckCompareResults := {
+  val jvm = (wireTckCompare.jvm / Test / executeTests).result.value
+  val js = (wireTckCompare.js / Test / executeTests).result.value
+  val native = (wireTckCompare.native / Test / executeTests).result.value
+  val root = (ThisBuild / baseDirectory).value / "target" / "wire-tck-reports" /
+    (wireTestkit.jvm / scalaVersion).value / "comparison"
+  WireTckBuild.reconcile(root, Vector("jvm" -> jvm, "js" -> js, "native" -> native), streams.value.log)
+}
+ThisBuild / tckCompare := Def.sequential(tckComparePrepare, tckCompareResults).value
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(

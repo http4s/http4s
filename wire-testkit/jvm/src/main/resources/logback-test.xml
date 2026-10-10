@@ -1,0 +1,7 @@
+<configuration>
+  <!-- Wire transcripts carry protocol diagnostics. Suppress per-frame target debug logging. -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder><pattern>%level %logger - %msg%n</pattern></encoder>
+  </appender>
+  <root level="ERROR"><appender-ref ref="STDOUT" /></root>
+</configuration>
