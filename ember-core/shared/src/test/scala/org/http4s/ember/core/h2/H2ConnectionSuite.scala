@@ -31,9 +31,9 @@ import fs2.io.net.SocketOption
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
 
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.TimeoutException
 
 /** Covers connection frame processing, protocol limits, and write stalls.
   * Unread DATA must not block WINDOW_UPDATE processing. Late frames for closed
