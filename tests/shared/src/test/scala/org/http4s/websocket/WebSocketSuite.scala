@@ -195,4 +195,91 @@ class WebSocketSuite extends Http4sSuite {
 
     assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
   }
+
+  test("decode accepts control frames with a 125-byte payload") {
+    val maskingKey = ByteVector(0x01, 0x02, 0x03, 0x04)
+    val data = Array.fill(125)(0x42.toByte)
+
+    def pingFrame(masked: Boolean) =
+      // 0x89 -> FIN=1, opcode=Ping
+      // 0xfd -> MASK=1, 125
+      // 0x7d -> MASK=0, 125
+      if (masked) {
+        val maskedArr =
+          data.zipWithIndex.map { case (b, i) => (b ^ maskingKey(i % 4L)).toByte }
+
+        (ByteVector(0x89, 0xfd) ++ maskingKey).toArray ++ maskedArr
+      } else
+        ByteVector(0x89, 0x7d).toArray ++ data
+
+    def check(frame: Array[Byte], isClient: Boolean): Unit =
+      assertEquals(decode(frame, isClient), Ping(ByteVector.view(data)))
+
+    check(pingFrame(masked = true), isClient = false)
+    check(pingFrame(masked = false), isClient = true)
+  }
+
+  test("decode rejects control frames with payloads exceeding 125 bytes") {
+    def closeFrame(masked: Boolean) = {
+      // 0x88 -> FIN=1, opcode=Close
+      // 0xfe -> MASK=1
+      // 0x7e -> MASK=0
+      // 0x00, 0x80 -> 128
+      // 0x01, 0x02, 0x03, 0x04 -> masking key
+      val head =
+        if (masked)
+          ByteVector(0x88, 0xfe, 0x00, 0x80, 0x01, 0x02, 0x03, 0x04)
+        else
+          ByteVector(0x88, 0x7e, 0x00, 0x80)
+      val data = ByteVector.fill(128)(0x42).toArray
+
+      head.toArray ++ data
+    }
+
+    def pingFrame(masked: Boolean) = {
+      // 0x89 -> FIN=1, opcode=Ping
+      // 0xfe -> MASK=1
+      // 0x7e -> MASK=0
+      // 0x00, 0x7e -> 126
+      // 0x01, 0x02, 0x03, 0x04 -> masking key
+      val head =
+        if (masked)
+          ByteVector(0x89, 0xfe, 0x00, 0x7e, 0x01, 0x02, 0x03, 0x04)
+        else
+          ByteVector(0x89, 0x7e, 0x00, 0x7e)
+      val data = ByteVector.fill(126)(0x42).toArray
+
+      head.toArray ++ data
+    }
+
+    def pongFrame(masked: Boolean) = {
+      // 0x8a -> FIN=1, opcode=Pong
+      // 0xfe -> MASK=1
+      // 0x7e -> MASK=0
+      // 0x00, 0x7e -> 126
+      // 0x01, 0x02, 0x03, 0x04 -> masking key
+      val head =
+        if (masked)
+          ByteVector(0x8a, 0xfe, 0x00, 0x7e, 0x01, 0x02, 0x03, 0x04)
+        else
+          ByteVector(0x8a, 0x7e, 0x00, 0x7e)
+      val data = ByteVector.fill(126)(0x42).toArray
+
+      head.toArray ++ data
+    }
+
+    def check(frame: Array[Byte], isClient: Boolean): Unit = {
+      val err =
+        intercept[FrameTranscoder.TranscodeError](decode(frame, isClient))
+
+      assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
+    }
+
+    check(closeFrame(masked = true), isClient = false)
+    check(closeFrame(masked = false), isClient = true)
+    check(pingFrame(masked = true), isClient = false)
+    check(pingFrame(masked = false), isClient = true)
+    check(pongFrame(masked = true), isClient = false)
+    check(pongFrame(masked = false), isClient = true)
+  }
 }
