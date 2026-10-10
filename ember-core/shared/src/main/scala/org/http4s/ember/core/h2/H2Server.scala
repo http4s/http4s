@@ -248,9 +248,6 @@ private[ember] object H2Server {
       )
       _ <- clearClosedStreams(h2).background
       _ <- processCreatedStreams(h2, maxStreams).background
-      _ <- Resource.eval(
-        h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
-      )
       _ <- Resource.eval(holdWhileOpen(h2.state))
     } yield ()
   }
