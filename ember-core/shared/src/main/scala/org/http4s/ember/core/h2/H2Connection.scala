@@ -267,29 +267,58 @@ private[h2] class H2Connection[F[_]](
   def offerFrame(frame: H2Frame): F[Unit] =
     frame match {
       case data: H2Frame.Data =>
-        def go(data: H2Frame.Data): F[Unit] = state.flatModifyFull { case (poll, s) =>
-          val updatedWindow = s.writeWindow - data.flowControlSize
-          if (updatedWindow >= 0)
-            (s.copy(writeWindow = updatedWindow, stallStart = None), outgoingQueue.offer(data))
-          else if (s.writeWindow > 0) {
-            val bv = data.data
-            val head = bv.take(s.writeWindow.toLong)
-            val tail = bv.drop(s.writeWindow.toLong)
-            val headFrame = data.copy(data = head, pad = None, endStream = false)
-            val tailFrame = data.copy(data = tail)
-            (
-              // This should be the whole write window, since we don't actually use padding
-              s.copy(writeWindow = s.writeWindow - head.size.toInt),
-              outgoingQueue.offer(headFrame) >> poll(go(tailFrame)),
-            )
-          } else
-            (s, poll(s.writeBlock.get.rethrow >> go(data)))
-        }
+
+        /*
+         * When sending a data frame, send as much as possible in the current window, splitting the
+         * frame if needed, before blocking to wait.
+         *
+         * Offering the frame to the outgoing queue has to be cancelable, as it is possible for the
+         * queue to get filled and never drain if the connection stalls out. The flatModifyFull
+         * ensures cancelation never happens before the refundWindow cancelation handler is set up.
+         */
+        def go(data: H2Frame.Data): F[Unit] = state
+          .flatModifyFull { case (poll, s) =>
+            val updatedWindow = s.writeWindow - data.flowControlSize
+            if (updatedWindow >= 0)
+              (
+                s.copy(writeWindow = updatedWindow, stallStart = None),
+                poll(outgoingQueue.offer(data))
+                  .onCancel(refundWindow(data.flowControlSize))
+                  .as(Option.empty[H2Frame.Data]),
+              )
+            else if (s.writeWindow > 0) {
+              val (head, tail) = data.data.splitAt(s.writeWindow.toLong)
+              val headFrame = data.copy(data = head, pad = None, endStream = false)
+              val tailFrame = data.copy(data = tail)
+              (
+                // This should be the whole write window, since we don't actually use padding
+                s.copy(writeWindow = s.writeWindow - headFrame.flowControlSize),
+                poll(outgoingQueue.offer(headFrame))
+                  .onCancel(refundWindow(headFrame.flowControlSize))
+                  .as(tailFrame.some),
+              )
+            } else
+              (s, poll(s.writeBlock.get.rethrow.as(data.some)))
+          }
+          .flatMap {
+            case Some(remaining) => go(remaining)
+            case None => F.unit
+          }
 
         withStallTimeout(go(data)).onError { case error: Throwable =>
           state.get.flatMap(_.writeBlock.complete(Left(error)).void)
         }
       case other: H2Frame => outgoingQueue.offer(other)
+    }
+
+  private[this] def refundWindow(amount: Int): F[Unit] =
+    Deferred[F, Either[Throwable, Unit]].flatMap { newWriteBlock =>
+      state.flatModify(s =>
+        (
+          s.copy(writeWindow = s.writeWindow + amount, writeBlock = newWriteBlock),
+          s.writeBlock.complete(Right(())).void,
+        )
+      )
     }
 
   private[this] def withStallTimeout[A](fa: F[Unit]): F[Unit] =
@@ -781,6 +810,8 @@ private[h2] object H2Connection {
   final case class State[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: Int,
+      // TODO: Consider a solution to queue and awake blocked writers in order instead of releasing
+      //       all of them to contend when this defer completes.
       writeBlock: Deferred[F, Either[Throwable, Unit]],
       readWindow: Int,
       highestStream: Int,
