@@ -33,6 +33,7 @@ import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.TimeoutException
 
 /** Covers connection frame processing, protocol limits, and write stalls.
   * Unread DATA must not block WINDOW_UPDATE processing. Late frames for closed
@@ -98,10 +99,12 @@ class H2ConnectionSuite extends H2Suite {
       mapRef <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       stateRef <- H2Connection.initState[IO](
         H2Frame.Settings.ConnectionSettings.default,
-        H2Frame.Settings.ConnectionSettings.default.initialWindowSize,
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[IO, Int](0)
+      writeWindow <- H2Connection.WriteWindow.init[IO](
+        H2Frame.Settings.ConnectionSettings.default.initialWindowSize
+      )
       outgoing <- Queue.unbounded[IO, H2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
@@ -120,6 +123,7 @@ class H2ConnectionSuite extends H2Suite {
       mapRef,
       stateRef,
       pendingReadCredit,
+      writeWindow,
       outgoing,
       created,
       closed,
@@ -133,13 +137,6 @@ class H2ConnectionSuite extends H2Suite {
 
   private def dataFrame(size: Int): H2Frame =
     H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, endStream = false)
-
-  private def increaseWindowSize(h2: H2Connection[IO], size: Int): IO[Unit] =
-    Deferred[IO, Either[Throwable, Unit]].flatMap { next =>
-      h2.state
-        .modify(s => (s.copy(writeBlock = next, writeWindow = s.writeWindow + size), s.writeBlock))
-        .flatMap(_.complete(Right(())).void)
-    }
 
   private def settingsWithMaxHeaderListSize(
       maxHeaderListSize: Int
@@ -155,12 +152,12 @@ class H2ConnectionSuite extends H2Suite {
       h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, input)
       stream <- h2.initiateRemoteStreamById(1)
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
-      _ <- h2.state.update(_.copy(writeWindow = 0))
+      _ <- clearWriteWindow(h2)
       _ <- h2.readLoop.timeout(2.seconds)
-      connectionState <- h2.state.get
+      available <- h2.writeWindow.available
       streamState <- stream.state.get
     } yield {
-      assertEquals(connectionState.writeWindow, 1)
+      assertEquals(available, 1)
       assertEquals(streamState.unreadBytes, 200)
     }
   }
@@ -346,7 +343,7 @@ class H2ConnectionSuite extends H2Suite {
           idle,
           writes,
         )
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         _ <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16)).attempt
         st <- (IO.sleep(idle) >> h2.state.get).iterateUntil(_.closed)
@@ -374,7 +371,7 @@ class H2ConnectionSuite extends H2Suite {
           idle,
           writes,
         )
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16)).start
         _ <- IO.sleep(idle / 2)
@@ -406,7 +403,7 @@ class H2ConnectionSuite extends H2Suite {
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16))
         _ <- IO.sleep(idle * 10)
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         _ <- h2.offerFrame(dataFrame(16)).start
         _ <- IO.sleep(idle / 2)
         midway <- h2.state.get
@@ -435,7 +432,7 @@ class H2ConnectionSuite extends H2Suite {
           idle,
           writes,
         )
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(H2Frame.Ping.ack)
         _ <- IO.sleep(idle * 10)
@@ -474,7 +471,7 @@ class H2ConnectionSuite extends H2Suite {
           writes,
         )
         stream <- openStream(h2)
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16)).start
         _ <- h2.readLoop
@@ -523,7 +520,7 @@ class H2ConnectionSuite extends H2Suite {
           writes,
         )
         stream <- openStream(h2)
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         start <- IO.monotonic
         _ <- h2.writeLoop.compile.drain.start
         send <- h2.offerFrame(dataFrame(16)).start
@@ -545,6 +542,74 @@ class H2ConnectionSuite extends H2Suite {
           clue(frames),
         )
       }
+    )
+  }
+
+  test("WriteWindow has the initialized amount available") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        .flatMap(_.available)
+        .map(assertEquals(_, 5))
+    )
+  }
+
+  test("WriteWindow has the initialized amount available") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        .flatMap(_.available)
+        .map(assertEquals(_, 5))
+    )
+  }
+
+  test("WriteWindow has bytes available after taking some") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        .flatMap(window => window.take(3) >> window.available)
+        .map(assertEquals(_, 2))
+    )
+  }
+
+  test("WriteWindow has 0 bytes available after taking more than available") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        .flatMap(window => window.take(300) >> window.available)
+        .map(assertEquals(_, 0))
+    )
+  }
+
+  test("WriteWindow.takes only returns what is available") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        .flatMap(window => window.take(300))
+        .map(assertEquals(_, 5))
+    )
+  }
+
+  test("WriteWindow.take blocks when no bytes are available") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        .flatMap(window =>
+          window.take(300) >> interceptIO[TimeoutException](window.take(300).timeout(100.millis))
+        )
+    )
+  }
+
+  test("WriteWindow.take unblocks when bytes become available") {
+    TestControl.executeEmbed(
+      for {
+        window <- H2Connection.WriteWindow
+          .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
+        _ <- window.take(300)
+        blocked <- window.take(300).start
+        _ <- window.change(200)
+        remainingBytes <- blocked.join.flatMap(_.embedError)
+      } yield assertEquals(remainingBytes, 200)
     )
   }
 }

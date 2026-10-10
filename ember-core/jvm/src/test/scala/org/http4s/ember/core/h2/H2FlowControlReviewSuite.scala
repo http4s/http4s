@@ -28,7 +28,6 @@ import fs2.Stream
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
-import org.http4s.Http4sSuite
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
 
@@ -40,7 +39,7 @@ import scala.concurrent.duration._
   * and idle detection waits for credit to reach the peer. Tiny DATA payloads must
   * not retain unrelated socket buffers.
   */
-class H2FlowControlReviewSuite extends Http4sSuite {
+class H2FlowControlReviewSuite extends H2Suite {
   private val settings = H2Frame.Settings.ConnectionSettings.default
 
   private def connection(
@@ -72,8 +71,9 @@ class H2FlowControlReviewSuite extends Http4sSuite {
     for {
       streams <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       state <- H2Connection
-        .initState[IO](settings, settings.initialWindowSize, settings.initialWindowSize)
+        .initState[IO](settings, settings.initialWindowSize)
       pendingReadCredit <- SignallingRef[IO, Int](0)
+      writeWindow <- H2Connection.WriteWindow.init[IO](settings.initialWindowSize)
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](4096)
@@ -89,6 +89,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
       streams,
       state,
       pendingReadCredit,
+      writeWindow,
       outgoing,
       created,
       closed,
@@ -395,7 +396,7 @@ class H2FlowControlReviewSuite extends Http4sSuite {
           idleTimeout = 1.second,
         )
         stream <- receiveBody(h2, 1, window)
-        _ <- h2.state.update(_.copy(writeWindow = 0))
+        _ <- clearWriteWindow(h2)
         _ <- (h2.readLoop.background, h2.writeLoop.compile.drain.background).tupled.use {
           case (reader, _) =>
             for {
@@ -487,19 +488,19 @@ class H2FlowControlReviewSuite extends Http4sSuite {
           stream <- receiveBody(h2, 1, 16384)
           // The handler reads a prefix, then pauses with less than half a window consumed.
           _ <- stream.readBody.take(16384).compile.drain
-          _ <- h2.state.update(_.copy(writeWindow = 0))
+          _ <- clearWriteWindow(h2)
           _ <- outgoing.offer(H2Frame.Ping.ack).replicateA_(128)
           _ <- h2.readLoop.background.use { _ =>
             for {
               _ <- IO.sleep(1.second)
-              before <- h2.state.get
+              before <- h2.writeWindow.available
               // Freeing one queue slot proves what prevented read-loop progress.
               _ <- outgoing.take
               _ <- IO.sleep(1.second)
-              after <- h2.state.get
-              _ = assertEquals(after.writeWindow, 1)
+              after <- h2.writeWindow.available
+              _ = assertEquals(after, 1)
             } yield assertEquals(
-              before.writeWindow,
+              before,
               1,
               "Padding blocked the connection reader before it could process WINDOW_UPDATE",
             )

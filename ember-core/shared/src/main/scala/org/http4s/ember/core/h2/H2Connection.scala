@@ -45,6 +45,7 @@ private[h2] class H2Connection[F[_]](
     val mapRef: Ref[F, Map[Int, H2Stream[F]]],
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
     val pendingReadCredit: SignallingRef[F, Int],
+    val writeWindow: H2Connection.WriteWindow[F],
     outgoingQueue: cats.effect.std.Queue[F, H2Frame],
     val createdStreams: cats.effect.std.Queue[F, Int],
     val closedStreams: cats.effect.std.Queue[F, Int],
@@ -276,49 +277,28 @@ private[h2] class H2Connection[F[_]](
          * queue to get filled and never drain if the connection stalls out. The flatModifyFull
          * ensures cancelation never happens before the refundWindow cancelation handler is set up.
          */
-        def go(data: H2Frame.Data): F[Unit] = state
-          .flatModifyFull { case (poll, s) =>
-            val updatedWindow = s.writeWindow - data.flowControlSize
-            if (updatedWindow >= 0)
-              (
-                s.copy(writeWindow = updatedWindow, stallStart = None),
-                poll(outgoingQueue.offer(data))
-                  .onCancel(refundWindow(data.flowControlSize))
-                  .as(Option.empty[H2Frame.Data]),
-              )
-            else if (s.writeWindow > 0) {
-              val (head, tail) = data.data.splitAt(s.writeWindow.toLong)
+        def go(data: H2Frame.Data): F[Unit] =
+          F.bracketFull(poll => poll(writeWindow.take(data.flowControlSize))) { available =>
+            if (available == data.flowControlSize)
+              outgoingQueue.offer(data).as(Option.empty[H2Frame.Data])
+            else if (available > 0) {
+              val (head, tail) = data.data.splitAt(available.toLong)
               val headFrame = data.copy(data = head, pad = None, endStream = false)
               val tailFrame = data.copy(data = tail)
-              (
-                // This should be the whole write window, since we don't actually use padding
-                s.copy(writeWindow = s.writeWindow - headFrame.flowControlSize),
-                poll(outgoingQueue.offer(headFrame))
-                  .onCancel(refundWindow(headFrame.flowControlSize))
-                  .as(tailFrame.some),
-              )
+              outgoingQueue.offer(headFrame).as(tailFrame.some)
             } else
-              (s, poll(s.writeBlock.get.rethrow.as(data.some)))
-          }
-          .flatMap {
+              F.pure(data.some)
+          } {
+            case (_, Outcome.Succeeded(_)) => F.unit
+            case (available, _) =>
+              writeWindow.change(available).ifM(F.unit, goAway(H2Error.FlowControlError))
+          }.flatMap {
             case Some(remaining) => go(remaining)
             case None => F.unit
           }
 
-        withStallTimeout(go(data)).onError { case error: Throwable =>
-          state.get.flatMap(_.writeBlock.complete(Left(error)).void)
-        }
+        withStallTimeout(go(data))
       case other: H2Frame => outgoingQueue.offer(other)
-    }
-
-  private[this] def refundWindow(amount: Int): F[Unit] =
-    Deferred[F, Either[Throwable, Unit]].flatMap { newWriteBlock =>
-      state.flatModify(s =>
-        (
-          s.copy(writeWindow = s.writeWindow + amount, writeBlock = newWriteBlock),
-          s.writeBlock.complete(Right(())).void,
-        )
-      )
     }
 
   private[this] def withStallTimeout[A](fa: F[Unit]): F[Unit] =
@@ -448,7 +428,7 @@ private[h2] class H2Connection[F[_]](
       // Headers if not closed MUST
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _, _),
+            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _),
           ) =>
         if (headers.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -482,7 +462,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _, _),
+            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _),
           ) =>
         if (pushPromise.first.promisedStreamId != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -512,7 +492,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some(pushPromise), _, _),
+            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _),
           ) =>
         if (pushPromise.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -529,7 +509,7 @@ private[h2] class H2Connection[F[_]](
 
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some(headers), None, _, _),
+            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _),
           ) =>
         if (headers.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -542,13 +522,13 @@ private[h2] class H2Connection[F[_]](
             case Some(updated) =>
               state.update(s => s.copy(headersInProgress = updated.some))
           }
-      case (f, H2Connection.State(_, _, _, _, _, _, _, Some(_), None, _, _)) =>
+      case (f, H2Connection.State(_, _, _, _, _, Some(_), None, _, _)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
         ) >>
           goAway(H2Error.ProtocolError)
-      case (f, H2Connection.State(_, _, _, _, _, _, _, None, Some(_), _, _)) =>
+      case (f, H2Connection.State(_, _, _, _, _, None, Some(_), _, _)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for push promise in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
@@ -658,25 +638,24 @@ private[h2] class H2Connection[F[_]](
 
       case (settings @ H2Frame.Settings(0, false, _), _) =>
         for {
-          newWriteBlock <- Deferred[F, Either[Throwable, Unit]]
           t <- state.modify { s =>
             val newSettings = H2Frame.Settings.updateSettings(settings, s.remoteSettings)
             val differenceInWindow =
               newSettings.initialWindowSize.windowSize - s.remoteSettings.initialWindowSize.windowSize
             (
-              s.copy(
-                remoteSettings = newSettings,
-                writeWindow = s.writeWindow,
-                writeBlock = newWriteBlock,
-              ),
-              (newSettings, differenceInWindow, s.writeBlock),
+              s.copy(remoteSettings = newSettings),
+              (newSettings, differenceInWindow),
             )
           }
-          (settings, difference, oldWriteBlock) = t
-          _ <- oldWriteBlock.complete(Either.unit)
+          (settings, differenceInWindow) = t
+
+          // By the spec, this *should* always be valid
+          valid <- writeWindow.change(differenceInWindow)
+          _ <- goAway(H2Error.FlowControlError).unlessA(valid)
+
           _ <- mapRef.get.flatMap { map =>
             map.toList.traverse { case (_, stream) =>
-              stream.modifyWriteWindow(difference)
+              stream.modifyWriteWindow(differenceInWindow)
             }
           }
           _ <- offerFrame(H2Frame.Settings.Ack)
@@ -700,28 +679,14 @@ private[h2] class H2Connection[F[_]](
         goAway(H2Error.ProtocolError)
 
       case (H2Frame.WindowUpdate(_, 0), _) =>
-        logger.warn("Encountered 0 Sized Window Update - Procol Error - Issuing GoAway") >>
+        logger.warn("Encountered 0 Sized Window Update - Protocol Error - Issuing GoAway") >>
           goAway(H2Error.ProtocolError)
       case (w @ H2Frame.WindowUpdate(i, size), st) =>
         i match {
           case 0 =>
             for {
-              newWriteBlock <- Deferred[F, Either[Throwable, Unit]]
-              t <- state.modify { s =>
-                val newSize = s.writeWindow + size
-                val sizeValid =
-                  (s.writeWindow >= 0 && newSize >= 0) || s.writeWindow < 0 // Less than 2^31-1 and didn't overflow, going negative
-                (
-                  s.copy(writeBlock = newWriteBlock, writeWindow = s.writeWindow + size),
-                  (s.writeBlock, sizeValid),
-                )
-              }
-              (oldWriteBlock, valid) = t
-              _ <- oldWriteBlock.complete(Either.unit)
-              _ <- {
-                if (!valid) goAway(H2Error.FlowControlError)
-                else Applicative[F].unit
-              }
+              valid <- writeWindow.change(size)
+              _ <- goAway(H2Error.FlowControlError).unlessA(valid)
             } yield ()
           case otherwise =>
             mapRef.get.map(_.get(otherwise)).flatMap {
@@ -809,10 +774,6 @@ private[h2] class H2Connection[F[_]](
 private[h2] object H2Connection {
   final case class State[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
-      writeWindow: Int,
-      // TODO: Consider a solution to queue and awake blocked writers in order instead of releasing
-      //       all of them to contend when this defer completes.
-      writeBlock: Deferred[F, Either[Throwable, Unit]],
       readWindow: Int,
       highestStream: Int,
       remoteHighestStream: Int,
@@ -879,15 +840,11 @@ private[h2] object H2Connection {
 
   def initState[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
-      writeWindow: SettingsInitialWindowSize,
       readWindow: SettingsInitialWindowSize,
-  )(implicit F: Async[F]): F[Ref[F, State[F]]] =
-    for {
-      writeBlock <- Deferred[F, Either[Throwable, Unit]]
-      state = H2Connection.State(
+  )(implicit F: Concurrent[F]): F[Ref[F, State[F]]] =
+    F.ref(
+      H2Connection.State(
         remoteSettings,
-        writeWindow.windowSize,
-        writeBlock,
         readWindow.windowSize,
         highestStream = 0,
         remoteHighestStream = 0,
@@ -897,8 +854,64 @@ private[h2] object H2Connection {
         stallStart = None,
         advertisedReadWindow = readWindow.windowSize.toLong,
       )
-      ref <- F.ref(state)
-    } yield ref
+    )
+
+  private[h2] class WriteWindow[F[_]] private (
+      windowOpen: Semaphore[F],
+      windowBytes: Ref[F, Int],
+  )(implicit F: MonadCancelThrow[F]) {
+    val available: F[Int] = windowBytes.get
+
+    def take(bytes: Int): F[Int] =
+      // Always allow a 0 byte request, per RFC 9113 6.9.1
+      if (bytes == 0) F.pure(0)
+      else {
+        require(bytes > 0)
+
+        F.bracketFull(poll => poll(windowOpen.acquire)) { _ =>
+          windowBytes.flatModify { currentWindow =>
+            // On the edge case where a `change` reduced the window size below
+            // zero without locking, so `available` needs to be clamped
+            val available = Math.max(0, Math.min(bytes, currentWindow))
+            val nextWindow = currentWindow - available
+
+            // Can't use updateOpening here as the lock was acquired even while
+            // open. It needs to be released if the window is still open.
+            (nextWindow, windowOpen.release.whenA(nextWindow > 0).as(available))
+          }
+        } {
+          case (_, Outcome.Succeeded(_)) => F.unit
+          case _ => windowOpen.release
+        }
+      }
+
+    def change(bytes: Int): F[Boolean] =
+      windowBytes.flatModify(currentWindow =>
+        try {
+          val nextWindow = Math.addExact(currentWindow, bytes)
+          (nextWindow, updateOpening(currentWindow, nextWindow).as(true))
+        } catch {
+          case _: ArithmeticException => (currentWindow, F.pure(false))
+        }
+      )
+
+    private def updateOpening(lastWindow: Int, nextWindow: Int): F[Unit] =
+      if (nextWindow <= 0)
+        // It is possible another fiber acquired the lock already, in which case
+        // it will make sure the lock is updated.
+        windowOpen.tryAcquire.void
+      else
+        windowOpen.release.whenA(lastWindow <= 0 && nextWindow > 0)
+  }
+
+  private[h2] object WriteWindow {
+    def init[F[_]: Concurrent](initialSize: SettingsInitialWindowSize): F[WriteWindow[F]] =
+      (
+        Semaphore[F](if (initialSize.windowSize > 0) 1 else 0),
+        Ref[F].of(initialSize.windowSize.toInt),
+      )
+        .mapN(new WriteWindow(_, _))
+  }
 
   final case class KillWithoutMessage()
       extends RuntimeException

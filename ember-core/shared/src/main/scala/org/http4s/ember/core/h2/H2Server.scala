@@ -105,10 +105,10 @@ private[ember] object H2Server {
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
         initialRemoteSettings,
-        defaultSettings.initialWindowSize,
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[F, Int](0)
+      writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
       queue <- cats.effect.std.Queue.bounded[F, H2Frame](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
@@ -127,6 +127,7 @@ private[ember] object H2Server {
       ref,
       stateRef,
       pendingReadCredit,
+      writeWindow,
       queue,
       created,
       closed,

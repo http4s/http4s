@@ -47,4 +47,10 @@ trait H2Suite extends Http4sSuite {
       }
     go(bv, Vector.empty)
   }
+
+  protected def increaseWindowSize(h2: H2Connection[IO], size: Int): IO[Unit] =
+    h2.writeWindow.change(size).void
+
+  protected def clearWriteWindow(h2: H2Connection[IO]): IO[Unit] =
+    h2.writeWindow.available.flatMap(available => h2.writeWindow.change(-available)).void
 }
