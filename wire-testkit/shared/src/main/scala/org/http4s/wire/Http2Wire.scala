@@ -126,9 +126,38 @@ object Http2Wire {
       peer: RawPeer[F],
       maxFrameBytes: Int = 0xffffff,
   ): F[Frame] =
+    peer.readExact(9).flatMap(readFramePayload(peer, _, maxFrameBytes))
+
+  /** Accepts EOF or a reset only before the first byte of the next frame. */
+  def readFrameOrClose[F[_]: Async](
+      peer: RawPeer[F],
+      maxFrameBytes: Int = 0xffffff,
+  ): F[Option[Frame]] =
+    peer
+      .readExact(1)
+      .map(_.some)
+      .handleErrorWith {
+        case error: IllegalArgumentException
+            if error.getMessage == "unexpected EOF: needed 1 bytes, received 0" =>
+          none[ByteVector].pure[F]
+        case error if RuntimeInfo.isConnectionReset(error) => none[ByteVector].pure[F]
+        case error => Async[F].raiseError(error)
+      }
+      .flatMap {
+        case Some(first) =>
+          peer.readExact(8).flatMap { rest =>
+            readFramePayload(peer, first ++ rest, maxFrameBytes).map(_.some)
+          }
+        case None => none[Frame].pure[F]
+      }
+
+  private def readFramePayload[F[_]: Async](
+      peer: RawPeer[F],
+      header: ByteVector,
+      maxFrameBytes: Int,
+  ): F[Frame] = {
+    val size = ((header(0) & 0xff) << 16) | ((header(1) & 0xff) << 8) | (header(2) & 0xff)
     for {
-      header <- peer.readExact(9)
-      size = ((header(0) & 0xff) << 16) | ((header(1) & 0xff) << 8) | (header(2) & 0xff)
       _ <-
         if (maxFrameBytes >= 0 && size <= maxFrameBytes) Async[F].unit
         else fail[F, Unit](s"frame length $size exceeds limit $maxFrameBytes")
@@ -139,6 +168,7 @@ object Http2Wire {
       (readUint32(header.drop(5)) & 0x7fffffffL).toInt,
       payload,
     )
+  }
 
   def writeFrame[F[_]: Async](peer: RawPeer[F], frame: Frame): F[Unit] =
     Async[F].delay(encode(frame)).flatMap(peer.write)

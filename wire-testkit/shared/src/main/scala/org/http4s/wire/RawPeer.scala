@@ -88,15 +88,25 @@ final class RawPeer[F[_]] private (
       else loop(0L)
     }
 
-  def readToEnd(maxBytes: Int = 16 * 1024 * 1024): F[ByteVector] =
+  /** Reads through EOF, optionally accepting a connection reset after the buffered bytes. */
+  def readToEnd(
+      maxBytes: Int = 16 * 1024 * 1024,
+      allowReset: Boolean = false,
+  ): F[ByteVector] =
     readLock.permit.use { _ =>
       def loop: F[ByteVector] = buffered.get.flatMap { bytes =>
         if (bytes.size > maxBytes.toLong) fail(s"body exceeds $maxBytes bytes")
         else
-          receive(math.min(8192L, maxBytes.toLong - bytes.size + 1L).toInt).flatMap {
-            case true => F.defer(loop)
-            case false => buffered.set(ByteVector.empty).as(bytes)
-          }
+          receive(math.min(8192L, maxBytes.toLong - bytes.size + 1L).toInt)
+            .handleErrorWith {
+              case error if allowReset && RuntimeInfo.isConnectionReset(error) =>
+                eof.set(true).as(false)
+              case error => F.raiseError(error)
+            }
+            .flatMap {
+              case true => F.defer(loop)
+              case false => buffered.getAndSet(ByteVector.empty)
+            }
       }
       if (maxBytes < 0) fail("negative read limit") else loop
     }

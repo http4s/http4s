@@ -36,12 +36,13 @@ abstract class WireSuite(
   override final def munitIOTimeout: Duration = 15.seconds
 
   private val cases = Catalog.select(protocol, role)
+  private val integrityProblems = IgnoreRegistry.validate(Catalog.all) ++ SpecInventory.problems
   private val report = new WireReport(target, getClass.getSimpleName, comparison)
   private val reporting = ResourceSuiteLocalFixture(
     "wire report",
     Resource.make(
-      IO.raiseWhen(IgnoreRegistry.validate(Catalog.all).nonEmpty)(
-        new IllegalStateException(IgnoreRegistry.validate(Catalog.all).mkString("\n"))
+      IO.raiseWhen(integrityProblems.nonEmpty)(
+        new IllegalStateException(integrityProblems.mkString("\n"))
       ) *>
         report.initialize(cases) *> cases.traverse_ { c =>
           val ignored = if (comparison) None else IgnoreRegistry.get(c.id, RuntimeInfo.platform)
@@ -78,9 +79,13 @@ abstract class WireSuite(
         _ <- outcome match {
           case Right(_) => IO.unit
           case Left(error) =>
+            // Native's test-runner transport must carry this failure event too.
+            // Keep console evidence small; the report retains the full bounded trace.
+            val inlineTrace = trace.take(4096)
+            val evidence = s"Full transcript: ${report.transcriptPath(c.id)}"
             IO(
               fail(
-                s"${c.id}: $status\n${c.references.map(_.url).mkString("\n")}\n${error.toString}\n$trace",
+                s"${c.id}: $status\n${c.references.map(_.url).mkString("\n")}\n${error.toString}\n$inlineTrace\n$evidence",
                 error,
               )
             )

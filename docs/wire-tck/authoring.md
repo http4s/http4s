@@ -18,7 +18,9 @@ target listener/connection and raw peer. Scenarios are Reply (status, ordered ra
 headers, binary body), EchoBody, EchoHeaders, and ReplyChunks. `server.received`
 awaits one application observation; `pollReceived` consumes an available observation
 without waiting. EchoBody waits for its complete body; other scenarios observe
-request heads. A head observation does not prove an invalid body was accepted.
+request heads. `RequestData.path` observes the HTTP/1 request-target or HTTP/2's
+:path component including its query; HTTP/2 scheme and authority are separate
+components, not a prefix to this observation. A head observation does not prove an invalid body was accepted.
 
 `ctx.client(protocol)(driver => ...)(peer => ...)` owns a raw listening peer and
 target client resource. It keeps the peer connection open until target operations

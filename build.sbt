@@ -458,6 +458,12 @@ lazy val wireTestkit = libraryCrossProject("wire-testkit")
       BuildInfoKey.action("revision") {
         WireTckBuild.revision((ThisBuild / baseDirectory).value)
       },
+      BuildInfoKey.action("inventoryRowsBase64") {
+        WireTckBuild.encodeRows(WireTckBuild.inventoryRows((ThisBuild / baseDirectory).value))
+      },
+      BuildInfoKey.action("sectionRowsBase64") {
+        WireTckBuild.encodeRows(IO.readLines((ThisBuild / baseDirectory).value / "docs/wire-tck/sections.tsv").drop(1))
+      },
     ),
     description := "Independent HTTP wire conformance test machinery",
     libraryDependencies ++= Seq(

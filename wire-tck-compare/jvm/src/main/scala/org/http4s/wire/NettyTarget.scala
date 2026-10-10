@@ -218,8 +218,9 @@ final class NettyTarget[F[_]](implicit F: Async[F]) extends WireTarget[F] {
                   .handleErrorWith(error =>
                     onEventLoop(channel) {
                       receiver.fail(error)
-                      if (protocol == Protocol.Http2)
-                        exchangeChannel.pipeline().fireExceptionCaught(error)
+                      if (protocol == Protocol.Http2) {
+                        val _ = exchangeChannel.pipeline().fireExceptionCaught(error)
+                      }
                       exchangeChannel.close()
                       ()
                     }
@@ -259,8 +260,9 @@ final class NettyTarget[F[_]](implicit F: Async[F]) extends WireTarget[F] {
               request.path,
             )
             request.headers.foreach { case (name, value) => message.headers().add(name, value) }
-            if (!message.headers().contains(HttpHeaderNames.HOST))
-              message.headers().set(HttpHeaderNames.HOST, address.toString)
+            if (!message.headers().contains(HttpHeaderNames.HOST)) {
+              val _ = message.headers().set(HttpHeaderNames.HOST, address.toString)
+            }
             if (
               !HttpUtil.isContentLengthSet(message) && !HttpUtil.isTransferEncodingChunked(message)
             )
@@ -322,7 +324,10 @@ final class NettyTarget[F[_]](implicit F: Async[F]) extends WireTarget[F] {
 
   private def eventLoops: Resource[F, MultiThreadIoEventLoopGroup] =
     Resource.make(F.delay(new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())))(group =>
-      awaitFuture(group.shutdownGracefully(0L, 0L, TimeUnit.MILLISECONDS)).void
+      F.defer {
+        val shutdown = group.shutdownGracefully(0L, 0L, TimeUnit.MILLISECONDS)
+        awaitFuture(shutdown).void
+      }
     )
 
   private def close(channel: Channel): F[Unit] = awaitFuture(channel.close()).void
@@ -396,7 +401,9 @@ object NettyTarget {
     def demand(token: Object, callback: BodyResult => Unit): Unit = {
       waiter = Some(token -> callback)
       deliver()
-      if (waiter.isDefined) context.read()
+      if (waiter.isDefined) {
+        val _ = context.read()
+      }
       ()
     }
 
@@ -447,6 +454,7 @@ object NettyTarget {
                 if (status >= 200 || status == 101) {
                   finalHead = true
                   head.trySuccess(status -> headers(response.headers()))
+                  ()
                 }
               case _ => ()
             }
@@ -489,7 +497,9 @@ object NettyTarget {
       }
 
     override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
-      if (terminal.isEmpty && (!finalHead || waiter.isDefined)) ctx.read()
+      if (terminal.isEmpty && (!finalHead || waiter.isDefined)) {
+        val _ = ctx.read()
+      }
       ()
     }
 
@@ -681,7 +691,9 @@ object NettyTarget {
               def run(): Unit = next
             })
         else {
-          if (protocol == Protocol.Http2) ctx.fireExceptionCaught(result.cause())
+          if (protocol == Protocol.Http2) {
+            val _ = ctx.fireExceptionCaught(result.cause())
+          }
           ctx.close()
         }
         ()
@@ -724,8 +736,12 @@ object NettyTarget {
                   start(
                     ctx,
                     RequestData(
-                      value.headers().method().toString,
-                      value.headers().path().toString,
+                      // CONNECT legitimately omits :path. Retain absent values
+                      // as empty observations instead of manufacturing a reset
+                      // through an adapter null dereference. The native codec
+                      // remains responsible for validating pseudo-header rules.
+                      Option(value.headers().method()).fold("")(_.toString),
+                      Option(value.headers().path()).fold("")(_.toString),
                       headers(value.headers()),
                     ),
                   )

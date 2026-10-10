@@ -40,9 +40,15 @@ final case class Rfc(
     requirement: String,
     strength: String = "MUST",
 ) {
-  def url: String = s"https://www.rfc-editor.org/rfc/rfc$number.html#section-$section"
+  def url: String = {
+    val kind = if (section.headOption.exists(_.isLetter)) "appendix" else "section"
+    s"https://www.rfc-editor.org/rfc/rfc$number.html#$kind-$section"
+  }
 }
 
+/** Application request observation/input. Server observations retain the HTTP/1 request-target
+  * or HTTP/2 :path component (including the query); scheme and authority are separate in HTTP/2.
+  */
 final case class RequestData(
     method: String = "GET",
     path: String = "/",

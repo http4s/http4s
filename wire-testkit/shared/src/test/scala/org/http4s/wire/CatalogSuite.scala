@@ -33,6 +33,21 @@ class CatalogSuite extends FunSuite {
     }
   }
 
+  test("independent requirements inventory reconciles with executable discovery") {
+    assertEquals(SpecInventory.problems, Vector.empty)
+  }
+
+  test("inventory rejects unsupported coverage and unexplained omissions") {
+    val section = Vector("9112\t2.1\tMessage Format\tapplicable\twire framing")
+    val row = "test\t9112\t2.1\tserver\tMUST\tA complete request\tcovered\tmissing-case\t"
+    val errors = SpecInventory.validate(Vector(row), section, Vector.empty)
+    assert(errors.exists(_.contains("missing case")))
+    assert(
+      SpecInventory.validate(Vector.empty, section, Vector.empty).exists(_.contains("explicit gap"))
+    )
+    assert(SpecInventory.parse("invalid").isLeft)
+  }
+
   test("registration preserves each definition's source location") {
     Catalog.all.foreach { c =>
       assert(c.location.path.endsWith("Cases.scala"), c.location.toString)

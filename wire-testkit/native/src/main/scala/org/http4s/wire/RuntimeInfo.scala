@@ -16,6 +16,7 @@
 
 package org.http4s.wire
 
+import java.io.IOException
 import java.net.SocketException
 
 import scala.scalanative.meta.LinktimeInfo
@@ -33,6 +34,10 @@ object RuntimeInfo {
           case socket: SocketException
               if socket.getMessage == "Connection reset" ||
                 socket.getMessage == "Connection reset by peer" =>
+            true
+          case io: IOException
+              if io.getMessage == "errno(54) Connection reset by peer" ||
+                io.getMessage == "errno(104) Connection reset by peer" =>
             true
           case _ => loop(current.getCause, remaining - 1)
         }

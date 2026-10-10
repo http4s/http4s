@@ -23,6 +23,12 @@ results for all platforms before reconciling evidence: protocol failures and
 inconclusive deadlines are diagnostic; missing outcomes and infrastructure errors
 fail the task. A deadline is never proof of rejection. Outcomes and bounded byte
 transcripts live under `target/wire-tck-reports/<scala>/<mode>/<platform>/<suite>`.
+Comparison also writes `report.md`, `summary.txt`, and a portable `evidence.zip`
+containing the complete outcome records, manifests and transcripts. Transcript
+references are relative to their JSON records, including in downloaded CI artifacts.
+MUnit failures include the first 4,096 transcript characters and the full artifact
+path, keeping runner messages small enough for Native while retaining the complete
+bounded transcript in the report.
 A filtered run intentionally leaves nonselected cases unexercised; it is not
 complete-catalog evidence.
 

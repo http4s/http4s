@@ -54,7 +54,7 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
         .withRequestHeaderReceiveTimeout(15.seconds)
         .withIdleTimeout(20.seconds)
         .withShutdownTimeout(Duration.Zero)
-        .withHttpApp(HttpApp[F](request => serve(request, scenario, received)))
+        .withHttpApp(HttpApp[F](request => serve(protocol, request, scenario, received)))
 
       (protocol match {
         case Protocol.Http1 => builder.withoutHttp2
@@ -124,13 +124,19 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
       }
 
   private def serve(
+      protocol: Protocol,
       request: Request[F],
       scenario: ServerScenario,
       received: Queue[F, RequestData],
   ): F[Response[F]] = {
     val head = RequestData(
       method = request.method.name,
-      path = request.uri.renderString,
+      // HTTP/2 carries scheme and authority separately from :path. Observe that
+      // component without rewriting its path/query bytes or inventing a default.
+      path = (protocol match {
+        case Protocol.Http1 => request.uri
+        case Protocol.Http2 => request.uri.copy(scheme = None, authority = None)
+      }).renderString,
       headers = fromHeaders(request.headers),
     )
 

@@ -11,7 +11,9 @@ object WireTckBuild {
     val sources = Vector("wire-testkit", "wire-tck", "wire-tck-compare")
       .flatMap(module => (root / module ** "*.scala").get)
       .filterNot(_.getPath.contains("/target/"))
-    (sources :+ (root / "build.sbt") :+ (root / "project" / "WireTckBuild.scala"))
+    val specification = (root / "docs/wire-tck" ** "*.tsv").get :+
+      (root / "docs/wire-tck/baseline.md")
+    (sources ++ specification :+ (root / "build.sbt") :+ (root / "project" / "WireTckBuild.scala"))
       .sortBy(_.getPath).foreach { source =>
         digest.update(IO.relativize(root, source).get.getBytes("UTF-8"))
         digest.update(IO.readBytes(source))
@@ -19,13 +21,29 @@ object WireTckBuild {
     head + ":" + digest.digest().map(b => f"${b & 0xff}%02x").mkString
   }
 
+  def inventoryRows(root: File): Seq[String] =
+    (root / "docs/wire-tck/inventory" ** "*.tsv").get.sortBy(_.getName)
+      .flatMap(file => IO.readLines(file).drop(1)).toVector
+
+  // BuildInfo repeats values in Scaladoc. Raw grammar examples can contain
+  // comment delimiters; encode the exact UTF-8 bytes instead of rewriting them.
+  def encodeRows(rows: Seq[String]): Seq[String] =
+    rows.map(row => java.util.Base64.getEncoder.encodeToString(row.getBytes("UTF-8")))
+
   def checkSources(root: File): Unit = {
     val files = Vector("wire-testkit", "wire-tck", "wire-tck-compare")
       .flatMap(module => (root / module ** "*.scala").get)
       .filterNot(_.getPath.contains("/target/"))
       .filterNot(_.getName == "WireSuite.scala")
     val forbidden = "\\.(ignore|pending|flaky|only)\\b|@(?:munit\\.)?IgnoreSuite|\\bmunitIgnore\\b|\\bassume\\s*\\(".r
-    val violations = files.filter(f => forbidden.findFirstIn(IO.read(f)).nonEmpty)
+    // Protocol bytes and stable IDs can legitimately contain words such as ".ignore".
+    // This source check screens ordinary annotations; runtime event reconciliation also
+    // rejects every suppressed comparison case, including indirect suppression.
+    val literalsAndComments = "(?s)\"\"\".*?\"\"\"|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])'|//[^\\r\\n]*|/\\*.*?\\*/".r
+    val violations = files.filter { file =>
+      val code = literalsAndComments.replaceAllIn(IO.read(file), " ")
+      forbidden.findFirstIn(code).nonEmpty
+    }
     require(violations.isEmpty, s"Local test suppression is forbidden: ${violations.mkString(", ")}")
     val registry = IO.read(root / "wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala")
     val tracking = "tracking = \"([^\"]+)\"".r.findAllMatchIn(registry).map(_.group(1)).toVector
@@ -80,7 +98,8 @@ object WireTckBuild {
             case Value(output) =>
               output.events.get(s"org.http4s.wire.$suite") match {
                 case Some(events) if events.passedCount + events.failureCount + events.errorCount == expected.size => ()
-                case _ => problems += s"MUnit results do not reconcile with manifest: $platform/$suite"
+                case Some(events) => problems += s"MUnit results do not reconcile with manifest: $platform/$suite expected=${expected.size} passed=${events.passedCount} failed=${events.failureCount} errors=${events.errorCount}"
+                case None => problems += s"Missing MUnit suite event: $platform/$suite"
               }
             case _ => ()
           }
@@ -111,6 +130,8 @@ object WireTckBuild {
                       "platform" -> platform, "outcome" -> status)
                     if (!identity.forall { case (key, value) => strings.get(key).contains(value) })
                       problems += s"JSON and outcome index disagree: $json"
+                    if (!strings.get("transcript").contains(s"${parts(0)}.wire.txt"))
+                      problems += s"Transcript reference does not match evidence: $json"
                     val required = Vector("targetVersion", "runtime", "scalaVersion", "catalogRevision", "settings", "source", "transcript")
                     if (!required.forall(key => strings.get(key).exists(_.nonEmpty)))
                       problems += s"Missing report metadata: $json"
@@ -136,6 +157,9 @@ object WireTckBuild {
     IO.write(root / "report.md", s"# HTTP wire comparison\n\n$summary\n\n" +
       "| Case | JVM Ember | JVM Netty | JS Ember | Native Ember |\n|---|---|---|---|---|\n" +
       rows.mkString("\n") + "\n\n" + errors.mkString("\n"))
+    val evidence = (root ** "*").get.filter(file => file.isFile && file.getName != "evidence.zip")
+      .map(file => file -> IO.relativize(root, file).get)
+    IO.zip(evidence, root / "evidence.zip", Some(315532800000L))
     log.info(s"Wire comparison: $summary; reports: $root")
     require(errors.isEmpty, errors.mkString("Wire comparison infrastructure failures:\n", "\n", ""))
   }

@@ -28,6 +28,8 @@ final class WireReport(target: WireTarget[IO], suite: String, comparison: Boolea
   private val directory = Path(TckBuild.reportRoot) / TckBuild.scalaVersion /
     mode / RuntimeInfo.platform / suite
 
+  def transcriptPath(id: String): String = (directory / s"$id.wire.txt").toString
+
   private def write(name: String, contents: String): IO[Unit] =
     Stream
       .emit(contents)
@@ -68,7 +70,8 @@ final class WireReport(target: WireTarget[IO], suite: String, comparison: Boolea
       "settings" -> "plaintext; prior-knowledge h2; isolated loopback; case deadline 8s; trace cap 64KiB",
       "elapsedMillis" -> elapsedMillis.toString,
       "detail" -> detail,
-      "transcript" -> (directory / traceFile).toString,
+      // Relative to this JSON record so downloaded CI artifacts remain navigable.
+      "transcript" -> traceFile,
     ).map { case (key, value) => s"${WireReport.quote(key)}:${WireReport.quote(value)}" }
     val refs = c.references.map(r =>
       s"""{"url":${WireReport.quote(r.url)},"requirement":${WireReport.quote(

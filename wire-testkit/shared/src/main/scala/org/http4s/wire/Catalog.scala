@@ -17,7 +17,9 @@
 package org.http4s.wire
 
 object Catalog {
-  val all: Vector[WireCase] = SmokeCases.all ++ BaselineCases.all
+  val all: Vector[WireCase] = SmokeCases.all ++ BaselineCases.all ++ Http1SyntaxCases.all ++
+    Http1LifecycleCases.all ++ Http1FramingCases.all ++ Http2ControlCases.all ++ Http2MessageCases.all ++
+    Http2StateCases.all ++ HpackCases.all ++ InteractionCases.all
   def select(protocol: Protocol, role: Role): Vector[WireCase] =
     all.filter(c => c.protocol == protocol && c.role == role)
 }

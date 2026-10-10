@@ -1,0 +1,23 @@
+rfc	errata	status	section	classification	url
+7541	4574	Held for Document Update	Appendix A.	Not incorporated: Held for Document Update	https://www.rfc-editor.org/errata/eid4574
+7541	5094	Held for Document Update	5.1	Not incorporated: Held for Document Update	https://www.rfc-editor.org/errata/eid5094
+9110	7105	Verified	B.1.	Excluded: TLS certificate identity	https://www.rfc-editor.org/errata/eid7105
+9110	7107	Rejected	6.5.1	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid7107
+9110	7109	Verified	15.4.9	Excluded: redirect semantics	https://www.rfc-editor.org/errata/eid7109
+9110	7138	Verified	12.5.1	Excluded: media negotiation	https://www.rfc-editor.org/errata/eid7138
+9110	7306	Verified	14.1.1	Excluded: range semantics	https://www.rfc-editor.org/errata/eid7306
+9110	7419	Verified	8.3.2	Excluded: charset semantics	https://www.rfc-editor.org/errata/eid7419
+9110	7530	Rejected	15.5.2.	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid7530
+9110	7599	Rejected	6.4.1	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid7599
+9110	7870	Rejected	8.6	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid7870
+9110	8138	Rejected	15.4	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid8138
+9110	8268	Verified	B.2	Incorporated: editorial history relocated to RFC9112	https://www.rfc-editor.org/errata/eid8268
+9110	8459	Rejected	15	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid8459
+9110	9162	Reported	5.2	Not incorporated: Reported	https://www.rfc-editor.org/errata/eid9162
+9110	9164	Reported	Appendix A	Not incorporated: Reported	https://www.rfc-editor.org/errata/eid9164
+9112	7214	Rejected	1.2	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid7214
+9112	7633	Rejected	2.2	Not incorporated: Rejected	https://www.rfc-editor.org/errata/eid7633
+9112	7744	Verified	1.2	Incorporated: obs-text reference corrected to RFC9110 section5.5	https://www.rfc-editor.org/errata/eid7744
+9112	8284	Verified	C.3	Incorporated: editorial history of absolute-form Host precedence	https://www.rfc-editor.org/errata/eid8284
+9113	7013	Verified	6.1	Incorporated: zero-length DATA wording	https://www.rfc-editor.org/errata/eid7013
+9113	9175	Reported	8.3.1	Not incorporated: Reported	https://www.rfc-editor.org/errata/eid9175

@@ -29,11 +29,8 @@ import fs2.io.net.SocketOption
 import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class WireCodecsSuite extends CatsEffectSuite {
-  private def ascii(value: String): ByteVector = Http1Wire.ascii(value)
-  private def hex(value: String): ByteVector = ByteVector.fromValidHex(value)
-
-  private def peer(
+private[wire] object WireCodecsSuite {
+  def peer(
       bytes: ByteVector,
       fragment: Int = 8192,
       whenEmpty: IO[Option[Chunk[Byte]]] = IO.pure(None),
@@ -73,6 +70,13 @@ class WireCodecsSuite extends CatsEffectSuite {
       }
       raw <- RawPeer.create(socket, transcript)
     } yield (raw, output.get)
+}
+
+class WireCodecsSuite extends CatsEffectSuite {
+  import WireCodecsSuite.peer
+
+  private def ascii(value: String): ByteVector = Http1Wire.ascii(value)
+  private def hex(value: String): ByteVector = ByteVector.fromValidHex(value)
 
   test("raw delimiter reads preserve following bytes across every fragmentation") {
     (1 to 10).toList.traverse_ { size =>
@@ -96,6 +100,18 @@ class WireCodecsSuite extends CatsEffectSuite {
       assert(exact.isLeft)
       assert(delimiter.isLeft)
       assert(eof.isLeft)
+    }
+  }
+
+  test("raw reads accepting resets preserve the prefix when unrelated I/O fails") {
+    val error = new java.io.IOException("unrelated I/O failure")
+    for {
+      p <- peer(ascii("abc"), fragment = 1, whenEmpty = IO.raiseError(error))
+      result <- p._1.readToEnd(allowReset = true).attempt
+      prefix <- p._1.readExact(3)
+    } yield {
+      assertEquals(result, Left(error))
+      assertEquals(prefix, ascii("abc"))
     }
   }
 
@@ -213,6 +229,59 @@ class WireCodecsSuite extends CatsEffectSuite {
     assert(Http2Wire.decodeAll(bytes).isLeft)
     assert(Http2Wire.decodeAll(hex("00000100")).isLeft)
     peer(bytes).flatMap(p => Http2Wire.readFrame(p._1).attempt).map(r => assert(r.isLeft))
+  }
+
+  test("HTTP/2 accepts an empty connection closure before a frame") {
+    peer(ByteVector.empty)
+      .flatMap(p => Http2Wire.readFrameOrClose(p._1))
+      .map(frame => assertEquals(frame, None))
+  }
+
+  test("HTTP/2 reads a complete frame before observing closure") {
+    val frame = Http2Wire.data(1, ascii("abc"))
+    for {
+      p <- peer(Http2Wire.encode(frame), fragment = 1)
+      received <- Http2Wire.readFrameOrClose(p._1)
+      closed <- Http2Wire.readFrameOrClose(p._1)
+    } yield {
+      assertEquals(received, Some(frame))
+      assertEquals(closed, None)
+    }
+  }
+
+  test("HTTP/2 rejects every partial header before closure") {
+    val header = hex("000009000000000001")
+    (1 to 8).toList.traverse_ { size =>
+      peer(header.take(size.toLong), fragment = 1)
+        .flatMap(p => Http2Wire.readFrameOrClose(p._1).attempt)
+        .map(result =>
+          assertEquals(
+            result.left.map(_.getMessage),
+            Left(s"unexpected EOF: needed 8 bytes, received ${size - 1}"),
+          )
+        )
+    }
+  }
+
+  Vector("absent" -> ByteVector.empty, "partial" -> ascii("abc")).foreach { case (name, payload) =>
+    test(s"HTTP/2 rejects closure with $name nine-byte payload") {
+      val bytes = Http2Wire.encode(Http2Wire.data(1, payload), declaredLength = Some(9))
+      peer(bytes, fragment = 1)
+        .flatMap(p => Http2Wire.readFrameOrClose(p._1).attempt)
+        .map(result =>
+          assertEquals(
+            result.left.map(_.getMessage),
+            Left(s"unexpected EOF: needed 9 bytes, received ${payload.size}"),
+          )
+        )
+    }
+  }
+
+  test("HTTP/2 does not treat an unrelated I/O error as connection closure") {
+    val error = new java.io.IOException("unrelated I/O failure")
+    peer(ByteVector.empty, whenEmpty = IO.raiseError(error))
+      .flatMap(p => Http2Wire.readFrameOrClose(p._1).attempt)
+      .map(result => assertEquals(result, Left(error)))
   }
 
   test("HTTP/2 rejects an oversized declaration before trying to buffer its payload") {

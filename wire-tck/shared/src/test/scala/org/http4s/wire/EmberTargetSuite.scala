@@ -157,6 +157,33 @@ class EmberTargetSuite extends CatsEffectSuite {
     }
   }
 
+  test("HTTP/2 server observation preserves :path and its empty query boundary") {
+    val path = "/a%2Fb?"
+    for {
+      transcript <- Transcript.create[IO]()
+      _ <- CaseContext(target, transcript).server(Protocol.Http2, ServerScenario.Reply()).use {
+        case (peer, server) =>
+          for {
+            _ <- Http2Wire.clientHandshake(peer)
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.headers(
+                1,
+                Vector(
+                  ":method" -> "GET",
+                  ":scheme" -> "http",
+                  ":authority" -> "wire.test",
+                  ":path" -> path,
+                ),
+              ),
+            )
+            observed <- server.received
+            _ <- IO(assertEquals(observed.path, path))
+          } yield ()
+      }
+    } yield ()
+  }
+
   private def trackedSource(
       started: Deferred[IO, Unit],
       finalizers: Ref[IO, Int],
