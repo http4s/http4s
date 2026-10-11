@@ -272,10 +272,6 @@ private[h2] class H2Connection[F[_]](
         /*
          * When sending a data frame, send as much as possible in the current window, splitting the
          * frame if needed, before blocking to wait.
-         *
-         * Offering the frame to the outgoing queue has to be cancelable, as it is possible for the
-         * queue to get filled and never drain if the connection stalls out. The flatModifyFull
-         * ensures cancelation never happens before the refundWindow cancelation handler is set up.
          */
         def go(data: H2Frame.Data): F[Unit] =
           F.bracketFull(poll => poll(writeWindow.take(data.flowControlSize))) { available =>
@@ -291,7 +287,8 @@ private[h2] class H2Connection[F[_]](
           } {
             case (_, Outcome.Succeeded(_)) => F.unit
             case (available, _) =>
-              writeWindow.change(available).ifM(F.unit, goAway(H2Error.FlowControlError))
+              // put the bytes back into the window if the offer gets canceled
+              writeWindow.add(available).ifM(F.unit, goAway(H2Error.FlowControlError))
           }.flatMap {
             case Some(remaining) => go(remaining)
             case None => F.unit
@@ -649,10 +646,6 @@ private[h2] class H2Connection[F[_]](
           }
           (settings, differenceInWindow) = t
 
-          // By the spec, this *should* always be valid
-          valid <- writeWindow.change(differenceInWindow)
-          _ <- goAway(H2Error.FlowControlError).unlessA(valid)
-
           _ <- mapRef.get.flatMap { map =>
             map.toList.traverse { case (_, stream) =>
               stream.modifyWriteWindow(differenceInWindow)
@@ -683,11 +676,7 @@ private[h2] class H2Connection[F[_]](
           goAway(H2Error.ProtocolError)
       case (w @ H2Frame.WindowUpdate(i, size), st) =>
         i match {
-          case 0 =>
-            for {
-              valid <- writeWindow.change(size)
-              _ <- goAway(H2Error.FlowControlError).unlessA(valid)
-            } yield ()
+          case 0 => writeWindow.add(size).ifM(F.unit, goAway(H2Error.FlowControlError))
           case otherwise =>
             mapRef.get.map(_.get(otherwise)).flatMap {
               case Some(s) =>
@@ -870,9 +859,7 @@ private[h2] object H2Connection {
 
         F.bracketFull(poll => poll(windowOpen.acquire)) { _ =>
           windowBytes.flatModify { currentWindow =>
-            // On the edge case where a `change` reduced the window size below
-            // zero without locking, so `available` needs to be clamped
-            val available = Math.max(0, Math.min(bytes, currentWindow))
+            val available = Math.min(bytes, currentWindow)
             val nextWindow = currentWindow - available
 
             // Can't use updateOpening here as the lock was acquired even while
@@ -885,23 +872,16 @@ private[h2] object H2Connection {
         }
       }
 
-    def change(bytes: Int): F[Boolean] =
-      windowBytes.flatModify(currentWindow =>
+    def add(bytes: Int): F[Boolean] =
+      windowBytes.flatModify { currentWindow =>
+        require(bytes >= 0)
         try {
           val nextWindow = Math.addExact(currentWindow, bytes)
-          (nextWindow, updateOpening(currentWindow, nextWindow).as(true))
+          (nextWindow, windowOpen.release.whenA(currentWindow == 0 && nextWindow > 0).as(true))
         } catch {
           case _: ArithmeticException => (currentWindow, F.pure(false))
         }
-      )
-
-    private def updateOpening(lastWindow: Int, nextWindow: Int): F[Unit] =
-      if (nextWindow <= 0)
-        // It is possible another fiber acquired the lock already, in which case
-        // it will make sure the lock is updated.
-        windowOpen.tryAcquire.void
-      else
-        windowOpen.release.whenA(lastWindow <= 0 && nextWindow > 0)
+      }
   }
 
   private[h2] object WriteWindow {

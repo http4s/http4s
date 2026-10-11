@@ -49,6 +49,7 @@ class H2FlowControlReviewSuite extends H2Suite {
       input: ByteVector = ByteVector.empty,
       idleTimeout: Duration = Duration.Inf,
       readBytes: Int => IO[Option[Chunk[Byte]]] = _ => IO.never,
+      initialConnectionWindowSize: Int = settings.initialWindowSize.windowSize,
   ): IO[H2Connection[IO]] = {
     val addr = SocketAddress(ip"127.0.0.1", port"0")
     val socket = new Socket[IO] {
@@ -73,7 +74,9 @@ class H2FlowControlReviewSuite extends H2Suite {
       state <- H2Connection
         .initState[IO](settings, settings.initialWindowSize)
       pendingReadCredit <- SignallingRef[IO, Int](0)
-      writeWindow <- H2Connection.WriteWindow.init[IO](settings.initialWindowSize)
+      writeWindow <- H2Connection.WriteWindow.init[IO](
+        H2Frame.Settings.SettingsInitialWindowSize(initialConnectionWindowSize)
+      )
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](4096)
@@ -394,9 +397,9 @@ class H2FlowControlReviewSuite extends H2Suite {
           bytes => written.update(_ ++ bytes.toByteVector),
           H2Connection.ConnectionType.Server,
           idleTimeout = 1.second,
+          initialConnectionWindowSize = 0,
         )
         stream <- receiveBody(h2, 1, window)
-        _ <- clearWriteWindow(h2)
         _ <- (h2.readLoop.background, h2.writeLoop.compile.drain.background).tupled.use {
           case (reader, _) =>
             for {
@@ -484,11 +487,16 @@ class H2FlowControlReviewSuite extends H2Suite {
           H2Frame.toByteVector(H2Frame.WindowUpdate(0, 1))
         for {
           outgoing <- Queue.bounded[IO, H2Frame](128)
-          h2 <- connection(outgoing, _ => IO.unit, H2Connection.ConnectionType.Server, input)
+          h2 <- connection(
+            outgoing,
+            _ => IO.unit,
+            H2Connection.ConnectionType.Server,
+            input,
+            initialConnectionWindowSize = 0,
+          )
           stream <- receiveBody(h2, 1, 16384)
           // The handler reads a prefix, then pauses with less than half a window consumed.
           _ <- stream.readBody.take(16384).compile.drain
-          _ <- clearWriteWindow(h2)
           _ <- outgoing.offer(H2Frame.Ping.ack).replicateA_(128)
           _ <- h2.readLoop.background.use { _ =>
             for {

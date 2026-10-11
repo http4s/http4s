@@ -77,8 +77,19 @@ class H2ConnectionSuite extends H2Suite {
   private def mkConnection(
       localSettings: H2Frame.Settings.ConnectionSettings,
       input: ByteVector,
+      initialConnectionWindowSize: Int,
   ): IO[H2Connection[IO]] =
-    Ref[IO].of(ByteVector.empty).flatMap(mkConnection(localSettings, input, Duration.Inf, _))
+    Ref[IO]
+      .of(ByteVector.empty)
+      .flatMap(
+        mkConnection(
+          localSettings,
+          input,
+          Duration.Inf,
+          _,
+          initialConnectionWindowSize = initialConnectionWindowSize,
+        )
+      )
 
   private def mkConnection(
       localSettings: H2Frame.Settings.ConnectionSettings,
@@ -93,6 +104,8 @@ class H2ConnectionSuite extends H2Suite {
       idleTimeout: Duration,
       writes: Ref[IO, ByteVector],
       connectionType: H2Connection.ConnectionType = H2Connection.ConnectionType.Server,
+      initialConnectionWindowSize: Int =
+        H2Frame.Settings.ConnectionSettings.default.initialWindowSize.windowSize,
   ): IO[H2Connection[IO]] =
     for {
       socket <- stubSocket(input, writes)
@@ -103,7 +116,7 @@ class H2ConnectionSuite extends H2Suite {
       )
       pendingReadCredit <- SignallingRef[IO, Int](0)
       writeWindow <- H2Connection.WriteWindow.init[IO](
-        H2Frame.Settings.ConnectionSettings.default.initialWindowSize
+        H2Frame.Settings.SettingsInitialWindowSize(initialConnectionWindowSize)
       )
       outgoing <- Queue.unbounded[IO, H2Frame]
       created <- Queue.unbounded[IO, Int]
@@ -149,10 +162,13 @@ class H2ConnectionSuite extends H2Suite {
     val input = ByteVector.concat(List.fill(200)(data)) ++
       H2Frame.toByteVector(H2Frame.WindowUpdate(0, 1))
     for {
-      h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, input)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        input,
+        initialConnectionWindowSize = 0,
+      )
       stream <- h2.initiateRemoteStreamById(1)
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
-      _ <- clearWriteWindow(h2)
       _ <- h2.readLoop.timeout(2.seconds)
       available <- h2.writeWindow.available
       streamState <- stream.state.get
@@ -342,8 +358,8 @@ class H2ConnectionSuite extends H2Suite {
           ByteVector.empty,
           idle,
           writes,
+          initialConnectionWindowSize = 0,
         )
-        _ <- clearWriteWindow(h2)
         _ <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16)).attempt
         st <- (IO.sleep(idle) >> h2.state.get).iterateUntil(_.closed)
@@ -370,8 +386,8 @@ class H2ConnectionSuite extends H2Suite {
           ByteVector.empty,
           idle,
           writes,
+          initialConnectionWindowSize = 0,
         )
-        _ <- clearWriteWindow(h2)
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16)).start
         _ <- IO.sleep(idle / 2)
@@ -399,11 +415,11 @@ class H2ConnectionSuite extends H2Suite {
           ByteVector.empty,
           idle,
           writes,
+          initialConnectionWindowSize = 16,
         )
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16))
         _ <- IO.sleep(idle * 10)
-        _ <- clearWriteWindow(h2)
         _ <- h2.offerFrame(dataFrame(16)).start
         _ <- IO.sleep(idle / 2)
         midway <- h2.state.get
@@ -431,8 +447,8 @@ class H2ConnectionSuite extends H2Suite {
           ByteVector.empty,
           idle,
           writes,
+          initialConnectionWindowSize = 0,
         )
-        _ <- clearWriteWindow(h2)
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(H2Frame.Ping.ack)
         _ <- IO.sleep(idle * 10)
@@ -469,9 +485,9 @@ class H2ConnectionSuite extends H2Suite {
           peerBody,
           Duration.Inf,
           writes,
+          initialConnectionWindowSize = 0,
         )
         stream <- openStream(h2)
-        _ <- clearWriteWindow(h2)
         loop <- h2.writeLoop.compile.drain.start
         _ <- h2.offerFrame(dataFrame(16)).start
         _ <- h2.readLoop
@@ -518,9 +534,9 @@ class H2ConnectionSuite extends H2Suite {
           peerBody,
           idle,
           writes,
+          initialConnectionWindowSize = 0,
         )
         stream <- openStream(h2)
-        _ <- clearWriteWindow(h2)
         start <- IO.monotonic
         _ <- h2.writeLoop.compile.drain.start
         send <- h2.offerFrame(dataFrame(16)).start
@@ -607,7 +623,7 @@ class H2ConnectionSuite extends H2Suite {
           .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
         _ <- window.take(300)
         blocked <- window.take(300).start
-        _ <- window.change(200)
+        _ <- window.add(200)
         remainingBytes <- blocked.join.flatMap(_.embedError)
       } yield assertEquals(remainingBytes, 200)
     )
