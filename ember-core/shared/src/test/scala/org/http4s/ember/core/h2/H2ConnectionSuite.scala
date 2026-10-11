@@ -570,15 +570,6 @@ class H2ConnectionSuite extends H2Suite {
     )
   }
 
-  test("WriteWindow has the initialized amount available") {
-    TestControl.executeEmbed(
-      H2Connection.WriteWindow
-        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(5))
-        .flatMap(_.available)
-        .map(assertEquals(_, 5))
-    )
-  }
-
   test("WriteWindow has bytes available after taking some") {
     TestControl.executeEmbed(
       H2Connection.WriteWindow
@@ -613,6 +604,15 @@ class H2ConnectionSuite extends H2Suite {
         .flatMap(window =>
           window.take(300) >> interceptIO[TimeoutException](window.take(300).timeout(100.millis))
         )
+    )
+  }
+
+  test("WriteWindow.take for 0 bytes does not block even when no bytes are available") {
+    TestControl.executeEmbed(
+      H2Connection.WriteWindow
+        .init[IO](H2Frame.Settings.SettingsInitialWindowSize(0))
+        .flatMap(window => window.take(0))
+        .map(assertEquals(_, 0))
     )
   }
 

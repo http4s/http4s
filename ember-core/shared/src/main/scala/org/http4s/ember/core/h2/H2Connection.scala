@@ -346,11 +346,11 @@ private[h2] class H2Connection[F[_]](
 
     val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway => closeWithGoAway(g) }
 
-    withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
+    firstGoAway.getOrElse(F.unit) >>
+      withStallTimeout(socket.write(Chunk.byteVector(bv))) >>
       recordReadCredit(chunk) >>
       chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
-      state.update(s => s.copy(stallStart = None)) >>
-      firstGoAway.getOrElse(F.unit)
+      state.update(s => s.copy(stallStart = None))
   }
 
   def writeLoop: Stream[F, Nothing] =
@@ -857,19 +857,15 @@ private[h2] object H2Connection {
       else {
         require(bytes > 0)
 
-        F.bracketFull(poll => poll(windowOpen.acquire)) { _ =>
-          windowBytes.flatModify { currentWindow =>
-            val available = Math.min(bytes, currentWindow)
-            val nextWindow = currentWindow - available
+        F.uncancelable(poll =>
+          poll(windowOpen.acquire) >>
+            windowBytes.flatModify { currentWindow =>
+              val available = Math.min(bytes, currentWindow)
+              val nextWindow = currentWindow - available
 
-            // Can't use updateOpening here as the lock was acquired even while
-            // open. It needs to be released if the window is still open.
-            (nextWindow, windowOpen.release.whenA(nextWindow > 0).as(available))
-          }
-        } {
-          case (_, Outcome.Succeeded(_)) => F.unit
-          case _ => windowOpen.release
-        }
+              (nextWindow, windowOpen.release.whenA(nextWindow > 0).as(available))
+            }
+        )
       }
 
     def add(bytes: Int): F[Boolean] =
