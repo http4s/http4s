@@ -83,13 +83,34 @@ final case class ServerHandle[F[_]](
 
 trait ClientDriver[F[_]] {
   def exchange(request: RequestData): Resource[F, ResponseData[F]]
-  def exchangeStream(request: RequestData, body: Stream[F, Byte]): Resource[F, ResponseData[F]]
+
+  /** Build the upload inside its exchange-local cleanup boundary. Effect-owned finalizers
+    * must use the supplied monitor (for example, `effect.onCancel(cleanup(release))`).
+    * An adapter cannot recover cancellation cleanup failures hidden inside an opaque F.
+    * FS2 scope finalizers remain owned and observed by the source compiler.
+    */
+  def exchangeStream(
+      request: RequestData,
+      body: FixtureCleanup[F] => Stream[F, Byte],
+  ): Resource[F, ResponseData[F]]
 }
 
 /** A target interprets application operations only. All wire oracles live outside it. */
 trait WireTarget[F[_]] {
   def name: String
   def version: String
+  def settings(protocol: Protocol, role: Role): Vector[(String, String)] = {
+    val _ = (protocol, role)
+    Vector.empty
+  }
+
+  /** Bind case-local diagnostics. Adapters report fixture/cleanup faults independently of
+    * native protocol outcomes; the callback must finish before their resources are released.
+    */
+  def withFailureObserver(observe: AdapterFailure => F[Unit]): WireTarget[F] = {
+    val _ = observe
+    this
+  }
   def server(protocol: Protocol, scenario: ServerScenario): Resource[F, ServerHandle[F]]
   def client(
       protocol: Protocol,

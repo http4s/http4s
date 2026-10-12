@@ -55,20 +55,15 @@ abstract class WireSuite(
   cases.foreach { c =>
     implicit val location: Location = c.location
     val ignored = !comparison && IgnoreRegistry.get(c.id, RuntimeInfo.platform).isDefined
-    val options = TestOptions(c.id)
+    val options = TestOptions(c.id).tag(new munit.Tag(c.id))
     test(if (ignored) options.ignore else options) {
       for {
         transcript <- Transcript.create[IO]()
         started <- IO.monotonic
-        outcome <- c.run(CaseContext(target, transcript)).timeout(8.seconds).attempt
+        outcome <- WireSuite.runCase(target, c, transcript, 8.seconds).attempt
         ended <- IO.monotonic
         trace <- transcript.render
-        status = outcome match {
-          case Right(_) => "pass"
-          case Left(_: ProtocolFailure) => "fail"
-          case Left(_: TimeoutException) => "inconclusive"
-          case Left(_) => "error"
-        }
+        status = WireSuite.outcomeStatus(outcome)
         _ <- report.record(
           c,
           status,
@@ -92,5 +87,27 @@ abstract class WireSuite(
         }
       } yield ()
     }
+  }
+}
+
+private[wire] object WireSuite {
+  def runCase(
+      target: WireTarget[IO],
+      c: WireCase,
+      transcript: Transcript[IO],
+      deadline: FiniteDuration,
+  ): IO[Unit] =
+    AdapterFailure.observe(target)(monitored =>
+      c.run(CaseContext(monitored, transcript)).timeout(deadline)
+    )
+
+  def outcomeStatus(outcome: Either[Throwable, Unit]): String = outcome match {
+    case Right(_) => "pass"
+    case Left(error) if AdapterFailure.find(error).nonEmpty => "error"
+    case Left(_: WireObservationLimit) => "error"
+    case Left(_: ProtocolFailure) => "fail"
+    case Left(_: WireDecodingFailure) => "fail"
+    case Left(_: TimeoutException) => "inconclusive"
+    case Left(_) => "error"
   }
 }

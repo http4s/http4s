@@ -41,25 +41,60 @@ import scodec.bits.ByteVector
 import scala.concurrent.duration._
 
 /** Interprets application operations through Ember's public client and server APIs. */
-final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
+final class EmberTarget[F[_]: Async: Network](
+    observer: Option[AdapterFailure => F[Unit]] = None
+) extends WireTarget[F] {
+  import EmberTarget._
+
+  override def withFailureObserver(observe: AdapterFailure => F[Unit]): WireTarget[F] =
+    new EmberTarget[F](Some(observe))
+
+  private def guardRelease[A](resource: Resource[F, A]): Resource[F, A] =
+    AdapterFailure.guardRelease(resource, "releasing Ember resource", observer)
+
   val name: String = "ember"
   val version: String = org.http4s.BuildInfo.version
 
-  def server(protocol: Protocol, scenario: ServerScenario): Resource[F, ServerHandle[F]] =
-    Resource.eval(Queue.unbounded[F, RequestData]).flatMap { received =>
-      val builder = EmberServerBuilder
-        .default[F]
-        .withHost(ip"127.0.0.1")
-        .withPort(port"0")
-        .withRequestHeaderReceiveTimeout(15.seconds)
-        .withIdleTimeout(20.seconds)
-        .withShutdownTimeout(Duration.Zero)
-        .withHttpApp(HttpApp[F](request => serve(protocol, request, scenario, received)))
+  override def settings(protocol: Protocol, role: Role): Vector[(String, String)] =
+    Vector(
+      "binding" -> "Ember public client/server API",
+      "http2-enabled" -> (protocol == Protocol.Http2).toString,
+      "builder-options" -> "Ember defaults except listed overrides",
+    ) ++ (role match {
+      case Role.Server =>
+        Vector(
+          "request-header-receive-timeout-ms" -> RequestTimeout.toMillis.toString,
+          "idle-timeout-ms" -> IdleTimeout.toMillis.toString,
+          "shutdown-timeout-ms" -> ShutdownTimeout.toMillis.toString,
+          "max-echo-bytes" -> MaxBodyBytes.toString,
+        )
+      case Role.Client =>
+        Vector(
+          "request-timeout-ms" -> RequestTimeout.toMillis.toString,
+          "idle-connection-time-ms" -> IdleTimeout.toMillis.toString,
+          "http2-prior-knowledge" -> (protocol == Protocol.Http2).toString,
+        )
+    })
 
-      (protocol match {
-        case Protocol.Http1 => builder.withoutHttp2
-        case Protocol.Http2 => builder.withHttp2
-      }).build.map(server => ServerHandle(server.addressIp4s, received.take, received.tryTake))
+  def server(protocol: Protocol, scenario: ServerScenario): Resource[F, ServerHandle[F]] =
+    AdapterFailure.recorder[F](observer).flatMap { failures =>
+      Resource.eval(Queue.unbounded[F, RequestData]).flatMap { received =>
+        val builder = EmberServerBuilder
+          .default[F]
+          .withHost(ip"127.0.0.1")
+          .withPort(port"0")
+          .withRequestHeaderReceiveTimeout(RequestTimeout)
+          .withIdleTimeout(IdleTimeout)
+          .withShutdownTimeout(ShutdownTimeout)
+          .withHttpApp(
+            HttpApp[F](request => serve(protocol, request, scenario, received, failures))
+          )
+
+        guardRelease((protocol match {
+          case Protocol.Http1 => builder.withoutHttp2
+          case Protocol.Http2 => builder.withHttp2
+        }).build).map(server => ServerHandle(server.addressIp4s, received.take, received.tryTake))
+      }
     }
 
   def client(
@@ -68,32 +103,41 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
   ): Resource[F, ClientDriver[F]] = {
     val builder = EmberClientBuilder
       .default[F]
-      .withTimeout(15.seconds)
-      .withIdleConnectionTime(20.seconds)
+      .withTimeout(RequestTimeout)
+      .withIdleConnectionTime(IdleTimeout)
 
-    (protocol match {
+    guardRelease((protocol match {
       case Protocol.Http1 => builder.withoutHttp2
       case Protocol.Http2 => builder.withHttp2
-    }).build.map { underlying =>
+    }).build).map { underlying =>
       new ClientDriver[F] {
         def exchange(request: RequestData): Resource[F, ResponseData[F]] =
-          exchangeStream(request, bytes(request.body))
+          exchangeStream(request, _ => bytes(request.body))
 
         def exchangeStream(
             request: RequestData,
-            body: Stream[F, Byte],
+            body: FixtureCleanup[F] => Stream[F, Byte],
         ): Resource[F, ResponseData[F]] =
-          Resource
-            .eval(toRequest(protocol, address, request, body))
-            .flatMap(underlying.run)
-            .map(response =>
-              ResponseData(
-                status = response.status.code,
-                headers = fromHeaders(response.headers),
-                body = response.body,
-                trailers = response.trailerHeaders.map(fromHeaders),
-              )
+          AdapterFailure.recorder[F](observer).flatMap { failures =>
+            val source = failures.source("reading Ember request source")(
+              Stream.suspend(body(failures.fixtureCleanup))
             )
+            Resource
+              .eval(
+                failures.capture("constructing Ember request")(
+                  toRequest(protocol, address, request, source)
+                )
+              )
+              .flatMap(request => guardRelease(underlying.run(request)))
+              .map(response =>
+                ResponseData(
+                  status = response.status.code,
+                  headers = fromHeaders(response.headers),
+                  body = response.body,
+                  trailers = response.trailerHeaders.map(fromHeaders),
+                )
+              )
+          }
       }
     }
   }
@@ -128,6 +172,7 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
       request: Request[F],
       scenario: ServerScenario,
       received: Queue[F, RequestData],
+      failures: AdapterFailure.Recorder[F],
   ): F[Response[F]] = {
     val head = RequestData(
       method = request.method.name,
@@ -148,7 +193,9 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
         // Only the body-consuming scenario waits for the body before publishing its observation.
         request.body.take(EmberTarget.MaxBodyBytes + 1L).compile.to(Chunk).flatMap { body =>
           if (body.size > EmberTarget.MaxBodyBytes)
-            Async[F].raiseError(new IllegalArgumentException("Wire fixture body exceeds 1 MiB"))
+            failures.capture("collecting Ember fixture body")(
+              Async[F].raiseError(new IllegalArgumentException("Wire fixture body exceeds 1 MiB"))
+            )
           else
             received
               .offer(head.copy(body = body.toByteVector))
@@ -157,9 +204,13 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
               )
         }
       case ServerScenario.Reply(status, headers, body) =>
-        reply(Status.fromInt(status).liftTo[F].map { code =>
-          Response[F](status = code, headers = toHeaders(headers)).withBodyStream(bytes(body))
-        })
+        reply(
+          failures.capture("constructing Ember fixture response")(
+            Status.fromInt(status).liftTo[F].map { code =>
+              Response[F](status = code, headers = toHeaders(headers)).withBodyStream(bytes(body))
+            }
+          )
+        )
       case ServerScenario.EchoHeaders =>
         val rendered = head.headers.map { case (name, value) => s"$name: $value\n" }.mkString
         reply(
@@ -183,7 +234,16 @@ final class EmberTarget[F[_]: Async: Network] extends WireTarget[F] {
 }
 
 object EmberTarget {
+  private val RequestTimeout = 15.seconds
+  private val IdleTimeout = 20.seconds
+  private val ShutdownTimeout = Duration.Zero
   private val MaxBodyBytes = 1024 * 1024
+
+  /** Preserve cancellation during acquisition and tag only the acquired resource's
+    * release action. Native allocation and response-body failures retain their origin.
+    */
+  private[wire] def guardRelease[F[_]: Async, A](resource: Resource[F, A]): Resource[F, A] =
+    AdapterFailure.guardRelease(resource, "releasing Ember resource")
 
   def apply[F[_]: Async: Network]: EmberTarget[F] = new EmberTarget[F]
 }

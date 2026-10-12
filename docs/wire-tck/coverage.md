@@ -1,5 +1,7 @@
 # Coverage inventory
 
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Run `sbt --client tckCheck` and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+
 The inventory and executable catalog answer different questions. Inventory rows
 classify obligations, alternatives, grammar productions and exceptions derived
 from the RFCs. Catalog manifests identify the concrete scenarios that actually
@@ -34,10 +36,10 @@ skips are separate from requirement gaps and never count as passing coverage.
 
 ## Phase 2 inventory snapshot
 
-The authored catalog contains 752 individually registered cases: 266 HTTP/1.1
-and 486 HTTP/2, including HPACK and cross-section interactions. The independent
-section index classifies 542 headings. Its 1,780 detailed inventory rows currently
-include 933 mapped to cases, 695 explicit coverage gaps, and 152 scope exclusions.
+The historical phase-2 catalog contained 752 individually registered cases:
+266 HTTP/1.1 and 486 HTTP/2, including HPACK and cross-section interactions. The
+independent section index classified 542 headings. Its 1,780 detailed inventory
+rows included 933 mapped to cases, 695 explicit coverage gaps, and 152 scope exclusions.
 These rows are not equally sized obligations and are not a conformance percentage.
 No applicable section remains an unexpanded section placeholder; this is an
 indexing check, subject to the independent phase-4 specification audit.
@@ -47,3 +49,57 @@ through the target contracts, optional choices that cannot be forced, extreme
 resource boundaries, and unimplemented combinations of state transitions. Where
 a permitted alternative such as HTTP/1.1 411 satisfies a case, the inventory does
 not claim that the target's chunk parser was exercised.
+
+## Current catalog after oracle retirements
+
+The current catalog contains 749 cases: 266 HTTP/1.1 and 483 HTTP/2.
+The earlier custom-scheme-retirement checkpoint contained 750 cases: 266 HTTP/1.1
+and 484 HTTP/2.
+The earlier CONNECT-retirement checkpoint contained 751 cases: 266 HTTP/1.1
+and 485 HTTP/2.
+`h2.server.connect-authority-form` was retired as an oracle correction (A4CR1):
+an origin binding need not support CONNECT, and method-only application
+publication cannot establish parsed authority. Its former positive shape row is
+an explicit acceptance/authority-observation gap. Allowing 501 or a generic reset
+would not establish parsing. The four malformed-CONNECT cases remain active and
+unchanged; proxy tunnel establishment remains excluded.
+
+`h2.server.request-non-http-scheme` was also retired as an oracle correction
+(A4MS3). RFC9113 8.3.1 permits non-HTTP schemes for translating proxies and
+gateways, while RFC9110 7.4 permits an origin to refuse an unconfigured target
+URI. The fixture does not configure custom-scheme support or expose parsed
+scheme. Its former positive row is an explicit acceptance/interpretation gap;
+accepting 421 alone would not prove parsing.
+
+`h2.server.reject-te-empty` was retired as an oracle correction (A4TE1).
+RFC9110 10.1.4 and 5.6.1 permit a zero-member TE list; RFC9113 8.2.2
+restricts request TE to trailers without explicitly resolving that boundary.
+The inventory records an interpretation gap, with neither mandatory acceptance
+nor rejection asserted. Non-trailers coding and response-TE rejection cases
+remain active; historical empty-TE outcomes remain evidence.
+
+These retirements are neither passing tests nor Ember fixes. The 752-case phase-2
+catalog and its archived outcomes remain historical evidence; the
+[historical failure entry](known-failures.md#h2-server-connect-authority-form)
+records the retirement disposition and supporting evidence.
+
+
+## Phase 3 checkpoint census
+
+The current inventory has 1,796 rows: 915 covered, 729 explicit gaps and 152
+scope exclusions, with 542 section rows. All 749 current case IDs (266 HTTP/1.1
+and 483 HTTP/2) are mapped; referenced IDs and covered-role mappings reconcile.
+These consistency checks do not establish normative completeness or the strength
+of every claimed observation. Rows are not equally sized obligations, and these
+counts are not a conformance percentage. The phase-2 snapshot above remains
+historical; the three retired oracles remain explicit gaps.
+
+The current failure registry contains 153 case IDs: 92 confirmed and 61
+provisional, spanning 453 designated platform cells (150 JVM, 150 JS, 153 Native).
+Registry skips are separate from inventory gaps and never count as passing tests.
+See the independent checkpoint review (`audit/phase3-checkpoint-review.md`, historical artifact) and
+sealed census evidence (`audit/phase3-checkpoint-review.zip`, historical artifact).
+
+The current phase 3 checkpoint (`audit/phase3-accepted-status.md`, historical artifact) records completed
+validation and its limits. The phase 3 commit is still pending; phase 4 has not
+started. Fresh RFC-first spec-to-tests and tests-to-spec audits remain required.

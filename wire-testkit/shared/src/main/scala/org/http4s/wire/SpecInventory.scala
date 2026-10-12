@@ -91,7 +91,18 @@ object SpecInventory {
         }
         .toVector ++
       entries.flatMap { entry =>
-        Vector(
+        val requiredRoles = entry.role match {
+          case "both" => Set("client", "server")
+          case "client" | "server" => Set(entry.role)
+          case _ => Set.empty[String]
+        }
+        val coveredRoles = cases.filter(c => entry.cases.contains(c.id)).map(_.role.id).toSet
+        val missingRoles =
+          if (entry.disposition == "covered") requiredRoles.diff(coveredRoles)
+          else Set.empty[String]
+        missingRoles.toVector.sorted.map(role =>
+          s"coverage without $role role evidence: ${entry.id}"
+        ) ++ Vector(
           when(entry.id.isEmpty || entry.requirement.trim.isEmpty)(
             s"empty obligation: ${entry.id}"
           ),

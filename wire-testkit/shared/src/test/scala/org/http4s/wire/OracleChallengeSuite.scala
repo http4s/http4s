@@ -50,6 +50,58 @@ class OracleChallengeSuite extends CatsEffectSuite {
     runHttp1Challenge(accepted, 7, Some(accepted.take(7)))
   }
 
+  test("the GET smoke oracle classifies malformed received Content-Length as protocol failure") {
+    for {
+      fixture <- ScriptedTarget.create[IO] { (peer, publish) =>
+        readAndPublish(peer, publish) *> peer.write(
+          Http1Wire.message("HTTP/1.1 200 OK", Vector("Content-Length" -> "eight"), accepted)
+        )
+      }
+      (target, probe) = fixture
+      transcript <- Transcript.create[IO]()
+      outcome <- catalogCase("h1.server.get").run(CaseContext(target, transcript)).attempt
+      _ <- IO {
+        assertEquals(WireSuite.outcomeStatus(outcome), "fail")
+        assert(outcome.left.toOption.exists(_.isInstanceOf[WireDecodingFailure]))
+        assertEquals(outcome.left.map(_.getMessage), Left("invalid framing length"))
+      }
+      _ <- assertReleased(probe)
+    } yield ()
+  }
+
+  test("malformed received wire with an adapter release failure is a blocking error") {
+    val cleanup = new AdapterFailure("fixture cleanup", new java.io.IOException("cleanup"))
+    for {
+      fixture <- ScriptedTarget.create[IO] { (peer, publish) =>
+        readAndPublish(peer, publish) *> peer.write(
+          Http1Wire.message("HTTP/1.1 200 OK", Vector("Content-Length" -> "eight"), accepted)
+        )
+      }
+      (underlying, probe) = fixture
+      target = new WireTarget[IO] {
+        val name = underlying.name
+        val version = underlying.version
+        def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
+          AdapterFailure.guardRelease(
+            underlying
+              .server(protocol, scenario)
+              .onFinalize(IO.raiseError[Unit](cleanup)),
+            "scripted cleanup",
+          )
+        def client(
+            protocol: Protocol,
+            address: SocketAddress[IpAddress],
+        ): Resource[IO, ClientDriver[IO]] =
+          underlying.client(protocol, address)
+      }
+      transcript <- Transcript.create[IO]()
+      outcome <- catalogCase("h1.server.get").run(CaseContext(target, transcript)).attempt
+      _ <- IO(assertEquals(WireSuite.outcomeStatus(outcome), "error"))
+      _ <- IO(assert(outcome.left.exists(_.isInstanceOf[WireDecodingFailure])))
+      _ <- assertReleased(probe)
+    } yield ()
+  }
+
   test("the PING smoke oracle accepts an identical payload and releases its peer") {
     runPingChallenge(identity, shouldFail = false)
   }
@@ -61,6 +113,30 @@ class OracleChallengeSuite extends CatsEffectSuite {
     )
   }
 
+  test("the HPACK rejection oracle accepts a connection compression error and releases its peer") {
+    runConnectionScopeChallenge(connectionError = true)
+  }
+
+  test("the HPACK rejection oracle rejects a connection-error GOAWAY placed on a stream") {
+    // RFC 9113 section 6.8: GOAWAY is connection-scoped and requires stream ID zero.
+    // Only the frame's stream placement changes; COMPRESSION_ERROR and closure stay identical.
+    runConnectionScopeChallenge(connectionError = true, wrongStreamId = true)
+  }
+
+  test("the stream-only compression-error challenge remains an observation gap, not a violation") {
+    runConnectionScopeChallenge(connectionError = false)
+  }
+
+  test(
+    "the stream credit oracle accepts padded DATA within credit and resumes after WINDOW_UPDATE"
+  ) {
+    runStreamCreditChallenge(countPadding = true)
+  }
+
+  test("the stream credit oracle rejects counting only content octets in padded DATA") {
+    runStreamCreditChallenge(countPadding = false)
+  }
+
   test("canceling a waiting smoke case releases the scripted socket, listener, and fiber") {
     for {
       waiting <- Deferred[IO, Unit]
@@ -69,7 +145,9 @@ class OracleChallengeSuite extends CatsEffectSuite {
       }
       (target, probe) = fixture
       transcript <- Transcript.create[IO]()
-      run = smoke("h1.server.get").run(CaseContext(target, transcript))
+      run = AdapterFailure.observe(target)(monitored =>
+        catalogCase("h1.server.get").run(CaseContext(monitored, transcript))
+      )
       _ <- Resource.make(run.start)(_.cancel).use { fiber =>
         for {
           _ <- waiting.get
@@ -84,6 +162,54 @@ class OracleChallengeSuite extends CatsEffectSuite {
         } yield ()
       }
     } yield ()
+  }
+
+  test("case deadline reports cleanup failure after cancellation and releases every resource") {
+    val cleanup = new AdapterFailure("scripted cleanup", new java.io.IOException("cleanup"))
+    for {
+      fixture <- ScriptedTarget.create[IO]((peer, publish) => readAndPublish(peer, publish))
+      (underlying, probe) = fixture
+      target = new CleanupTarget(underlying, cleanup, None)
+      transcript <- Transcript.create[IO]()
+      result <- WireSuite
+        .runCase(target, catalogCase("h1.server.get"), transcript, 1.second)
+        .attempt
+      _ <- IO(assert(result.left.exists(_.getCause eq cleanup)))
+      _ <- IO(
+        assert(
+          result.left.exists(
+            _.getSuppressed.exists(
+              _.isInstanceOf[java.util.concurrent.TimeoutException]
+            )
+          )
+        )
+      )
+      _ <- IO(assertEquals(WireSuite.outcomeStatus(result), "error"))
+      _ <- assertReleased(probe)
+      // The next observation scope on the same binding starts with an empty journal.
+      _ <- AdapterFailure.observe(target)(_ => IO.unit)
+    } yield ()
+  }
+
+  private final class CleanupTarget(
+      underlying: WireTarget[IO],
+      cleanup: AdapterFailure,
+      observer: Option[AdapterFailure => IO[Unit]],
+  ) extends WireTarget[IO] {
+    val name = underlying.name
+    val version = underlying.version
+    override def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] =
+      new CleanupTarget(underlying, cleanup, Some(observe))
+    def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
+      AdapterFailure.guardRelease(
+        underlying.server(protocol, scenario).onFinalize(IO.raiseError[Unit](cleanup)),
+        "scripted cleanup",
+        observer,
+      )
+    def client(
+        protocol: Protocol,
+        address: SocketAddress[IpAddress],
+    ): Resource[IO, ClientDriver[IO]] = underlying.client(protocol, address)
   }
 
   private def runHttp1Challenge(
@@ -103,7 +229,7 @@ class OracleChallengeSuite extends CatsEffectSuite {
       }
       (target, probe) = fixture
       transcript <- Transcript.create[IO]()
-      run = smoke("h1.server.get").run(CaseContext(target, transcript))
+      run = catalogCase("h1.server.get").run(CaseContext(target, transcript))
       _ <- expectedFailureBody match {
         case None => run
         case Some(observed) =>
@@ -123,7 +249,7 @@ class OracleChallengeSuite extends CatsEffectSuite {
       fixture <- ScriptedTarget.create[IO] { (peer, _) =>
         for {
           _ <- Http2Wire.serverHandshake(peer)
-          ping <- Http2Wire.readUntil(peer)(frame =>
+          ping <- Http2Wire.readUntil(peer, fromServer = false)(frame =>
             frame.frameType == Http2Wire.Ping && !frame.hasFlag(Http2Wire.Ack)
           )
           echoed = transform(ping.payload)
@@ -133,7 +259,7 @@ class OracleChallengeSuite extends CatsEffectSuite {
       }
       (target, probe) = fixture
       transcript <- Transcript.create[IO]()
-      run = smoke("h2.server.ping").run(CaseContext(target, transcript))
+      run = catalogCase("h2.server.ping").run(CaseContext(target, transcript))
       _ <-
         if (shouldFail)
           for {
@@ -147,6 +273,146 @@ class OracleChallengeSuite extends CatsEffectSuite {
       _ <- assertReleased(probe)
     } yield ()
 
+  private def runConnectionScopeChallenge(
+      connectionError: Boolean,
+      wrongStreamId: Boolean = false,
+  ): IO[Unit] = {
+    val ping = Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(3, 5, 7, 11, 13, 17, 19, 23))
+    val failure =
+      if (wrongStreamId) Some("invalid GOAWAY")
+      else if (connectionError) None
+      else Some("no connection error within the frame bound")
+    for {
+      progress <- Deferred[IO, Unit]
+      _ <- runCatalogChallenge(
+        "h2.server.hpack-reject-index-zero",
+        failure,
+        observationLimit = !connectionError,
+      ) { (peer, _) =>
+        for {
+          _ <- Http2Wire.serverHandshake(peer)
+          request <- Http2Wire.readUntil(peer, fromServer = false)(_.frameType == Http2Wire.Headers)
+          _ <- IO(assertEquals(request.streamId, 1))
+          _ <- IO(assert(request.hasFlag(Http2Wire.EndHeaders)))
+          _ <- IO(assertEquals(request.payload.last, 0x80.toByte))
+          _ <-
+            if (connectionError)
+              Http2Wire.writeFrame(
+                peer,
+                Http2Wire.Frame(
+                  Http2Wire.GoAway,
+                  0,
+                  if (wrongStreamId) request.streamId else 0,
+                  Http2Wire.uint32(0) ++ Http2Wire.uint32(9),
+                ),
+              ) *> peer.endOfOutput
+            else
+              for {
+                // Preserve COMPRESSION_ERROR; change only its scope and leave transport open.
+                _ <- Http2Wire.writeFrame(
+                  peer,
+                  Http2Wire.Frame(Http2Wire.RstStream, 0, request.streamId, Http2Wire.uint32(9)),
+                )
+                _ <- Http2Wire.writeFrame(peer, ping)
+                acknowledgment <- Http2Wire.readUntil(peer, fromServer = false)(frame =>
+                  frame.frameType == Http2Wire.Ping && frame.hasFlag(Http2Wire.Ack)
+                )
+                _ <- IO(assertEquals(acknowledgment, ping.copy(flags = Http2Wire.Ack)))
+                _ <- progress.complete(())
+                // Valid extension frames reach the existing finite observation bound. No
+                // malformed frame, wrong error code, EOF, or timeout supplies a verdict.
+                // Finite progress cannot prove the connection will never close: this
+                // challenge exposes a coverage gap rather than killing the mutant.
+                extension = Http2Wire.encode(Http2Wire.Frame(0xff, 0, 0, ByteVector.empty))
+                _ <- peer.write(Vector.fill(1024)(extension).foldLeft(ByteVector.empty)(_ ++ _))
+              } yield ()
+        } yield ()
+      }
+      _ <- if (connectionError) IO.unit else progress.tryGet.assertEquals(Some(()))
+    } yield ()
+  }
+
+  private def runStreamCreditChallenge(countPadding: Boolean): IO[Unit] = {
+    val body = Http1Wire.ascii("abcdefghijklmnop")
+    val firstContentBytes = if (countPadding) 1L else 3L
+    val failure =
+      if (countPadding) None else Some("DATA payload 5 exceeds remaining credit 3")
+    for {
+      resumed <- Deferred[IO, Unit]
+      _ <- runCatalogChallenge("h2.server.stream-credit-boundary", failure) { (peer, _) =>
+        for {
+          _ <- Http2Wire.serverHandshake(peer)
+          request <- Http2Wire.readUntil(peer, fromServer = false)(_.frameType == Http2Wire.Headers)
+          _ <- IO(assertEquals(request.streamId, 1))
+          _ <- Http2Wire.writeFrame(
+            peer,
+            Http2Wire.headers(request.streamId, Vector(":status" -> "200"), endStream = false),
+          )
+          // Initial credit is three octets. The pad-length field and one zero pad byte
+          // consume two of them, so only the correct peer restricts initial content to one.
+          _ <- Http2Wire.writeFrame(
+            peer,
+            Http2Wire.Frame(
+              Http2Wire.Data,
+              Http2Wire.Padded,
+              request.streamId,
+              ByteVector(1) ++ body.take(firstContentBytes) ++ ByteVector(0),
+            ),
+          )
+          _ <-
+            if (countPadding)
+              for {
+                ping <- Http2Wire.readUntil(peer, fromServer = false)(frame =>
+                  frame.frameType == Http2Wire.Ping && !frame.hasFlag(Http2Wire.Ack)
+                )
+                _ <- Http2Wire.writeFrame(peer, ping.copy(flags = Http2Wire.Ack))
+                budget = (body.size - firstContentBytes + 4096L * 256L).toInt
+                connectionUpdate <- Http2Wire.readFrame(peer)
+                _ <- IO(assertEquals(connectionUpdate, Http2Wire.windowUpdate(0, budget)))
+                update <- Http2Wire.readFrame(peer)
+                _ <- IO(assertEquals(update, Http2Wire.windowUpdate(request.streamId, budget)))
+                _ <- resumed.complete(())
+                _ <- Http2Wire.writeFrame(
+                  peer,
+                  Http2Wire.data(request.streamId, body.drop(firstContentBytes)),
+                )
+              } yield ()
+            else IO.unit // Keep the scripted peer alive without racing failure cleanup with a read.
+        } yield ()
+      }
+      _ <- if (countPadding) resumed.tryGet.assertEquals(Some(())) else IO.unit
+    } yield ()
+  }
+
+  private def runCatalogChallenge(
+      id: String,
+      expectedFailure: Option[String],
+      observationLimit: Boolean = false,
+  )(
+      script: ScriptedTarget.Script[IO]
+  ): IO[Unit] =
+    for {
+      fixture <- ScriptedTarget.create[IO](script)
+      (target, probe) = fixture
+      transcript <- Transcript.create[IO]()
+      run = catalogCase(id).run(CaseContext(target, transcript))
+      _ <- expectedFailure match {
+        case None => run
+        case Some(message) if observationLimit =>
+          run.intercept[WireObservationLimit].flatMap { error =>
+            IO {
+              assertEquals(error.getMessage, new WireObservationLimit(message).getMessage)
+              assertEquals(WireSuite.outcomeStatus(Left(error)), "error")
+            }
+          }
+        case Some(message) =>
+          run
+            .intercept[ProtocolFailure]
+            .flatMap(error => IO(assertEquals(error.getMessage, message)))
+      }
+      _ <- assertReleased(probe)
+    } yield ()
+
   private def readAndPublish(
       peer: RawPeer[IO],
       publish: RequestData => IO[Unit],
@@ -155,8 +421,8 @@ class OracleChallengeSuite extends CatsEffectSuite {
       publish(RequestData(request.method, request.target, request.headers, request.body))
     }
 
-  private def smoke(id: String): WireCase =
-    SmokeCases.all
+  private def catalogCase(id: String): WireCase =
+    Catalog.all
       .find(_.id == id)
       .getOrElse(throw new IllegalArgumentException(s"missing case: $id"))
 

@@ -18,11 +18,10 @@ package org.http4s.wire
 
 import cats.effect.Deferred
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Chunk
 import fs2.Stream
 import scodec.bits.ByteVector
-
-import java.util.concurrent.TimeoutException
 
 /** HTTP/1 message completion, persistence, response ordering, and connection closure. */
 object Http1LifecycleCases {
@@ -250,13 +249,16 @@ object Http1LifecycleCases {
       Rfc(9112, "8", "EOF after exactly Content-Length octets does not make a response incomplete."),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -278,13 +280,16 @@ object Http1LifecycleCases {
       ),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii(""))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii(""))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -302,13 +307,16 @@ object Http1LifecycleCases {
       Rfc(9112, "8", "A complete chunked response remains complete when followed by orderly EOF."),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -332,13 +340,16 @@ object Http1LifecycleCases {
       ),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii(""))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii(""))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -360,13 +371,16 @@ object Http1LifecycleCases {
       ),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -389,13 +403,16 @@ object Http1LifecycleCases {
     ) { context =>
       val expected = ByteVector(0, 1, 13, 10, 127, 128, 255)
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, expected)
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, expected)
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -415,13 +432,16 @@ object Http1LifecycleCases {
     ) { context =>
       Deferred[IO, Unit].flatMap { closed =>
         context.client(Protocol.Http1)(driver =>
-          driver.exchange(RequestData()).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          } *> closed.get
+          driver
+            .exchange(RequestData())
+            .use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+              } yield ()
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> closed.get
         ) { peer =>
           for {
             request <- Http1Wire.readRequest(peer)
@@ -445,13 +465,16 @@ object Http1LifecycleCases {
     ) { context =>
       Deferred[IO, Unit].flatMap { closed =>
         context.client(Protocol.Http1)(driver =>
-          driver.exchange(RequestData()).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          } *> closed.get
+          driver
+            .exchange(RequestData())
+            .use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+              } yield ()
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> closed.get
         ) { peer =>
           for {
             request <- Http1Wire.readRequest(peer)
@@ -476,13 +499,16 @@ object Http1LifecycleCases {
     ) { context =>
       Deferred[IO, Unit].flatMap { closed =>
         context.client(Protocol.Http1)(driver =>
-          driver.exchange(RequestData()).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          } *> closed.get
+          driver
+            .exchange(RequestData())
+            .use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+              } yield ()
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> closed.get
         ) { peer =>
           for {
             request <- Http1Wire.readRequest(peer)
@@ -507,13 +533,16 @@ object Http1LifecycleCases {
     ) { context =>
       Deferred[IO, Unit].flatMap { closed =>
         context.client(Protocol.Http1)(driver =>
-          driver.exchange(RequestData()).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          } *> closed.get
+          driver
+            .exchange(RequestData())
+            .use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+              } yield ()
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> closed.get
         ) { peer =>
           for {
             request <- Http1Wire.readRequest(peer)
@@ -542,13 +571,16 @@ object Http1LifecycleCases {
     ) { context =>
       Deferred[IO, Unit].flatMap { closed =>
         context.client(Protocol.Http1)(driver =>
-          driver.exchange(RequestData()).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          } *> closed.get
+          driver
+            .exchange(RequestData())
+            .use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+              } yield ()
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> closed.get
         ) { peer =>
           for {
             request <- Http1Wire.readRequest(peer)
@@ -576,13 +608,16 @@ object Http1LifecycleCases {
     ) { context =>
       Deferred[IO, Unit].flatMap { closed =>
         context.client(Protocol.Http1)(driver =>
-          driver.exchange(RequestData(headers = Vector("Connection" -> "close"))).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          } *> closed.get
+          driver
+            .exchange(RequestData(headers = Vector("Connection" -> "close")))
+            .use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
+              } yield ()
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> closed.get
         ) { peer =>
           for {
             request <- Http1Wire.readRequest(peer)
@@ -603,17 +638,25 @@ object Http1LifecycleCases {
       Rfc(
         9112,
         "9.2",
-        "Informational responses belong to the outstanding request until its final response.",
+        "A visible informational response is bodyless; a visible final response retains its declared content.",
       ),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("final"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              // A visible 1xx is bodyless; this API cannot establish final-response continuation.
+              _ <-
+                if (response.status == 100 || response.status == 103)
+                  Check.equal(body.toByteVector, ByteVector.empty)
+                else
+                  Check.equal(response.status, 200) *>
+                    Check.equal(body.toByteVector, Http1Wire.ascii("final"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -646,6 +689,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -674,6 +725,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -706,6 +765,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -734,6 +801,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -762,6 +837,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -790,6 +873,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -818,6 +909,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -847,6 +946,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -876,6 +983,14 @@ object Http1LifecycleCases {
           ready <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(ready.status, 200)
           _ <- Check.equal(ready.body, Http1Wire.ascii("ok"))
+          _ <-
+            if (hasOption(ready.headers, "close"))
+              IO.raiseError(
+                new WireObservationLimit(
+                  "coverage prerequisite unavailable: /ready closed the connection before the incomplete request"
+                )
+              )
+            else IO.unit
           observed <- server.received
           _ <- Check.equal(observed.path, "/ready")
           _ <- Check.equal(observed.body, Http1Wire.ascii("ok"))
@@ -924,11 +1039,18 @@ object Http1LifecycleCases {
           )
           _ <- peer.endOfOutput
           response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 200)
-          _ <- Check.equal(response.body, Http1Wire.ascii("abc"))
-          observed <- server.received
-          _ <- Check.equal(observed.path, "/complete")
-          _ <- Check.equal(observed.body, Http1Wire.ascii("abc"))
+          // RFC 9112 Section 6.3 permits 411 without establishing chunk decoding coverage.
+          _ <-
+            if (response.status == 411) IO.unit
+            else {
+              for {
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(response.body, Http1Wire.ascii("abc"))
+                observed <- server.received
+                _ <- Check.equal(observed.path, "/complete")
+                _ <- Check.equal(observed.body, Http1Wire.ascii("abc"))
+              } yield ()
+            }
         } yield ()
       }
     },
@@ -1005,9 +1127,9 @@ object Http1LifecycleCases {
             "POST /first HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 3\r\n\r\nonePOST /second HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 5\r\nConnection: close\r\n\r\nthree"
           )
           first <- Http1Wire.readFinalResponse(peer)
-          second <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(first.status, 200)
           _ <- Check.equal(first.body, Http1Wire.ascii("one"))
+          second <- nextPipelineResponse(peer)
           _ <- Check.equal(second.status, 200)
           _ <- Check.equal(second.body, Http1Wire.ascii("three"))
           firstRequest <- server.received
@@ -1036,16 +1158,23 @@ object Http1LifecycleCases {
             "POST /first HTTP/1.1\r\nHost: wire.test\r\nTransfer-Encoding: chunked\r\n\r\n3\r\none\r\n0\r\n\r\nPOST /second HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 5\r\nConnection: close\r\n\r\nthree"
           )
           first <- Http1Wire.readFinalResponse(peer)
-          second <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(first.status, 200)
-          _ <- Check.equal(first.body, Http1Wire.ascii("one"))
-          _ <- Check.equal(second.status, 200)
-          _ <- Check.equal(second.body, Http1Wire.ascii("three"))
-          firstRequest <- server.received
-          secondRequest <- server.received
-          _ <- Check.equal(firstRequest.path, "/first")
-          _ <- Check.equal(secondRequest.path, "/second")
-          _ <- expectTransportClose(peer)
+          // A 411 policy may close without processing the pipelined suffix.
+          _ <-
+            if (first.status == 411) IO.unit
+            else {
+              for {
+                _ <- Check.equal(first.status, 200)
+                _ <- Check.equal(first.body, Http1Wire.ascii("one"))
+                second <- nextPipelineResponse(peer)
+                _ <- Check.equal(second.status, 200)
+                _ <- Check.equal(second.body, Http1Wire.ascii("three"))
+                firstRequest <- server.received
+                secondRequest <- server.received
+                _ <- Check.equal(firstRequest.path, "/first")
+                _ <- Check.equal(secondRequest.path, "/second")
+                _ <- expectTransportClose(peer)
+              } yield ()
+            }
         } yield ()
       }
     },
@@ -1067,15 +1196,22 @@ object Http1LifecycleCases {
             "POST /first HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 3\r\n\r\nonePOST /second HTTP/1.1\r\nHost: wire.test\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n5\r\nthree\r\n0\r\n\r\n"
           )
           first <- Http1Wire.readFinalResponse(peer)
-          second <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(first.status, 200)
           _ <- Check.equal(first.body, Http1Wire.ascii("one"))
-          _ <- Check.equal(second.status, 200)
-          _ <- Check.equal(second.body, Http1Wire.ascii("three"))
+          second <- nextPipelineResponse(peer)
+
           firstRequest <- server.received
-          secondRequest <- server.received
+
           _ <- Check.equal(firstRequest.path, "/first")
-          _ <- Check.equal(secondRequest.path, "/second")
+          _ <-
+            if (second.status == 411) IO.unit
+            else
+              for {
+                _ <- Check.equal(second.status, 200)
+                _ <- Check.equal(second.body, Http1Wire.ascii("three"))
+                secondRequest <- server.received
+                _ <- Check.equal(secondRequest.path, "/second")
+              } yield ()
           _ <- expectTransportClose(peer)
         } yield ()
       }
@@ -1278,22 +1414,24 @@ object Http1LifecycleCases {
       ),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        for {
-          _ <- driver.exchange(RequestData(path = "/first")).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("one"))
-            } yield ()
-          }
-          _ <- driver.exchange(RequestData(path = "/second")).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("three"))
-            } yield ()
-          }
-        } yield ()
+        (
+          for {
+            _ <- driver.exchange(RequestData(path = "/first")).use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("one"))
+              } yield ()
+            }
+            _ <- driver.exchange(RequestData(path = "/second")).use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("three"))
+              } yield ()
+            }
+          } yield ()
+        ).handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           first <- Http1Wire.readRequest(peer)
@@ -1324,22 +1462,24 @@ object Http1LifecycleCases {
       ),
     ) { context =>
       context.client(Protocol.Http1)(driver =>
-        for {
-          _ <- driver.exchange(RequestData(path = "/first")).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("one"))
-            } yield ()
-          }
-          _ <- driver.exchange(RequestData(path = "/second")).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("three"))
-            } yield ()
-          }
-        } yield ()
+        (
+          for {
+            _ <- driver.exchange(RequestData(path = "/first")).use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("one"))
+              } yield ()
+            }
+            _ <- driver.exchange(RequestData(path = "/second")).use { response =>
+              for {
+                body <- response.body.compile.to(Chunk)
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(body.toByteVector, Http1Wire.ascii("three"))
+              } yield ()
+            }
+          } yield ()
+        ).handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           first <- Http1Wire.readRequest(peer)
@@ -1385,7 +1525,10 @@ object Http1LifecycleCases {
           _ <- Check.equal(response.body, Http1Wire.ascii("accepted"))
           observed <- server.received
           _ <- Check.equal(observed.path, "/first")
-          next <- Http1Wire.readFinalResponse(peer).attempt
+          next <- Http1Wire
+            .readFinalResponse(peer)
+            .attempt
+            .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
           processedSecond <- next match {
             case Right(second) =>
               for {
@@ -1395,7 +1538,7 @@ object Http1LifecycleCases {
                 _ <- Check.equal(nextRequest.path, "/second")
               } yield true
             // Closing instead of draining is expressly permitted by Section 9.3.
-            case Left(error: IllegalArgumentException)
+            case Left(error: WireDecodingFailure)
                 if error.getMessage == "unexpected EOF before delimiter" =>
               IO.pure(false)
             case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.pure(false)
@@ -1434,32 +1577,43 @@ object Http1LifecycleCases {
             )
           )
           response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 200)
-          _ <- Check.equal(response.body, Http1Wire.ascii("accepted"))
-          observed <- server.received
-          _ <- Check.equal(observed.path, "/first")
-          next <- Http1Wire.readFinalResponse(peer).attempt
-          processedSecond <- next match {
-            case Right(second) =>
+          // RFC 9112 Section 6.3 permits 411 without establishing chunk decoding coverage.
+          _ <-
+            if (response.status == 411)
+              checkLengthRequiredBoundary(peer, server, Http1Wire.ascii("accepted"))
+            else {
               for {
-                _ <- Check.equal(second.status, 200)
-                _ <- Check.equal(second.body, Http1Wire.ascii("accepted"))
-                nextRequest <- server.received
-                _ <- Check.equal(nextRequest.path, "/second")
-              } yield true
-            // Closing instead of draining is expressly permitted by Section 9.3.
-            case Left(error: IllegalArgumentException)
-                if error.getMessage == "unexpected EOF before delimiter" =>
-              IO.pure(false)
-            case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.pure(false)
-            case Left(error) => IO.raiseError(error)
-          }
-          _ <- expectTransportClose(peer)
-          extra <- server.pollReceived
-          _ <- Check(
-            if (processedSecond) extra.isEmpty else extra.forall(_.path == "/second"),
-            s"request-body bytes were processed as another request: $extra",
-          )
+                _ <- Check.equal(response.status, 200)
+                _ <- Check.equal(response.body, Http1Wire.ascii("accepted"))
+                observed <- server.received
+                _ <- Check.equal(observed.path, "/first")
+                next <- Http1Wire
+                  .readFinalResponse(peer)
+                  .attempt
+                  .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
+                processedSecond <- next match {
+                  case Right(second) =>
+                    for {
+                      _ <- Check.equal(second.status, 200)
+                      _ <- Check.equal(second.body, Http1Wire.ascii("accepted"))
+                      nextRequest <- server.received
+                      _ <- Check.equal(nextRequest.path, "/second")
+                    } yield true
+                  // Closing instead of draining is expressly permitted by Section 9.3.
+                  case Left(error: WireDecodingFailure)
+                      if error.getMessage == "unexpected EOF before delimiter" =>
+                    IO.pure(false)
+                  case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.pure(false)
+                  case Left(error) => IO.raiseError(error)
+                }
+                _ <- expectTransportClose(peer)
+                extra <- server.pollReceived
+                _ <- Check(
+                  if (processedSecond) extra.isEmpty else extra.forall(_.path == "/second"),
+                  s"request-body bytes were processed as another request: $extra",
+                )
+              } yield ()
+            }
         } yield ()
       }
     },
@@ -1475,28 +1629,35 @@ object Http1LifecycleCases {
         "SHOULD",
       ),
     ) { context =>
+      // A fixed bounded prefix crosses ordinary write coalescing without requiring tiny
+      // application chunks to flush. Larger buffers can still leave the stimulus unobserved;
+      // RFC 9112 Section 9.5 recommends monitoring, not a particular flushing threshold.
+      val uploadPrefix = Http1Wire.ascii("a" * (32 * 1024))
+      val uploadSuffix = Http1Wire.ascii("def")
+      val contentLength = (uploadPrefix.size + uploadSuffix.size).toString
       for {
         releaseBody <- Deferred[IO, Unit]
         bodyStopped <- Deferred[IO, Unit]
         closed <- Deferred[IO, Unit]
         _ <- context.client(Protocol.Http1) { driver =>
           val body = (
-            Stream.chunk(Chunk.byteVector(Http1Wire.ascii("abc"))) ++
+            Stream.chunk(Chunk.byteVector(uploadPrefix)) ++
               Stream.eval(releaseBody.get).drain ++
-              Stream.chunk(Chunk.byteVector(Http1Wire.ascii("def")))
+              Stream.chunk(Chunk.byteVector(uploadSuffix))
           ).onFinalize(bodyStopped.complete(()).void)
           driver
             .exchangeStream(
-              RequestData(method = "POST", headers = Vector("Content-Length" -> "6")),
-              body,
+              RequestData(method = "POST", headers = Vector("Content-Length" -> contentLength)),
+              _ => body,
             )
             .use { response =>
               response.body.compile.drain *> Check.equal(response.status, 413)
-            } *> bodyStopped.get *> closed.get
+            }
+            .handleErrorWith(requiredAcceptanceFailure) *> bodyStopped.get *> closed.get
         } { peer =>
           for {
             head <- peer.readUntil(Http1Wire.ascii("\r\n\r\n"))
-            rendered <- IO.fromEither(head.decodeAscii)
+            rendered = head.toArray.iterator.map(b => (b & 0xff).toChar).mkString
             _ <- Check(
               rendered.startsWith("POST / HTTP/1.1\r\n"),
               "expected the upload request head",
@@ -1505,15 +1666,16 @@ object Http1LifecycleCases {
               rendered.split("\r\n").exists { line =>
                 val colon = line.indexOf(':')
                 colon > 0 && line.take(colon).equalsIgnoreCase("Content-Length") &&
-                line.drop(colon + 1).trim == "6"
+                line.drop(colon + 1).trim == contentLength
               },
-              "the upload must declare its six-octet body",
+              "the upload must declare its prefix plus the withheld suffix",
             )
-            prefix <- peer.readExact(3)
-            _ <- Check.equal(prefix, Http1Wire.ascii("abc"))
-            // The remaining three octets cannot be produced until released. An error response
-            // is observed without waiting for request-body completion. A test deadline remains
-            // inconclusive; it cannot distinguish buffering, lack of monitoring, or a stalled target.
+            prefix <- peer.readExact(uploadPrefix.size.toInt)
+            _ <- Check.equal(prefix, uploadPrefix)
+            // The remaining three octets stay blocked: no path releases releaseBody. Receipt
+            // of the complete prefix establishes the stimulus before sending 413. A deadline
+            // remains inconclusive; the transcript distinguishes an unestablished stimulus
+            // from a post-response observation limit, not a buffering or monitoring verdict.
             _ <- peer.writeAscii(
               "HTTP/1.1 413 Content Too Large\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
             )
@@ -1524,6 +1686,72 @@ object Http1LifecycleCases {
       } yield ()
     },
   )
+
+  private def requiredAcceptanceFailure(error: Throwable): IO[Unit] =
+    RawPeer.raiseAdapterOrTimeout[IO](error) *>
+      (if (
+         error.isInstanceOf[AssertionError] || error
+           .isInstanceOf[WireObservationLimit]
+       ) IO.raiseError(error)
+       else Check(false, s"the target rejected a valid HTTP/1 exchange: $error"))
+
+  /** RFC 9112 Sections 9.3.1 and 9.6 permit closure; it cannot establish pipeline ordering. */
+  private def nextPipelineResponse(peer: RawPeer[IO]): IO[Http1Wire.Response] =
+    Http1Wire.readFinalResponse(peer).handleErrorWith { error =>
+      RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
+        case failure: WireDecodingFailure if failure.getMessage.startsWith("unexpected EOF") =>
+          IO.raiseError(
+            new IllegalStateException(
+              "coverage prerequisite unavailable: pipeline connection closed",
+              error,
+            )
+          )
+        case failure if RuntimeInfo.isConnectionReset(failure) =>
+          IO.raiseError(
+            new IllegalStateException(
+              "coverage prerequisite unavailable: pipeline connection reset",
+              error,
+            )
+          )
+        case other => IO.raiseError(other)
+      })
+    }
+
+  /** A 411 policy does not waive Section 9.3's request boundary requirement.
+    * Closure or a correctly delimited second response is followed by application observations.
+    */
+  private[wire] def checkLengthRequiredBoundary(
+      peer: RawPeer[IO],
+      server: ServerHandle[IO],
+      secondBody: ByteVector,
+  ): IO[Unit] = {
+    def observations(previous: Int): IO[Unit] = server.pollReceived.flatMap {
+      case None => IO.unit
+      case Some(request) =>
+        val index = if (request.path == "/first") 1 else if (request.path == "/second") 2 else 0
+        Check(
+          index > previous,
+          s"request-body bytes or duplicate requests reached the application: $request",
+        ) *>
+          IO.defer(observations(index))
+    }
+    for {
+      next <- Http1Wire.readFinalResponse(peer).attempt
+      _ <- next match {
+        case Right(response) =>
+          Check.equal(response.status, 200) *> Check.equal(response.body, secondBody) *>
+            expectTransportClose(peer)
+        case Left(error) =>
+          RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
+            case failure: WireDecodingFailure if failure.getMessage.startsWith("unexpected EOF") =>
+              IO.unit
+            case failure if RuntimeInfo.isConnectionReset(failure) => IO.unit
+            case other => IO.raiseError(other)
+          })
+      }
+      _ <- observations(0)
+    } yield ()
+  }
 
   private def hasOption(headers: Vector[(String, String)], option: String): Boolean =
     headers.exists { case (name, value) =>
@@ -1538,32 +1766,32 @@ object Http1LifecycleCases {
       .exchange(RequestData(method = "POST", headers = Vector("Content-Length" -> "0")))
       .use(response => response.body.compile.drain *> response.trailers.void)
       .attempt
+      .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
       .flatMap {
-        case Left(error) if causedByTimeout(error) =>
-          IO.raiseError(new TimeoutException(s"incomplete-message detection timed out: $error"))
-        case Left(_) => IO.unit
+        case Left(error) =>
+          RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
+            case limit: WireObservationLimit => IO.raiseError(limit)
+            case assertion: AssertionError => IO.raiseError(assertion)
+            case _ => IO.unit
+          })
         case Right(_) => Check(false, "the target completed an incomplete response successfully")
       }
-
-  private def causedByTimeout(error: Throwable): Boolean = {
-    @annotation.tailrec
-    def loop(current: Throwable, remaining: Int): Boolean =
-      if (current == null || remaining == 0) false
-      else if (current.isInstanceOf[TimeoutException]) true
-      else loop(current.getCause, remaining - 1)
-    loop(error, 16)
-  }
 
   private def expectTransportClose(peer: RawPeer[IO]): IO[Unit] =
     // Used only after the complete request/response stimulus, never around fixture setup.
     // A reset is transport closure; a timeout or arbitrary read error is not.
-    peer.readToEnd(0).attempt.flatMap {
-      case Right(bytes) => Check.equal(bytes, ByteVector.empty)
-      case Left(error: IllegalArgumentException) if error.getMessage == "body exceeds 0 bytes" =>
-        Check(false, "received additional bytes where connection closure was required")
-      case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.unit
-      case Left(error) => IO.raiseError(error)
-    }
+    peer
+      .readToEnd(0)
+      .attempt
+      .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
+      .flatMap {
+        case Right(bytes) => Check.equal(bytes, ByteVector.empty)
+        case Left(error: WireObservationLimit)
+            if error.getMessage.startsWith("body exceeds 0 bytes;") =>
+          Check(false, "received additional bytes where connection closure was required")
+        case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.unit
+        case Left(error) => IO.raiseError(error)
+      }
 
   private def expectIncompleteRequestClosed(
       peer: RawPeer[IO],
@@ -1579,23 +1807,9 @@ object Http1LifecycleCases {
       )
     } yield ()
 
-  /** Retains bytes preceding a reset, so a reset cannot hide a successful response.
-    * Only these short error-or-close observations need octet reads; ordinary messages use Http1Wire.
-    */
-  private def readThroughClose(peer: RawPeer[IO]): IO[ByteVector] = {
-    def loop(bytes: ByteVector): IO[ByteVector] =
-      peer.readExact(1).attempt.flatMap {
-        case Right(next) =>
-          Check(bytes.size < 65536L, "incomplete-request error response exceeds 64 KiB") *>
-            IO.defer(loop(bytes ++ next))
-        case Left(error: IllegalArgumentException)
-            if error.getMessage == "unexpected EOF: needed 1 bytes, received 0" =>
-          IO.pure(bytes)
-        case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.pure(bytes)
-        case Left(error) => IO.raiseError(error)
-      }
-    loop(ByteVector.empty)
-  }
+  /** Retains bytes preceding closure, in bounded chunks, so reset cannot hide a successful response. */
+  private[wire] def readThroughClose(peer: RawPeer[IO]): IO[ByteVector] =
+    peer.readToEnd(65536, allowReset = true)
 
   private def checkOptionalErrorResponse(bytes: ByteVector): IO[Unit] = {
     // Section 8 permits silent closure or an error response. Informational responses may
@@ -1607,15 +1821,18 @@ object Http1LifecycleCases {
         val lineEnd = remaining.indexOfSlice(Http1Wire.crlf)
         for {
           _ <- Check(end >= 0L && lineEnd >= 0L, "server emitted an incomplete error response head")
-          line <- IO.fromEither(remaining.take(lineEnd).decodeAscii)
+          line = remaining.take(lineEnd).toArray.iterator.map(b => (b & 0xff).toChar).mkString
           valid = line.length >= 13 &&
             (line.startsWith("HTTP/1.1 ") || line.startsWith("HTTP/1.0 ")) && line(12) == ' ' &&
-            line.substring(9, 12).forall(c => c >= '0' && c <= '9')
+            line.substring(9, 12).forall(c => c >= '0' && c <= '9') &&
+            line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
           _ <- Check(valid, s"invalid response status line after incomplete request: $line")
           status = line.substring(9, 12).toInt
           _ <-
-            if (status >= 100 && status < 200 && status != 101 && informational < 16)
-              IO.defer(loop(remaining.drop(end + 4L), informational + 1))
+            if (status >= 100 && status < 200 && status != 101)
+              if (informational >= 16)
+                IO.raiseError(new WireObservationLimit("informational response observation limit"))
+              else IO.defer(loop(remaining.drop(end + 4L), informational + 1))
             else
               Check(
                 status >= 400 && status <= 599,

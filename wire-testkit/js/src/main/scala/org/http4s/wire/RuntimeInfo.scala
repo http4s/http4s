@@ -34,8 +34,43 @@ object RuntimeInfo {
     @annotation.tailrec
     def loop(current: Throwable, remaining: Int): Boolean =
       if (current == null || remaining == 0) false
-      else if (reset(current)) true
-      else loop(current.getCause, remaining - 1)
+      else
+        current match {
+          // These operation markers are also barriers inside an outer exception chain.
+          // Never descend into a write callback's native ECONNRESET cause.
+          case _: WirePeerTransport.WriteFailure => false
+          case read: WirePeerTransport.ReadFailure =>
+            read.getSuppressed.isEmpty &&
+            WirePeerTransport.nativeCode(read.nativeError, "code").contains("ECONNRESET") &&
+            WirePeerTransport.nativeCode(read.nativeError, "syscall").contains("read")
+          case _ if reset(current) => true
+          case _ => loop(current.getCause, remaining - 1)
+        }
     loop(error, 16)
   }
+
+  // FS2 wraps Node's EPIPE once. Match that exact observed shape, not arbitrary causes.
+  private[wire] def isClosedWrite(error: Throwable): Boolean = error match {
+    case write: WirePeerTransport.WriteFailure if write.getSuppressed.isEmpty =>
+      (WirePeerTransport.nativeCode(write.nativeError, "syscall").contains("write") &&
+        WirePeerTransport
+          .nativeCode(write.nativeError, "code")
+          .exists(code => code == "EPIPE" || code == "ECONNRESET")) ||
+      (WirePeerTransport.nativeCode(write.nativeError, "code").contains("ERR_SOCKET_CLOSED") &&
+        js.isUndefined(write.nativeError.asInstanceOf[js.Dynamic].syscall) &&
+        write.precedingReadReset.exists(isConnectionReset))
+    case io: java.io.IOException
+        if io.getClass.getName == "fs2.io.JavaScriptIOException" && io.getMessage == "Broken pipe" && io.getSuppressed.isEmpty =>
+      io.getCause match {
+        case cause @ js.JavaScriptException(value)
+            if cause.getCause == null && cause.getSuppressed.isEmpty && value != null && js.typeOf(
+              value
+            ) == "object" =>
+          val code = value.asInstanceOf[js.Dynamic].selectDynamic("code")
+          js.typeOf(code) == "string" && code.asInstanceOf[String] == "EPIPE"
+        case _ => false
+      }
+    case _ => false
+  }
+
 }

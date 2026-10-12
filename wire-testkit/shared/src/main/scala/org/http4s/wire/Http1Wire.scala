@@ -74,7 +74,7 @@ object Http1Wire {
     def loop(remaining: Int): F[Response] =
       readResponse(peer, requestMethod).flatMap { response =>
         if (response.status >= 200 || response.status == 101) response.pure[F]
-        else if (remaining == 0) fail("too many informational responses")
+        else if (remaining == 0) limit("too many informational responses")
         else loop(remaining - 1)
       }
     loop(16)
@@ -96,10 +96,13 @@ object Http1Wire {
     } yield Request(parts._1, parts._2, headers, content._1, content._2)
 
   private def fail[F[_]: Async, A](message: String): F[A] =
-    Async[F].raiseError(new IllegalArgumentException(message))
+    Async[F].raiseError(new WireDecodingFailure(message))
+
+  private def limit[F[_]: Async, A](message: String): F[A] =
+    Async[F].raiseError(new WireObservationLimit(message))
 
   private def check(condition: Boolean, message: String): Unit =
-    if (!condition) throw new IllegalArgumentException(message)
+    if (!condition) throw new WireDecodingFailure(message)
 
   private def version(value: String): Boolean = value == "HTTP/1.0" || value == "HTTP/1.1"
 
@@ -115,7 +118,9 @@ object Http1Wire {
       .reverse
 
   private def readLine[F[_]: Async](peer: RawPeer[F]): F[String] =
-    peer.readUntil(crlf, 8192).map(_.toArray.iterator.map(b => (b & 0xff).toChar).mkString)
+    WireDecodingFailure
+      .read(peer.readUntil(crlf, 8192))
+      .map(_.toArray.iterator.map(b => (b & 0xff).toChar).mkString)
 
   private def parseStatus(line: String): Int = {
     check(
@@ -142,9 +147,9 @@ object Http1Wire {
     def loop(total: Int, headers: Vector[(String, String)]): F[Vector[(String, String)]] =
       readLine(peer).flatMap { line =>
         val next = total + line.length + 2
-        if (next > MaxHeaderBytes) fail("header section too large")
+        if (next > MaxHeaderBytes) limit("header section too large")
         else if (line.isEmpty) headers.pure[F]
-        else if (headers.size >= 256) fail("too many header fields")
+        else if (headers.size >= 256) limit("too many header fields")
         else Async[F].delay(parseHeader(line)).flatMap(h => loop(next, headers :+ h))
       }
     loop(0, Vector.empty)
@@ -159,7 +164,8 @@ object Http1Wire {
         else if (c >= 'A' && c <= 'F') c - 'A' + 10
         else -1
       check(digit >= 0 && digit < radix, "invalid framing length")
-      check(acc <= (max - digit) / radix && digit <= max, "framing length exceeds limit")
+      if (acc > (max - digit) / radix || digit > max)
+        throw new WireObservationLimit("framing length exceeds limit")
       acc * radix + digit
     }
   }
@@ -248,7 +254,6 @@ object Http1Wire {
     if (transfers.nonEmpty) {
       val codings = transferCodings(transfers)
       check(codings.count(_ == "chunked") <= 1, "repeated chunked transfer coding")
-      check(!codings.dropRight(1).contains("chunked"), "chunked is not the final transfer coding")
       if (codings.last == "chunked") Chunked
       else {
         check(!request, "request transfer coding must end in chunked")
@@ -270,7 +275,8 @@ object Http1Wire {
       request: Boolean,
   ): F[(ByteVector, Vector[(String, String)])] =
     Async[F].delay(framing(headers, request)).flatMap {
-      case Length(size) => peer.readExact(size).map(_ -> Vector.empty[(String, String)])
+      case Length(size) =>
+        WireDecodingFailure.read(peer.readExact(size)).map(_ -> Vector.empty[(String, String)])
       case ToEof => peer.readToEnd(MaxBodyBytes).map(_ -> Vector.empty[(String, String)])
       case Chunked => readChunks(peer)
     }
@@ -301,8 +307,8 @@ object Http1Wire {
           }
           else
             for {
-              chunk <- peer.readExact(size)
-              ending <- peer.readExact(2)
+              chunk <- WireDecodingFailure.read(peer.readExact(size))
+              ending <- WireDecodingFailure.read(peer.readExact(2))
               _ <- if (ending == crlf) Async[F].unit else fail[F, Unit]("missing chunk CRLF")
               next <- loop(body ++ chunk)
             } yield next

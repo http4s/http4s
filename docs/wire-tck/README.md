@@ -9,9 +9,14 @@ runs apply `IgnoreRegistry`; comparison runs execute every case.
 ```
 sbt --client tckCheck
 sbt --client tckCompare
-sbt --client 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --tests=h1.server.get'
+sbt --client 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
+sbt --client 'wire-tckJS/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
+sbt --client 'wire-tckNative/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
 sbt --client 'wire-tck-compare/testOnly org.http4s.wire.CompareNettyHttp2ServerSuite'
 ```
+
+Each case also has its stable ID as an MUnit tag. Use `--include-tags=<exact ID>`
+to select one case on JVM, JS, or Native; tag matching is exact.
 
 The aliases/tasks use the selected Scala version. Prefix a command sequence with
 `++2.12.21`, `++2.13.18`, or `++3.3.8` to use the repository's version matrix.
@@ -68,3 +73,29 @@ tracking reference. An ignored case is skipped, never counted as passing. Full
 comparison suites bypass ignores. Test defects are repaired, not registered as
 Ember noncompliance. Provisional entries retain interpretation or observation
 limits until reviewed. Production Ember behavior is outside this change's scope.
+
+### Cleanup inside upload effects
+
+`exchangeStream` takes a source builder receiving `FixtureCleanup[F]`. Construct
+cleanup belonging to effects with that boundary so cancellation cannot hide its
+errors from the case outcome:
+
+```scala
+client.exchangeStream(
+  request,
+  cleanup => Stream.exec(upload.onCancel(cleanup(release))),
+)
+```
+
+The same boundary composes with `guaranteeCase` and `Resource.makeCase`:
+`cleanup(release(value, exit))` preserves the original exit case. Put intentional
+error recovery inside the boundary, as in `cleanup(release.handleErrorWith(recover))`.
+Handling an error after the boundary does not erase the recorded fixture failure.
+FS2 scope finalizers are also observed by the adapter's source owner.
+
+An already-built opaque effect can consume or runtime-report its own cancellation
+errors before returning control to the adapter. No effect-parametric wrapper can
+retroactively recover those errors. Fixture authors must therefore construct
+effect-owned cleanup with the supplied boundary. A source without such cleanup
+can use `_ => stream`. There is no raw-stream overload, making this obligation
+visible at every streaming call site.

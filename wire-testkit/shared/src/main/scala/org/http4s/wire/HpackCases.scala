@@ -24,8 +24,6 @@ import cats.syntax.all._
 import fs2.Chunk
 import scodec.bits.ByteVector
 
-import java.util.concurrent.TimeoutException
-
 /** RFC 7541 target-codec conformance through independent HTTP/2 socket peers. */
 object HpackCases {
   // Static GET/http/path plus a non-indexed :authority; no hidden dynamic insertion.
@@ -47,26 +45,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "wire"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001780477697265")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "wire"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001780477697265")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -81,26 +81,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001780477697265")
-          )
-          expected = Vector(Vector("x" -> "wire"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001780477697265")
+            )
+            expected = Vector(Vector("x" -> "wire"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -110,26 +112,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.2", "A four-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("user-agent" -> "wire"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0f2b0477697265")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("user-agent" -> "wire"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0f2b0477697265")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -139,26 +143,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.2", "A four-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0f2b0477697265")
-          )
-          expected = Vector(Vector("user-agent" -> "wire"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0f2b0477697265")
+            )
+            expected = Vector(Vector("user-agent" -> "wire"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -168,26 +174,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.3", "A never-indexed literal appends the supplied new name and value.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("x" -> "wire"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("1001780477697265")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "wire"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("1001780477697265")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -197,26 +205,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.3", "A never-indexed literal appends the supplied new name and value.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("1001780477697265")
-          )
-          expected = Vector(Vector("x" -> "wire"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("1001780477697265")
+            )
+            expected = Vector(Vector("x" -> "wire"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -226,26 +236,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.3", "A never-indexed literal can use a static indexed name.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("authorization" -> "token"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("1f0805746f6b656e")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("authorization" -> "token"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("1f0805746f6b656e")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -255,26 +267,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.3", "A never-indexed literal can use a static indexed name.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("1f0805746f6b656e")
-          )
-          expected = Vector(Vector("authorization" -> "token"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("1f0805746f6b656e")
+            )
+            expected = Vector(Vector("authorization" -> "token"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.1
@@ -289,26 +303,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "wire"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("4001780477697265")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "wire"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("4001780477697265")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.1
@@ -323,26 +339,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("4001780477697265")
-          )
-          expected = Vector(Vector("x" -> "wire"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("4001780477697265")
+            )
+            expected = Vector(Vector("x" -> "wire"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.1
@@ -352,26 +370,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.1", "A six-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("user-agent" -> "wire"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("7a0477697265")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("user-agent" -> "wire"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("7a0477697265")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.1
@@ -381,26 +401,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.1", "A six-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("7a0477697265")
-          )
-          expected = Vector(Vector("user-agent" -> "wire"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("7a0477697265")
+            )
+            expected = Vector(Vector("user-agent" -> "wire"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -410,26 +432,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "2.3.3", "Static index 61 remains valid when the dynamic table is empty.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("www-authenticate" -> ""))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("bd")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("www-authenticate" -> ""))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("bd")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -439,26 +463,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "2.3.3", "Static index 61 remains valid when the dynamic table is empty.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("bd")
-          )
-          expected = Vector(Vector("www-authenticate" -> ""))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("bd")
+            )
+            expected = Vector(Vector("www-authenticate" -> ""))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -473,26 +499,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("accept-charset" -> "utf-8"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0f00057574662d38")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("accept-charset" -> "utf-8"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0f00057574662d38")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -507,26 +535,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0f00057574662d38")
-          )
-          expected = Vector(Vector("accept-charset" -> "utf-8"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0f00057574662d38")
+            )
+            expected = Vector(Vector("accept-charset" -> "utf-8"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -541,26 +571,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "www.example.com"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001788cf1e3c2e5f23a6ba0ab90f4ff")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "www.example.com"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001788cf1e3c2e5f23a6ba0ab90f4ff")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -575,26 +607,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001788cf1e3c2e5f23a6ba0ab90f4ff")
-          )
-          expected = Vector(Vector("x" -> "www.example.com"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001788cf1e3c2e5f23a6ba0ab90f4ff")
+            )
+            expected = Vector(Vector("x" -> "www.example.com"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -609,26 +643,30 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("custom-key" -> "custom-value"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("008825a849e95ba97d7f0c637573746f6d2d76616c7565")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("custom-key" -> "custom-value"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex(
+                "008825a849e95ba97d7f0c637573746f6d2d76616c7565"
+              )
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -643,26 +681,30 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("008825a849e95ba97d7f0c637573746f6d2d76616c7565")
-          )
-          expected = Vector(Vector("custom-key" -> "custom-value"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex(
+                "008825a849e95ba97d7f0c637573746f6d2d76616c7565"
+              )
+            )
+            expected = Vector(Vector("custom-key" -> "custom-value"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -672,26 +714,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A literal can Huffman encode both name and value.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("custom-key" -> "custom-value"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("008825a849e95ba97d7f8925a849e95bb8e8b4bf")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("custom-key" -> "custom-value"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("008825a849e95ba97d7f8925a849e95bb8e8b4bf")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -701,26 +745,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A literal can Huffman encode both name and value.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("008825a849e95ba97d7f8925a849e95bb8e8b4bf")
-          )
-          expected = Vector(Vector("custom-key" -> "custom-value"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("008825a849e95ba97d7f8925a849e95bb8e8b4bf")
+            )
+            expected = Vector(Vector("custom-key" -> "custom-value"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -730,26 +776,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A zero-octet Huffman value is an empty string.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("x" -> ""))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("00017880")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> ""))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("00017880")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -759,26 +807,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A zero-octet Huffman value is an empty string.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("00017880")
-          )
-          expected = Vector(Vector("x" -> ""))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("00017880")
+            )
+            expected = Vector(Vector("x" -> ""))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -788,26 +838,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "An octet-aligned Huffman symbol requires no padding.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("x" -> "&"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("00017881f8")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "&"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("00017881f8")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -817,26 +869,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "An octet-aligned Huffman symbol requires no padding.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("00017881f8")
-          )
-          expected = Vector(Vector("x" -> "&"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("00017881f8")
+            )
+            expected = Vector(Vector("x" -> "&"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -846,26 +900,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Seven most-significant EOS bits are permitted as Huffman padding.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("x" -> "00000"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("000178840000007f")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "00000"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("000178840000007f")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -875,26 +931,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Seven most-significant EOS bits are permitted as Huffman padding.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("000178840000007f")
-          )
-          expected = Vector(Vector("x" -> "00000"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("000178840000007f")
+            )
+            expected = Vector(Vector("x" -> "00000"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -904,26 +962,28 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A zero-length raw string produces an empty field value.", "MUST"),
     ) { context =>
-      val expected = Vector(Vector("x" -> ""))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("00017800")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> ""))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("00017800")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -933,26 +993,28 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A zero-length raw string produces an empty field value.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("00017800")
-          )
-          expected = Vector(Vector("x" -> ""))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("00017800")
+            )
+            expected = Vector(Vector("x" -> ""))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -967,26 +1029,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "\u0080\u00ff"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001780280ff")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "\u0080\u00ff"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001780280ff")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -1001,26 +1065,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001780280ff")
-          )
-          expected = Vector(Vector("x" -> "\u0080\u00ff"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001780280ff")
+            )
+            expected = Vector(Vector("x" -> "\u0080\u00ff"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1035,30 +1101,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(
-        Vector(
-          "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(
+          Vector(
+            "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          )
         )
-      )
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001787e") ++ octets("a" * 126)
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001787e") ++ octets("a" * 126)
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1073,30 +1141,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001787e") ++ octets("a" * 126)
-          )
-          expected = Vector(
-            Vector(
-              "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001787e") ++ octets("a" * 126)
             )
-          )
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+            expected = Vector(
+              Vector(
+                "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              )
+            )
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1111,30 +1181,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(
-        Vector(
-          "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(
+          Vector(
+            "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          )
         )
-      )
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001787f00") ++ octets("a" * 127)
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001787f00") ++ octets("a" * 127)
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1149,30 +1221,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001787f00") ++ octets("a" * 127)
-          )
-          expected = Vector(
-            Vector(
-              "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001787f00") ++ octets("a" * 127)
             )
-          )
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+            expected = Vector(
+              Vector(
+                "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              )
+            )
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1187,30 +1261,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(
-        Vector(
-          "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(
+          Vector(
+            "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          )
         )
-      )
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001787f01") ++ octets("a" * 128)
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001787f01") ++ octets("a" * 128)
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1225,30 +1301,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001787f01") ++ octets("a" * 128)
-          )
-          expected = Vector(
-            Vector(
-              "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001787f01") ++ octets("a" * 128)
             )
-          )
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+            expected = Vector(
+              Vector(
+                "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              )
+            )
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1263,30 +1341,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(
-        Vector(
-          "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(
+          Vector(
+            "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          )
         )
-      )
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("0001787f8001") ++ octets("a" * 255)
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("0001787f8001") ++ octets("a" * 255)
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1301,30 +1381,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("0001787f8001") ++ octets("a" * 255)
-          )
-          expected = Vector(
-            Vector(
-              "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("0001787f8001") ++ octets("a" * 255)
             )
-          )
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+            expected = Vector(
+              Vector(
+                "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              )
+            )
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1339,30 +1421,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(
-        Vector(
-          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -> "v"
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(
+          Vector(
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -> "v"
+          )
         )
-      )
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(0L) ++ ResponsePrefix ++ hex("007f00") ++ octets("x" * 127) ++ hex("0176")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 0)
-            } yield ()
-          }
-        } yield ()
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(0L) ++ ResponsePrefix ++ hex("007f00") ++ octets("x" * 127) ++ hex("0176")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -1377,30 +1461,32 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(0L) ++ RequestPrefix ++ hex("007f00") ++ octets("x" * 127) ++ hex("0176")
-          )
-          expected = Vector(
-            Vector(
-              "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -> "v"
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(0L) ++ RequestPrefix ++ hex("007f00") ++ octets("x" * 127) ++ hex("0176")
             )
-          )
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 0)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+            expected = Vector(
+              Vector(
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -> "v"
+              )
+            )
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 0)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-3.2
@@ -1415,26 +1501,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161be")
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161be")
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-3.2
@@ -1449,26 +1537,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161be")
-          )
-          expected = Vector(Vector("x" -> "a", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161be")
+            )
+            expected = Vector(Vector("x" -> "a", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.2
@@ -1483,27 +1573,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.2
@@ -1518,27 +1610,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.2
@@ -1553,27 +1647,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001790162"),
-            ResponsePrefix ++ hex("bebf"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 68)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a", "x" -> "b"), Vector("x" -> "b", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001780162"),
+              ResponsePrefix ++ hex("bebf"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 68)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.2
@@ -1588,27 +1684,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(68L) ++ RequestPrefix ++ hex("40017801614001790162"),
-            RequestPrefix ++ hex("bebf"),
-          )
-          expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 68)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(68L) ++ RequestPrefix ++ hex("40017801614001780162"),
+              RequestPrefix ++ hex("bebf"),
+            )
+            expected = Vector(Vector("x" -> "a", "x" -> "b"), Vector("x" -> "b", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 68)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.2
@@ -1619,31 +1717,33 @@ object HpackCases {
       Rfc(
         7541,
         "2.3.2",
-        "Duplicate dynamic entries are legal and both indexed occurrences remain in header-list order.",
+        "Duplicate dynamic entries are legal and both indexed values remain observable, including ordered HTTP combination.",
         "MUST NOT",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a", "x" -> "a"), Vector("x" -> "a", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001780161"),
-            ResponsePrefix ++ hex("bebf"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 68)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a", "x" -> "a"), Vector("x" -> "a", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001780161"),
+              ResponsePrefix ++ hex("bebf"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 68)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.2
@@ -1654,31 +1754,33 @@ object HpackCases {
       Rfc(
         7541,
         "2.3.2",
-        "Duplicate dynamic entries are legal and both indexed occurrences remain in header-list order.",
+        "Duplicate dynamic entries are legal and both indexed values remain observable, including ordered HTTP combination.",
         "MUST NOT",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(68L) ++ RequestPrefix ++ hex("40017801614001780161"),
-            RequestPrefix ++ hex("bebf"),
-          )
-          expected = Vector(Vector("x" -> "a", "x" -> "a"), Vector("x" -> "a", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 68)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(68L) ++ RequestPrefix ++ hex("40017801614001780161"),
+              RequestPrefix ++ hex("bebf"),
+            )
+            expected = Vector(Vector("x" -> "a", "x" -> "a"), Vector("x" -> "a", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 68)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -1693,27 +1795,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("0001780162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("0001780162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -1728,27 +1832,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("0001780162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("0001780162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -1763,27 +1869,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("1001780162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("1001780162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -1798,27 +1906,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("1001780162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("1001780162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -1833,27 +1943,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "b"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("7e0162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "b"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("7e0162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -1868,27 +1980,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("7e0162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "b"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("7e0162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "b"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -1903,27 +2017,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("0f2f0162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("0f2f0162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -1938,27 +2054,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("0f2f0162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("0f2f0162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -1973,27 +2091,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("1f2f0162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("1f2f0162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -2008,27 +2128,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("1f2f0162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("1f2f0162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2043,27 +2165,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("x" -> "c", "x" -> "c"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(102L) ++ ResponsePrefix ++ hex("40017801614001790162"),
-            ResponsePrefix ++ hex("7f000163be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 102)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("x" -> "c", "x" -> "c"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(102L) ++ ResponsePrefix ++ hex("40017801614001790162"),
+              ResponsePrefix ++ hex("7f000163be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 102)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2078,27 +2202,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(102L) ++ RequestPrefix ++ hex("40017801614001790162"),
-            RequestPrefix ++ hex("7f000163be"),
-          )
-          expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("x" -> "c", "x" -> "c"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 102)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(102L) ++ RequestPrefix ++ hex("40017801614001790162"),
+              RequestPrefix ++ hex("7f000163be"),
+            )
+            expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("x" -> "c", "x" -> "c"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 102)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2113,29 +2239,31 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(boundaryEntries, Vector("x-0" -> "v"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(4096L) ++ ResponsePrefix ++ boundaryEntries.foldLeft(ByteVector.empty) {
-              case (bytes, (name, value)) => bytes ++ literal(0x40, name, value)
-            },
-            ResponsePrefix ++ hex("ff00"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 4096)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(boundaryEntries, Vector("x-0" -> "v"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(4096L) ++ ResponsePrefix ++ boundaryEntries.foldLeft(ByteVector.empty) {
+                case (bytes, (name, value)) => bytes ++ literal(0x40, name, value)
+              },
+              ResponsePrefix ++ hex("ff00"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 4096)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2150,29 +2278,31 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(4096L) ++ RequestPrefix ++ boundaryEntries.foldLeft(ByteVector.empty) {
-              case (bytes, (name, value)) => bytes ++ literal(0x40, name, value)
-            },
-            RequestPrefix ++ hex("ff00"),
-          )
-          expected = Vector(boundaryEntries, Vector("x-0" -> "v"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 4096)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(4096L) ++ RequestPrefix ++ boundaryEntries.foldLeft(ByteVector.empty) {
+                case (bytes, (name, value)) => bytes ++ literal(0x40, name, value)
+              },
+              RequestPrefix ++ hex("ff00"),
+            )
+            expected = Vector(boundaryEntries, Vector("x-0" -> "v"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 4096)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -2187,27 +2317,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("4001790162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("4001790162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -2222,27 +2354,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("4001790162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("4001790162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.3
@@ -2257,27 +2391,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001790162"),
-            hex("3f03") ++ ResponsePrefix ++ hex("be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 68)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001790162"),
+              hex("3f03") ++ ResponsePrefix ++ hex("be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 68)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.3
@@ -2292,27 +2428,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(68L) ++ RequestPrefix ++ hex("40017801614001790162"),
-            hex("3f03") ++ RequestPrefix ++ hex("be"),
-          )
-          expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 68)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(68L) ++ RequestPrefix ++ hex("40017801614001790162"),
+              hex("3f03") ++ RequestPrefix ++ hex("be"),
+            )
+            expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 68)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
@@ -2327,27 +2465,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            hex("203f03") ++ ResponsePrefix ++ hex("4001790162be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              hex("203f03") ++ ResponsePrefix ++ hex("4001790162be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
@@ -2362,27 +2502,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            hex("203f03") ++ RequestPrefix ++ hex("4001790162be"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              hex("203f03") ++ RequestPrefix ++ hex("4001790162be"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -2397,27 +2539,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "a"), Vector("xx" -> "b"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-            ResponsePrefix ++ hex("400278780162"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 34)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "a"), Vector("xx" -> "b"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+              ResponsePrefix ++ hex("400278780162"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 34)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -2432,27 +2576,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
-            RequestPrefix ++ hex("400278780162"),
-          )
-          expected = Vector(Vector("x" -> "a"), Vector("xx" -> "b"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 34)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(34L) ++ RequestPrefix ++ hex("4001780161"),
+              RequestPrefix ++ hex("400278780162"),
+            )
+            expected = Vector(Vector("x" -> "a"), Vector("xx" -> "b"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 34)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.1
@@ -2467,27 +2613,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val expected = Vector(Vector("x" -> "www.example.com"), Vector("x" -> "www.example.com"))
-      context.client(Protocol.Http2)(driver =>
-        expected
-          .traverse_(fields =>
-            driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          blocks = Vector(
-            tableSize(48L) ++ ResponsePrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
-            ResponsePrefix ++ hex("be"),
-          )
-          _ <- blocks.traverse_ { block =>
-            for {
-              request <- readRequest(session)
-              _ <- writeBlock(session, request.streamId, block, 48)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val expected = Vector(Vector("x" -> "www.example.com"), Vector("x" -> "www.example.com"))
+        context.client(Protocol.Http2)(driver =>
+          expected
+            .traverse_(fields =>
+              driver.exchange(EmptyRequest).use(response => checkResponse(response, fields))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            blocks = Vector(
+              tableSize(48L) ++ ResponsePrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
+              ResponsePrefix ++ hex("be"),
+            )
+            _ <- blocks.traverse_ { block =>
+              for {
+                request <- readRequest(session)
+                _ <- writeBlock(session, request.streamId, block, 48)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.1
@@ -2502,27 +2650,29 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          blocks = Vector(
-            tableSize(48L) ++ RequestPrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
-            RequestPrefix ++ hex("be"),
-          )
-          expected = Vector(Vector("x" -> "www.example.com"), Vector("x" -> "www.example.com"))
-          _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
-            val streamId = index * 2 + 1
-            for {
-              _ <- writeBlock(session, streamId, block, 48)
-              response <- readResponse(session, streamId)
-              _ <- Check.equal(response.body, ByteVector.empty)
-              received <- server.received
-              _ <- Check.equal(received.method, "GET")
-              _ <- Check.equal(received.path, "/")
-              _ <- checkFields(received.headers, fields)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            blocks = Vector(
+              tableSize(48L) ++ RequestPrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
+              RequestPrefix ++ hex("be"),
+            )
+            expected = Vector(Vector("x" -> "www.example.com"), Vector("x" -> "www.example.com"))
+            _ <- blocks.zip(expected).zipWithIndex.traverse_ { case ((block, fields), index) =>
+              val streamId = index * 2 + 1
+              for {
+                _ <- writeBlock(session, streamId, block, 48)
+                response <- readResponse(session, streamId)
+                _ <- Check.equal(response.body, ByteVector.empty)
+                received <- server.received
+                _ <- Check.equal(received.method, "GET")
+                _ <- Check.equal(received.path, "/")
+                _ <- checkFields(received.headers, fields)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.1
@@ -2532,23 +2682,23 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.1", "Index zero in an indexed representation is a decoding error.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("80")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("80")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2559,16 +2709,15 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.1", "Index zero in an indexed representation is a decoding error.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("80")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("80")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -2583,23 +2732,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("be")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2615,16 +2764,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("be")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2639,23 +2787,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("ff")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("ff")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2671,16 +2819,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("ff")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("ff")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2695,23 +2842,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("7f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("7f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2727,16 +2874,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("7f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("7f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2751,23 +2897,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2783,16 +2929,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2807,23 +2952,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("1f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("1f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2839,16 +2984,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("1f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("1f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2863,23 +3007,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("ffffffffffffffffffff7f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("ffffffffffffffffffff7f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2895,16 +3039,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("ffffffffffffffffffff7f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("ffffffffffffffffffff7f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -2914,23 +3057,23 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A literal name cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("000378")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("000378")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2941,16 +3084,15 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A literal name cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("000378")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("000378")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -2965,23 +3107,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("007f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("007f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -2997,16 +3139,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("007f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("007f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3016,23 +3157,23 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A literal value cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0001780261")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0001780261")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3043,16 +3184,15 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A literal value cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0001780261")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0001780261")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -3067,23 +3207,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("000178")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("000178")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3099,16 +3239,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("000178")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("000178")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -3123,23 +3262,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0001787f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0001787f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3155,16 +3294,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0001787f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0001787f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3179,23 +3317,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("000178828c")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("000178828c")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3211,16 +3349,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("000178828c")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("000178828c")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -3235,23 +3372,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("7e0161")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("7e0161")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3267,16 +3404,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("7e0161")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("7e0161")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -3291,23 +3427,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0f2f0161")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0f2f0161")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3323,16 +3459,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0f2f0161")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0f2f0161")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -3347,23 +3482,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("1f2f0161")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("1f2f0161")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3379,16 +3514,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("1f2f0161")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("1f2f0161")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3403,23 +3537,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("00017884ffffffff")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("00017884ffffffff")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3435,16 +3569,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("00017884ffffffff")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("00017884ffffffff")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3459,23 +3592,24 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0084ffffffff0161")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              // 0xf8 encodes the legal field name '&' before the forbidden EOS symbol.
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0085f8ffffffff0161")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3491,16 +3625,16 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0084ffffffff0161")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            // 0xf8 encodes the legal field name '&' before the forbidden EOS symbol.
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0085f8ffffffff0161")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3510,23 +3644,23 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("00017881ff")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("00017881ff")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3537,16 +3671,15 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("00017881ff")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("00017881ff")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3556,23 +3689,24 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman name padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0081ff0161")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              // A padding-blind decoder still obtains a nonempty legal field name '&'.
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0082f8ff0161")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3583,16 +3717,16 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman name padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0081ff0161")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            // A padding-blind decoder still obtains a nonempty legal field name '&'.
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0082f8ff0161")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3602,23 +3736,23 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman value padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0001788100")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0001788100")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3629,16 +3763,15 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman value padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0001788100")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0001788100")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.2
@@ -3648,23 +3781,23 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman name padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("0081000161")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("0081000161")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3675,16 +3808,15 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman name padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("0081000161")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("0081000161")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
@@ -3699,23 +3831,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("bd20")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("bd20")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3731,16 +3863,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("bd20")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("bd20")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
@@ -3755,23 +3886,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = tableSize(0L) ++ ResponsePrefix ++ hex("000178016120")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = tableSize(0L) ++ ResponsePrefix ++ hex("000178016120")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3787,16 +3918,15 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = tableSize(0L) ++ RequestPrefix ++ hex("000178016120")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = tableSize(0L) ++ RequestPrefix ++ hex("000178016120")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-5.1
@@ -3806,23 +3936,25 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.1", "A saturated dynamic-table size prefix requires a complete integer.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = hex("3f")
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              // END_HEADERS ends this integer. Appending pseudo-fields would complete it.
+              // Generic closure cannot isolate this fault from missing pseudo-fields (inventory gap).
+              block = hex("3f")
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3833,16 +3965,20 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.1", "A saturated dynamic-table size prefix requires a complete integer.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = hex("3f")
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            // END_HEADERS ends this integer. Appending pseudo-fields would complete it.
+            // Generic closure cannot isolate this fault from missing pseudo-fields (inventory gap).
+            block = hex("3f")
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            unaccepted = server.pollReceived
+              .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
+            _ <- requireConnectionError(session, 1, unaccepted)
+            _ <- unaccepted
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.3
@@ -3857,24 +3993,24 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            limit <- session.peerTableLimit.get
-            block = tableSize(limit + 1L)
-            _ <- writeBlock(session, request.streamId, block, 0)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              limit <- session.peerTableLimit.get
+              block = tableSize(limit + 1L) ++ ResponsePrefix
+              _ <- writeBlock(session, request.streamId, block, 0, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3890,17 +4026,19 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          limit <- session.peerTableLimit.get
-          block = tableSize(limit + 1L)
-          _ <- writeBlock(session, 1, block, 0)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            limit <- session.peerTableLimit.get
+            block = tableSize(limit + 1L) ++ RequestPrefix
+            _ <- writeBlock(session, 1, block, 0, compressionNegative = true)
+            unaccepted = server.pollReceived
+              .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
+            _ <- requireConnectionError(session, 1, unaccepted)
+            _ <- unaccepted
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.3
@@ -3915,34 +4053,34 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-              34,
-            )
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("bf")
-            _ <- writeBlock(session, request.streamId, block, 34)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              .use(response => checkResponse(response, Vector("x" -> "a")))
+              .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+                34,
+              )
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("bf")
+              _ <- writeBlock(session, request.streamId, block, 34, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -3958,20 +4096,19 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
-          block = RequestPrefix ++ hex("bf")
-          _ <- writeBlock(session, 3, block, 34)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 3, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
+            block = RequestPrefix ++ hex("bf")
+            _ <- writeBlock(session, 3, block, 34, compressionNegative = true)
+            _ <- requireConnectionError(session, 3, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.2
@@ -3986,34 +4123,34 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(34L) ++ ResponsePrefix ++ hex("0001780161"),
-              34,
-            )
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 34)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              .use(response => checkResponse(response, Vector("x" -> "a")))
+              .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(34L) ++ ResponsePrefix ++ hex("0001780161"),
+                34,
+              )
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("be")
+              _ <- writeBlock(session, request.streamId, block, 34, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4029,20 +4166,19 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("0001780161"), 34)
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
-          block = RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 3, block, 34)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 3, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("0001780161"), 34)
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
+            block = RequestPrefix ++ hex("be")
+            _ <- writeBlock(session, 3, block, 34, compressionNegative = true)
+            _ <- requireConnectionError(session, 3, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-6.2.3
@@ -4057,34 +4193,34 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(34L) ++ ResponsePrefix ++ hex("1001780161"),
-              34,
-            )
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 34)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              .use(response => checkResponse(response, Vector("x" -> "a")))
+              .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(34L) ++ ResponsePrefix ++ hex("1001780161"),
+                34,
+              )
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("be")
+              _ <- writeBlock(session, request.streamId, block, 34, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4100,20 +4236,19 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("1001780161"), 34)
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
-          block = RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 3, block, 34)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 3, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("1001780161"), 34)
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
+            block = RequestPrefix ++ hex("be")
+            _ <- writeBlock(session, 3, block, 34, compressionNegative = true)
+            _ <- requireConnectionError(session, 3, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -4123,40 +4258,40 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "4.4", "An entry evicted during insertion is no longer addressable.", "MUST"),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(response => checkResponse(response, Vector("y" -> "b")))
+              .use(response => checkResponse(response, Vector("x" -> "a")))
               .handleErrorWith(unexpectedRejection) *>
-            driver
-              .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-              34,
-            )
-            warmup1 <- readRequest(session)
-            _ <- writeBlock(session, warmup1.streamId, ResponsePrefix ++ hex("4001790162"), 34)
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("bf")
-            _ <- writeBlock(session, request.streamId, block, 34)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              driver
+                .exchange(EmptyRequest)
+                .use(response => checkResponse(response, Vector("y" -> "b")))
+                .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+                34,
+              )
+              warmup1 <- readRequest(session)
+              _ <- writeBlock(session, warmup1.streamId, ResponsePrefix ++ hex("4001790162"), 34)
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("bf")
+              _ <- writeBlock(session, request.streamId, block, 34, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4167,24 +4302,23 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "4.4", "An entry evicted during insertion is no longer addressable.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
-          _ <- writeBlock(session, 3, RequestPrefix ++ hex("4001790162"), 34)
-          _ <- readResponse(session, 3)
-          accepted1 <- server.received
-          _ <- checkFields(accepted1.headers, Vector("y" -> "b"))
-          block = RequestPrefix ++ hex("bf")
-          _ <- writeBlock(session, 5, block, 34)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 5, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
+            _ <- writeBlock(session, 3, RequestPrefix ++ hex("4001790162"), 34)
+            _ <- readResponse(session, 3)
+            accepted1 <- server.received
+            _ <- checkFields(accepted1.headers, Vector("y" -> "b"))
+            block = RequestPrefix ++ hex("bf")
+            _ <- writeBlock(session, 5, block, 34, compressionNegative = true)
+            _ <- requireConnectionError(session, 5, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.3
@@ -4199,45 +4333,45 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a", "y" -> "b")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(response => checkResponse(response, Vector("y" -> "b")))
+              .use(response => checkResponse(response, Vector("x" -> "a", "y" -> "b")))
               .handleErrorWith(unexpectedRejection) *>
-            driver
-              .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001790162"),
-              68,
-            )
-            warmup1 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup1.streamId,
-              hex("3f03") ++ ResponsePrefix ++ hex("be"),
-              68,
-            )
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("bf")
-            _ <- writeBlock(session, request.streamId, block, 68)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              driver
+                .exchange(EmptyRequest)
+                .use(response => checkResponse(response, Vector("y" -> "b")))
+                .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(68L) ++ ResponsePrefix ++ hex("40017801614001790162"),
+                68,
+              )
+              warmup1 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup1.streamId,
+                hex("3f03") ++ ResponsePrefix ++ hex("be"),
+                68,
+              )
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("bf")
+              _ <- writeBlock(session, request.streamId, block, 68, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4253,29 +4387,28 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(
-            session,
-            1,
-            tableSize(68L) ++ RequestPrefix ++ hex("40017801614001790162"),
-            68,
-          )
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a", "y" -> "b"))
-          _ <- writeBlock(session, 3, hex("3f03") ++ RequestPrefix ++ hex("be"), 68)
-          _ <- readResponse(session, 3)
-          accepted1 <- server.received
-          _ <- checkFields(accepted1.headers, Vector("y" -> "b"))
-          block = RequestPrefix ++ hex("bf")
-          _ <- writeBlock(session, 5, block, 68)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 5, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(
+              session,
+              1,
+              tableSize(68L) ++ RequestPrefix ++ hex("40017801614001790162"),
+              68,
+            )
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a", "y" -> "b"))
+            _ <- writeBlock(session, 3, hex("3f03") ++ RequestPrefix ++ hex("be"), 68)
+            _ <- readResponse(session, 3)
+            accepted1 <- server.received
+            _ <- checkFields(accepted1.headers, Vector("y" -> "b"))
+            block = RequestPrefix ++ hex("bf")
+            _ <- writeBlock(session, 5, block, 68, compressionNegative = true)
+            _ <- requireConnectionError(session, 5, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
@@ -4290,34 +4423,34 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-              34,
-            )
-            request <- readRequest(session)
-            block = hex("203f03") ++ ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 34)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              .use(response => checkResponse(response, Vector("x" -> "a")))
+              .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+                34,
+              )
+              request <- readRequest(session)
+              block = hex("203f03") ++ ResponsePrefix ++ hex("be")
+              _ <- writeBlock(session, request.streamId, block, 34, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4333,20 +4466,19 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
-          block = hex("203f03") ++ RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 3, block, 34)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 3, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
+            block = hex("203f03") ++ RequestPrefix ++ hex("be")
+            _ <- writeBlock(session, 3, block, 34, compressionNegative = true)
+            _ <- requireConnectionError(session, 3, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.4
@@ -4361,40 +4493,40 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "a")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(response => checkResponse(response, Vector("xx" -> "b")))
+              .use(response => checkResponse(response, Vector("x" -> "a")))
               .handleErrorWith(unexpectedRejection) *>
-            driver
-              .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
-              34,
-            )
-            warmup1 <- readRequest(session)
-            _ <- writeBlock(session, warmup1.streamId, ResponsePrefix ++ hex("400278780162"), 34)
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 34)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              driver
+                .exchange(EmptyRequest)
+                .use(response => checkResponse(response, Vector("xx" -> "b")))
+                .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(34L) ++ ResponsePrefix ++ hex("4001780161"),
+                34,
+              )
+              warmup1 <- readRequest(session)
+              _ <- writeBlock(session, warmup1.streamId, ResponsePrefix ++ hex("400278780162"), 34)
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("be")
+              _ <- writeBlock(session, request.streamId, block, 34, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4410,24 +4542,23 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
-          _ <- writeBlock(session, 3, RequestPrefix ++ hex("400278780162"), 34)
-          _ <- readResponse(session, 3)
-          accepted1 <- server.received
-          _ <- checkFields(accepted1.headers, Vector("xx" -> "b"))
-          block = RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 5, block, 34)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 5, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(session, 1, tableSize(34L) ++ RequestPrefix ++ hex("4001780161"), 34)
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "a"))
+            _ <- writeBlock(session, 3, RequestPrefix ++ hex("400278780162"), 34)
+            _ <- readResponse(session, 3)
+            accepted1 <- server.received
+            _ <- checkFields(accepted1.headers, Vector("xx" -> "b"))
+            block = RequestPrefix ++ hex("be")
+            _ <- writeBlock(session, 5, block, 34, compressionNegative = true)
+            _ <- requireConnectionError(session, 5, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.1
@@ -4442,34 +4573,34 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(response => checkResponse(response, Vector("x" -> "www.example.com")))
-            .handleErrorWith(unexpectedRejection) *>
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
             driver
               .exchange(EmptyRequest)
-              .use(_.body.compile.drain)
-              .attempt
-              .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            warmup0 <- readRequest(session)
-            _ <- writeBlock(
-              session,
-              warmup0.streamId,
-              tableSize(47L) ++ ResponsePrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
-              47,
-            )
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 47)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+              .use(response => checkResponse(response, Vector("x" -> "www.example.com")))
+              .handleErrorWith(unexpectedRejection) *>
+              ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+                result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                  requireRejected(result) *> rejectedOnWire.get
+              }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              warmup0 <- readRequest(session)
+              _ <- writeBlock(
+                session,
+                warmup0.streamId,
+                tableSize(47L) ++ ResponsePrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
+                47,
+              )
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("be")
+              _ <- writeBlock(session, request.streamId, block, 47, compressionNegative = true)
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4485,25 +4616,24 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          _ <- writeBlock(
-            session,
-            1,
-            tableSize(47L) ++ RequestPrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
-            47,
-          )
-          _ <- readResponse(session, 1)
-          accepted0 <- server.received
-          _ <- checkFields(accepted0.headers, Vector("x" -> "www.example.com"))
-          block = RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 3, block, 47)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 3, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+          for {
+            session <- connect(peer)
+            _ <- writeBlock(
+              session,
+              1,
+              tableSize(47L) ++ RequestPrefix ++ hex("4001788cf1e3c2e5f23a6ba0ab90f4ff"),
+              47,
+            )
+            _ <- readResponse(session, 1)
+            accepted0 <- server.received
+            _ <- checkFields(accepted0.headers, Vector("x" -> "www.example.com"))
+            block = RequestPrefix ++ hex("be")
+            _ <- writeBlock(session, 3, block, 47, compressionNegative = true)
+            _ <- requireConnectionError(session, 3, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.3.2
@@ -4518,23 +4648,30 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Deferred[IO, Unit].flatMap { rejectedOnWire =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .attempt
-            .flatMap(requireRejected) *>
-            rejectedOnWire.get
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            request <- readRequest(session)
-            block = ResponsePrefix ++ hex("be")
-            _ <- writeBlock(session, request.streamId, block, 4096)
-            _ <- requireConnectionError(session, request.streamId, IO.unit)
-            _ <- rejectedOnWire.complete(()).void
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        Deferred[IO, Unit].flatMap { rejectedOnWire =>
+          context.client(Protocol.Http2)(driver =>
+            ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
+              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+                requireRejected(result) *> rejectedOnWire.get
+            }
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              request <- readRequest(session)
+              block = ResponsePrefix ++ hex("be")
+              _ <- writeBlock(
+                session,
+                request.streamId,
+                block,
+                4096,
+                compressionNegative = true,
+                preserveInitialState = true,
+              )
+              _ <- requireConnectionError(session, request.streamId, IO.unit)
+              _ <- rejectedOnWire.complete(()).void
+            } yield ()
+          }
         }
       }
     },
@@ -4550,16 +4687,22 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          session <- connect(peer)
-          block = RequestPrefix ++ hex("be")
-          _ <- writeBlock(session, 1, block, 4096)
-          unaccepted = server.pollReceived
-            .flatMap(value => Check(value.isEmpty, "malformed HPACK reached the application"))
-          _ <- requireConnectionError(session, 1, unaccepted)
-          _ <- unaccepted
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+          for {
+            session <- connect(peer)
+            block = RequestPrefix ++ hex("be")
+            _ <- writeBlock(
+              session,
+              1,
+              block,
+              4096,
+              compressionNegative = true,
+              preserveInitialState = true,
+            )
+            _ <- requireConnectionError(session, 1, IO.unit)
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.1
@@ -4570,29 +4713,31 @@ object HpackCases {
       Rfc(
         7541,
         "2.1",
-        "Encoded fields preserve the supplied field order and remain independently decodable across streams; any valid indexing strategy is permitted.",
+        "Encoded fields preserve the supplied HTTP field values and remain independently decodable across streams; immediate codec input order is not exposed by the application API.",
         "MUST",
       ),
     ) { context =>
-      val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
-      val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
-      context.client(Protocol.Http2)(driver =>
-        Vector(1, 2, 3)
-          .traverse_(_ =>
-            driver.exchange(request).use(response => checkResponse(response, Vector.empty))
-          )
-          .handleErrorWith(unexpectedRejection)
-      ) { peer =>
-        for {
-          session <- accept(peer)
-          _ <- Vector(1, 2, 3).traverse_ { _ =>
-            for {
-              captured <- readRequest(session)
-              _ <- checkFields(captured.fields, fields)
-              _ <- writeBlock(session, captured.streamId, tableSize(0L) ++ ResponsePrefix, 0)
-            } yield ()
-          }
-        } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
+        val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
+        context.client(Protocol.Http2)(driver =>
+          Vector(1, 2, 3)
+            .traverse_(_ =>
+              driver.exchange(request).use(response => checkResponse(response, Vector.empty))
+            )
+            .handleErrorWith(unexpectedRejection)
+        ) { peer =>
+          for {
+            session <- accept(peer)
+            _ <- Vector(1, 2, 3).traverse_ { _ =>
+              for {
+                captured <- readRequest(session)
+                _ <- checkFields(captured.fields, fields)
+                _ <- writeBlock(session, captured.streamId, tableSize(0L) ++ ResponsePrefix, 0)
+              } yield ()
+            }
+          } yield ()
+        }
       }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-2.1
@@ -4603,26 +4748,28 @@ object HpackCases {
       Rfc(
         7541,
         "2.1",
-        "Encoded fields preserve the supplied field order and remain independently decodable across streams; any valid indexing strategy is permitted.",
+        "Encoded fields preserve the supplied HTTP field values and remain independently decodable across streams; immediate codec input order is not exposed by the application API.",
         "MUST",
       ),
     ) { context =>
-      val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
-      context
-        .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
-        .use { case (peer, _) =>
-          for {
-            session <- connect(peer)
-            _ <- Vector(1, 3, 5).traverse_ { streamId =>
-              for {
-                _ <- writeBlock(session, streamId, tableSize(0L) ++ RequestPrefix, 0)
-                response <- readResponse(session, streamId)
-                _ <- Check.equal(response.body, ByteVector.empty)
-                _ <- checkFields(response.head.fields, fields)
-              } yield ()
-            }
-          } yield ()
-        }
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
+        context
+          .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
+          .use { case (peer, _) =>
+            for {
+              session <- connect(peer)
+              _ <- Vector(1, 3, 5).traverse_ { streamId =>
+                for {
+                  _ <- writeBlock(session, streamId, tableSize(0L) ++ RequestPrefix, 0)
+                  response <- readResponse(session, streamId)
+                  _ <- Check.equal(response.body, ByteVector.empty)
+                  _ <- checkFields(response.head.fields, fields)
+                } yield ()
+              }
+            } yield ()
+          }
+      }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
     WireCase(
@@ -4636,39 +4783,51 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
-      val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
-      Deferred[IO, Unit].flatMap { settingsApplied =>
-        context.client(Protocol.Http2)(driver =>
-          driver.exchange(request).use(response => checkResponse(response, Vector.empty)) *>
-            settingsApplied.get *>
-            driver.exchange(request).use(response => checkResponse(response, Vector.empty))
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            first <- readRequest(session)
-            _ <- checkFields(first.fields, fields)
-            _ <- requireCapacityChange[IO](first.block)
-            _ <- writeBlock(session, first.streamId, tableSize(0L) ++ ResponsePrefix, 0)
-            _ <- awaitAcknowledgments(session, 1)
-            _ <- peer.write(Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))))
-            _ <- awaitAcknowledgments(session, 2)
-            decoder <- HpackWire.decoder[IO](maxTableSize = 0)
-            constrained = session.copy(decoder = decoder)
-            _ <- settingsApplied.complete(()).void
-            second <- readRequest(constrained)
-            updates = leadingSizes(second.block)
-            _ <- Check(
-              updates.headOption.contains(0L),
-              "encoder omitted the required minimum-zero update",
-            )
-            _ <- Check(
-              updates.size <= 2,
-              "encoder emitted more than the required minimum/final updates",
-            )
-            _ <- checkFields(second.fields, fields)
-            _ <- writeBlock(constrained, second.streamId, tableSize(0L) ++ ResponsePrefix, 0)
-          } yield ()
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
+        val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
+        Deferred[IO, Unit].flatMap { settingsApplied =>
+          context.client(Protocol.Http2)(driver =>
+            driver
+              .exchange(request)
+              .use(response => checkResponse(response, Vector.empty))
+              .handleErrorWith(unexpectedRejection) *>
+              settingsApplied.get *>
+              driver
+                .exchange(request)
+                .use(response => checkResponse(response, Vector.empty))
+                .handleErrorWith(unexpectedRejection)
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              first <- readRequest(session)
+              _ <- checkFields(first.fields, fields)
+              _ <- session.decoder.tableCapacity
+                .flatMap(capacity => requireCapacityChange[IO](capacity.toLong))
+              _ <- writeBlock(session, first.streamId, tableSize(0L) ++ ResponsePrefix, 0)
+              _ <- awaitAcknowledgments(session, 1)
+              _ <- Http2PeerSettings.write(
+                peer,
+                Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))),
+              )
+              _ <- awaitAcknowledgments(session, 2)
+              decoder <- HpackWire.decoder[IO](maxTableSize = 0)
+              constrained = session.copy(decoder = decoder)
+              _ <- settingsApplied.complete(()).void
+              second <- readRequest(constrained)
+              updates = leadingSizes(second.block)
+              _ <- Check(
+                updates.headOption.contains(0L),
+                "encoder omitted the required minimum-zero update",
+              )
+              _ <- Check(
+                updates.size <= 2,
+                "encoder emitted more than the required minimum/final updates",
+              )
+              _ <- checkFields(second.fields, fields)
+              _ <- writeBlock(constrained, second.streamId, tableSize(0L) ++ ResponsePrefix, 0)
+            } yield ()
+          }
         }
       }
     },
@@ -4684,36 +4843,40 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
-      context
-        .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
-        .use { case (peer, _) =>
-          for {
-            session <- connect(peer)
-            _ <- writeBlock(session, 1, tableSize(0L) ++ RequestPrefix, 0)
-            first <- readResponse(session, 1)
-            _ <- checkFields(first.head.fields, fields)
-            _ <- requireCapacityChange[IO](first.head.block)
-            _ <- awaitAcknowledgments(session, 1)
-            _ <- peer.write(Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))))
-            _ <- awaitAcknowledgments(session, 2)
-            decoder <- HpackWire.decoder[IO](maxTableSize = 0)
-            constrained = session.copy(decoder = decoder)
-            _ <- writeBlock(constrained, 3, tableSize(0L) ++ RequestPrefix, 0)
-            second <- readResponse(constrained, 3)
-            updates = leadingSizes(second.head.block)
-            _ <- Check(
-              updates.headOption.contains(0L),
-              "encoder omitted the required minimum-zero update",
-            )
-            _ <- Check(
-              updates.size <= 2,
-              "encoder emitted more than the required minimum/final updates",
-            )
-            _ <- checkFields(second.head.fields, fields)
-            _ <- Check.equal(second.body, ByteVector.empty)
-          } yield ()
-        }
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
+        context
+          .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
+          .use { case (peer, _) =>
+            for {
+              session <- connect(peer)
+              _ <- writeBlock(session, 1, tableSize(0L) ++ RequestPrefix, 0)
+              first <- readResponse(session, 1)
+              _ <- checkFields(first.head.fields, fields)
+              _ <- session.decoder.tableCapacity
+                .flatMap(capacity => requireCapacityChange[IO](capacity.toLong))
+              _ <- awaitAcknowledgments(session, 1)
+              _ <- Http2PeerSettings
+                .write(peer, Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))))
+              _ <- awaitAcknowledgments(session, 2)
+              decoder <- HpackWire.decoder[IO](maxTableSize = 0)
+              constrained = session.copy(decoder = decoder)
+              _ <- writeBlock(constrained, 3, tableSize(0L) ++ RequestPrefix, 0)
+              second <- readResponse(constrained, 3)
+              updates = leadingSizes(second.firstBlock)
+              _ <- Check(
+                updates.headOption.contains(0L),
+                "encoder omitted the required minimum-zero update",
+              )
+              _ <- Check(
+                updates.size <= 2,
+                "encoder emitted more than the required minimum/final updates",
+              )
+              _ <- checkFields(second.head.fields, fields)
+              _ <- Check.equal(second.body, ByteVector.empty)
+            } yield ()
+          }
+      }
     },
     // https://www.rfc-editor.org/rfc/rfc7541.html#section-4.2
     WireCase(
@@ -4727,43 +4890,53 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
-      val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
-      Deferred[IO, Unit].flatMap { settingsApplied =>
-        context.client(Protocol.Http2)(driver =>
-          driver.exchange(request).use(response => checkResponse(response, Vector.empty)) *>
-            settingsApplied.get *>
-            driver.exchange(request).use(response => checkResponse(response, Vector.empty))
-        ) { peer =>
-          for {
-            session <- accept(peer)
-            first <- readRequest(session)
-            _ <- checkFields(first.fields, fields)
-            _ <- requireCapacityChange[IO](first.block)
-            _ <- writeBlock(session, first.streamId, tableSize(0L) ++ ResponsePrefix, 0)
-            _ <- awaitAcknowledgments(session, 1)
-            _ <- peer.write(
-              Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))) ++ Http2Wire.encode(
-                Http2Wire.settings(Vector(1 -> 128L))
+      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+        val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
+        val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
+        Deferred[IO, Unit].flatMap { settingsApplied =>
+          context.client(Protocol.Http2)(driver =>
+            driver
+              .exchange(request)
+              .use(response => checkResponse(response, Vector.empty))
+              .handleErrorWith(unexpectedRejection) *>
+              settingsApplied.get *>
+              driver
+                .exchange(request)
+                .use(response => checkResponse(response, Vector.empty))
+                .handleErrorWith(unexpectedRejection)
+          ) { peer =>
+            for {
+              session <- accept(peer)
+              first <- readRequest(session)
+              _ <- checkFields(first.fields, fields)
+              _ <- session.decoder.tableCapacity
+                .flatMap(capacity => requireCapacityChange[IO](capacity.toLong))
+              _ <- writeBlock(session, first.streamId, tableSize(0L) ++ ResponsePrefix, 0)
+              _ <- awaitAcknowledgments(session, 1)
+              _ <- Http2PeerSettings.write(
+                peer,
+                Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))) ++ Http2Wire.encode(
+                  Http2Wire.settings(Vector(1 -> 128L))
+                ),
               )
-            )
-            _ <- awaitAcknowledgments(session, 3)
-            decoder <- HpackWire.decoder[IO](maxTableSize = 128)
-            constrained = session.copy(decoder = decoder)
-            _ <- settingsApplied.complete(()).void
-            second <- readRequest(constrained)
-            updates = leadingSizes(second.block)
-            _ <- Check(
-              updates.headOption.contains(0L),
-              "encoder omitted the required minimum-zero update",
-            )
-            _ <- Check(
-              updates.size <= 2,
-              "encoder emitted more than the required minimum/final updates",
-            )
-            _ <- checkFields(second.fields, fields)
-            _ <- writeBlock(constrained, second.streamId, tableSize(0L) ++ ResponsePrefix, 0)
-          } yield ()
+              _ <- awaitAcknowledgments(session, 3)
+              decoder <- HpackWire.decoder[IO](maxTableSize = 128)
+              constrained = session.copy(decoder = decoder)
+              _ <- settingsApplied.complete(()).void
+              second <- readRequest(constrained)
+              updates = leadingSizes(second.block)
+              _ <- Check(
+                updates.headOption.contains(0L),
+                "encoder omitted the required minimum-zero update",
+              )
+              _ <- Check(
+                updates.size <= 2,
+                "encoder emitted more than the required minimum/final updates",
+              )
+              _ <- checkFields(second.fields, fields)
+              _ <- writeBlock(constrained, second.streamId, tableSize(0L) ++ ResponsePrefix, 0)
+            } yield ()
+          }
         }
       }
     },
@@ -4779,51 +4952,58 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
-      context
-        .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
-        .use { case (peer, _) =>
-          for {
-            session <- connect(peer)
-            _ <- writeBlock(session, 1, tableSize(0L) ++ RequestPrefix, 0)
-            first <- readResponse(session, 1)
-            _ <- checkFields(first.head.fields, fields)
-            _ <- requireCapacityChange[IO](first.head.block)
-            _ <- awaitAcknowledgments(session, 1)
-            _ <- peer.write(
-              Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))) ++ Http2Wire
-                .encode(Http2Wire.settings(Vector(1 -> 128L)))
-            )
-            _ <- awaitAcknowledgments(session, 3)
-            decoder <- HpackWire.decoder[IO](maxTableSize = 128)
-            constrained = session.copy(decoder = decoder)
-            _ <- writeBlock(constrained, 3, tableSize(0L) ++ RequestPrefix, 0)
-            second <- readResponse(constrained, 3)
-            updates = leadingSizes(second.head.block)
-            _ <- Check(
-              updates.headOption.contains(0L),
-              "encoder omitted the required minimum-zero update",
-            )
-            _ <- Check(
-              updates.size <= 2,
-              "encoder emitted more than the required minimum/final updates",
-            )
-            _ <- checkFields(second.head.fields, fields)
-            _ <- Check.equal(second.body, ByteVector.empty)
-          } yield ()
-        }
+      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+        val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
+        context
+          .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
+          .use { case (peer, _) =>
+            for {
+              session <- connect(peer)
+              _ <- writeBlock(session, 1, tableSize(0L) ++ RequestPrefix, 0)
+              first <- readResponse(session, 1)
+              _ <- checkFields(first.head.fields, fields)
+              _ <- session.decoder.tableCapacity
+                .flatMap(capacity => requireCapacityChange[IO](capacity.toLong))
+              _ <- awaitAcknowledgments(session, 1)
+              _ <- Http2PeerSettings.write(
+                peer,
+                Http2Wire.encode(Http2Wire.settings(Vector(1 -> 0L))) ++ Http2Wire
+                  .encode(Http2Wire.settings(Vector(1 -> 128L))),
+              )
+              _ <- awaitAcknowledgments(session, 3)
+              decoder <- HpackWire.decoder[IO](maxTableSize = 128)
+              constrained = session.copy(decoder = decoder)
+              _ <- writeBlock(constrained, 3, tableSize(0L) ++ RequestPrefix, 0)
+              second <- readResponse(constrained, 3)
+              updates = leadingSizes(second.firstBlock)
+              _ <- Check(
+                updates.headOption.contains(0L),
+                "encoder omitted the required minimum-zero update",
+              )
+              _ <- Check(
+                updates.size <= 2,
+                "encoder emitted more than the required minimum/final updates",
+              )
+              _ <- checkFields(second.head.fields, fields)
+              _ <- Check.equal(second.body, ByteVector.empty)
+            } yield ()
+          }
+      }
     },
   )
 
   private final case class Session[F[_]](
       peer: RawPeer[F],
+      fromServer: Boolean,
       decoder: HpackWire.Decoder[F],
       peerTableLimit: Ref[F, Long],
+      peerTableMinimum: Ref[F, Long],
+      sentBlock: Ref[F, Boolean],
       acknowledgments: Ref[F, Int],
   )
 
   private final case class Head(streamId: Int, fields: Vector[(String, String)], block: ByteVector)
-  private final case class Message(head: Head, body: ByteVector)
+  private final case class Message(head: Head, body: ByteVector, firstBlock: ByteVector)
 
   private def hex(value: String): ByteVector = ByteVector.fromValidHex(value)
   private def octets(value: String): ByteVector =
@@ -4851,18 +5031,31 @@ object HpackCases {
   private def verify[F[_]: Async](condition: Boolean, detail: => String): F[Unit] =
     if (condition) Async[F].unit else Async[F].raiseError(new ProtocolFailure(detail))
 
-  private def session[F[_]: Async](peer: RawPeer[F], decoderLimit: Int): F[Session[F]] =
-    (HpackWire.decoder[F](maxTableSize = decoderLimit), Ref.of[F, Long](4096L), Ref.of[F, Int](0))
-      .mapN(Session(peer, _, _, _))
+  private def session[F[_]: Async](
+      peer: RawPeer[F],
+      decoderLimit: Int,
+      fromServer: Boolean,
+  ): F[Session[F]] =
+    (
+      HpackWire.decoder[F](maxTableSize = decoderLimit),
+      Ref.of[F, Long](4096L),
+      Ref.of[F, Long](4096L),
+      Ref.of[F, Boolean](false),
+      Ref.of[F, Int](0),
+    )
+      .mapN(Session(peer, fromServer, _, _, _, _, _))
 
   /** Raw client connecting to a target server. Each direction owns a separate compression table. */
-  private def connect[F[_]: Async](peer: RawPeer[F], decoderLimit: Int = 4096): F[Session[F]] =
+  private def connect[F[_]: Async](peer: RawPeer[F], decoderLimit: Int = 4096)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Session[F]] =
     for {
-      result <- session(peer, decoderLimit)
-      _ <- peer.write(
+      result <- session(peer, decoderLimit, fromServer = true)
+      _ <- Http2PeerSettings.write(
+        peer,
         Http2Wire.clientPreface ++ Http2Wire.encode(
           Http2Wire.settings(Vector(1 -> decoderLimit.toLong))
-        )
+        ),
       )
       initial <- Http2Wire.readFrame(peer)
       _ <- verify(
@@ -4873,10 +5066,12 @@ object HpackCases {
     } yield result
 
   /** Raw server accepting a target client; initial request bytes are retained for independent decoding. */
-  private def accept[F[_]: Async](peer: RawPeer[F]): F[Session[F]] =
+  private def accept[F[_]: Async](
+      peer: RawPeer[F]
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Session[F]] =
     for {
-      result <- session(peer, 4096)
-      preface <- peer.readExact(Http2Wire.clientPreface.size.toInt)
+      result <- session(peer, 4096, fromServer = false)
+      preface <- WireDecodingFailure.read(peer.readExact(Http2Wire.clientPreface.size.toInt))
       _ <- verify(preface == Http2Wire.clientPreface, "invalid target client preface")
       initial <- Http2Wire.readFrame(peer)
       _ <- verify(
@@ -4888,52 +5083,75 @@ object HpackCases {
       _ <- settings(result, initial)
     } yield result
 
-  private def settings[F[_]: Async](session: Session[F], frame: Http2Wire.Frame): F[Unit] =
-    verify(frame.streamId == 0 && frame.payload.size % 6L == 0L, "malformed target SETTINGS") *>
+  private def settings[F[_]: Async](session: Session[F], frame: Http2Wire.Frame)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Unit] =
+    settings(session, frame, (write: F[Unit]) => write.as(true)).void
+
+  private def settings[F[_]: Async](
+      session: Session[F],
+      frame: Http2Wire.Frame,
+      reply: F[Unit] => F[Boolean],
+  )(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Boolean] =
+    Async[F].fromEither(Http2RejectionChecks.validate(frame, session.fromServer)) *>
+      verify(frame.streamId == 0 && frame.payload.size % 6L == 0L, "malformed target SETTINGS") *>
       (if (frame.hasFlag(Http2Wire.Ack))
          verify(frame.payload.isEmpty, "SETTINGS ACK contains a payload") *> session.acknowledgments
            .update(_ + 1)
+           .as(true)
        else
          (0 until (frame.payload.size / 6L).toInt).toVector.traverse_ { index =>
            val entry = frame.payload.slice(index.toLong * 6L, index.toLong * 6L + 6L)
            val key = ((entry(0) & 0xff) << 8) | (entry(1) & 0xff)
            val value = Http2Wire.readUint32(entry.drop(2))
            key match {
-             case 1 => session.peerTableLimit.set(value)
+             case 1 =>
+               session.peerTableLimit.set(value) *> session.peerTableMinimum.update(_.min(value))
              case 2 => verify(value <= 1L, "invalid target ENABLE_PUSH")
              case 4 => verify(value <= 0x7fffffffL, "invalid target INITIAL_WINDOW_SIZE")
              case 5 =>
                verify(value >= 16384L && value <= 0xffffffL, "invalid target MAX_FRAME_SIZE")
              case _ => Async[F].unit
            }
-         } *> Http2Wire.writeFrame(session.peer, Http2Wire.settings(ack = true)))
+         } *> reply(Http2Wire.writeFrame(session.peer, Http2Wire.settings(ack = true))))
 
-  private def control[F[_]: Async](session: Session[F], frame: Http2Wire.Frame): F[Unit] =
+  private def control[F[_]: Async](session: Session[F], frame: Http2Wire.Frame)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Unit] =
+    control(session, frame, (write: F[Unit]) => write.as(true)).void
+
+  private def control[F[_]: Async](
+      session: Session[F],
+      frame: Http2Wire.Frame,
+      reply: F[Unit] => F[Boolean],
+  )(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Boolean] =
     frame.frameType match {
-      case Http2Wire.Settings => settings(session, frame)
+      case Http2Wire.Settings => settings(session, frame, reply)
       case Http2Wire.Ping =>
         verify(frame.streamId == 0 && frame.payload.size == 8L, "invalid target PING") *>
-          (if (frame.hasFlag(Http2Wire.Ack)) Async[F].unit
-           else Http2Wire.writeFrame(session.peer, frame.copy(flags = Http2Wire.Ack)))
+          (if (frame.hasFlag(Http2Wire.Ack)) true.pure[F]
+           else reply(Http2Wire.writeFrame(session.peer, frame.copy(flags = Http2Wire.Ack))))
       case Http2Wire.WindowUpdate =>
         verify(frame.payload.size == 4L, "invalid target WINDOW_UPDATE length") *>
           verify(
             (Http2Wire.readUint32(frame.payload) & 0x7fffffffL) != 0L,
             "zero target WINDOW_UPDATE",
-          )
+          ).as(true)
       case Http2Wire.Priority =>
-        verify(frame.streamId != 0 && frame.payload.size == 5L, "invalid target PRIORITY") *>
-          verify(
-            (Http2Wire.readUint32(frame.payload.take(4)) & 0x7fffffffL) != frame.streamId.toLong,
-            "self-dependent target PRIORITY",
-          )
-      case kind if kind > Http2Wire.Continuation => Async[F].unit
-      case _ => verify(false, s"unexpected target frame: $frame")
+        verify(frame.streamId != 0 && frame.payload.size == 5L, "invalid target PRIORITY").as(true)
+      case kind if kind > Http2Wire.Continuation => true.pure[F]
+      case _ => verify(false, s"unexpected target frame: $frame").as(true)
     }
 
-  private def next[F[_]: Async](session: Session[F]): F[Http2Wire.Frame] = {
+  private def next[F[_]: Async](
+      session: Session[F]
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Http2Wire.Frame] = {
     def loop(remaining: Int): F[Http2Wire.Frame] =
-      verify(remaining > 0, "too many control frames before HPACK traffic") *>
+      observationBound(remaining > 0, "too many control frames before HPACK traffic") *>
         Http2Wire.readFrame(session.peer).flatMap { frame =>
           frame.frameType match {
             case Http2Wire.Headers | Http2Wire.Data | Http2Wire.RstStream | Http2Wire.GoAway =>
@@ -4944,12 +5162,14 @@ object HpackCases {
     loop(1024)
   }
 
-  private def awaitAcknowledgments[F[_]: Async](session: Session[F], count: Int): F[Unit] = {
+  private def awaitAcknowledgments[F[_]: Async](session: Session[F], count: Int)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Unit] = {
     def loop(remaining: Int): F[Unit] =
       session.acknowledgments.get.flatMap { received =>
         if (received >= count) Async[F].unit
         else
-          verify(remaining > 0, "SETTINGS acknowledgment frame bound exceeded") *>
+          observationBound(remaining > 0, "SETTINGS acknowledgment frame bound exceeded") *>
             Http2Wire.readFrame(session.peer).flatMap(frame => control(session, frame)) *>
             loop(remaining - 1)
       }
@@ -4979,8 +5199,8 @@ object HpackCases {
     values.result()
   }
 
-  private def requireCapacityChange[F[_]: Async](firstBlock: ByteVector): F[Unit] =
-    if (leadingSizes(firstBlock).lastOption.getOrElse(4096L) > 0L) Async[F].unit
+  private def requireCapacityChange[F[_]: Async](capacity: Long): F[Unit] =
+    if (capacity > 0L) Async[F].unit
     else
       Async[F].raiseError(
         new IllegalStateException(
@@ -4993,38 +5213,59 @@ object HpackCases {
       streamId: Int,
       block: ByteVector,
       capacity: Int,
-  ): F[Unit] =
-    session.peerTableLimit.get.flatMap { limit =>
-      // This is a fixture capability precondition, not a conformance verdict or skipped assertion.
-      val ready =
-        if (capacity.toLong <= limit) Async[F].unit
-        else
-          Async[F].raiseError[Unit](
-            new IllegalStateException(
-              s"HPACK case needs peer table capacity $capacity, but SETTINGS_HEADER_TABLE_SIZE is $limit; scenario was not exercised"
+      compressionNegative: Boolean = false,
+      preserveInitialState: Boolean = false,
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Unit] =
+    (session.peerTableLimit.get, session.peerTableMinimum.get, session.sentBlock.get).tupled
+      .flatMap { case (limit, minimum, sent) =>
+        val alreadyHonored = Either
+          .catchNonFatal(leadingSizes(block))
+          .toOption
+          .flatMap(_.headOption)
+          .exists(_ <= minimum)
+        val incompatible = capacity.toLong > limit ||
+          ((sent || preserveInitialState) && capacity.toLong > minimum && !alreadyHonored)
+        val ready =
+          if (!incompatible) Async[F].unit
+          else
+            Async[F].raiseError[Unit](
+              new WireObservationLimit(
+                s"HPACK witness needs table capacity $capacity; peer interval minimum $minimum and final limit $limit would evict its required state; scenario unexercised"
+              )
             )
-          )
-      ready *> verify(
-        block.size <= 16384L,
-        "fixture HPACK block exceeds the baseline frame size",
-      ) *>
-        Http2Wire.writeFrame(
-          session.peer,
-          Http2Wire.Frame(
-            Http2Wire.Headers,
-            Http2Wire.EndHeaders | Http2Wire.EndStream,
-            streamId,
-            block,
-          ),
-        )
-    }
+        // An initial-state witness must not clear a faulty prepopulated decoder. Other first blocks
+        // may honor an initial decrease/restore; later minima must not erase a witness.
+        val prepared =
+          if (!sent && minimum < capacity.toLong && !alreadyHonored)
+            tableSize(minimum) ++ block
+          else block
+        ready *> verify(
+          prepared.size <= 16384L,
+          "fixture HPACK block exceeds the baseline frame size",
+        ) *>
+          Http2PeerSettings.writeFrames(
+            session.peer,
+            Vector(
+              Http2Wire.Frame(
+                Http2Wire.Headers,
+                Http2Wire.EndHeaders | Http2Wire.EndStream,
+                streamId,
+                prepared,
+              )
+            ),
+            requireFieldAcceptance = !compressionNegative,
+          ) *> session.peerTableMinimum.set(limit) *> session.sentBlock.set(true)
+      }
 
-  private def readHead[F[_]: Async](session: Session[F], first: Http2Wire.Frame): F[Head] = {
+  private def readHead[F[_]: Async](session: Session[F], first: Http2Wire.Frame)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Head] = {
     def gather(bytes: ByteVector, frame: Http2Wire.Frame, remaining: Int): F[ByteVector] =
-      verify(
-        bytes.size <= 1024L * 1024L && remaining > 0,
-        "target header block exceeds observation bound",
-      ) *>
+      (if (bytes.size <= 1024L * 1024L && remaining > 0) Async[F].unit
+       else
+         Async[F].raiseError[Unit](
+           new WireObservationLimit("target header block exceeds observation bound")
+         )) *>
         (if (frame.hasFlag(Http2Wire.EndHeaders)) bytes.pure[F]
          else
            Http2Wire.readFrame(session.peer).flatMap { continuation =>
@@ -5032,7 +5273,11 @@ object HpackCases {
                continuation.frameType == Http2Wire.Continuation && continuation.streamId == first.streamId,
                "target interrupted a field block",
              ) *>
-               gather(bytes ++ continuation.payload, continuation, remaining - 1)
+               observationBound[F](
+                 continuation.payload.size <= 1024L * 1024L - bytes.size,
+                 "target header block exceeds observation bound",
+               ) *>
+               Async[F].defer(gather(bytes ++ continuation.payload, continuation, remaining - 1))
            })
     for {
       _ <- verify(
@@ -5044,10 +5289,6 @@ object HpackCases {
           val bytes = Http2Wire.unpad(first)
           if (first.hasFlag(0x20)) {
             require(bytes.size >= 5L, "short target HEADERS priority")
-            require(
-              (Http2Wire.readUint32(bytes.take(4)) & 0x7fffffffL) != first.streamId.toLong,
-              "self-dependent target HEADERS",
-            )
             bytes.drop(5)
           } else bytes
         }
@@ -5059,9 +5300,14 @@ object HpackCases {
     } yield Head(first.streamId, fields, block)
   }
 
-  private def readBody[F[_]: Async](session: Session[F], first: Http2Wire.Frame): F[ByteVector] = {
+  private def readBody[F[_]: Async](session: Session[F], first: Http2Wire.Frame)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[ByteVector] = {
     def loop(bytes: ByteVector, remaining: Int): F[ByteVector] =
-      verify(remaining > 0 && bytes.size <= 65536L, "target content exceeds observation bound") *>
+      observationBound(
+        remaining > 0 && bytes.size <= 65536L,
+        "target content exceeds observation bound",
+      ) *>
         next(session).flatMap { frame =>
           verify(
             frame.streamId == first.streamId,
@@ -5073,9 +5319,15 @@ object HpackCases {
                   .delay(Http2Wire.unpad(frame))
                   .handleErrorWith(invalidTarget[F, ByteVector])
                   .flatMap { data =>
-                    val all = bytes ++ data
-                    if (frame.hasFlag(Http2Wire.EndStream)) all.pure[F]
-                    else loop(all, remaining - 1)
+                    observationBound[F](
+                      data.size <= 65536L - bytes.size,
+                      "target content exceeds observation bound",
+                    ) *>
+                      Async[F].defer {
+                        val all = bytes ++ data
+                        if (frame.hasFlag(Http2Wire.EndStream)) all.pure[F]
+                        else loop(all, remaining - 1)
+                      }
                   }
               case Http2Wire.Headers =>
                 verify(
@@ -5095,7 +5347,9 @@ object HpackCases {
     else loop(ByteVector.empty, 1024)
   }
 
-  private def readRequest[F[_]: Async](session: Session[F]): F[Head] =
+  private def readRequest[F[_]: Async](
+      session: Session[F]
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Head] =
     (for {
       first <- next(session)
       _ <- verify(first.streamId > 0 && (first.streamId & 1) == 1, "invalid target request stream")
@@ -5103,29 +5357,79 @@ object HpackCases {
       _ <- readBody(session, first)
     } yield head).handleErrorWith(incompleteTarget[F, Head])
 
-  private def readResponse[F[_]: Async](session: Session[F], streamId: Int): F[Message] =
-    (for {
-      first <- next(session)
-      _ <- verify(first.streamId == streamId, "target response used an unexpected stream")
-      head <- readHead(session, first)
-      _ <- verify(
-        head.fields.collect { case (":status", value) => value } == Vector("200"),
-        "valid HPACK request did not receive status 200",
-      )
-      body <- readBody(session, first)
-    } yield Message(head, body)).handleErrorWith(incompleteTarget[F, Message])
+  private def readResponse[F[_]: Async](session: Session[F], streamId: Int)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Message] = {
+    def loop(remaining: Int, firstBlock: Option[ByteVector]): F[Message] =
+      observationBound(remaining > 0, "too many informational response sections") *>
+        (for {
+          first <- next(session)
+          _ <- verify(first.streamId == streamId, "target response used an unexpected stream")
+          head <- readHead(session, first)
+          statuses = head.fields.collect { case (":status", value) => value }
+          informational = statuses match {
+            case Vector(value) => value.length == 3 && value.head == '1' && value.forall(_.isDigit)
+            case _ => false
+          }
+          response <-
+            if (informational)
+              verify(
+                !first.hasFlag(Http2Wire.EndStream),
+                "informational response ended the stream",
+              ) *>
+                verify(statuses != Vector("101"), "HTTP/2 does not permit status 101") *>
+                Async[F].defer(loop(remaining - 1, firstBlock.orElse(Some(head.block))))
+            else
+              verify(statuses == Vector("200"), "valid HPACK request did not receive status 200") *>
+                readBody(session, first)
+                  .map(body => Message(head, body, firstBlock.getOrElse(head.block)))
+        } yield response)
+    loop(1024, None).handleErrorWith(incompleteTarget[F, Message])
+  }
 
   private def checkFields(
       actual: Vector[(String, String)],
       expected: Vector[(String, String)],
-  ): IO[Unit] = {
-    val names = expected.iterator.map(_._1).toSet
-    Check.equal(
-      actual.filter(field => names.contains(field._1.toLowerCase)).map { case (name, value) =>
-        name.toLowerCase -> value
-      },
-      expected,
-    )
+  ): IO[Unit] =
+    // The API exposes native HTTP fields, not the immediate HPACK input/output.
+    // RFC 9110 sections 5.2/5.3 permit distinct-name reordering and ordered
+    // combination. Preserve each name's ordered values, including multiplicity.
+    expected.map(_._1).distinct.traverse_ { name =>
+      val values = expected.collect { case (`name`, value) => value }
+      val observed = actual.collect { case (field, value) if field.toLowerCase == name => value }
+      // Only these repeated x/y fixtures are lists of the single members a/b/c.
+      // Normalize separator OWS, never arbitrary commas, significant leading/
+      // trailing whitespace, or raw-octet/non-list field values.
+      if (
+        (name == "x" || name == "y") && values.size > 1 &&
+        values.forall(value => value == "a" || value == "b" || value == "c")
+      )
+        Check.equal(
+          observed.map(normalizeSeparatorOws).mkString(","),
+          values.mkString(","),
+        )
+      else Check.equal(observed, values)
+    }
+
+  private def normalizeSeparatorOws(value: String): String = {
+    val normalized = new StringBuilder(value.length)
+    var index = 0
+    // Each input character is scanned once and copied at most once. Whitespace
+    // runs are omitted only when immediately adjacent to a comma; no backtracking
+    // or rescanning is needed even for long comma-free runs.
+    while (index < value.length)
+      if (value.charAt(index) == ' ' || value.charAt(index) == '\t') {
+        val start = index
+        while (index < value.length && (value.charAt(index) == ' ' || value.charAt(index) == '\t'))
+          index += 1
+        val afterComma = start > 0 && value.charAt(start - 1) == ','
+        val beforeComma = index < value.length && value.charAt(index) == ','
+        if (!afterComma && !beforeComma) normalized.append(value.substring(start, index))
+      } else {
+        normalized.append(value.charAt(index))
+        index += 1
+      }
+    normalized.toString
   }
 
   private def checkResponse(
@@ -5147,67 +5451,102 @@ object HpackCases {
       session: Session[F],
       streamId: Int,
       before: F[Unit],
-  ): F[Unit] = {
-    def loop(remaining: Int): F[Unit] =
-      verify(remaining > 0, "no connection error within the frame bound") *>
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Unit] = {
+    def checked(
+        frame: Http2Wire.Frame,
+        state: Http2RejectionChecks.State,
+    ): F[Http2RejectionChecks.State] =
+      Async[F].fromEither(Http2RejectionChecks.validate(frame, session.fromServer, state)).flatTap {
+        _ =>
+          frame.frameType match {
+            case Http2Wire.GoAway =>
+              val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
+              verify(
+                code == 0L || Set(1L, 2L, 9L).contains(code),
+                s"compression failure used error code $code",
+              )
+            case Http2Wire.RstStream =>
+              verify(
+                frame.streamId == streamId,
+                "invalid RST_STREAM while awaiting a connection error",
+              )
+            case _ => Async[F].unit
+          }
+      }
+
+    def loop(remaining: Int, state: Http2RejectionChecks.State, closing: Boolean): F[Unit] =
+      observationBound(remaining > 0, "no connection error within the frame bound") *>
         Http2Wire.readFrameOrClose(session.peer).flatMap {
           case None => before
           case Some(frame) =>
-            before *> (frame.frameType match {
-              case Http2Wire.GoAway =>
-                for {
-                  _ <- verify(
-                    frame.streamId == 0 && frame.payload.size >= 8L,
-                    "invalid GOAWAY for compression error",
-                  )
-                  code = Http2Wire.readUint32(frame.payload.slice(4, 8))
-                  _ <- verify(
-                    Set(1L, 2L, 9L).contains(code),
-                    s"compression failure used error code $code",
-                  )
-                  remainder <- session.peer.readToEnd(65536, allowReset = true)
-                  _ <- Async[F]
-                    .fromEither(Http2Wire.decodeAll(remainder))
-                    .handleErrorWith(invalidTarget[F, Vector[Http2Wire.Frame]])
-                  _ <- before
-                } yield ()
-              case Http2Wire.RstStream =>
-                verify(
-                  frame.streamId == streamId && frame.payload.size == 4L,
-                  "invalid RST_STREAM while awaiting a connection error",
-                ) *>
-                  loop(remaining - 1)
-              // An HTTP error response is not enough; continue until the mandatory connection close.
-              case Http2Wire.Headers | Http2Wire.Continuation | Http2Wire.Data =>
-                loop(remaining - 1)
-              case _ => control(session, frame) *> loop(remaining - 1)
-            })
+            before *> checked(frame, state).flatMap { next =>
+              frame.frameType match {
+                case Http2Wire.GoAway if Http2Wire.readUint32(frame.payload.slice(4, 8)) != 0L =>
+                  for {
+                    remainder <- session.peer.readToEnd(65536, allowReset = true)
+                    frames <- Async[F]
+                      .fromEither(Http2Wire.decodeAll(remainder))
+                      .handleErrorWith(invalidTarget[F, Vector[Http2Wire.Frame]])
+                    _ <- frames.foldLeftM(next)((previous, observed) =>
+                      before *> checked(observed, previous)
+                    )
+                    _ <- before
+                  } yield ()
+                case Http2Wire.GoAway | Http2Wire.RstStream => loop(remaining - 1, next, closing)
+                // An HTTP error response is insufficient; require the connection close.
+                case Http2Wire.Headers | Http2Wire.Continuation | Http2Wire.Data =>
+                  loop(remaining - 1, next, closing)
+                case _ =>
+                  control(
+                    session,
+                    frame,
+                    (write: F[Unit]) =>
+                      if (closing) false.pure[F] else Http2RejectionWrite.reply(write),
+                  ).flatMap(written => loop(remaining - 1, next, closing || !written))
+              }
+            }
         }
-    loop(1024)
+    loop(1024, Http2RejectionChecks.State(), closing = false)
   }
 
-  private def requireRejected(result: Either[Throwable, Unit]): IO[Unit] = result match {
-    case Left(error) if timeout(error) || error.isInstanceOf[ProtocolFailure] =>
-      IO.raiseError(error)
-    case Left(_) => IO.unit
-    case Right(_) => Check(false, "target client consumed malformed HPACK")
-  }
+  private def requireRejected(result: Either[Throwable, Unit]): IO[Unit] =
+    result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+      case Left(error)
+          if error.isInstanceOf[ProtocolFailure] || error
+            .isInstanceOf[WireDecodingFailure] || error.isInstanceOf[WireObservationLimit] =>
+        IO.raiseError(error)
+      case Left(error: WireDecodingFailure) => IO.raiseError(error)
+      case Left(error) => RawPeer.raiseAdapterOrTimeout[IO](error)
+      case Right(_) => Check(false, "target client consumed malformed HPACK")
+    })
 
   private def unexpectedRejection(error: Throwable): IO[Unit] =
-    if (timeout(error) || error.isInstanceOf[ProtocolFailure]) IO.raiseError(error)
-    else Check(false, s"target rejected valid HPACK: $error")
+    RawPeer.raiseAdapterOrTimeout[IO](error) *> {
+      if (
+        error.isInstanceOf[ProtocolFailure] || error
+          .isInstanceOf[WireDecodingFailure] || error.isInstanceOf[WireObservationLimit]
+      ) IO.raiseError(error)
+      else Check(false, s"target rejected valid HPACK: $error")
+    }
 
   private def invalidTarget[F[_]: Async, A](error: Throwable): F[A] =
-    if (timeout(error) || error.isInstanceOf[ProtocolFailure]) Async[F].raiseError(error)
-    else
-      Async[F].raiseError(new ProtocolFailure(s"target emitted invalid HPACK or framing: $error"))
+    RawPeer.raiseAdapterOrTimeout[F](error) *> {
+      if (
+        error.isInstanceOf[ProtocolFailure] || error
+          .isInstanceOf[WireDecodingFailure] || error.isInstanceOf[WireObservationLimit]
+      ) Async[F].raiseError(error)
+      else
+        Async[F].raiseError(new ProtocolFailure(s"target emitted invalid HPACK or framing: $error"))
+    }
 
   private def incompleteTarget[F[_]: Async, A](error: Throwable): F[A] =
-    if (eof(error))
-      Async[F].raiseError(
-        new ProtocolFailure("target closed before completing a valid HPACK exchange")
-      )
-    else Async[F].raiseError(error)
+    RawPeer.raiseAdapterOrTimeout[F](error) *> {
+      if (eof(error))
+        Async[F].raiseError(
+          new ProtocolFailure("target closed before completing a valid HPACK exchange")
+        )
+      else Async[F].raiseError(error)
+    }
 
   private def eof(error: Throwable): Boolean = error match {
     case _: IllegalArgumentException =>
@@ -5215,12 +5554,7 @@ object HpackCases {
     case _ => false
   }
 
-  private def timeout(error: Throwable): Boolean = {
-    @annotation.tailrec
-    def loop(current: Throwable, remaining: Int): Boolean =
-      if (current == null || remaining == 0) false
-      else if (current.isInstanceOf[TimeoutException]) true
-      else loop(current.getCause, remaining - 1)
-    loop(error, 16)
-  }
+  private def observationBound[F[_]: Async](condition: Boolean, detail: String): F[Unit] =
+    if (condition) Async[F].unit else Async[F].raiseError(new WireObservationLimit(detail))
+
 }

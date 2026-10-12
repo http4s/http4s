@@ -67,12 +67,18 @@ final class WireReport(target: WireTarget[IO], suite: String, comparison: Boolea
       "protocol" -> c.protocol.id,
       "role" -> c.role.id,
       "source" -> s"${c.location.path}:${c.location.line}",
-      "settings" -> "plaintext; prior-knowledge h2; isolated loopback; case deadline 8s; trace cap 64KiB",
+      "harnessSettings" -> "plaintext; prior-knowledge h2; isolated loopback; case deadline 8s; trace cap 64KiB",
       "elapsedMillis" -> elapsedMillis.toString,
       "detail" -> detail,
       // Relative to this JSON record so downloaded CI artifacts remain navigable.
       "transcript" -> traceFile,
     ).map { case (key, value) => s"${WireReport.quote(key)}:${WireReport.quote(value)}" }
+    val settings = target
+      .settings(c.protocol, c.role)
+      .map { case (key, value) =>
+        s"${WireReport.quote(key)}:${WireReport.quote(value)}"
+      }
+      .mkString("{", ",", "}")
     val refs = c.references.map(r =>
       s"""{"url":${WireReport.quote(r.url)},"requirement":${WireReport.quote(
           r.requirement
@@ -81,7 +87,7 @@ final class WireReport(target: WireTarget[IO], suite: String, comparison: Boolea
     write(traceFile, transcript) *>
       write(
         s"${c.id}.json",
-        (fields :+ s""""references":[${refs.mkString(",")}]""")
+        (fields :+ s""""settings":$settings""" :+ s""""references":[${refs.mkString(",")}]""")
           .mkString("{", ",", "}\n"),
       ) *>
       write(s"${c.id}.outcome", s"${c.id}\t${target.name}\t$outcome\n")

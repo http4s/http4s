@@ -48,6 +48,27 @@ class CatalogSuite extends FunSuite {
     assert(SpecInventory.parse("invalid").isLeft)
   }
 
+  test("covered inventory roles require evidence for every claimed role") {
+    val section = Vector("9112\t2.1\tMessage Format\tapplicable\twire framing")
+    val client = Catalog.all.find(_.role == Role.Client).get
+    val server = Catalog.all.find(_.role == Role.Server).get
+    def validate(role: String, cases: Vector[WireCase]): Vector[String] =
+      SpecInventory.validate(
+        Vector(
+          s"roles\t9112\t2.1\t$role\tMUST\tFraming\tcovered\t${cases.map(_.id).mkString(",")}\t"
+        ),
+        section,
+        cases,
+      )
+    assertEquals(validate("client", Vector(client)), Vector.empty)
+    assertEquals(validate("server", Vector(server)), Vector.empty)
+    assertEquals(validate("both", Vector(client, server)), Vector.empty)
+    assert(validate("both", Vector(client)).exists(_.contains("server role")))
+    assert(validate("both", Vector(server)).exists(_.contains("client role")))
+    assert(validate("server", Vector(client)).exists(_.contains("server role")))
+    assert(validate("client", Vector(server)).exists(_.contains("client role")))
+  }
+
   test("registration preserves each definition's source location") {
     Catalog.all.foreach { c =>
       assert(c.location.path.endsWith("Cases.scala"), c.location.toString)

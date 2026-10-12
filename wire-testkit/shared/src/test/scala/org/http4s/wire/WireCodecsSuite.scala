@@ -78,6 +78,58 @@ class WireCodecsSuite extends CatsEffectSuite {
   private def ascii(value: String): ByteVector = Http1Wire.ascii(value)
   private def hex(value: String): ByteVector = ByteVector.fromValidHex(value)
 
+  for (
+    (label, block, maxBytes) <- Vector(
+      ("encoded block", ByteVector.fill(1025)(0x88.toByte), 0),
+      ("literal string", HpackWire.encodeLiteral(Vector("x" -> "value")), 33),
+      ("indexed fields", ByteVector(0x88.toByte, 0x88.toByte), 42),
+      ("Huffman string", ByteVector.fromValidHex("00810700"), 32),
+    )
+  ) test(s"HPACK $label observation limit remains an infrastructure outcome") {
+    for {
+      decoder <- HpackWire.decoder[IO](maxHeaderBytes = maxBytes)
+      error <- decoder.decode(block).intercept[WireObservationLimit]
+      _ <- IO(assertEquals(WireSuite.outcomeStatus(Left(error)), "error"))
+      _ <- IO(assert(error.getMessage.contains("observation incomplete")))
+    } yield ()
+  }
+
+  for (
+    (label, block) <- Vector(
+      "zero index" -> ByteVector(0x80.toByte),
+      "table above advertised maximum" -> HpackWire.encodeInteger(4097, 5, 0x20),
+      "invalid Huffman padding" -> ByteVector.fromValidHex("00810000"),
+    )
+  ) test(s"HTTP/2 $label remains a malformed-wire failure") {
+    for {
+      raw <- peer(ByteVector.empty)
+      decoder <- HpackWire.decoder[IO]()
+      error <- Http2Wire
+        .readHeaders(
+          raw._1,
+          Http2Wire.Frame(Http2Wire.Headers, Http2Wire.EndHeaders, 1, block),
+          decoder,
+        )
+        .intercept[WireDecodingFailure]
+      _ <- IO(assertEquals(WireSuite.outcomeStatus(Left(error)), "fail"))
+    } yield ()
+  }
+
+  test("HTTP/2 header observation preserves the typed HPACK limit") {
+    for {
+      raw <- peer(ByteVector.empty)
+      decoder <- HpackWire.decoder[IO](maxHeaderBytes = 0)
+      error <- Http2Wire
+        .readHeaders(
+          raw._1,
+          Http2Wire.headers(1, Vector(":status" -> "200")),
+          decoder,
+        )
+        .intercept[WireObservationLimit]
+      _ <- IO(assertEquals(WireSuite.outcomeStatus(Left(error)), "error"))
+    } yield ()
+  }
+
   test("raw delimiter reads preserve following bytes across every fragmentation") {
     (1 to 10).toList.traverse_ { size =>
       peer(ascii("abc\r\ndef"), size).flatMap { case (raw, _) =>
@@ -101,6 +153,39 @@ class WireCodecsSuite extends CatsEffectSuite {
       assert(delimiter.isLeft)
       assert(eof.isLeft)
     }
+  }
+
+  for (
+    (label, bytes) <- Vector(
+      "line" -> ascii("HTTP/1.1 200 OK\r\nX-Large: " + ("a" * 8193) + "\r\n\r\n"),
+      "header count" -> ascii("HTTP/1.1 200 OK\r\n" + ("X: a\r\n" * 257) + "\r\n"),
+      "header bytes" -> ascii(
+        "HTTP/1.1 200 OK\r\n" + (("X: " + ("a" * 4096) + "\r\n") * 17) + "\r\n"
+      ),
+      "content length" -> ascii("HTTP/1.1 200 OK\r\nContent-Length: 16777217\r\n\r\n"),
+      "chunk size" -> ascii("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n1000001\r\n"),
+      "interim count" -> ascii("HTTP/1.1 100 Continue\r\n\r\n" * 17),
+    )
+  ) test(s"HTTP/1 $label ceiling is an observation limit") {
+    peer(bytes).flatMap { case (raw, _) =>
+      Http1Wire
+        .readFinalResponse(raw)
+        .intercept[WireObservationLimit]
+        .map(e => assertEquals(WireSuite.outcomeStatus(Left(e)), "error"))
+    }
+  }
+
+  test("raw retention ceilings are typed independently of invalid arguments and EOF") {
+    for {
+      _ <- peer(ascii("abc\r\n"))
+        .flatMap(_._1.readUntil(Http1Wire.crlf, 2))
+        .intercept[WireObservationLimit]
+      _ <- peer(ascii("abc")).flatMap(_._1.readToEnd(2)).intercept[WireObservationLimit]
+      _ <- peer(ByteVector.empty).flatMap(_._1.readToEnd(-1)).intercept[IllegalArgumentException]
+      _ <- peer(ascii("abc"))
+        .flatMap(_._1.readUntil(Http1Wire.crlf))
+        .intercept[IllegalArgumentException]
+    } yield ()
   }
 
   test("raw reads accepting resets preserve the prefix when unrelated I/O fails") {
@@ -201,7 +286,6 @@ class WireCodecsSuite extends CatsEffectSuite {
     "missing chunk terminator" -> "Transfer-Encoding: chunked\r\n\r\n1\r\naXX0\r\n\r\n",
     "invalid chunk length" -> "Transfer-Encoding: chunked\r\n\r\n+1\r\na\r\n0\r\n\r\n",
     "repeated chunking" -> "Transfer-Encoding: chunked, chunked\r\n\r\n0\r\n\r\n",
-    "nonfinal chunking" -> "Transfer-Encoding: chunked, gzip\r\n\r\n",
     "whitespace before field colon" -> "Content-Length : 0\r\n\r\n",
     "obsolete line folding" -> "A: first\r\n second\r\n\r\n",
     "framing trailers" -> "Transfer-Encoding: chunked\r\n\r\n0\r\nContent-Length: 0\r\n\r\n",
@@ -209,8 +293,63 @@ class WireCodecsSuite extends CatsEffectSuite {
     test(s"HTTP/1 rejects $name") {
       peer(ascii("HTTP/1.1 200 OK\r\n" + tail))
         .flatMap(p => Http1Wire.readResponse(p._1).attempt)
-        .map(result => assert(result.isLeft))
+        .map(result => assert(result.left.toOption.exists(_.isInstanceOf[WireDecodingFailure])))
     }
+  }
+
+  test("HTTP/1 nonfinal chunked response uses EOF framing and retains outer gzip bytes") {
+    val body =
+      ByteVector.fromValidHex("1f8b08000000000002ff33e6e54a4c4ae6e532e0e5e2e5020045cff8100d000000")
+    peer(ascii("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked, gzip\r\n\r\n") ++ body)
+      .flatMap(p => Http1Wire.readResponse(p._1))
+      .map(r => assertEquals(r.body, body))
+  }
+
+  test("HTTP/1 request still requires final chunked coding") {
+    peer(ascii("POST / HTTP/1.1\r\nHost: wire.test\r\nTransfer-Encoding: chunked, gzip\r\n\r\n"))
+      .flatMap(p => Http1Wire.readRequest(p._1))
+      .intercept[WireDecodingFailure]
+      .void
+  }
+
+  test("decoder failures distinguish malformed wire from infrastructure and invalid arguments") {
+    val ioError = new java.io.IOException("read failed")
+    val argumentError = new IllegalArgumentException("invalid harness argument")
+    for {
+      malformed <- peer(ascii("HTTP/1.1 200 OK\r\nContent-Length: eight\r\n\r\n"))
+        .flatMap(p => Http1Wire.readResponse(p._1).attempt)
+      ioFailure <- peer(ByteVector.empty, whenEmpty = IO.raiseError(ioError))
+        .flatMap(p => Http1Wire.readResponse(p._1).attempt)
+      argumentFailure <- peer(ByteVector.empty, whenEmpty = IO.raiseError(argumentError))
+        .flatMap(p => Http2Wire.readFrame(p._1).attempt)
+      invalidLimit <- peer(
+        ByteVector.empty,
+        whenEmpty = IO.raiseError(new AssertionError("must not read")),
+      )
+        .flatMap(p => Http2Wire.readFrame(p._1, -1).attempt)
+    } yield {
+      assert(malformed.left.toOption.exists(_.isInstanceOf[WireDecodingFailure]))
+      assertEquals(WireSuite.outcomeStatus(malformed.void), "fail")
+      assertEquals(ioFailure, Left(ioError))
+      assertEquals(argumentFailure, Left(argumentError))
+      assertEquals(WireSuite.outcomeStatus(ioFailure.void), "error")
+      assertEquals(WireSuite.outcomeStatus(invalidLimit.void), "error")
+      assert(invalidLimit.left.toOption.exists(_.isInstanceOf[IllegalArgumentException]))
+      intercept[IllegalArgumentException](
+        Http2Wire.encode(Http2Wire.Frame(-1, 0, 0, ByteVector.empty))
+      )
+    }
+  }
+
+  test("RFC 9113 ignores self-dependent PRIORITY and HEADERS priority information") {
+    val priority = Http2Wire.Frame(Http2Wire.Priority, 0, 1, hex("8000000100"))
+    val headers = Http2Wire.Frame(Http2Wire.Headers, 0x24, 1, hex("800000010088"))
+    for {
+      p <- peer(Http2Wire.encode(priority) ++ Http2Wire.encode(headers))
+      first <- Http2Wire.readUntil(p._1, fromServer = true)(_.frameType == Http2Wire.Headers)
+      decoder <- HpackWire.decoder[IO]()
+      decoded <- Http2Wire.readHeaders(p._1, first, decoder)
+    } yield assertEquals(decoded, Vector(":status" -> "200"))
   }
 
   test("HTTP/2 wire frame matches its independent byte fixture") {
@@ -305,7 +444,7 @@ class WireCodecsSuite extends CatsEffectSuite {
       Http2Wire.encode(Http2Wire.settings()) ++ Http2Wire.encode(ping) ++ Http2Wire.encode(headers)
     peer(bytes, 3).flatMap { case (raw, written) =>
       for {
-        frame <- Http2Wire.readUntil(raw)(_.frameType == Http2Wire.Headers)
+        frame <- Http2Wire.readUntil(raw, fromServer = true)(_.frameType == Http2Wire.Headers)
         output <- written
       } yield {
         assertEquals(frame, headers)
@@ -315,6 +454,49 @@ class WireCodecsSuite extends CatsEffectSuite {
         )
       }
     }
+  }
+
+  for {
+    fromServer <- Vector(false, true)
+    value <- Vector(0L, 1L, 2L)
+    placement <- Vector("initial", "before-headers", "content")
+  } test(s"generic SETTINGS sender role: $fromServer/$value/$placement") {
+    import Http2Wire._
+    val update = settings(Vector(2 -> value))
+    val head = headers(
+      1,
+      if (fromServer) Vector(":status" -> "200") else Vector(":method" -> "GET"),
+      endStream = false,
+    )
+    val content = data(1, ascii("body"))
+    val input = placement match {
+      case "initial" => (if (fromServer) ByteVector.empty else clientPreface) ++ encode(update)
+      case "before-headers" => encode(update) ++ encode(head)
+      case _ => encode(head) ++ encode(update) ++ encode(content)
+    }
+    val run = peer(input, 1).flatMap { case (raw, written) =>
+      val observe = placement match {
+        case "initial" => if (fromServer) clientHandshake(raw) else serverHandshake(raw)
+        case "before-headers" =>
+          readUntil(raw, fromServer = fromServer)(_.frameType == Headers)
+            .flatMap(Check.equal(_, head))
+        case _ =>
+          readUntil(raw, fromServer = fromServer)(_.frameType == Headers)
+            .flatMap(Check.equal(_, head)) *>
+            readUntil(raw, fromServer = fromServer)(_.frameType == Data)
+              .flatMap(Check.equal(_, content))
+      }
+      observe *> written.flatMap { output =>
+        val frames =
+          if (placement == "initial" && fromServer) output.drop(clientPreface.size) else output
+        IO.fromEither(decodeAll(frames)).flatMap { decoded =>
+          Check.equal(decoded.count(f => f.frameType == Settings && f.hasFlag(Ack)), 1)
+        }
+      }
+    }
+    if (value > (if (fromServer) 0L else 1L))
+      run.intercept[ProtocolFailure].flatMap(error => IO(assert(error.getMessage.contains("PUSH"))))
+    else run
   }
 
   test("HTTP/2 decodes padded priority HEADERS followed by CONTINUATION") {

@@ -41,6 +41,41 @@ reads the complete client preface/settings before sending its own settings.
 Eager-preface sequencing needs an explicit script. HPACK literal encoding is for
 valid stimuli; raw hex can intentionally violate representation rules.
 
+HTTP/2 cases allocate a private `Http2PeerSettings` scope and propagate it through
+all frame readers and scripted writes. It retains observed settings separately for
+each connection. Admission checks count a request stream until both directions
+end or either direction resets it, so successive completed requests can reuse one
+slot. Existing streams can continue after a concurrency reduction. Stream-zero,
+even, reused and decreasing-ID fault stimuli are not treated as fresh admission.
+
+`MAX_HEADER_LIST_SIZE` is advisory: sending more is legal, and rejecting or
+discarding an oversized section is also legal. Acceptance fixtures therefore
+require the actual section to fit the advertised limit. The independent outbound
+HPACK observer counts decoded wire octets of each name/value plus 32 per occurrence
+(including repeated fields and every UTF-8 byte), for HEADERS, trailers and
+PUSH_PROMISE. Use `Http2PeerSettings.writeFrames` for a planned fragmented section,
+and its `write` helper for finite encoded byte sequences, so prerequisites are
+checked before any section bytes. Acceptance scenarios with a finite advisory
+limit and an undecodable or separately fragmented block report `WireObservationLimit`.
+Framing-negative cases with independently known logical fields use
+`Http2PeerSettings.writeFramingFault`: its explicit octet-field witness must fit the
+current limit before the unchanged faulty frames are sent, with admission still checked.
+Write positive warmups separately through the ordinary checked path; malformed
+empty trailers have an empty witness. This does not infer a bound from arbitrary
+invalid bytes or exempt unknown sections.
+A dedicated compression-negative fault block explicitly sets `requireFieldAcceptance = false`:
+RFC9113 4.3 requires decompression even when fields are discarded. Its malformed
+bytes must reach the target; any positive warmup block retains acceptance checks.
+Separately written valid continuations retain the connection's outbound compression state.
+
+Dedicated HPACK sessions retain the minimum table limit since the last block as
+well as the final value. If honoring a new minimum would remove dynamic state
+needed for a witness, stop with a typed prerequisite before its next block. Do not
+silently rebuild the state being tested. An initial-empty-table witness must also
+stop when initial SETTINGS would require a clearing update: that update could hide
+a faulty prepopulated decoder. These prerequisite errors leave coverage
+unexercised; they establish no additional sender MUST or target defect.
+
 Check.equal and Check(condition, detail) produce ProtocolFailure. Unexpected
 fixture exceptions block comparison; timeout produces an inconclusive outcome,
 never a pass. Each case has an eight-second deadline and a bounded transcript.
@@ -63,3 +98,18 @@ happen to exist. Broad section headings are an index, not obligation coverage.
 Each author owns only assigned case and inventory files. The coordinator owns
 Catalog.scala, shared machinery, adapters, registry integration, validation and
 commits. Request contract changes before editing shared infrastructure.
+
+Origin servers may process requests progressively (RFC 9113 section 8.1.1), and
+HPACK decoders may expose decoded fields before completing a block (RFC 7541
+section 3.1). Such application observations alone establish neither acceptance
+nor rejection; require the applicable wire error. An incidental push-stream reset
+cannot satisfy a required connection verdict: those branches continue observing
+the independently required connection termination.
+
+Connection-control errors can coexist with delivery of an otherwise valid response.
+The 21 connection-control fixtures hold successful exchange resources through their
+independent wire verdict, so exchange cleanup cannot manufacture EOF. They preserve
+adapter, timeout and oracle errors. This does not relax malformed-response,
+stream-error PRIORITY or no-response assertions. The five GOAWAY closure-choice
+fixtures permit both generic error codes under RFC9113 5.4 while retaining checks
+on any delivered response.

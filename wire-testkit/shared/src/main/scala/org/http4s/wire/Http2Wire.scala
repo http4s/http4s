@@ -44,6 +44,39 @@ object Http2Wire {
     def hasFlag(flag: Int): Boolean = (flags & flag) != 0
   }
 
+  /** A conservative prerequisite for a finite stimulus, counting the entire DATA payload
+    * (including padding) on its busiest stream. WINDOW_UPDATE grants are not used: a smaller
+    * initial window reports an observation limit instead of sending incompatible traffic.
+    * Rechecking every setting also covers reductions after some of this budget was sent.
+    * Callers keep the total connection budget within 65535 bytes, or manage credit explicitly.
+    */
+  final case class DataBudget(bytes: Long) {
+    require(bytes >= 0L && bytes <= 65535L, "invalid finite DATA stimulus budget")
+
+    private[wire] def check(frame: Frame): Unit =
+      if (
+        frame.frameType == Settings && !frame.hasFlag(Ack) &&
+        frame.streamId == 0 && frame.payload.size % 6L == 0L
+      )
+        frame.payload.grouped(6).foreach { entry =>
+          val key = ((entry(0) & 0xff) << 8) | (entry(1) & 0xff)
+          if (key == 4 && readUint32(entry.drop(2)) < bytes)
+            throw new WireObservationLimit(
+              s"DATA stimulus requires an initial stream window of at least $bytes bytes"
+            )
+        }
+  }
+
+  object DataBudget {
+    implicit val empty: DataBudget = DataBudget(0L)
+  }
+
+  /** Literal-only generic stimuli select zero capacity, honoring every advertised reduction.
+    * Dedicated HPACK cases construct their own blocks to retain their intentional table state.
+    */
+  def literalFields(values: Vector[(String, String)]): ByteVector =
+    ByteVector(0x20) ++ HpackWire.encodeLiteral(values)
+
   /** A length override deliberately permits malformed frames in negative test stimuli. */
   def encode(frame: Frame, declaredLength: Option[Int] = None): ByteVector = {
     check(frame.frameType >= 0 && frame.frameType <= 255, "invalid frame type")
@@ -76,10 +109,10 @@ object Http2Wire {
     val frames = Vector.newBuilder[Frame]
     var cursor = 0L
     while (cursor < bytes.size) {
-      check(bytes.size - cursor >= 9L, "truncated HTTP/2 frame header")
+      received(bytes.size - cursor >= 9L, "truncated HTTP/2 frame header")
       val header = bytes.slice(cursor, cursor + 9L)
       val size = ((header(0) & 0xff) << 16) | ((header(1) & 0xff) << 8) | (header(2) & 0xff)
-      check(size.toLong <= bytes.size - cursor - 9L, "truncated HTTP/2 frame payload")
+      received(size.toLong <= bytes.size - cursor - 9L, "truncated HTTP/2 frame payload")
       frames += Frame(
         header(3) & 0xff,
         header(4) & 0xff,
@@ -111,7 +144,7 @@ object Http2Wire {
       Headers,
       EndHeaders | (if (endStream) EndStream else 0),
       streamId,
-      HpackWire.encodeLiteral(values),
+      literalFields(values),
     )
 
   def data(streamId: Int, bytes: ByteVector, endStream: Boolean = true): Frame =
@@ -125,16 +158,19 @@ object Http2Wire {
   def readFrame[F[_]: Async](
       peer: RawPeer[F],
       maxFrameBytes: Int = 0xffffff,
-  ): F[Frame] =
-    peer.readExact(9).flatMap(readFramePayload(peer, _, maxFrameBytes))
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Frame] =
+    validateReadLimit[F](maxFrameBytes) *>
+      WireDecodingFailure
+        .read(peer.readExact(9))
+        .flatMap(readFramePayload(peer, _, maxFrameBytes))
+        .flatTap(peerSettings.received(peer, _))
 
   /** Accepts EOF or a reset only before the first byte of the next frame. */
   def readFrameOrClose[F[_]: Async](
       peer: RawPeer[F],
       maxFrameBytes: Int = 0xffffff,
-  ): F[Option[Frame]] =
-    peer
-      .readExact(1)
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Option[Frame]] =
+    (validateReadLimit[F](maxFrameBytes) *> peer.readExact(1))
       .map(_.some)
       .handleErrorWith {
         case error: IllegalArgumentException
@@ -145,11 +181,17 @@ object Http2Wire {
       }
       .flatMap {
         case Some(first) =>
-          peer.readExact(8).flatMap { rest =>
-            readFramePayload(peer, first ++ rest, maxFrameBytes).map(_.some)
+          WireDecodingFailure.read(peer.readExact(8)).flatMap { rest =>
+            readFramePayload(peer, first ++ rest, maxFrameBytes)
+              .flatTap(peerSettings.received(peer, _))
+              .map(_.some)
           }
         case None => none[Frame].pure[F]
       }
+
+  private def validateReadLimit[F[_]: Async](maxFrameBytes: Int): F[Unit] =
+    if (maxFrameBytes >= 0) Async[F].unit
+    else Async[F].raiseError(new IllegalArgumentException("negative frame read limit"))
 
   private def readFramePayload[F[_]: Async](
       peer: RawPeer[F],
@@ -159,9 +201,9 @@ object Http2Wire {
     val size = ((header(0) & 0xff) << 16) | ((header(1) & 0xff) << 8) | (header(2) & 0xff)
     for {
       _ <-
-        if (maxFrameBytes >= 0 && size <= maxFrameBytes) Async[F].unit
+        if (size <= maxFrameBytes) Async[F].unit
         else fail[F, Unit](s"frame length $size exceeds limit $maxFrameBytes")
-      payload <- peer.readExact(size)
+      payload <- WireDecodingFailure.read(peer.readExact(size))
     } yield Frame(
       header(3) & 0xff,
       header(4) & 0xff,
@@ -170,45 +212,62 @@ object Http2Wire {
     )
   }
 
-  def writeFrame[F[_]: Async](peer: RawPeer[F], frame: Frame): F[Unit] =
-    Async[F].delay(encode(frame)).flatMap(peer.write)
+  def writeFrame[F[_]: Async](peer: RawPeer[F], frame: Frame)(implicit
+      peerSettings: Http2PeerSettings[F]
+  ): F[Unit] =
+    peerSettings.sending(peer, Vector(frame)) *> Async[F].delay(encode(frame)).flatMap(peer.write)
 
   /** Sends the client preface and acknowledges the server's initial SETTINGS. */
-  def clientHandshake[F[_]: Async](peer: RawPeer[F]): F[Unit] =
-    peer.write(clientPreface ++ encode(settings())) *> receiveInitialSettings(peer) *>
+  def clientHandshake[F[_]: Async](
+      peer: RawPeer[F]
+  )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Unit] =
+    peer.write(clientPreface ++ encode(settings())) *> receiveInitialSettings(
+      peer,
+      fromServer = true,
+    ) *>
       writeFrame(peer, settings(ack = true))
 
   /** Receives the complete client preface before sending server SETTINGS and their acknowledgment. */
-  def serverHandshake[F[_]: Async](peer: RawPeer[F]): F[Unit] =
-    peer.readExact(clientPreface.size.toInt).flatMap { preface =>
+  def serverHandshake[F[_]: Async](
+      peer: RawPeer[F]
+  )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Unit] =
+    WireDecodingFailure.read(peer.readExact(clientPreface.size.toInt)).flatMap { preface =>
       if (preface != clientPreface)
         Async[F].raiseError(new ProtocolFailure("invalid HTTP/2 client preface"))
       else
-        receiveInitialSettings(peer) *> peer.write(
+        receiveInitialSettings(peer, fromServer = false) *> peer.write(
           encode(settings()) ++ encode(settings(ack = true))
         )
     }
 
-  private def receiveInitialSettings[F[_]: Async](peer: RawPeer[F]): F[Unit] =
+  private def receiveInitialSettings[F[_]: Async](
+      peer: RawPeer[F],
+      fromServer: Boolean,
+  )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Unit] =
     readFrame(peer).flatMap { frame =>
       if (frame.frameType != Settings || frame.hasFlag(Ack))
         Async[F].raiseError(new ProtocolFailure("initial HTTP/2 frame must be non-ACK SETTINGS"))
-      else Async[F].delay(validateSettings(frame))
+      else Async[F].delay(validateSettings(frame, fromServer))
     }
 
   /** Skips connection control and extension frames, acknowledging SETTINGS and PING.
     * Unexpected stream traffic is an error: silently consuming it could conceal a target defect.
     */
-  def readUntil[F[_]: Async](peer: RawPeer[F])(accept: Frame => Boolean): F[Frame] = {
+  def readUntil[F[_]: Async](
+      peer: RawPeer[F],
+      fromServer: Boolean,
+  )(
+      accept: Frame => Boolean
+  )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Frame] = {
     def loop(remaining: Int): F[Frame] =
-      if (remaining == 0) fail("too many HTTP/2 control frames without the expected frame")
+      if (remaining == 0) limit("too many HTTP/2 control frames without the expected frame")
       else
         readFrame(peer).flatMap { frame =>
           if (accept(frame)) frame.pure[F]
           else {
             val handle: F[Unit] = frame.frameType match {
               case Settings =>
-                Async[F].delay(validateSettings(frame)) *>
+                Async[F].delay(validateSettings(frame, fromServer)) *>
                   (if (frame.hasFlag(Ack)) Async[F].unit
                    else writeFrame(peer, settings(ack = true)))
               case Ping =>
@@ -218,19 +277,15 @@ object Http2Wire {
                 else writeFrame(peer, frame.copy(flags = Ack))
               case WindowUpdate =>
                 Async[F].delay {
-                  check(frame.payload.size == 4, "invalid WINDOW_UPDATE length")
-                  check(
+                  received(frame.payload.size == 4, "invalid WINDOW_UPDATE length")
+                  received(
                     (readUint32(frame.payload) & 0x7fffffffL) != 0L,
                     "zero WINDOW_UPDATE increment",
                   )
                 }
               case Priority =>
                 Async[F].delay {
-                  check(frame.streamId != 0 && frame.payload.size == 5, "invalid PRIORITY frame")
-                  check(
-                    (readUint32(frame.payload.take(4)) & 0x7fffffffL) != frame.streamId.toLong,
-                    "self-dependent PRIORITY frame",
-                  )
+                  received(frame.streamId != 0 && frame.payload.size == 5, "invalid PRIORITY frame")
                 }
               case kind if kind > Continuation => Async[F].unit
               case _ =>
@@ -246,66 +301,60 @@ object Http2Wire {
       peer: RawPeer[F],
       first: Frame,
       decoder: HpackWire.Decoder[F],
-  ): F[Vector[(String, String)]] = {
-    def continue(block: ByteVector, frame: Frame): F[Vector[(String, String)]] =
-      if (block.size > 1024 * 1024) fail("HTTP/2 header block exceeds limit")
-      else if (frame.hasFlag(EndHeaders)) decoder.decode(block)
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Vector[(String, String)]] = {
+    def continue(block: ByteVector, frame: Frame, remaining: Int): F[Vector[(String, String)]] =
+      if (block.size > 1024 * 1024 || remaining == 0) limit("HTTP/2 header block exceeds limit")
+      else if (frame.hasFlag(EndHeaders))
+        decoder.decode(block).handleErrorWith {
+          case error: IllegalArgumentException =>
+            Async[F].raiseError(new WireDecodingFailure(error.getMessage))
+          case error => Async[F].raiseError(error)
+        }
       else
         readFrame(peer).flatMap { next =>
           if (next.frameType != Continuation || next.streamId != first.streamId)
             fail("expected an uninterrupted CONTINUATION on the same stream")
-          else continue(block ++ next.payload, next)
+          else continue(block ++ next.payload, next, remaining - 1)
         }
 
     Async[F]
       .delay {
-        check(first.frameType == Headers && first.streamId != 0, "expected stream HEADERS")
+        received(first.frameType == Headers && first.streamId != 0, "expected stream HEADERS")
         val withoutPadding = unpad(first)
         if (first.hasFlag(0x20)) {
-          check(withoutPadding.size >= 5, "truncated HEADERS priority fields")
-          check(
-            (readUint32(withoutPadding.take(4)) & 0x7fffffffL) != first.streamId.toLong,
-            "self-dependent HEADERS priority",
-          )
+          received(withoutPadding.size >= 5, "truncated HEADERS priority fields")
           withoutPadding.drop(5)
         } else withoutPadding
       }
-      .flatMap(continue(_, first))
+      .flatMap(continue(_, first, 1024))
   }
 
   /** Removes the padding field and padding bytes from a DATA or HEADERS frame. */
   def unpad(frame: Frame): ByteVector =
     if (!frame.hasFlag(Padded)) frame.payload
     else {
-      check(frame.payload.nonEmpty, "missing HTTP/2 pad length")
+      received(frame.payload.nonEmpty, "missing HTTP/2 pad length")
       val padding = frame.payload(0) & 0xff
-      check(padding.toLong < frame.payload.size, "HTTP/2 padding exceeds payload")
+      received(padding.toLong < frame.payload.size, "HTTP/2 padding exceeds payload")
       frame.payload.drop(1).dropRight(padding.toLong)
     }
 
-  private def validateSettings(frame: Frame): Unit = {
-    def valid(condition: Boolean, message: String): Unit =
-      if (!condition) throw new ProtocolFailure(message)
-    valid(frame.streamId == 0, "SETTINGS on a nonzero stream")
-    valid(frame.payload.size % 6 == 0, "invalid SETTINGS length")
-    valid(!frame.hasFlag(Ack) || frame.payload.isEmpty, "SETTINGS ACK with a payload")
-    var i = 0L
-    while (i < frame.payload.size) {
-      val key = ((frame.payload(i) & 0xff) << 8) | (frame.payload(i + 1) & 0xff)
-      val value = readUint32(frame.payload.slice(i + 2, i + 6))
-      key match {
-        case 2 => valid(value <= 1L, "invalid SETTINGS_ENABLE_PUSH")
-        case 4 => valid(value <= 0x7fffffffL, "invalid SETTINGS_INITIAL_WINDOW_SIZE")
-        case 5 => valid(value >= 16384L && value <= 0xffffffL, "invalid SETTINGS_MAX_FRAME_SIZE")
-        case _ => ()
-      }
-      i += 6
-    }
+  private def validateSettings(frame: Frame, fromServer: Boolean)(implicit
+      dataBudget: DataBudget
+  ): Unit = {
+    Http2RejectionChecks.validate(frame, fromServer).fold(throw _, _ => ())
+    dataBudget.check(frame)
   }
 
   private def check(condition: Boolean, message: String): Unit =
     if (!condition) throw new IllegalArgumentException(message)
 
+  private def received(condition: Boolean, message: String): Unit =
+    if (!condition) throw new WireDecodingFailure(message)
+
+  private def limit[F[_]: Async, A](message: String): F[A] =
+    Async[F].raiseError(new WireObservationLimit(message))
+
   private def fail[F[_]: Async, A](message: String): F[A] =
-    Async[F].raiseError(new IllegalArgumentException(message))
+    Async[F].raiseError(new WireDecodingFailure(message))
 }

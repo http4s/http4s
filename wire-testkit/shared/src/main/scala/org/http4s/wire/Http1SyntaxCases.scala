@@ -21,8 +21,6 @@ import cats.syntax.all._
 import fs2.Chunk
 import scodec.bits.ByteVector
 
-import java.util.concurrent.TimeoutException
-
 /** Request lines, request targets, status lines, and fields derived from RFC 9112 Sections 2-5. */
 object Http1SyntaxCases {
   val all: Vector[WireCase] = Vector(
@@ -115,8 +113,7 @@ object Http1SyntaxCases {
           _ <- peer.writeAscii("GET / http/1.1\r\nHost: wire.test\r\n\r\n")
           response <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(response.status, 400)
-          remaining <- peer.readToEnd(65536)
-          _ <- Check.equal(remaining, ByteVector.empty)
+          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
           observed <- server.pollReceived
           _ <- Check.equal(observed, None)
         } yield ()
@@ -139,8 +136,7 @@ object Http1SyntaxCases {
           _ <- peer.writeAscii("GET / HTTP/1.12\r\nHost: wire.test\r\n\r\n")
           response <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(response.status, 400)
-          remaining <- peer.readToEnd(65536)
-          _ <- Check.equal(remaining, ByteVector.empty)
+          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
           observed <- server.pollReceived
           _ <- Check.equal(observed, None)
         } yield ()
@@ -163,8 +159,7 @@ object Http1SyntaxCases {
           _ <- peer.writeAscii("GE(T / HTTP/1.1\r\nHost: wire.test\r\n\r\n")
           response <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(response.status, 400)
-          remaining <- peer.readToEnd(65536)
-          _ <- Check.equal(remaining, ByteVector.empty)
+          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
           observed <- server.pollReceived
           _ <- Check.equal(observed, None)
         } yield ()
@@ -187,8 +182,7 @@ object Http1SyntaxCases {
           _ <- peer.writeAscii("GET / HTTP/1.1\r\nHost: wire.test\r\nX(Wire: value\r\n\r\n")
           response <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(response.status, 400)
-          remaining <- peer.readToEnd(65536)
-          _ <- Check.equal(remaining, ByteVector.empty)
+          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
           observed <- server.pollReceived
           _ <- Check.equal(observed, None)
         } yield ()
@@ -1080,9 +1074,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(path = "/sent?q=one%20two")).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData(path = "/sent?q=one%20two"))
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1105,9 +1102,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(path = "")).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData(path = ""))
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1129,9 +1129,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(method = "OPTIONS", path = "*")).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData(method = "OPTIONS", path = "*"))
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1154,9 +1157,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(method = "get")).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData(method = "get"))
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1178,9 +1184,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(method = "M!#$%&'*+-.^_`|~09")).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData(method = "M!#$%&'*+-.^_`|~09"))
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1202,9 +1211,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1232,10 +1244,12 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(headers = Vector("X!#$%&'*+-.^_`|~09" -> "one two"))).use {
-          response =>
+        driver
+          .exchange(RequestData(headers = Vector("X!#$%&'*+-.^_`|~09" -> "one two")))
+          .use { response =>
             response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1264,6 +1278,7 @@ object Http1SyntaxCases {
           .use { response =>
             response.body.compile.drain *> Check.equal(response.status, 200)
           }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1289,9 +1304,12 @@ object Http1SyntaxCases {
     ) { ctx =>
       val target = "/" + ("a" * 7999)
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData(path = target)).use { response =>
-          response.body.compile.drain *> Check.equal(response.status, 200)
-        }
+        driver
+          .exchange(RequestData(path = target))
+          .use { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       ) { peer =>
         for {
           request <- Http1Wire.readRequest(peer)
@@ -1308,14 +1326,17 @@ object Http1SyntaxCases {
       Rfc(9112, "4", "The reason phrase is optional after the required separating space.", "syntax"),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
 
-          } yield ()
-        }
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 \r\nContent-Length: 2\r\n\r\nok"
@@ -1335,14 +1356,17 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
 
-          } yield ()
-        }
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 Not Found\r\nContent-Length: 2\r\n\r\nok"
@@ -1357,14 +1381,17 @@ object Http1SyntaxCases {
       Rfc(9112, "4", "A reason phrase may contain HTAB and SP.", "syntax"),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
 
-          } yield ()
-        }
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 one\t two\r\nContent-Length: 2\r\n\r\nok"
@@ -1379,12 +1406,15 @@ object Http1SyntaxCases {
       Rfc(9112, "4", "The reason-phrase grammar permits opaque obs-text octets.", "syntax"),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          response.body.compile.to(Chunk).flatMap { body =>
-            Check.equal(response.status, 200) *> Check
-              .equal(body.toByteVector, Http1Wire.ascii("ok"))
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            response.body.compile.to(Chunk).flatMap { body =>
+              Check.equal(response.status, 200) *> Check
+                .equal(body.toByteVector, Http1Wire.ascii("ok"))
+            }
           }
-        }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.write(
           Http1Wire.ascii("HTTP/1.1 200 ") ++ ByteVector.fromValidHex("80ff") ++
@@ -1400,17 +1430,20 @@ object Http1SyntaxCases {
       Rfc(
         9112,
         "4",
-        "An unrecognized valid status code is interpreted according to its class.",
+        "An unrecognized valid status code is accepted with its integer value and response body framing preserved.",
         "syntax",
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          response.body.compile.to(Chunk).flatMap { body =>
-            Check.equal(response.status, 299) *> Check
-              .equal(body.toByteVector, Http1Wire.ascii("ok"))
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            response.body.compile.to(Chunk).flatMap { body =>
+              Check.equal(response.status, 299) *> Check
+                .equal(body.toByteVector, Http1Wire.ascii("ok"))
+            }
           }
-        }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 299 Unknown Success\r\nContent-Length: 2\r\n\r\nok"
@@ -1430,14 +1463,17 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "x-wire"), Vector("value"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "x-wire"), Vector("value"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX-Wire:value\r\n\r\nok"
@@ -1457,14 +1493,17 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "x-wire"), Vector("value"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "x-wire"), Vector("value"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX-Wire:\t  value \t\r\n\r\nok"
@@ -1484,14 +1523,17 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "x-wire"), Vector(""))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "x-wire"), Vector(""))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX-Wire:\r\n\r\nok"
@@ -1511,14 +1553,17 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "x-wire"), Vector(""))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "x-wire"), Vector(""))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX-Wire: \t \t\r\n\r\nok"
@@ -1538,14 +1583,17 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "x-wire"), Vector("one\t two"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "x-wire"), Vector("one\t two"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX-Wire: one\t two\r\n\r\nok"
@@ -1560,14 +1608,17 @@ object Http1SyntaxCases {
       Rfc(9112, "5", "Every tchar is permitted in a field name.", "syntax"),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "X!#$%&'*+-.^_`|~09"), Vector("token"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "X!#$%&'*+-.^_`|~09"), Vector("token"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX!#$%&'*+-.^_`|~09: token\r\n\r\nok"
@@ -1587,15 +1638,18 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(values(response.headers, "x-wire"), Vector("\u0080\u00ff\u00c3("))
-            _ <- Check.equal(values(response.headers, "x-after"), Vector("intact"))
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(values(response.headers, "x-wire"), Vector("\u0080\u00ff\u00c3("))
+              _ <- Check.equal(values(response.headers, "x-after"), Vector("intact"))
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.write(
           Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 2\r\nX-Wire: ") ++
@@ -1617,17 +1671,20 @@ object Http1SyntaxCases {
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
-        driver.exchange(RequestData()).use { response =>
-          for {
-            body <- response.body.compile.to(Chunk)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
-            _ <- Check.equal(
-              commaTokens(values(response.headers, "connection")),
-              Vector("x-first", "x-second"),
-            )
-          } yield ()
-        }
+        driver
+          .exchange(RequestData())
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
+              _ <- Check.equal(
+                commaTokens(values(response.headers, "connection")),
+                Vector("x-first", "x-second"),
+              )
+            } yield ()
+          }
+          .handleErrorWith(requiredAcceptanceFailure)
       )(peer =>
         Http1Wire.readRequest(peer) *> peer.writeAscii(
           "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: x-first\r\nConnection: x-second\r\n\r\nok"
@@ -1754,8 +1811,9 @@ object Http1SyntaxCases {
               .map(body => (response.status, response.headers, body.toByteVector))
           }
           .attempt
+          .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
           .flatMap {
-            case Left(error) => Check(!causedByTimeout(error), s"timeout is not rejection: $error")
+            case Left(error) => rejected(error)
             case Right((status, headers, body)) =>
               Check.equal(status, 200) *>
                 Check.equal(values(headers, "x-ignored"), Vector.empty) *>
@@ -1790,8 +1848,9 @@ object Http1SyntaxCases {
               .map(body => (response.status, response.headers, body.toByteVector))
           }
           .attempt
+          .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
           .flatMap {
-            case Left(error) => Check(!causedByTimeout(error), s"timeout is not rejection: $error")
+            case Left(error) => rejected(error)
             case Right((status, headers, body)) =>
               Check.equal(status, 200) *>
                 Check.equal(values(headers, "x-wire"), Vector("one two")) *>
@@ -1825,8 +1884,9 @@ object Http1SyntaxCases {
               .map(body => (response.status, response.headers, body.toByteVector))
           }
           .attempt
+          .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
           .flatMap {
-            case Left(error) => Check(!causedByTimeout(error), s"timeout is not rejection: $error")
+            case Left(error) => rejected(error)
             case Right((status, headers, body)) =>
               Check.equal(status, 200) *>
                 Check.equal(values(headers, "x-wire"), Vector("one two")) *>
@@ -1938,53 +1998,53 @@ object Http1SyntaxCases {
       "!#$%&'*+-.^_`|~".contains(c)
 
   /** Observe either a complete response head or genuinely empty EOF. Partial heads are failures. */
-  private def responseHeadOrEof(peer: RawPeer[IO]): IO[Option[Int]] =
-    peer.readUntil(Http1Wire.crlf ++ Http1Wire.crlf, 65536).attempt.flatMap {
-      case Right(bytes) =>
-        val lines = latin1(bytes).split("\r\n", -1).toVector
-        val line = lines.head
-        val validStatus = line.length >= 13 &&
-          (line.startsWith("HTTP/1.0 ") || line.startsWith("HTTP/1.1 ")) &&
-          line.substring(9, 12).forall(c => c >= '0' && c <= '9') && line(12) == ' ' &&
-          line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
-        for {
-          _ <- Check(validStatus, s"malformed target status-line: $line")
-          status = line.substring(9, 12).toInt
-          _ <- Check(status >= 200 && status <= 599, s"unexpected target status: $status")
-          _ <- lines.tail.traverse_ { field =>
-            val colon = field.indexOf(':')
-            Check(
-              colon > 0 && field.take(colon).forall(tokenChar) &&
-                field.drop(colon + 1).forall(c => c == '\t' || c >= ' ' && c != 127),
-              s"malformed target field line: $field",
+  private def responseHeadOrEof(peer: RawPeer[IO], informational: Int = 0): IO[Option[Int]] =
+    peer
+      .readUntilOrClosed(Http1Wire.crlf ++ Http1Wire.crlf, 65536)
+      .flatMap {
+        case Some(bytes) =>
+          val lines = latin1(bytes).split("\r\n", -1).toVector
+          val line = lines.head
+          val validStatus = line.length >= 13 &&
+            (line.startsWith("HTTP/1.0 ") || line.startsWith("HTTP/1.1 ")) &&
+            line.substring(9, 12).forall(c => c >= '0' && c <= '9') && line(12) == ' ' &&
+            line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
+          (for {
+            _ <- Check(validStatus, s"malformed target status-line: $line")
+            status = line.substring(9, 12).toInt
+            _ <- Check(
+              status >= 100 && status <= 599 && status != 101,
+              s"unexpected target status: $status",
             )
+            _ <- lines.tail.traverse_ { field =>
+              val colon = field.indexOf(':')
+              Check(
+                colon > 0 && field.take(colon).forall(tokenChar) &&
+                  field.drop(colon + 1).forall(c => c == '\t' || c >= ' ' && c != 127),
+                s"malformed target field line: $field",
+              )
+            }
+          } yield status).flatMap { status =>
+            if (status >= 200) IO.pure(Some(status))
+            else if (informational >= 16)
+              IO.raiseError(new WireObservationLimit("informational response observation limit"))
+            else IO.defer(responseHeadOrEof(peer, informational + 1))
           }
-        } yield Some(status)
-      case Left(error: IllegalArgumentException)
-          if error.getMessage == "unexpected EOF before delimiter" =>
-        peer.readToEnd(65536).flatMap { remaining =>
-          Check(remaining.isEmpty, s"truncated target response head: ${remaining.toHex}").as(None)
-        }
-      case Left(error) => IO.raiseError(error)
-    }
-
-  private def requiredAcceptanceFailure(error: Throwable): IO[Unit] =
-    if (causedByTimeout(error)) {
-      val timeout = new TimeoutException(error.toString)
-      val _ = timeout.initCause(error)
-      IO.raiseError(timeout)
-    } else
-      error match {
-        case failure: ProtocolFailure => IO.raiseError(failure)
-        case _ => Check(false, s"the target rejected a response requiring acceptance: $error")
+        case None => IO.pure(None)
       }
 
-  private def causedByTimeout(error: Throwable): Boolean = {
-    @annotation.tailrec
-    def loop(current: Throwable, remaining: Int): Boolean =
-      if (current == null || remaining == 0) false
-      else if (current.isInstanceOf[TimeoutException]) true
-      else loop(current.getCause, remaining - 1)
-    loop(error, 16)
-  }
+  private def requiredAcceptanceFailure(error: Throwable): IO[Unit] =
+    RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
+      case limit: WireObservationLimit => IO.raiseError(limit)
+      case failure: AssertionError => IO.raiseError(failure)
+      case _ => Check(false, s"the target rejected a response requiring acceptance: $error")
+    })
+
+  private def rejected(error: Throwable): IO[Unit] =
+    RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
+      case limit: WireObservationLimit => IO.raiseError(limit)
+      case assertion: AssertionError => IO.raiseError(assertion)
+      case _ => IO.unit
+    })
+
 }

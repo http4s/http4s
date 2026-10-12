@@ -43,4 +43,11 @@ object RuntimeInfo {
         }
     loop(error, 16)
   }
+  // Observed native write failure; this does not change read-side reset handling.
+  private[wire] def isClosedWrite(error: Throwable): Boolean =
+    error.getCause == null && error.getSuppressed.isEmpty && (error match {
+      case io: java.io.IOException => io.getMessage == "errno(32) Broken pipe"
+      case _ => false
+    })
+
 }

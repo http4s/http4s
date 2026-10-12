@@ -454,7 +454,9 @@ lazy val wireTestkit = libraryCrossProject("wire-testkit")
     buildInfoObject := "TckBuild",
     buildInfoKeys := Seq[BuildInfoKey](
       scalaVersion,
-      BuildInfoKey.action("reportRoot") { ((ThisBuild / baseDirectory).value / "target" / "wire-tck-reports").getAbsolutePath },
+      BuildInfoKey.action("reportRoot") {
+        ((ThisBuild / baseDirectory).value / "target" / "wire-tck-reports").getAbsolutePath
+      },
       BuildInfoKey.action("revision") {
         WireTckBuild.revision((ThisBuild / baseDirectory).value)
       },
@@ -462,7 +464,9 @@ lazy val wireTestkit = libraryCrossProject("wire-testkit")
         WireTckBuild.encodeRows(WireTckBuild.inventoryRows((ThisBuild / baseDirectory).value))
       },
       BuildInfoKey.action("sectionRowsBase64") {
-        WireTckBuild.encodeRows(IO.readLines((ThisBuild / baseDirectory).value / "docs/wire-tck/sections.tsv").drop(1))
+        WireTckBuild.encodeRows(
+          IO.readLines((ThisBuild / baseDirectory).value / "docs/wire-tck/sections.tsv").drop(1)
+        )
       },
     ),
     description := "Independent HTTP wire conformance test machinery",
@@ -484,6 +488,39 @@ lazy val wireTck = libraryCrossProject("wire-tck")
     startYear := Some(2026),
     Test / parallelExecution := false,
   )
+  .jvmSettings(
+    Test / testOptions += Tests.Listeners(
+      Seq(
+        WireTckBuild.adapterListener(
+          (ThisBuild / baseDirectory).value,
+          scalaVersion.value,
+          "jvm",
+        )
+      )
+    )
+  )
+  .jsSettings(
+    Test / testOptions += Tests.Listeners(
+      Seq(
+        WireTckBuild.adapterListener(
+          (ThisBuild / baseDirectory).value,
+          scalaVersion.value,
+          "js",
+        )
+      )
+    )
+  )
+  .nativeSettings(
+    Test / testOptions += Tests.Listeners(
+      Seq(
+        WireTckBuild.adapterListener(
+          (ThisBuild / baseDirectory).value,
+          scalaVersion.value,
+          "native",
+        )
+      )
+    )
+  )
   .dependsOn(wireTestkit, emberClient, emberServer)
 
 // Intentionally not aggregated by root: protocol disagreements are diagnostic.
@@ -494,22 +531,42 @@ lazy val wireTckCompare = libraryCrossProject("wire-tck-compare")
     startYear := Some(2026),
     Test / parallelExecution := false,
   )
+  .jsSettings(
+    Test / testOptions += Tests.Listeners(
+      Seq(WireTckBuild.eventListener((ThisBuild / baseDirectory).value, scalaVersion.value, "js"))
+    )
+  )
+  .nativeSettings(
+    Test / testOptions += Tests.Listeners(
+      Seq(
+        WireTckBuild.eventListener((ThisBuild / baseDirectory).value, scalaVersion.value, "native")
+      )
+    )
+  )
   .jvmSettings(
+    Test / testOptions += Tests.Listeners(
+      Seq(WireTckBuild.eventListener((ThisBuild / baseDirectory).value, scalaVersion.value, "jvm"))
+    ),
     libraryDependencies ++= Seq(
       nettyCodecHttp,
       "io.netty" % "netty-codec-http2" % V.netty,
       "io.netty" % "netty-transport" % V.netty,
       "io.netty" % "netty-handler" % V.netty,
       nettyBuffer,
-    )
+    ),
   )
   .dependsOn(wireTck)
 
-addCommandAlias("tckCheck", ";wire-testkit/test;wire-tck/test;wire-testkitJS/test;wire-tckJS/test;wire-testkitNative/test;wire-tckNative/test")
+addCommandAlias(
+  "tckCheck",
+  ";wire-testkit/test;wire-tck/test;wire-testkitJS/test;wire-tckJS/test;wire-testkitNative/test;wire-tckNative/test",
+)
 
 // executeTests returns protocol failures as data, so every platform finishes before reconciliation.
-lazy val tckCompare = taskKey[Unit]("Run the complete wire catalog and reconcile comparison reports")
-lazy val tckIntegrity = taskKey[Unit]("Reject local suppression annotations and missing tracking records")
+lazy val tckCompare =
+  taskKey[Unit]("Run the complete wire catalog and reconcile comparison reports")
+lazy val tckIntegrity =
+  taskKey[Unit]("Reject local suppression annotations and missing tracking records")
 ThisBuild / tckIntegrity := WireTckBuild.checkSources((ThisBuild / baseDirectory).value)
 lazy val tckComparePrepare = taskKey[Unit]("Clear comparison evidence from previous executions")
 lazy val tckCompareResults = taskKey[Unit]("Collect every platform before checking infrastructure")
@@ -517,14 +574,66 @@ ThisBuild / tckComparePrepare := {
   val reports = (ThisBuild / baseDirectory).value / "target" / "wire-tck-reports"
   IO.delete(reports / (wireTestkit.jvm / scalaVersion).value / "comparison")
   WireTckBuild.checkSources((ThisBuild / baseDirectory).value)
+  WireTckBuild.checkReconciliation()
 }
 ThisBuild / tckCompareResults := {
   val jvm = (wireTckCompare.jvm / Test / executeTests).result.value
   val js = (wireTckCompare.js / Test / executeTests).result.value
   val native = (wireTckCompare.native / Test / executeTests).result.value
+  val kitJvm = (wireTestkit.jvm / Test / executeTests).result.value
+  val kitJs = (wireTestkit.js / Test / executeTests).result.value
+  val kitNative = (wireTestkit.native / Test / executeTests).result.value
+  val adapterJvm =
+    (wireTck.jvm / Test / testOnly).toTask(" org.http4s.wire.EmberTargetSuite").result.value
+  val adapterJs =
+    (wireTck.js / Test / testOnly).toTask(" org.http4s.wire.EmberTargetSuite").result.value
+  val adapterNative =
+    (wireTck.native / Test / testOnly).toTask(" org.http4s.wire.EmberTargetSuite").result.value
+  val harnessErrors = WireTckBuild.harnessProblems(
+    Vector(
+      ("jvm/testkit", kitJvm, (wireTestkit.jvm / Test / definedTests).value.map(_.name).toSet),
+      ("js/testkit", kitJs, (wireTestkit.js / Test / definedTests).value.map(_.name).toSet),
+      (
+        "native/testkit",
+        kitNative,
+        (wireTestkit.native / Test / definedTests).value.map(_.name).toSet,
+      ),
+    ),
+    Vector(
+      (
+        "jvm/Ember",
+        adapterJvm,
+        WireTckBuild.adapterEvents(
+          (ThisBuild / baseDirectory).value,
+          (wireTck.jvm / scalaVersion).value,
+          "jvm",
+        ),
+      ),
+      (
+        "js/Ember",
+        adapterJs,
+        WireTckBuild
+          .adapterEvents((ThisBuild / baseDirectory).value, (wireTck.js / scalaVersion).value, "js"),
+      ),
+      (
+        "native/Ember",
+        adapterNative,
+        WireTckBuild.adapterEvents(
+          (ThisBuild / baseDirectory).value,
+          (wireTck.native / scalaVersion).value,
+          "native",
+        ),
+      ),
+    ),
+  )
   val root = (ThisBuild / baseDirectory).value / "target" / "wire-tck-reports" /
     (wireTestkit.jvm / scalaVersion).value / "comparison"
-  WireTckBuild.reconcile(root, Vector("jvm" -> jvm, "js" -> js, "native" -> native), streams.value.log)
+  WireTckBuild.reconcile(
+    root,
+    Vector("jvm" -> jvm, "js" -> js, "native" -> native),
+    streams.value.log,
+    harnessErrors,
+  )
 }
 ThisBuild / tckCompare := Def.sequential(tckComparePrepare, tckCompareResults).value
 

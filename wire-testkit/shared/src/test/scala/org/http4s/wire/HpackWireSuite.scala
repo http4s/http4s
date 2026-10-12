@@ -165,9 +165,15 @@ class HpackWireSuite extends CatsEffectSuite {
     }
   }
 
+  test("redundant zero integer octets retain the observer limit category") {
+    HpackWire.decoder[IO]().flatMap { decoder =>
+      decoder.decode(hex("880f808080808000057574662d38")).intercept[WireObservationLimit]
+    }
+  }
+
   test("valid short Huffman padding and string bound") {
     assertEquals(HpackWire.decodeHuffman(hex("07"), 1), Http1Wire.ascii("0"))
-    intercept[IllegalArgumentException](HpackWire.decodeHuffman(hex("07"), 0))
+    intercept[WireObservationLimit](HpackWire.decodeHuffman(hex("07"), 0))
     assertEquals(HpackWire.decodeHuffman(ByteVector.empty, 0), ByteVector.empty)
   }
 

@@ -31,6 +31,9 @@ object HpackWire {
       maxHeaderBytes: Int,
   )(implicit F: Sync[F]) {
 
+    /** The capacity selected by the last decoded table update, including trailer blocks. */
+    private[wire] def tableCapacity: F[Int] = state.get.map(_.capacity)
+
     /** Decodes one complete header block, retaining its dynamic table for subsequent blocks. */
     def decode(bytes: ByteVector): F[Vector[(String, String)]] =
       state
@@ -85,6 +88,9 @@ object HpackWire {
   private def check(condition: Boolean, message: String): Unit =
     if (!condition) throw new IllegalArgumentException(message)
 
+  private def withinObservationLimit(condition: Boolean, message: String): Unit =
+    if (!condition) throw new WireObservationLimit(message)
+
   private def entrySize(entry: (String, String)): Long =
     32L + entry._1.length.toLong + entry._2.length.toLong
 
@@ -103,7 +109,10 @@ object HpackWire {
       maxHeaderBytes: Int,
   ): Either[Throwable, (State, Vector[(String, String)])] = Either.catchNonFatal {
     // All mutation is confined to a single pure decoding call; only a successful result is committed.
-    check(input.size <= maxHeaderBytes.toLong + 1024L, "encoded HPACK block exceeds limit")
+    withinObservationLimit(
+      input.size <= maxHeaderBytes.toLong + 1024L,
+      "encoded HPACK block exceeds limit",
+    )
     var cursor = 0L
     var state = initial
     var seenHeader = false
@@ -124,10 +133,13 @@ object HpackWire {
         var shift = 0
         var more = true
         while (more) {
-          check(shift <= 28, "HPACK integer overflow")
+          withinObservationLimit(shift <= 28, "HPACK integer exceeds observer octet limit")
           val byte = octet()
           value += (byte & 0x7f).toLong << shift
-          check(value <= Int.MaxValue.toLong, "HPACK integer overflow")
+          withinObservationLimit(
+            value <= Int.MaxValue.toLong,
+            "HPACK integer exceeds observer value limit",
+          )
           more = (byte & 0x80) != 0
           shift += 7
         }
@@ -145,7 +157,7 @@ object HpackWire {
       val decoded =
         if (huffman) decodeHuffman(encoded, limit)
         else {
-          check(length <= limit, "decoded HPACK string exceeds limit")
+          withinObservationLimit(length <= limit, "decoded HPACK string exceeds limit")
           encoded
         }
       decoded.toArray.iterator.map(b => (b & 0xff).toChar).mkString
@@ -173,7 +185,10 @@ object HpackWire {
             val index = integer(if (incremental) 6 else 4)
             val available = math.max(0L, maxHeaderBytes.toLong - headerBytes - 32L).toInt
             val name = if (index == 0) string(available) else indexed(index)._1
-            check(name.length <= available, "decoded HPACK header list exceeds limit")
+            withinObservationLimit(
+              name.length <= available,
+              "decoded HPACK header list exceeds limit",
+            )
             val value = string(available - name.length)
             val decoded = name -> value
             if (incremental)
@@ -181,7 +196,10 @@ object HpackWire {
             decoded
           }
         headerBytes += entrySize(entry)
-        check(headerBytes <= maxHeaderBytes.toLong, "decoded HPACK header list exceeds limit")
+        withinObservationLimit(
+          headerBytes <= maxHeaderBytes.toLong,
+          "decoded HPACK header list exceeds limit",
+        )
         headers += entry
       }
     }
@@ -204,7 +222,10 @@ object HpackWire {
         huffmanSymbols.get(length -> code) match {
           case Some(symbol) =>
             check(symbol != 256, "HPACK Huffman EOS symbol in string")
-            check(outputSize < maxBytes, "decoded HPACK Huffman string exceeds limit")
+            withinObservationLimit(
+              outputSize < maxBytes,
+              "decoded HPACK Huffman string exceeds limit",
+            )
             output += symbol.toByte
             outputSize += 1
             code = 0
