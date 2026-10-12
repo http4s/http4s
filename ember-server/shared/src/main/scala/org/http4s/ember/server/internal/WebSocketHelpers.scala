@@ -112,6 +112,8 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
     }
   }
 
+  private[this] val maxFrameLength = math.min(maxFrameSize.toLong + 14, Int.MaxValue - 8L)
+
   private[this] val nonClientTranscoder =
     new FrameTranscoder(isClient = false, maxFrameSize = maxFrameSize)
 
@@ -259,19 +261,29 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
       Chunk.array(bytes)
     }
 
-  private def decodeFrames[F[_]](implicit F: ApplicativeThrow[F]): Pipe[F, Byte, WebSocketFrame] =
+  private[internal] def decodeFrames[F[_]](implicit
+      F: ApplicativeThrow[F]
+  ): Pipe[F, Byte, WebSocketFrame] =
     stream => {
-      def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
+      def go(rest: Stream[F, Byte], acc: Array[Byte], filled: Int): Pull[F, WebSocketFrame, Unit] =
         rest.pull.uncons.flatMap {
           case Some((chunk, next)) =>
             ApplicativeThrow[Pull[F, WebSocketFrame, *]]
               .catchNonFatal { // `bufferToFrame` might throw
-                val buffer = acc ++ chunk.toArray[Byte]
+                val size = filled + chunk.size
+                val buffer =
+                  if (size <= acc.length) acc
+                  else
+                    java.util.Arrays.copyOf(
+                      acc,
+                      math.max(size.toLong, math.min(acc.length * 2L, maxFrameLength)).toInt,
+                    )
+                chunk.copyToArray(buffer, filled)
                 // A single chunk might contain multiple frames
                 // but `bufferToFrame` decodes at most one, so we
                 // call it repeatedly until all frames in the buffer are decoded.
                 val frames = ArrayBuffer.empty[WebSocketFrame]
-                var byteBuffer = ByteBuffer.wrap(buffer)
+                var byteBuffer = ByteBuffer.wrap(buffer, 0, size)
                 var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
                 while (frame != null) {
                   frames += frame
@@ -282,23 +294,23 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
                 if (frames.nonEmpty) {
                   val remaining = new Array[Byte](byteBuffer.remaining())
                   byteBuffer.get(remaining)
-                  (Some(Chunk.array(frames.toArray)), remaining)
+                  (Some(Chunk.array(frames.toArray)), remaining, remaining.length)
                 } else {
-                  (None, buffer)
+                  (None, buffer, size)
                 }
               }
               .flatMap {
-                case (Some(frames), remaining) =>
-                  Pull.output(frames) >> go(next, remaining)
-                case (None, remaining) =>
-                  go(next, remaining)
+                case (Some(frames), remaining, remainingSize) =>
+                  Pull.output(frames) >> go(next, remaining, remainingSize)
+                case (None, buffer, bufferedSize) =>
+                  go(next, buffer, bufferedSize)
               }
           case None =>
             // TODO followup: sometimes the peer closes connection before stream can interrupt itself
             Pull.raiseError(EndOfStreamError())
         }
 
-      go(stream, Array.emptyByteArray).void.stream
+      go(stream, Array.emptyByteArray, 0).void.stream
     }
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
