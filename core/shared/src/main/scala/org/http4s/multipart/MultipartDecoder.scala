@@ -242,24 +242,32 @@ private[http4s] object MultipartDecoder {
       failOnLimit: Boolean = false,
       chunkSize: Int = 8192,
   ): Resource[F, EntityDecoder[F, Multipart[F]]] =
-    (Supervisor[F], Resource.eval(Ref.of[F, Long](0L))).mapN { (supervisor, totalBytesRead) =>
-      val partReceiver = PartReceiver
-        .toMixedBufferTotal[F](
-          totalBytesRead,
-          maxTotalSizeBeforeWrite,
-          chunkSize,
-        )
-        .mapWithHeaders(Part.apply[F])
+    Supervisor[F].map { supervisor =>
+      val supervisedDecode = { (boundary: Boundary) => (pipe: Stream[F, Byte]) =>
+        Stream.eval(Ref.of(0L)).flatMap { totalBytesRead =>
+          val partReceiver = PartReceiver
+            .toMixedBufferTotal[F](
+              totalBytesRead,
+              maxTotalSizeBeforeWrite,
+              chunkSize,
+            )
+            .mapWithHeaders(Part.apply[F])
+
+          pipe.through(
+            MultipartParser.decodePartsSupervised[F, Part[F]](
+              supervisor,
+              boundary,
+              part => EitherT(partReceiver.receive(part)),
+              limit = headerLimit,
+              maxParts = Some(maxParts),
+              failOnLimit = failOnLimit,
+            )
+          )
+        }
+      }
 
       makeDecoder[F, Part[F], Vector, Multipart[F]](
-        MultipartParser.decodePartsSupervised[F, Part[F]](
-          supervisor,
-          _,
-          part => EitherT(partReceiver.receive(part)),
-          limit = headerLimit,
-          maxParts = Some(maxParts),
-          failOnLimit = failOnLimit,
-        ),
+        supervisedDecode,
         Vector,
         (parts, boundary) => Right(Multipart[F](parts, boundary)),
       )
