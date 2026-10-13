@@ -15,11 +15,16 @@
  */
 
 package org.http4s.wire
-import cats.effect.{IO, Ref, Resource, Deferred}
+import cats.effect.Deferred
+import cats.effect.IO
+import cats.effect.Ref
+import cats.effect.Resource
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
 import com.comcast.ip4s._
+import fs2.Chunk
+import fs2.Stream
 import scodec.bits.ByteVector
+
 import scala.concurrent.duration._
 class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
   // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
@@ -83,11 +88,9 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
       IO.unit,
       tr,
     )
-    target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "causal-mapping"; val version = "1"
-      def server(p: Protocol, s: ServerScenario) = Resource.pure[IO, ServerHandle[IO]](
+    target = ScriptedServer[IO](
+      "causal-mapping",
+      Resource.pure[IO, ServerHandle[IO]](
         ServerHandle[IO](
           SocketAddress(ip"127.0.0.1", port"1"),
           delivered.get.map(b =>
@@ -99,10 +102,8 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
           ),
           IO.pure(None),
         )
-      )
-      def client(p: Protocol, a: SocketAddress[IpAddress]) =
-        Resource.eval(IO.raiseError[ClientDriver[IO]](new Exception("unused")))
-    }
+      ),
+    )
     result <- Catalog.all
       .find(_.id == id)
       .get
@@ -385,43 +386,52 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
       earlyResponse(zero, body)
     }
   for (
-    (id, before, after) <- Vector(
-      ("h2.server.reject-settings-stream-id", Some(0L), Vector(0L)),
-      ("h2.server.reject-settings-stream-id", Some(0L), Vector(1L)),
-      ("h2.server.reject-settings-stream-id", None, Vector(0L, 1L)),
-      ("h2.server.half-closed-remote-data", Some(1L), Vector(1L)),
-      ("h2.server.half-closed-remote-data", Some(1L), Vector(3L)),
-      ("h2.server.half-closed-remote-data", Some(1L), Vector(0L)),
-      ("h2.server.half-closed-remote-data", None, Vector(0L)),
-      ("h2.server.half-closed-remote-data", None, Vector(1L, 3L)),
-      ("h2.server.goaway-includes-dispatched-stream", Some(7L), Vector(7L)),
-      ("h2.server.goaway-includes-dispatched-stream", Some(7L), Vector(9L)),
-      ("h2.server.goaway-includes-dispatched-stream", None, Vector(0L)),
+    (scenario, before, after) <- Vector(
+      (Http2ControlHandoffFixture.settingsCase, Some(0L), Vector(0L)),
+      (Http2ControlHandoffFixture.settingsCase, Some(0L), Vector(1L)),
+      (Http2ControlHandoffFixture.settingsCase, None, Vector(0L, 1L)),
+      (Http2ControlHandoffFixture.halfClosed, Some(1L), Vector(1L)),
+      (Http2ControlHandoffFixture.halfClosed, Some(1L), Vector(3L)),
+      (Http2ControlHandoffFixture.halfClosed, Some(1L), Vector(0L)),
+      (Http2ControlHandoffFixture.halfClosed, None, Vector(0L)),
+      (Http2ControlHandoffFixture.halfClosed, None, Vector(1L, 3L)),
+      (Http2ControlHandoffFixture.dispatched, Some(7L), Vector(7L)),
+      (Http2ControlHandoffFixture.dispatched, Some(7L), Vector(9L)),
+      (Http2ControlHandoffFixture.dispatched, None, Vector(0L)),
     )
-  ) test(s"history handoff $id before=$before after=$after") {
-    Http2ControlHandoffFixture.probe(id, before, after)
+  ) test(s"history handoff $scenario before=$before after=$after") {
+    Http2ControlHandoffFixture.probe(scenario, before, after)
   }
 
   for {
-    id <- Vector(
-      "h2.client.idle-data",
-      "h2.client.idle-window-update",
-      "h2.client.unpromised-server-headers",
-      "h2.client.zero-connection-window-update",
-      "h2.client.connection-window-overflow",
+    (id, kind, stream, value) <- Vector(
+      ("h2.client.idle-data", Http2Wire.Data, 2, None),
+      ("h2.client.idle-window-update", Http2Wire.WindowUpdate, 2, None),
+      ("h2.client.unpromised-server-headers", Http2Wire.Headers, 2, None),
+      ("h2.client.zero-connection-window-update", Http2Wire.WindowUpdate, 0, Some(0L)),
+      ("h2.client.connection-window-overflow", Http2Wire.WindowUpdate, 0, Some(1L)),
     )
     before <- Vector(false, true)
   }
     test(s"request HEADERS GOAWAY placement $id before=$before") {
-      Http2StateRequestHeadFixture.probe(id, before)
+      Http2StateRequestHeadFixture.probe(
+        id,
+        before,
+        frame =>
+          frame.frameType == kind && frame.streamId == stream &&
+            value.forall(_ == Http2Wire.readUint32(frame.payload)),
+      )
     }
 
   for {
-    id <- Vector("h2.server.zero-stream-window-update", "h2.server.stream-window-overflow")
+    (id, errorCode) <- Vector(
+      "h2.server.zero-stream-window-update" -> 1L,
+      "h2.server.stream-window-overflow" -> 3L,
+    )
     late <- Vector(false, true)
   }
     test(s"State SETTINGS after complete fault DATA $id late=$late") {
-      Http2StateDataBudgetFixture.probe(id, late)
+      Http2StateDataBudgetFixture.probe(id, late, errorCode)
     }
 
   for {
@@ -462,9 +472,18 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
 private object Http2ControlHandoffFixture {
   import Http2Wire._
   def goaway(last: Long, code: Long) = Frame(GoAway, 0, 0, uint32(last) ++ uint32(code))
-  def probe(id: String, before: Option[Long], after: Vector[Long]): IO[Unit] = {
-    val dispatched = id.contains("goaway-includes")
-    val stateCase = id.contains("half-closed") || dispatched
+  final case class Scenario(wireCase: WireCase, stateCase: Boolean, dispatched: Boolean) {
+    override def toString: String = wireCase.id
+  }
+  private def scenario(id: String, state: Boolean, dispatch: Boolean): Scenario =
+    Scenario(Catalog.all.find(_.id == id).get, state, dispatch)
+  val settingsCase = scenario("h2.server.reject-settings-stream-id", false, false)
+  val halfClosed = scenario("h2.server.half-closed-remote-data", true, false)
+  val dispatched = scenario("h2.server.goaway-includes-dispatched-stream", true, true)
+
+  def probe(scenario: Scenario, before: Option[Long], after: Vector[Long]): IO[Unit] = {
+    val dispatched = scenario.dispatched
+    val stateCase = scenario.stateCase
     val requestStream = if (dispatched) 7 else 1
     val initial = encode(settings())
     val readyFrames =
@@ -536,21 +555,17 @@ private object Http2ControlHandoffFixture {
         IO.unit,
         trace,
       )
-      target = new WireTarget[IO] {
-        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-        val name = "handoff-probe"; val version = "1"
-        def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(
+      target = ScriptedServer[IO](
+        "handoff-probe",
+        Resource.pure(
           ServerHandle[IO](
             SocketAddress(ip"127.0.0.1", port"1"),
             IO.pure(RequestData()),
             IO.pure(Option.empty[RequestData]),
           )
-        )
-        def client(p: Protocol, a: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
-          Resource.eval(IO.raiseError(new IllegalStateException("unused")))
-      }
-      selected = (Http2ControlCases.all ++ Http2StateCases.all).find(_.id == id).get
+        ),
+      )
+      selected = scenario.wireCase
       result <- selected
         .run(
           CaseContext(
@@ -582,7 +597,7 @@ private object Http2ControlHandoffFixture {
 private object Http2StateRequestHeadFixture {
   import Http2Wire._
   def goaway(code: Long) = Frame(GoAway, 0, 0, uint32(0) ++ uint32(code))
-  def probe(id: String, before: Boolean): IO[Unit] = for {
+  def probe(id: String, before: Boolean, expectedFault: Frame => Boolean): IO[Unit] = for {
     trace <- Transcript.create[IO]()
     own <- Transcript.create[IO]()
     fault <- Ref.of[IO, Boolean](false)
@@ -614,15 +629,7 @@ private object Http2StateRequestHeadFixture {
                 ),
               )
               def awaitFault: IO[Unit] = readFrame(peer).flatMap { f =>
-                val hit =
-                  if (id.endsWith("idle-data")) f.frameType == Data && f.streamId == 2
-                  else if (id.endsWith("idle-window-update"))
-                    f.frameType == WindowUpdate && f.streamId == 2
-                  else if (id.endsWith("unpromised-server-headers"))
-                    f.frameType == Headers && f.streamId == 2
-                  else if (id.endsWith("zero-connection-window-update"))
-                    f.frameType == WindowUpdate && f.streamId == 0 && readUint32(f.payload) == 0
-                  else f.frameType == WindowUpdate && f.streamId == 0 && readUint32(f.payload) == 1
+                val hit = expectedFault(f)
                 if (hit) fault.set(true) else awaitFault
               }
               for {
@@ -656,7 +663,7 @@ private object Http2StateRequestHeadFixture {
 
 private object Http2StateDataBudgetFixture {
   import Http2Wire._
-  def probe(id: String, lateReduction: Boolean): IO[Unit] = for {
+  def probe(id: String, lateReduction: Boolean, errorCode: Long): IO[Unit] = for {
     tr <- Transcript.create[IO]()
     in <- Ref.of[IO, ByteVector](encode(settings()))
     sent <- Ref.of[IO, Vector[Frame]](Vector.empty)
@@ -679,7 +686,7 @@ private object Http2StateDataBudgetFixture {
                 delivered.update(_ + f.payload.size) *> in.update(
                   _ ++
                     (if (lateReduction) encode(settings(Vector(4 -> 0L))) else ByteVector.empty) ++
-                    encode(Frame(RstStream, 0, 1, uint32(if (id.contains("overflow")) 3 else 1)))
+                    encode(Frame(RstStream, 0, 1, uint32(errorCode)))
                 )
               case _ => IO.unit
             })
@@ -688,20 +695,16 @@ private object Http2StateDataBudgetFixture {
       IO.unit,
       tr,
     )
-    target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "data-budget-probe"; val version = "1"
-      def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(
+    target = ScriptedServer[IO](
+      "data-budget-probe",
+      Resource.pure(
         ServerHandle[IO](
           SocketAddress(ip"127.0.0.1", port"1"),
           IO.never[RequestData],
           IO.pure(None),
         )
-      )
-      def client(p: Protocol, a: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
-        Resource.eval(IO.raiseError(new Exception("unused")))
-    }
+      ),
+    )
     c = Http2StateCases.all.find(_.id == id).get
     r <- c
       .run(CaseContext(target, tr, (_, _) => Resource.make(IO.pure(peer))(_ => released.set(true))))
@@ -912,20 +915,16 @@ private object Http2BoundaryHandoffFixture {
       IO.unit,
       trace,
     )
-    target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "causal-server-history"; val version = "1"
-      def client(p: Protocol, a: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
-        Resource.eval(IO.raiseError(new Exception("unused")))
-      def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(
+    target = ScriptedServer[IO](
+      "causal-server-history",
+      Resource.pure(
         ServerHandle(
           SocketAddress(ip"127.0.0.1", port"1"),
           requests.modify(v => (v.drop(1), v.head)),
           requests.get.map(_.headOption),
         )
-      )
-    }
+      ),
+    )
     id =
       if (hpack) "h2.server.hpack-reject-index-beyond-populated" else "h2.server.reject-ping-length"
     selected = (HpackCases.all ++ SmokeCases.all).find(_.id == id).get

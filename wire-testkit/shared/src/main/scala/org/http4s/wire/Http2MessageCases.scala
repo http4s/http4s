@@ -6650,12 +6650,17 @@ object Http2MessageCases {
       peerSettings: Http2PeerSettings[IO],
       dataBudget: Http2Wire.DataBudget,
   ): IO[(ByteVector, Vector[(String, String)])] = {
+    val policy = Http2ContentBudget.Policy(
+      1024,
+      Http2ObservationBudget.MaxBytes,
+      "too many content frames",
+      s"HTTP/2 observation byte budget exceeded (${Http2ObservationBudget.MaxBytes} bytes)",
+    )
     def loop(
         body: ByteVector,
-        remaining: Int,
-        retained: Long,
+        budget: Http2ContentBudget.State,
     ): IO[(ByteVector, Vector[(String, String)])] =
-      observationBound(remaining > 0, "too many content frames") *>
+      IO.fromEither(budget.beforeRead) *>
         requestFrame
           .getOrElse(
             Http2PositiveObservation.readUntil(peer, fromServer = true)(frame =>
@@ -6664,37 +6669,35 @@ object Http2MessageCases {
             )
           )
           .flatMap { frame =>
-            Http2ObservationBudget.reserve[IO](retained, frame.payload.size + 9L).flatMap {
-              reserved =>
-                Check.equal(frame.streamId, streamId) *> (frame.frameType match {
-                  case Http2Wire.Data =>
-                    IO(Http2Wire.unpad(frame)).handleErrorWith(invalidTargetFrame).flatMap {
-                      bytes =>
-                        val next = body ++ bytes
-                        if (frame.hasFlag(Http2Wire.EndStream)) IO.pure((next, Vector.empty))
-                        else loop(next, remaining - 1, reserved)
-                    }
-                  case Http2Wire.Headers =>
-                    Check(
-                      frame.hasFlag(Http2Wire.EndStream),
-                      "trailers must terminate the stream",
-                    ) *>
-                      Http2Wire
-                        .readHeaders(peer, frame, decoder)
-                        .handleErrorWith(invalidTargetFrame)
-                        .flatMap { trailers =>
-                          Check(
-                            !trailers.exists(_._1.startsWith(":")),
-                            "trailers contained a pseudo-header",
-                          )
-                            .as((body, trailers))
-                        }
-                  case _ =>
-                    IO.raiseError(new ProtocolFailure(s"valid message rejected by frame $frame"))
-                })
+            IO.fromEither(budget.reserve(frame.payload.size + 9L)).flatMap { reserved =>
+              Check.equal(frame.streamId, streamId) *> (frame.frameType match {
+                case Http2Wire.Data =>
+                  IO(Http2Wire.unpad(frame)).handleErrorWith(invalidTargetFrame).flatMap { bytes =>
+                    val next = body ++ bytes
+                    if (frame.hasFlag(Http2Wire.EndStream)) IO.pure((next, Vector.empty))
+                    else loop(next, reserved)
+                  }
+                case Http2Wire.Headers =>
+                  Check(
+                    frame.hasFlag(Http2Wire.EndStream),
+                    "trailers must terminate the stream",
+                  ) *>
+                    Http2Wire
+                      .readHeaders(peer, frame, decoder)
+                      .handleErrorWith(invalidTargetFrame)
+                      .flatMap { trailers =>
+                        Check(
+                          !trailers.exists(_._1.startsWith(":")),
+                          "trailers contained a pseudo-header",
+                        )
+                          .as((body, trailers))
+                      }
+                case _ =>
+                  IO.raiseError(new ProtocolFailure(s"valid message rejected by frame $frame"))
+              })
             }
           }
-    if (ended) IO.pure((ByteVector.empty, Vector.empty)) else loop(ByteVector.empty, 1024, 0L)
+    if (ended) IO.pure((ByteVector.empty, Vector.empty)) else loop(ByteVector.empty, policy.initial)
   }
 
   /** Origin observations may be progressive; rejection is established independently on the wire. */

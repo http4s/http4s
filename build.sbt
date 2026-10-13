@@ -479,6 +479,7 @@ lazy val wireTestkit = libraryCrossProject("wire-testkit")
       ip4sCore.value,
       scodecBits.value,
       munitCatsEffect.value,
+      catsEffectTestkit.value % Test,
     ),
     Test / parallelExecution := false,
     Test / test := (Test / test).dependsOn(ThisBuild / tckIntegrity).value,

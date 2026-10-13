@@ -171,7 +171,7 @@ abstract class SocketTimeoutChecks extends CatsEffectSuite {
         case _ => timeout.initCause(reset); timeout.addSuppressed(adapter); timeout
       }
       val expected = if (shape == "adapter") "error" else "inconclusive"
-      val raw = WireCodecsSuite
+      val raw = ScriptedPeer
         .peer(scodec.bits.ByteVector.empty, whenEmpty = IO.raiseError(error))
         .map(_._1)
       for {

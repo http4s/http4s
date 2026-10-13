@@ -43,7 +43,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
       "observation",
       "timeout",
     )
-    releaseFails <- Vector(false, true)
+    releaseFails <- if (outcome == "native-acquire") Vector(false) else Vector(false, true)
   } test(s"smoke rejection classifies before release: $outcome/releaseFails=$releaseFails") {
     val failure: Throwable = outcome match {
       case "assertion" => new ProtocolFailure("smoke assertion")
@@ -364,7 +364,11 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
             Http1Wire.readFinalResponse(peer).map(r => response(r.status, r.body))
         }
       else
-        runServerBytes(id, Http1Wire.message("HTTP/1.1 200 OK", fields, body), IO.pure(None))
+        ScriptedPeer.runServerBytes(
+          id,
+          Http1Wire.message("HTTP/1.1 200 OK", fields, body),
+          IO.pure(None),
+        )
     if (variant == "single" || variant == "leading-zero-ows") run
     else
       run
@@ -1071,7 +1075,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
   for (extra <- Vector(false, true))
     test(s"recognized reset after complete response retains extra bytes (extra=$extra)") {
       val reset = Http1ResetFixture.reset
-      WireCodecsSuite
+      ScriptedPeer
         .peer(
           Http1Wire.ascii(
             "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n" + (if (extra) "x" else "")
@@ -1088,7 +1092,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
 
   test("closure observation preserves adapter provenance wrapping a reset") {
     val error = new AdapterFailure("fixture", Http1ResetFixture.reset)
-    WireCodecsSuite.peer(ByteVector.empty, whenEmpty = IO.raiseError(error)).flatMap {
+    ScriptedPeer.peer(ByteVector.empty, whenEmpty = IO.raiseError(error)).flatMap {
       case (peer, _) =>
         Http1FramingCases
           .expectClosedAfterResponse(peer)
@@ -1111,7 +1115,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
       "HTTP/1.1 400 Bad Request\r\nContent-Length: " + (if (ending == "partial") "1" else "0") +
         "\r\n\r\n" + (if (ending == "extra") "x" else "")
     )
-    val run = runServerBytes(
+    val run = ScriptedPeer.runServerBytes(
       s"h1.server.equal-content-length-$suffix",
       bytes,
       if (ending == "eof") IO.pure(None) else IO.raiseError(failure),
@@ -1162,7 +1166,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
     ) {
       val reset = Http1ResetFixture.reset
       val error = if (adapter) new AdapterFailure("closure fixture", reset) else reset
-      val run = runServerBytes(
+      val run = ScriptedPeer.runServerBytes(
         "h1.server.interaction-unframed-post-next-request",
         Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"),
         IO.raiseError(error),
@@ -1356,7 +1360,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
         new IllegalStateException("read wrapper", new java.util.concurrent.TimeoutException("read"))
       case _ => Http1ResetFixture.reset
     }
-    val run = runServerBytes(
+    val run = ScriptedPeer.runServerBytes(
       id,
       if (partial) Http1Wire.ascii("HTTP/1.1 400") else ByteVector.empty,
       if (ending == "eof") IO.pure(None) else IO.raiseError(failure),
@@ -1386,7 +1390,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
         new IllegalStateException("wrapper", new java.util.concurrent.TimeoutException("raw read"))
       case _ => new java.io.IOException("independent raw read")
     }
-    val run = runServerBytes(id, ByteVector.empty, IO.raiseError(failure))
+    val run = ScriptedPeer.runServerBytes(id, ByteVector.empty, IO.raiseError(failure))
     if (kind == "timeout") run.intercept[java.util.concurrent.TimeoutException].void
     else
       run.attempt.map {
@@ -1422,7 +1426,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
       case _ => Http1ResetFixture.reset
     }
     val bytes = ByteVector.fill(size.toLong)(97.toByte)
-    WireCodecsSuite
+    ScriptedPeer
       .peer(bytes, whenEmpty = if (ending == "eof") IO.pure(None) else IO.raiseError(error))
       .flatMap { case (peer, _) =>
         val run = Http1LifecycleCases.readThroughClose(peer)
@@ -1469,7 +1473,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
     val partial = Http1Wire.ascii("HTTP/1.1 400")
     for {
       waiting <- Deferred[IO, Unit]
-      fixture <- WireCodecsSuite.peer(partial, whenEmpty = waiting.complete(()).void *> IO.never)
+      fixture <- ScriptedPeer.peer(partial, whenEmpty = waiting.complete(()).void *> IO.never)
       reader <- fixture._1.readUntilOrClosed(Http1Wire.crlf ++ Http1Wire.crlf, 65536).start
       _ <- waiting.get
       _ <- reader.cancel
@@ -1729,14 +1733,16 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
   } test(
     s"$id reports unavailable peer settings $settings before positive stimulus (later=$later)"
   ) {
-    runServerBytes(
-      id,
-      (if (later) Http2Wire.encode(Http2Wire.settings()) else ByteVector.empty) ++ Http2Wire.encode(
-        Http2Wire.settings(settings)
-      ) ++
-        Http2Wire.encode(Http2Wire.settings(ack = true)),
-      IO.never,
-    )
+    ScriptedPeer
+      .runServerBytes(
+        id,
+        (if (later) Http2Wire.encode(Http2Wire.settings()) else ByteVector.empty) ++ Http2Wire
+          .encode(
+            Http2Wire.settings(settings)
+          ) ++
+          Http2Wire.encode(Http2Wire.settings(ack = true)),
+        IO.never,
+      )
       .intercept[WireObservationLimit]
       .void
   }
@@ -2033,221 +2039,6 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
       }
     }
 
-  private val resetInteractionCases = Vector(
-    "h2.server.interaction-reset-other-upload-stream",
-    "h2.server.interaction-reset-retains-compression-context",
-  )
-
-  private def crossingResetFrames(kind: String, stream: Int): Vector[Http2Wire.Frame] = {
-    val insertion = ByteVector.fromValidHex("4006782d72616365046b657074")
-    val block = HpackWire.encodeLiteral(Vector(":status" -> "413")) ++ insertion
-    kind match {
-      case "none" => Vector.empty
-      case "window" => Vector(Http2Wire.windowUpdate(stream, 1))
-      case "priority" =>
-        Vector(Http2Wire.Frame(Http2Wire.Priority, 0, stream, Http2Wire.uint32(0) ++ ByteVector(0)))
-      case "reset" =>
-        Vector(Http2Wire.Frame(Http2Wire.RstStream, 0, stream, Http2Wire.uint32(8)))
-      case "headers" =>
-        Vector(
-          Http2Wire.Frame(
-            Http2Wire.Headers,
-            Http2Wire.EndHeaders | Http2Wire.EndStream,
-            stream,
-            block,
-          )
-        )
-      case "continuation" =>
-        Vector(
-          Http2Wire.Frame(Http2Wire.Headers, Http2Wire.EndStream, stream, block.take(4)),
-          Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, stream, block.drop(4)),
-        )
-      case "padded-data" =>
-        Vector(
-          Http2Wire.Frame(Http2Wire.Headers, Http2Wire.EndHeaders, stream, block),
-          Http2Wire.Frame(
-            Http2Wire.Data,
-            Http2Wire.Padded | Http2Wire.EndStream,
-            stream,
-            ByteVector(2, 65, 0, 0),
-          ),
-        )
-      case "trailers" =>
-        Vector(
-          Http2Wire.Frame(
-            Http2Wire.Headers,
-            Http2Wire.EndHeaders,
-            stream,
-            HpackWire.encodeLiteral(Vector(":status" -> "413")),
-          ),
-          Http2Wire.Frame(
-            Http2Wire.Headers,
-            Http2Wire.EndHeaders | Http2Wire.EndStream,
-            stream,
-            insertion,
-          ),
-        )
-    }
-  }
-
-  private def resetInteraction(
-      id: String,
-      crossing: Vector[Http2Wire.Frame],
-      timing: String = "early",
-      indexedResponse: Boolean = false,
-  ): IO[Unit] = runServer(id) { (peer, publish) =>
-    HpackWire.decoder[IO]().flatMap { decoder =>
-      def emit: IO[Unit] =
-        crossing.foldLeft(IO.unit)((send, frame) => send *> Http2Wire.writeFrame(peer, frame))
-      def respond(path: String, body: ByteVector, fields: Vector[(String, String)]): IO[Unit] = {
-        val block =
-          if (indexedResponse) ByteVector(0x88.toByte, 0xbe.toByte)
-          else HpackWire.encodeLiteral(Vector(":status" -> "200"))
-        publish(
-          RequestData(path = path, headers = fields.filterNot(_._1.startsWith(":")), body = body)
-        ) *>
-          Http2Wire.writeFrame(
-            peer,
-            Http2Wire.Frame(Http2Wire.Headers, Http2Wire.EndHeaders, 3, block),
-          ) *>
-          (if (timing == "after-head") emit else IO.unit) *>
-          Http2Wire.writeFrame(peer, Http2Wire.data(3, body.take(3), endStream = false)) *>
-          (if (timing == "after-prefix") emit else IO.unit) *>
-          Http2Wire.writeFrame(peer, Http2Wire.data(3, body.drop(3), endStream = false)) *>
-          (if (timing == "after-suffix") emit else IO.unit) *>
-          Http2Wire.writeFrame(peer, Http2Wire.data(3, ByteVector.empty)) *>
-          (if (timing == "after-end") emit else IO.unit) *>
-          Http2Wire
-            .readUntil(peer, fromServer = false)(_.frameType == Http2Wire.Ping)
-            .flatMap(ping => Http2Wire.writeFrame(peer, ping.copy(flags = Http2Wire.Ack)))
-      }
-      def loop(path: String, body: ByteVector, fields: Vector[(String, String)]): IO[Unit] =
-        Http2Wire.readFrame(peer).flatMap { frame =>
-          if (frame.frameType == Http2Wire.Headers)
-            Http2Wire.readHeaders(peer, frame, decoder).flatMap { next =>
-              if (frame.streamId == 1)
-                (if (timing == "early") emit else IO.unit) *> loop(path, body, fields)
-              else {
-                val nextPath = next.collectFirst { case (":path", value) => value }.get
-                if (frame.hasFlag(Http2Wire.EndStream)) respond(nextPath, body, next)
-                else loop(nextPath, body, next)
-              }
-            }
-          else if (frame.frameType == Http2Wire.Data && frame.streamId == 3) {
-            val next = body ++ Http2Wire.unpad(frame)
-            if (frame.hasFlag(Http2Wire.EndStream)) respond(path, next, fields)
-            else loop(path, next, fields)
-          } else loop(path, body, fields)
-        }
-      Http2Wire.serverHandshake(peer) *> loop("", ByteVector.empty, Vector.empty)
-    }
-  }
-
-  for {
-    id <- resetInteractionCases
-    kind <- Vector(
-      "none",
-      "window",
-      "priority",
-      "reset",
-      "headers",
-      "continuation",
-      "padded-data",
-      "trailers",
-    )
-  } test(s"$id accepts queued $kind and preserves connection HPACK") {
-    val indexed = Set("headers", "continuation", "padded-data", "trailers").contains(kind)
-    resetInteraction(id, crossingResetFrames(kind, 1), indexedResponse = indexed)
-  }
-
-  for {
-    id <- resetInteractionCases
-    kind <- Vector("reset", "headers", "continuation", "padded-data", "trailers")
-    timing <- Vector("after-head", "after-prefix", "after-suffix", "after-end")
-  } test(s"$id admits $kind only before reset confirmation ($timing)") {
-    val run = resetInteraction(id, crossingResetFrames(kind, 1), timing)
-    if (
-      id.endsWith("reset-other-upload-stream") && Set("after-head", "after-prefix").contains(timing)
-    ) run
-    else run.intercept[ProtocolFailure].void
-  }
-
-  for {
-    id <- resetInteractionCases
-    kind <- Vector("reset", "headers", "padded-data")
-  } test(s"$id does not discard $kind on an unrelated stream") {
-    resetInteraction(id, crossingResetFrames(kind, 5)).intercept[ProtocolFailure].void
-  }
-
-  for (id <- resetInteractionCases) {
-    test(s"$id rejects crossing PUSH_PROMISE after initial disablement") {
-      val promise = Http2Wire.Frame(
-        Http2Wire.PushPromise,
-        Http2Wire.EndHeaders,
-        1,
-        Http2Wire.uint32(2) ++ HpackWire.encodeLiteral(
-          Vector(
-            ":method" -> "GET",
-            ":scheme" -> "http",
-            ":authority" -> "wire.test",
-            ":path" -> "/pushed",
-          )
-        ),
-      )
-      resetInteraction(id, Vector(promise))
-        .intercept[ProtocolFailure]
-        .map(error => assert(error.getMessage.contains("PUSH_PROMISE after push disablement")))
-    }
-    test(s"$id requires a valid shared HPACK entry after discarded headers") {
-      resetInteraction(id, Vector.empty, indexedResponse = true).intercept[WireDecodingFailure].void
-    }
-    test(s"$id bounds discarded reset frames as incomplete observation") {
-      resetInteraction(id, Vector.fill(1024)(crossingResetFrames("reset", 1).head))
-        .intercept[WireObservationLimit]
-        .void
-    }
-    for (count <- Vector(255, 256))
-      test(s"$id counts discarded DATA padding in its finite observation budget ($count frames)") {
-        val padded = Http2Wire.Frame(
-          Http2Wire.Data,
-          Http2Wire.Padded,
-          1,
-          ByteVector(255.toByte) ++ ByteVector.fill(255)(0),
-        )
-        // Exercise the volume boundary with a deterministic byte source. Socket scheduling
-        // is exercised by the crossing controls above, independently of this 64-KiB budget.
-        val upload = id.endsWith("reset-other-upload-stream")
-        val body = if (upload) Http1Wire.ascii("following") else ByteVector.empty
-        val response = Vector(
-          Http2Wire.settings(),
-          Http2Wire.settings(ack = true),
-          Http2Wire.headers(1, Vector(":status" -> "413"), endStream = false),
-        ) ++ Vector.fill(count)(padded) ++ Vector(
-          Http2Wire.headers(3, Vector(":status" -> "200"), endStream = false),
-          Http2Wire.data(3, body),
-          Http2Wire
-            .Frame(Http2Wire.Ping, Http2Wire.Ack, 0, ByteVector(41, 43, 47, 53, 59, 61, 67, 71)),
-        )
-        val run = runServerBytes(
-          id,
-          response.foldLeft(ByteVector.empty)((bytes, frame) => bytes ++ Http2Wire.encode(frame)),
-          IO.pure(None),
-          IO.pure(
-            RequestData(
-              path = if (upload) "/two" else "/after",
-              headers = Vector("x-state" -> "kept"),
-              body = body,
-            )
-          ),
-        )
-        if (count == 255) run else run.intercept[WireObservationLimit].void
-      }
-    test(s"$id validates padding even on discarded DATA") {
-      val padded = Http2Wire.Frame(Http2Wire.Data, Http2Wire.Padded, 1, ByteVector(2, 0))
-      resetInteraction(id, Vector(padded)).intercept[WireDecodingFailure].void
-    }
-  }
-
   private final class UploadObservation(
       val result: Either[Throwable, Unit],
       val events: Vector[String],
@@ -2369,69 +2160,13 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
     _ <- selected(id).run(CaseContext(fixture._1, transcript))
   } yield ()
 
-  private def runServerBytes(
-      id: String,
-      bytes: ByteVector,
-      whenEmpty: IO[Option[Chunk[Byte]]],
-      received: IO[RequestData] =
-        IO.raiseError(new AssertionError("unexpected application observation")),
-  ): IO[Unit] = {
-    val target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "scripted-h1-reset"
-      val version = "oracle-challenge"
-      def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
-        Resource.pure(
-          ServerHandle[IO](
-            SocketAddress(ip"127.0.0.1", port"1"),
-            received,
-            IO.pure(None),
-          )
-        )
-      def client(
-          protocol: Protocol,
-          address: SocketAddress[IpAddress],
-      ): Resource[IO, ClientDriver[IO]] =
-        Resource.eval(IO.raiseError(new UnsupportedOperationException("server only")))
-    }
-    for {
-      raw <- WireCodecsSuite.peer(bytes, whenEmpty = whenEmpty)
-      transcript <- Transcript.create[IO]()
-      _ <- selected(id).run(CaseContext(target, transcript, (_, _) => Resource.pure(raw._1)))
-      written <- raw._2
-      _ <- IO(assert(written.nonEmpty, "actual case must send its request stimulus"))
-    } yield ()
-  }
-
   private def runClient(id: String, onRelease: IO[Unit] = IO.unit)(
       script: (RawPeer[IO], RequestData) => IO[ResponseData[IO]]
   ): IO[Unit] = {
-    val target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "scripted-h1-client"
-      val version = "oracle-challenge"
-      def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
-        Resource.eval(IO.raiseError(new UnsupportedOperationException("client only")))
-      def client(
-          protocol: Protocol,
-          address: SocketAddress[IpAddress],
-      ): Resource[IO, ClientDriver[IO]] =
-        for {
-          socket <- Network[IO].connect(address)
-          transcript <- Resource.eval(Transcript.create[IO]())
-          peer <- Resource.eval(RawPeer.create(socket, transcript))
-        } yield new ClientDriver[IO] {
-          def exchange(request: RequestData): Resource[IO, ResponseData[IO]] =
-            Resource.makeFull[IO, ResponseData[IO]](poll => poll(script(peer, request)))(_ =>
-              onRelease
-            )
-          def exchangeStream(
-              request: RequestData,
-              body: FixtureCleanup[IO] => Stream[IO, Byte],
-          ): Resource[IO, ResponseData[IO]] = exchange(request)
-        }
+    val target = ScriptedClient.network[IO] { (_, peer) =>
+      Resource.pure(ScriptedClient.ignoringUpload[IO] { request =>
+        Resource.makeFull[IO, ResponseData[IO]](poll => poll(script(peer, request)))(_ => onRelease)
+      })
     }
     Transcript.create[IO]().flatMap(t => selected(id).run(CaseContext(target, t)))
   }

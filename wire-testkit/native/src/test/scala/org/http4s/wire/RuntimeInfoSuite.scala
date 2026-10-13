@@ -33,7 +33,7 @@ class RuntimeInfoSuite extends CatsEffectSuite {
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]
 
-  import WireCodecsSuite.peer
+  import ScriptedPeer.peer
 
   private val resets = Vector(
     "macOS errno" -> new IOException("errno(54) Connection reset by peer"),

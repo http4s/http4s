@@ -249,18 +249,12 @@ class Http2PositiveObservationSuite extends CatsEffectSuite {
         IO.unit,
         trace,
       )
-      target = new WireTarget[IO] {
-        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-        val name = "raw-observer-provenance"
-        val version = "1"
-        def server(p: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
-          Resource.pure(
-            ServerHandle[IO](SocketAddress(ip"127.0.0.1", port"1"), IO.never, IO.pure(None))
-          )
-        def client(p: Protocol, address: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
-          Resource.eval(IO.raiseError(new IllegalStateException("server fixture")))
-      }
+      target = ScriptedServer[IO](
+        "raw-observer-provenance",
+        Resource.pure(
+          ServerHandle[IO](SocketAddress(ip"127.0.0.1", port"1"), IO.never, IO.pure(None))
+        ),
+      )
       selected = Http2StateCases.all.find(_.id == "h2.server." + name).get
       result <- selected
         .run(

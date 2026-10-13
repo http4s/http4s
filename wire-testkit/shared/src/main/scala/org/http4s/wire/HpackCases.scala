@@ -5314,11 +5314,14 @@ object HpackCases {
   private def readBody[F[_]: Async](session: Session[F], first: Http2Wire.Frame)(implicit
       peerSettings: Http2PeerSettings[F]
   ): F[ByteVector] = {
-    def loop(bytes: ByteVector, remaining: Int): F[ByteVector] =
-      observationBound(
-        remaining > 0 && bytes.size <= 65536L,
-        "target content exceeds observation bound",
-      ) *>
+    val policy = Http2ContentBudget.Policy(
+      1024,
+      65536L,
+      "target content exceeds observation bound",
+      "target content exceeds observation bound",
+    )
+    def loop(bytes: ByteVector, budget: Http2ContentBudget.State): F[ByteVector] =
+      Async[F].fromEither(budget.beforeRead) *>
         next(session).flatMap { frame =>
           verify(
             frame.streamId == first.streamId,
@@ -5330,15 +5333,13 @@ object HpackCases {
                   .delay(Http2Wire.unpad(frame))
                   .handleErrorWith(invalidTarget[F, ByteVector])
                   .flatMap { data =>
-                    observationBound[F](
-                      data.size <= 65536L - bytes.size,
-                      "target content exceeds observation bound",
-                    ) *>
+                    Async[F].fromEither(budget.reserve(data.size)).flatMap { next =>
                       Async[F].defer {
                         val all = bytes ++ data
                         if (frame.hasFlag(Http2Wire.EndStream)) all.pure[F]
-                        else loop(all, remaining - 1)
+                        else loop(all, next)
                       }
+                    }
                   }
               case Http2Wire.Headers =>
                 verify(
@@ -5355,7 +5356,7 @@ object HpackCases {
             })
         }
     if (first.hasFlag(Http2Wire.EndStream)) ByteVector.empty.pure[F]
-    else loop(ByteVector.empty, 1024)
+    else loop(ByteVector.empty, policy.initial)
   }
 
   private def readRequest[F[_]: Async](

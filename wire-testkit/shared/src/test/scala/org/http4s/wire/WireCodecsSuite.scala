@@ -18,7 +18,6 @@ package org.http4s.wire
 
 import cats.effect.Deferred
 import cats.effect.IO
-import cats.effect.Ref
 import cats.effect.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
@@ -29,21 +28,12 @@ import scodec.bits.ByteVector
 private[wire] object WireCodecsSuite {
 
   def runH2ServerCase(id: String, peer: Resource[IO, RawPeer[IO]]): IO[Unit] = {
-    val target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "frame-boundary-fixture"
-      val version = "oracle-challenge"
-      def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
-        Resource.pure(
-          ServerHandle[IO](SocketAddress(ip"127.0.0.1", port"1"), IO.never, IO.pure(None))
-        )
-      def client(
-          protocol: Protocol,
-          address: SocketAddress[IpAddress],
-      ): Resource[IO, ClientDriver[IO]] =
-        Resource.eval(IO.raiseError(new UnsupportedOperationException("server only")))
-    }
+    val target = ScriptedServer[IO](
+      "frame-boundary-fixture",
+      Resource.pure(
+        ServerHandle[IO](SocketAddress(ip"127.0.0.1", port"1"), IO.never, IO.pure(None))
+      ),
+    )
     Transcript.create[IO]().flatMap { transcript =>
       Http2ControlCases.all
         .find(_.id == id)
@@ -52,28 +42,6 @@ private[wire] object WireCodecsSuite {
     }
   }
 
-  def peer(
-      bytes: ByteVector,
-      fragment: Int = 8192,
-      whenEmpty: IO[Option[Chunk[Byte]]] = IO.pure(None),
-  ): IO[(RawPeer[IO], IO[ByteVector])] =
-    for {
-      input <- Ref.of[IO, ByteVector](bytes)
-      output <- Ref.of[IO, ByteVector](ByteVector.empty)
-      transcript <- Transcript.create[IO]()
-      read = (maxBytes: Int) =>
-        input
-          .modify { remaining =>
-            if (remaining.isEmpty) (remaining, None)
-            else {
-              val (head, tail) = remaining.splitAt(math.min(maxBytes, fragment).toLong)
-              (tail, Some(Chunk.byteVector(head)))
-            }
-          }
-          .flatMap(_.fold(whenEmpty)(chunk => IO.pure(Some(chunk))))
-      write = (chunk: Chunk[Byte]) => output.update(_ ++ ByteVector.view(chunk.toArray))
-      raw <- RawPeer.create(read, write, IO.unit, transcript)
-    } yield (raw, output.get)
 }
 
 class WireCodecsSuite extends CatsEffectSuite {
@@ -81,7 +49,7 @@ class WireCodecsSuite extends CatsEffectSuite {
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]
 
-  import WireCodecsSuite.peer
+  import ScriptedPeer.peer
 
   test("diagnostic text cannot impersonate a typed wire boundary") {
     val error = new IllegalArgumentException("unexpected EOF: needed 1 bytes, received 0")

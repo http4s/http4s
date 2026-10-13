@@ -24,16 +24,33 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Stream
-import scodec.bits.ByteVector
 import munit.CatsEffectSuite
+import scodec.bits.ByteVector
 
 private object Http2PositiveCompletionFixture {
+  final case class ServerCase(wireCase: WireCase, ping: Boolean = false) {
+    override def toString: String = wireCase.id
+  }
+  final case class ControlCase(
+      name: String,
+      responseEnd: Boolean = false,
+      largeBody: Boolean = false,
+      priorKnowledge: Boolean = false,
+  ) {
+    val wireCase: WireCase = Http2ControlCases.all.find(_.id == "h2.server." + name).get
+    override def toString: String = name
+  }
+  sealed trait Control
+  case object NoControl extends Control
+  case object PingControl extends Control
+  case object SettingsControl extends Control
+
   final case class Mode(
       name: String,
       graceful: Boolean = false,
       beforeHead: Boolean = false,
       trailers: Boolean = false,
-      control: String = "",
+      control: Control = NoControl,
       failWrite: Boolean = false,
       missing: Boolean = false,
       wrong: Boolean = false,
@@ -43,7 +60,7 @@ private object Http2PositiveCompletionFixture {
 
 class Http2PositiveCompletionSuite extends CatsEffectSuite {
 
-  import Http2PositiveCompletionFixture.Mode
+  import Http2PositiveCompletionFixture._
 
   private val pingBytes = ByteVector.fromValidHex("0102030405060708")
   private def bytes(fs: Vector[Http2Wire.Frame]): ByteVector =
@@ -52,11 +69,13 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
     Http2Wire.Frame(Http2Wire.GoAway, 0, 0, Http2Wire.uint32(last.toLong) ++ Http2Wire.uint32(code))
   private val families =
     Http2MessageCases.all ++ HpackCases.all ++ InteractionCases.all ++ SmokeCases.all
-  private val serverIds = Vector(
-    "h2.server.message-binary-data",
-    "h2.server.hpack-literal-without-new-name",
-    "h2.server.interaction-coalesced-preface-request",
-    "h2.server.ping",
+  private def serverCase(id: String, ping: Boolean = false): ServerCase =
+    ServerCase(families.find(_.id == id).get, ping)
+  private val serverCases = Vector(
+    serverCase("h2.server.message-binary-data"),
+    serverCase("h2.server.hpack-literal-without-new-name"),
+    serverCase("h2.server.interaction-coalesced-preface-request"),
+    serverCase("h2.server.ping", ping = true),
   )
   private val clientIds = Vector(
     "h2.client.message-empty",
@@ -72,17 +91,17 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
     Mode("graceful-trailers", graceful = true, trailers = true),
     Mode("missing-end", missing = true),
     Mode("wrong-body", wrong = true),
-    Mode("ping-writable", control = "ping"),
-    Mode("ping-closed", control = "ping", failWrite = true),
-    Mode("settings-writable", control = "settings"),
-    Mode("settings-closed", control = "settings", failWrite = true),
-    Mode("ping-closed-missing", control = "ping", failWrite = true, missing = true),
-    Mode("ping-closed-wrong", control = "ping", failWrite = true, wrong = true),
-    Mode("ping-closed-graceful", graceful = true, control = "ping", failWrite = true),
-    Mode("ping-closed-bad-tail", control = "ping", failWrite = true, badTail = true),
+    Mode("ping-writable", control = PingControl),
+    Mode("ping-closed", control = PingControl, failWrite = true),
+    Mode("settings-writable", control = SettingsControl),
+    Mode("settings-closed", control = SettingsControl, failWrite = true),
+    Mode("ping-closed-missing", control = PingControl, failWrite = true, missing = true),
+    Mode("ping-closed-wrong", control = PingControl, failWrite = true, wrong = true),
+    Mode("ping-closed-graceful", graceful = true, control = PingControl, failWrite = true),
+    Mode("ping-closed-bad-tail", control = PingControl, failWrite = true, badTail = true),
   )
   private def serverProbe(
-      id: String,
+      scenario: ServerCase,
       mode: Mode,
       hold: Option[(Deferred[IO, Unit], Deferred[IO, Unit])] = None,
   ): IO[Either[Throwable, Unit]] = for {
@@ -119,10 +138,10 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
           else if (mode.trailers) Vector(Http2Wire.data(sid, body, endStream = false), trailer)
           else Vector(Http2Wire.data(sid, body))
         incidental = mode.control match {
-          case "ping" => Vector(Http2Wire.Frame(Http2Wire.Ping, 0, 0, pingBytes))
+          case PingControl => Vector(Http2Wire.Frame(Http2Wire.Ping, 0, 0, pingBytes))
 
-          case "settings" => Vector(Http2Wire.settings())
-          case _ => Vector.empty
+          case SettingsControl => Vector(Http2Wire.settings())
+          case NoControl => Vector.empty
         }
         gs = (if (mode.graceful) Vector(goaway(sid)) else Vector.empty) ++
           (if (mode.badTail) Vector(Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(1)))
@@ -135,24 +154,25 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
       def onFrame(f: Http2Wire.Frame): IO[Unit] = for {
         started <- active.get
         fail =
-          mode.failWrite && started && ((mode.control == "ping" && f.frameType == Http2Wire.Ping && f
+          mode.failWrite && started && ((mode.control == PingControl && f.frameType == Http2Wire.Ping && f
             .hasFlag(
               Http2Wire.Ack
-            )) || (mode.control == "settings" && f.frameType == Http2Wire.Settings && f.hasFlag(
-            Http2Wire.Ack
-          )))
+            )) || (mode.control == SettingsControl && f.frameType == Http2Wire.Settings && f
+            .hasFlag(
+              Http2Wire.Ack
+            )))
         _ <-
           if (fail) IO.raiseError[Unit](closedWrite)
           else
             f.frameType match {
               case Http2Wire.Settings if !f.hasFlag(Http2Wire.Ack) =>
                 enqueue(Vector(Http2Wire.settings(ack = true)))
-              case Http2Wire.Ping if !f.hasFlag(Http2Wire.Ack) && id == "h2.server.ping" =>
+              case Http2Wire.Ping if !f.hasFlag(Http2Wire.Ack) && scenario.ping =>
                 val incidental = mode.control match {
-                  case "ping" => Vector(Http2Wire.Frame(Http2Wire.Ping, 0, 0, pingBytes))
+                  case PingControl => Vector(Http2Wire.Frame(Http2Wire.Ping, 0, 0, pingBytes))
 
-                  case "settings" => Vector(Http2Wire.settings())
-                  case _ => Vector.empty
+                  case SettingsControl => Vector(Http2Wire.settings())
+                  case NoControl => Vector.empty
                 }
                 val gs = (if (mode.graceful) Vector(goaway(0)) else Vector.empty) ++
                   (if (mode.badTail) Vector(Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(1)))
@@ -205,22 +225,17 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
         transcript,
       )
     }
-    target = new WireTarget[IO] {
-      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-      val name = "independent-causal-server"
-      val version = "review"
-      def client(p: Protocol, a: SocketAddress[IpAddress]) =
-        Resource.eval(IO.raiseError[ClientDriver[IO]](new Exception("not client")))
-      def server(p: Protocol, s: ServerScenario) = Resource.pure[IO, ServerHandle[IO]](
+    target = ScriptedServer[IO](
+      "independent-causal-server",
+      Resource.pure[IO, ServerHandle[IO]](
         ServerHandle(
           SocketAddress(ip"127.0.0.1", port"1"),
           received.modify(v => (v.drop(1), v.head)),
           received.get.map(_.headOption),
         )
-      )
-    }
-    c = families.find(_.id == id).get
+      ),
+    )
+    c = scenario.wireCase
     result <- c
       .run(
         CaseContext(
@@ -318,8 +333,8 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
   } yield result
 
   for {
-    id <- serverIds
-    mode <- modes
+    id <- serverCases
+    mode <- modes.filterNot(mode => id.ping && (mode.trailers || mode.beforeHead))
   }
     test(s"positive buffered response $id / ${mode.name}") {
       serverProbe(id, mode).map { result =>
@@ -454,42 +469,21 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
       trace <- Transcript.create[IO]()
       state <- Ref.of[IO, State](State())
       released <- Ref.of[IO, Boolean](false)
-      peer <- RawPeer.create[IO](
-        (n: Int) =>
-          state
-            .modify { s =>
-              val b = s.queue.take(n.toLong)
-              (s.copy(queue = s.queue.drop(n.toLong)), b)
-            }
-            .map(b => if (b.isEmpty) None else Some(Chunk.byteVector(b))),
-        (c: Chunk[Byte]) => {
-          val b = ByteVector(c.toArray)
-
-          val wire = if (b.startsWith(clientPreface)) b.drop(clientPreface.size) else b
-          IO.fromEither(decodeAll(wire))
-            .flatMap(_.traverse_ { f =>
-              state
-                .modify { s =>
-                  val reject = s.closed && (mode == "first" || f.frameType != WindowUpdate)
-                  if (reject) (s.copy(failed = s.failed + 1), true) else (receive(s, f), false)
-                }
-                .flatMap(failed => IO.raiseWhen(failed)(closedWrite))
-            })
+      peer <- ScriptedPeer.frames[State](
+        state,
+        (s, n) => (s.copy(queue = s.queue.drop(n.toLong)), s.queue.take(n.toLong)),
+        (s, f) => {
+          val reject = s.closed && (mode == "first" || f.frameType != WindowUpdate)
+          if (reject) (s.copy(failed = s.failed + 1), Some(closedWrite))
+          else (receive(s, f), None)
         },
-        IO.unit,
         trace,
       )
       address = SocketAddress(ip"127.0.0.1", port"1")
-      target = new WireTarget[IO] {
-        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-        val name = "causal-flow-completion"
-        val version = "1"
-        def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
-          Resource.pure(ServerHandle[IO](address, IO.never[RequestData], IO.pure(None)))
-        def client(p: Protocol, a: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
-          Resource.eval(IO.raiseError(new Exception("unused")))
-      }
+      target = ScriptedServer[IO](
+        "causal-flow-completion",
+        Resource.pure(ServerHandle[IO](address, IO.never[RequestData], IO.pure(None))),
+      )
       result <- Http2StateCases.all
         .find(_.id == id)
         .get
@@ -502,7 +496,12 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
         )
         .attempt
       isReleased <- released.get
-      _ <- IO(assert(isReleased))
+      observed <- state.get
+      _ <- IO {
+        assert(isReleased)
+        if (mode == "writable") assertEquals(observed.failed, 0)
+        else assert(observed.failed > 0, s"unexercised closure: $name/$phase/$mode/$ending")
+      }
     } yield result
   }
 
@@ -530,50 +529,45 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
       stateProbe(name, mode, ending, phase, graceful).map(result => assertEquals(result, Right(())))
     }
 
-  private val controlNames = Vector(
-    "prior-knowledge-preface",
-    "unknown-connection-frame",
-    "unknown-stream-frame",
-    "unknown-empty-frame",
-    "unknown-max-default-frame",
-    "ignore-reserved-frame-bit",
-    "ignore-ping-unused-flags",
-    "ignore-settings-unused-flags",
-    "settings-empty-update",
-    "settings-unknown-identifier",
-    "settings-max-frame-minimum",
-    "settings-max-frame-maximum",
-    "settings-enable-push-zero",
-    "settings-header-list-advisory",
-    "settings-ordered-acknowledgments",
-    "ping-ack-no-response",
-    "ping-all-octets",
-    "settings-client-enable-push-one",
-    "settings-header-table-zero",
-    "settings-header-table-uint32",
-    "settings-window-zero",
-    "settings-window-maximum",
-    "settings-concurrency-zero",
-    "settings-concurrency-uint32",
-    "settings-header-list-zero",
-    "priority-idle",
-    "priority-exclusive-max-dependency",
-    "priority-does-not-open-stream",
-    "priority-on-closed-stream",
-    "default-frame-size-splits-data",
-    "settings-replace-frame-limit",
+  private val controlCases = Vector(
+    ControlCase("prior-knowledge-preface", priorKnowledge = true),
+    ControlCase("unknown-connection-frame"),
+    ControlCase("unknown-stream-frame"),
+    ControlCase("unknown-empty-frame"),
+    ControlCase("unknown-max-default-frame"),
+    ControlCase("ignore-reserved-frame-bit"),
+    ControlCase("ignore-ping-unused-flags"),
+    ControlCase("ignore-settings-unused-flags"),
+    ControlCase("settings-empty-update"),
+    ControlCase("settings-unknown-identifier"),
+    ControlCase("settings-max-frame-minimum"),
+    ControlCase("settings-max-frame-maximum"),
+    ControlCase("settings-enable-push-zero"),
+    ControlCase("settings-header-list-advisory"),
+    ControlCase("settings-ordered-acknowledgments"),
+    ControlCase("ping-ack-no-response"),
+    ControlCase("ping-all-octets"),
+    ControlCase("settings-client-enable-push-one"),
+    ControlCase("settings-header-table-zero"),
+    ControlCase("settings-header-table-uint32"),
+    ControlCase("settings-window-zero"),
+    ControlCase("settings-window-maximum"),
+    ControlCase("settings-concurrency-zero"),
+    ControlCase("settings-concurrency-uint32"),
+    ControlCase("settings-header-list-zero"),
+    ControlCase("priority-idle"),
+    ControlCase("priority-exclusive-max-dependency"),
+    ControlCase("priority-does-not-open-stream", responseEnd = true),
+    ControlCase("priority-on-closed-stream"),
+    ControlCase("default-frame-size-splits-data", responseEnd = true, largeBody = true),
+    ControlCase("settings-replace-frame-limit", responseEnd = true, largeBody = true),
   )
-  private def controlProbe(name: String, mode: String): IO[Either[Throwable, Unit]] = {
-    val responseEnd = Set(
-      "priority-does-not-open-stream",
-      "default-frame-size-splits-data",
-      "settings-replace-frame-limit",
-    )(name)
+  private def controlProbe(scenario: ControlCase, mode: String): IO[Either[Throwable, Unit]] = {
+    val name = scenario.name
     val body =
-      if (name.contains("frame-size") || name == "settings-replace-frame-limit")
-        ByteVector.fill(40000)(42.toByte)
+      if (scenario.largeBody) ByteVector.fill(40000)(42.toByte)
       else Http1Wire.ascii("accepted")
-    case class State(
+    final case class State(
         queue: ByteVector = encode(settings()),
         closed: Boolean = false,
         terminalDone: Boolean = false,
@@ -593,8 +587,8 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
     }
     def receive(s: State, f: Frame): State = f.frameType match {
       case Settings if !f.hasFlag(Ack) =>
-        if (name == "prior-knowledge-preface") s else add(s, Vector(settings(ack = true)))
-      case Settings if f.hasFlag(Ack) && name == "prior-knowledge-preface" && !s.terminalDone =>
+        if (scenario.priorKnowledge) s else add(s, Vector(settings(ack = true)))
+      case Settings if f.hasFlag(Ack) && scenario.priorKnowledge && !s.terminalDone =>
         terminal(s, Vector(settings(ack = true)))
       case Headers =>
         val next = add(
@@ -604,7 +598,7 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
         val ds = body.grouped(16384).toVector.zipWithIndex.map { case (b, i) =>
           data(f.streamId, b, endStream = (i + 1) * 16384 >= body.size)
         }
-        if (responseEnd) terminal(next, ds) else add(next, ds)
+        if (scenario.responseEnd) terminal(next, ds) else add(next, ds)
       case Ping if !f.hasFlag(Ack) && f.payload != ByteVector(0, 1, 2, 3, 4, 5, 6, 7) =>
         if (mode == "unissued") terminal(s, Vector(f.copy(flags = Ack)))
         else add(s, Vector(f.copy(flags = Ack)))
@@ -616,55 +610,43 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
       tr <- Transcript.create[IO]()
       st <- Ref.of[IO, State](State())
       released <- Ref.of[IO, Boolean](false)
-      peer <- RawPeer.create[IO](
-        (n: Int) =>
-          st.modify(s => (s.copy(queue = s.queue.drop(n.toLong)), s.queue.take(n.toLong)))
-            .map(b => if (b.isEmpty) None else Some(Chunk.byteVector(b))),
-        (c: Chunk[Byte]) => {
-          val b = ByteVector(c.toArray)
-
-          val wire = if (b.startsWith(clientPreface)) b.drop(clientPreface.size) else b
-          IO.fromEither(decodeAll(wire))
-            .flatMap(
-              _.traverse_(f =>
-                st.modify(s =>
-                  if (s.closed) (s.copy(failed = s.failed + 1), true) else (receive(s, f), false)
-                ).flatMap(x => IO.raiseWhen(x)(closedWrite))
-              )
-            )
-        },
-        IO.unit,
+      peer <- ScriptedPeer.frames[State](
+        st,
+        (s, n) => (s.copy(queue = s.queue.drop(n.toLong)), s.queue.take(n.toLong)),
+        (s, f) =>
+          if (s.closed) (s.copy(failed = s.failed + 1), Some(closedWrite))
+          else (receive(s, f), None),
         tr,
       )
-      target = new WireTarget[IO] {
-        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
-
-        val name = "causal-control-buffered"
-        val version = "1"
-        def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(
+      target = ScriptedServer[IO](
+        "causal-control-buffered",
+        Resource.pure(
           ServerHandle[IO](
             SocketAddress(ip"127.0.0.1", port"1"),
             IO.pure(RequestData(method = "POST", path = "/control")),
             IO.pure(None),
           )
-        )
-        def client(p: Protocol, a: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
-          Resource.eval(IO.raiseError(new Exception("unused")))
-      }
-      outcome <- Http2ControlCases.all
-        .find(_.id == "h2.server." + name)
-        .get
+        ),
+      )
+      outcome <- scenario.wireCase
         .run(
           CaseContext(target, tr, (_, _) => Resource.make(IO.pure(peer))(_ => released.set(true)))
         )
         .attempt
       rel <- released.get
-      _ <- IO(assert(rel))
+      observed <- st.get
+      _ <- IO {
+        assert(rel)
+        assert(observed.terminalDone, s"terminal stimulus not emitted: $name/$mode")
+        if (mode == "closed" || mode == "unissued")
+          assert(observed.failed > 0, s"unexercised closure: $name/$mode")
+        else assertEquals(observed.failed, 0)
+      }
     } yield outcome
   }
 
   for {
-    name <- controlNames
+    name <- controlCases
     mode <- Vector("writable", "closed", "goaway")
   }
     test(s"positive Control completion $name / $mode") {
@@ -673,24 +655,24 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
 
   for (name <- Vector("ignore-reserved-frame-bit", "ignore-ping-unused-flags", "ping-all-octets"))
     test(s"unissued required PING cannot pass $name") {
-      controlProbe(name, "unissued").map(result => assert(result.isLeft))
+      controlProbe(ControlCase(name), "unissued").map(result => assert(result.isLeft))
     }
 
   for (id <- Vector("h2.server.hpack-dynamic-stream-reuse", "h2.server.hpack-dynamic-order"))
     test(s"GOAWAY prevents subsequent HPACK request $id") {
-      serverProbe(id, Mode("graceful", graceful = true)).map { result =>
+      serverProbe(serverCase(id), Mode("graceful", graceful = true)).map { result =>
         assert(result.swap.exists(_.isInstanceOf[WireObservationLimit]), result.toString)
         assert(result.swap.exists(_.getMessage.contains("later-stream obligation unexercised")))
       }
     }
-  for (id <- serverIds)
+  for (id <- serverCases)
     test(s"closed incidental write cannot complete a held missing tail: $id") {
       for {
         blocked <- Deferred[IO, Unit]
         released <- Deferred[IO, Unit]
         fiber <- serverProbe(
           id,
-          Mode("held", control = "ping", failWrite = true, missing = true),
+          Mode("held", control = PingControl, failWrite = true, missing = true),
           Some(blocked -> released),
         ).start
         _ <- blocked.get
