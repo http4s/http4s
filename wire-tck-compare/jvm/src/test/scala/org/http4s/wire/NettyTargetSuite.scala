@@ -29,6 +29,10 @@ import scodec.bits.ByteVector
 import scala.concurrent.duration._
 
 class NettyTargetSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   test("native request write failure preserves direct source lifecycle and provenance") {
     def run(wrapped: Boolean): IO[Unit] =
       Resource

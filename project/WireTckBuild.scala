@@ -54,9 +54,11 @@ object WireTckBuild {
       violations.isEmpty,
       s"Local test suppression is forbidden: ${violations.mkString(", ")}",
     )
-    val registry =
-      IO.read(root / "wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala")
-    val tracking = trackingReferences(registry)
+    val tracking = ignoreRows(root).map { row =>
+      val columns = row.split("\t", -1)
+      require(columns.length == 6 && columns.forall(_.nonEmpty), s"Invalid ignore row: $row")
+      columns(5)
+    }
     tracking.foreach { reference =>
       val parts = reference.split("#", 2)
       require(parts.length == 2 && (root / parts(0)).isFile, s"Missing tracking record: $reference")
@@ -65,49 +67,8 @@ object WireTckBuild {
     }
   }
 
-  // Read only literal tracking arguments; never silently skip an expression we cannot validate.
-  private def trackingReferences(source: String): Vector[String] = {
-    val token =
-      "(?s)\"\"\".*?\"\"\"\"*|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])'|`[^`]+`|//[^\\r\\n]*|/\\*|[\\p{L}_$][\\p{L}\\p{N}_$]*|[^\\s]".r
-    val matcher = token.pattern.matcher(source)
-    val tokens = Vector.newBuilder[String]
-    var offset = 0
-    while (matcher.find(offset)) {
-      val value = matcher.group()
-      offset = matcher.end()
-      if (value == "/*") {
-        var depth = 1
-        while (depth > 0) {
-          val close = source.indexOf("*/", offset)
-          val open = source.indexOf("/*", offset)
-          require(close >= 0, "Unterminated registry comment")
-          if (open >= 0 && open < close) {
-            depth += 1
-            offset = open + 2
-          } else {
-            depth -= 1
-            offset = close + 2
-          }
-        }
-      } else if (!value.startsWith("//")) tokens += value
-    }
-    val code = tokens.result()
-    val literal = "\"([^\"\\\\\\r\\n]+)\"".r
-    code.indices.collect {
-      case index
-          if (code(index) == "tracking" || code(index) == "`tracking`") &&
-            code.lift(index + 1).contains("=") =>
-        val value = code.lift(index + 2).getOrElse("")
-        require(
-          code.lift(index + 3).exists(t => t == "," || t == ")"),
-          s"Unsupported tracking assignment: $value",
-        )
-        value match {
-          case literal(reference) => reference
-          case _ => sys.error(s"Unsupported tracking assignment: $value")
-        }
-    }.toVector
-  }
+  def ignoreRows(root: File): Vector[String] =
+    IO.readLines(root / "docs/wire-tck/ignores.tsv").drop(1).toVector
 
   private val comparisonName =
     "(org\\.http4s\\.wire\\.(Compare(?:Ember|Netty)Http[12](?:Server|Client)Suite))(?:\\.(.+))?".r
@@ -235,6 +196,7 @@ object WireTckBuild {
   /** Small build-native mutation checks: disagreement is data, fabricated evidence is fatal. */
   def checkReconciliation(): Unit = {
     checkTrackingReferences()
+    checkEvidence()
     val outcomes = Map("one" -> "pass", "two" -> "fail", "three" -> "inconclusive")
     val events = Vector("one" -> "Success", "two" -> "Failure", "three" -> "Failure")
     require(
@@ -368,64 +330,71 @@ object WireTckBuild {
     )
   }
 
+  private def checkEvidence(): Unit = {
+    val root = file("evidence")
+    val suites = for {
+      protocol <- Vector("Http1", "Http2")
+      role <- Vector("Server", "Client")
+    } yield s"CompareEmber$protocol${role}Suite"
+    val passed = new SuiteResult(TestResult.Passed, 1, 0, 0, 0, 0, 0, 0)
+    val results = Vector(
+      "js" -> Value(
+        Tests.Output(
+          TestResult.Passed,
+          suites.map(suite => s"org.http4s.wire.$suite" -> passed).toMap,
+          Nil,
+        )
+      )
+    )
+    val files = suites.flatMap { suite =>
+      val directory = root / "js" / suite
+      val id = suite + "-case"
+      Vector(
+        directory / "manifest.tsv" -> s"$id\tsource",
+        directory / "complete" -> "",
+        directory / s"$id.outcome" -> s"$id\tsource\tpass",
+        directory / "munit-events.tsv" -> s"$id\tSuccess",
+        directory / s"$id.wire.txt" -> "",
+        directory / s"$id.json" -> s"""{"case":"$id","target":"ember","platform":"js","outcome":"pass","targetVersion":"1","runtime":"test","scalaVersion":"2.13","catalogRevision":"revision","harnessSettings":"test","source":"source","transcript":"$id.wire.txt","settings":{},"references":[{}]}""",
+      )
+    }.toMap
+    val valid = reconcileEvidence(root, results, Evidence(files))
+    require(valid.errors.isEmpty, valid.errors.mkString("\n"))
+    require(valid.counts == Map("pass" -> 4))
+    val suite = suites.head
+    val json = root / "js" / suite / s"$suite-case.json"
+    val malformed = reconcileEvidence(root, results, Evidence(files.updated(json, "{")))
+    require(malformed.errors.exists(_.startsWith("Invalid JSON evidence")))
+    val missing = reconcileEvidence(root, results, Evidence(files - json))
+    require(missing.errors.exists(_.startsWith("Missing evidence")))
+    val mismatch = reconcileEvidence(
+      root,
+      results,
+      Evidence(files.updated(json, files(json).replace("revision", "different"))),
+    )
+    require(mismatch.errors.exists(_.startsWith("Catalog revisions differ")))
+  }
+
   private def checkTrackingReferences(): Unit =
     IO.withTemporaryDirectory { root =>
-      val registry =
-        root / "wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala"
+      val registry = root / "docs/wire-tck/ignores.tsv"
       val record = root / "tracking.md"
-      val inline = "IgnoredCase(tracking = \"tracking.md#inline\",)"
-      val multiline = "IgnoredCase(tracking\n =\n \"tracking.md#multiline\"\n,)"
-      val commented =
-        "IgnoredCase(tracking /* comment */ = // comment\n \"tracking.md#inline\",)"
-      val quoted = "observed = \"tracking = \\\"missing.md#quoted\\\"\","
-      val tripleQuoted = "observed = \"\"\"tracking = \"missing.md#triple\"\"\"\","
-      val characters = "val quote = '\"'; val escaped = '\\\\'; val letter = 't'"
-      val comments =
-        "// tracking = unknown\n/* outer /* nested */ tracking = unknown */\n"
-      IO.write(registry, Vector(inline, multiline, commented).mkString("\n"))
-      IO.write(record, "## inline\n## multiline\n")
+      def write(reference: String): Unit =
+        IO.write(
+          registry,
+          s"id\tplatforms\tobserved\trevision\tstatus\ttracking\ncase\tjvm\tdiagnostic\trevision\tconfirmed\t$reference\n",
+        )
+      write("tracking.md#record")
+      IO.write(record, "## record\n")
       checkSources(root)
       def rejects(expected: String): Boolean =
         scala.util.Try(checkSources(root)).failed.toOption.exists(_.getMessage.contains(expected))
-      IO.write(record, "## inline\n")
-      require(
-        rejects("Missing tracking anchor: tracking.md#multiline"),
-        "Missing multiline tracking anchors must block",
-      )
-      IO.write(record, "## multiline\n")
-      require(
-        rejects("Missing tracking anchor: tracking.md#inline"),
-        "Missing inline tracking anchors must block",
-      )
-      IO.write(record, "## inline\n## multiline\n")
-      val formatted =
-        Vector(comments, quoted, tripleQuoted, characters, inline, multiline, commented).mkString(
-          "\n"
-        )
-      require(
-        trackingReferences(formatted) == Vector(
-          "tracking.md#inline",
-          "tracking.md#multiline",
-          "tracking.md#inline",
-        ),
-        "Comments and quoted diagnostic text must neither invent nor hide tracking arguments",
-      )
-      IO.write(registry, formatted)
-      checkSources(root)
-      IO.write(record, "## inline\n")
-      require(
-        rejects("Missing tracking anchor: tracking.md#multiline"),
-        "Quoted text must not hide tracking arguments",
-      )
-      IO.write(record, "## inline\n## multiline\n")
-      Vector("reference", "\"tracking.md#inline\" + suffix", "s\"tracking.md#$anchor\"").foreach {
-        rhs =>
-          IO.write(registry, s"IgnoredCase(tracking = $rhs,)")
-          require(
-            rejects("Unsupported tracking assignment"),
-            "Uninterpretable tracking values must block",
-          )
-      }
+      write("tracking.md#missing")
+      require(rejects("Missing tracking anchor"))
+      write("missing.md#record")
+      require(rejects("Missing tracking record"))
+      IO.write(registry, "header\ninvalid\n")
+      require(rejects("Invalid ignore row"))
     }
 
   private def checkEventListener(): Unit = {
@@ -560,12 +529,41 @@ object WireTckBuild {
     }
   }
 
-  def reconcile(
+  final case class Reconciled(
+      counts: Map[String, Int],
+      cells: Map[(String, String), String],
+      errors: Vector[String],
+  ) {
+    def summary: String =
+      counts.toVector.sortBy(_._1).map { case (key, count) => s"$key=$count" }.mkString(", ")
+
+    def text: String = s"$summary\n" + errors.mkString("\n")
+
+    def markdown: String = {
+      val columns = Vector("jvm/Ember", "jvm/Netty", "js/Ember", "native/Ember")
+      val rows = cells.keys.map(_._1).toVector.distinct.sorted.map { id =>
+        (Vector(id) ++ columns.map(column => cells.getOrElse(id -> column, "MISSING")))
+          .mkString("| ", " | ", " |")
+      }
+
+      s"# HTTP wire comparison\n\n$summary\n\n" +
+        "| Case | JVM Ember | JVM Netty | JS Ember | Native Ember |\n|---|---|---|---|---|\n" +
+        rows.mkString("\n") + "\n\n" + errors.mkString("\n")
+    }
+  }
+
+  /** A snapshot makes reconciliation deterministic and independent of filesystem operations. */
+  final case class Evidence(files: Map[File, String]) {
+    def contains(file: File): Boolean = files.contains(file)
+    def apply(file: File): String = files(file)
+  }
+
+  def reconcileEvidence(
       root: File,
       results: Vector[(String, Result[Tests.Output])],
-      log: Logger,
+      evidence: Evidence,
       harnessErrors: Vector[String] = Vector.empty,
-  ): Unit = {
+  ): Reconciled = {
     val problems = Vector.newBuilder[String]
     problems ++= harnessErrors
     var counts = Map.empty[String, Int].withDefaultValue(0)
@@ -597,9 +595,9 @@ object WireTckBuild {
         val suite = s"Compare$target$protocol${role}Suite"
         val directory = root / platform / suite
         val manifest = directory / "manifest.tsv"
-        if (!manifest.isFile) problems += s"Missing manifest: $platform/$suite"
+        if (!evidence.contains(manifest)) problems += s"Missing manifest: $platform/$suite"
         else {
-          val expected = IO.readLines(manifest).filter(_.nonEmpty)
+          val expected = evidence(manifest).linesIterator.toVector.filter(_.nonEmpty)
           val ids = expected.map(_.takeWhile(_ != '\t')).toSet
           val group = s"$protocol/$role"
           catalogs.get(group).foreach { previous =>
@@ -620,15 +618,15 @@ object WireTckBuild {
               }
             case _ => ()
           }
-          if (!(directory / "complete").isFile)
+          if (!evidence.contains(directory / "complete"))
             problems += s"Suite did not finalize: $platform/$suite"
           var outcomes = Map.empty[String, String]
           expected.foreach { entry =>
             val parts = entry.split("\t", -1)
             val file = directory / s"${parts(0)}.outcome"
-            if (!file.isFile) problems += s"Unexercised case: $platform/$suite/$entry"
+            if (!evidence.contains(file)) problems += s"Unexercised case: $platform/$suite/$entry"
             else {
-              val outcome = IO.read(file).trim.split("\t", -1)
+              val outcome = evidence(file).trim.split("\t", -1)
               if (outcome.length != 3 || outcome.take(2).mkString("\t") != entry)
                 problems += s"Invalid outcome: $file"
               else {
@@ -643,12 +641,12 @@ object WireTckBuild {
                   problems += s"Blocking $status: $platform/$suite/${parts(0)}"
                 val json = directory / s"${parts(0)}.json"
                 if (
-                  !json.isFile ||
-                  !(directory / s"${parts(0)}.wire.txt").isFile
+                  !evidence.contains(json) ||
+                  !evidence.contains(directory / s"${parts(0)}.wire.txt")
                 )
                   problems += s"Missing evidence: $file"
                 else
-                  Parser.parseFromFile(json).toOption match {
+                  Parser.parseFromString(evidence(json)).toOption match {
                     case Some(JObject(fields)) =>
                       val strings = fields.collect { case JField(key, JString(value)) =>
                         key -> value
@@ -704,12 +702,13 @@ object WireTckBuild {
               output.events.get(s"org.http4s.wire.$suite").foreach { events =>
                 val eventFile = directory / "munit-events.tsv"
                 val identities =
-                  if (eventFile.isFile) IO.readLines(eventFile).toVector.flatMap { line =>
-                    line.split("\t", -1).toVector match {
-                      case Vector(id, status) => Some(id -> status)
-                      case _ => problems += s"Invalid MUnit event evidence: $eventFile"; None
+                  if (evidence.contains(eventFile))
+                    evidence(eventFile).linesIterator.toVector.flatMap { line =>
+                      line.split("\t", -1).toVector match {
+                        case Vector(id, status) => Some(id -> status)
+                        case _ => problems += s"Invalid MUnit event evidence: $eventFile"; None
+                      }
                     }
-                  }
                   else Vector.empty
                 outcomeProblems(
                   outcomes,
@@ -726,20 +725,30 @@ object WireTckBuild {
     if (revisions.size != 1)
       problems += s"Catalog revisions differ or are absent: ${revisions.mkString(", ")}"
     val errors = problems.result()
-    val summary =
-      counts.toVector.sortBy(_._1).map { case (key, count) => s"$key=$count" }.mkString(", ")
-    IO.write(root / "summary.txt", s"$summary\n" + errors.mkString("\n"))
-    val columns = Vector("jvm/Ember", "jvm/Netty", "js/Ember", "native/Ember")
-    val rows = cells.keys.map(_._1).toVector.distinct.sorted.map { id =>
-      (Vector(id) ++ columns.map(column => cells.getOrElse(id -> column, "MISSING")))
-        .mkString("| ", " | ", " |")
-    }
-    IO.write(
-      root / "report.md",
-      s"# HTTP wire comparison\n\n$summary\n\n" +
-        "| Case | JVM Ember | JVM Netty | JS Ember | Native Ember |\n|---|---|---|---|---|\n" +
-        rows.mkString("\n") + "\n\n" + errors.mkString("\n"),
+    Reconciled(counts, cells, errors)
+  }
+
+  def reconcile(
+      root: File,
+      results: Vector[(String, Result[Tests.Output])],
+      log: Logger,
+      harnessErrors: Vector[String] = Vector.empty,
+  ): Unit = {
+    val files = (root ** "*").get.filter(file => file.isFile && file.getName != "evidence.zip")
+    // Wire transcripts are only checked for presence; don't retain their potentially large contents.
+    val snapshot = Evidence(
+      files
+        .map(file =>
+          file ->
+            (if (file.getName.endsWith(".wire.txt")) "" else IO.read(file))
+        )
+        .toMap
     )
+    val result = reconcileEvidence(root, results, snapshot, harnessErrors)
+    val summary = result.summary
+    val errors = result.errors
+    IO.write(root / "summary.txt", result.text)
+    IO.write(root / "report.md", result.markdown)
     val evidence = (root ** "*").get
       .filter(file => file.isFile && file.getName != "evidence.zip")
       .map(file => file -> IO.relativize(root, file).get)

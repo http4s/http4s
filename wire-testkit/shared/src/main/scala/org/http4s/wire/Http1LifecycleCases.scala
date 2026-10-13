@@ -1538,8 +1538,8 @@ object Http1LifecycleCases {
                 _ <- Check.equal(nextRequest.path, "/second")
               } yield true
             // Closing instead of draining is expressly permitted by Section 9.3.
-            case Left(error: WireDecodingFailure)
-                if error.getMessage == "unexpected EOF before delimiter" =>
+            case Left(error: WireDecodingFailure.Truncated)
+                if error.boundary.isInstanceOf[WireReadFailure.Delimiter] =>
               IO.pure(false)
             case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.pure(false)
             case Left(error) => IO.raiseError(error)
@@ -1600,8 +1600,8 @@ object Http1LifecycleCases {
                       _ <- Check.equal(nextRequest.path, "/second")
                     } yield true
                   // Closing instead of draining is expressly permitted by Section 9.3.
-                  case Left(error: WireDecodingFailure)
-                      if error.getMessage == "unexpected EOF before delimiter" =>
+                  case Left(error: WireDecodingFailure.Truncated)
+                      if error.boundary.isInstanceOf[WireReadFailure.Delimiter] =>
                     IO.pure(false)
                   case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.pure(false)
                   case Left(error) => IO.raiseError(error)
@@ -1699,7 +1699,7 @@ object Http1LifecycleCases {
   private def nextPipelineResponse(peer: RawPeer[IO]): IO[Http1Wire.Response] =
     Http1Wire.readFinalResponse(peer).handleErrorWith { error =>
       RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
-        case failure: WireDecodingFailure if failure.getMessage.startsWith("unexpected EOF") =>
+        case _: WireDecodingFailure.Truncated =>
           IO.raiseError(
             new IllegalStateException(
               "coverage prerequisite unavailable: pipeline connection closed",
@@ -1743,7 +1743,7 @@ object Http1LifecycleCases {
             expectTransportClose(peer)
         case Left(error) =>
           RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
-            case failure: WireDecodingFailure if failure.getMessage.startsWith("unexpected EOF") =>
+            case _: WireDecodingFailure.Truncated =>
               IO.unit
             case failure if RuntimeInfo.isConnectionReset(failure) => IO.unit
             case other => IO.raiseError(other)
@@ -1786,8 +1786,7 @@ object Http1LifecycleCases {
       .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
       .flatMap {
         case Right(bytes) => Check.equal(bytes, ByteVector.empty)
-        case Left(error: WireObservationLimit)
-            if error.getMessage.startsWith("body exceeds 0 bytes;") =>
+        case Left(WireBodyLimit(0)) =>
           Check(false, "received additional bytes where connection closure was required")
         case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.unit
         case Left(error) => IO.raiseError(error)

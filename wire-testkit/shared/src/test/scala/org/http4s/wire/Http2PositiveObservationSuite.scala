@@ -28,6 +28,10 @@ import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 class Http2PositiveObservationSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import Http2Wire._
 
   private def goaway(last: Long, code: Long = 0L): Frame =
@@ -246,6 +250,8 @@ class Http2PositiveObservationSuite extends CatsEffectSuite {
         trace,
       )
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "raw-observer-provenance"
         val version = "1"
         def server(p: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -327,7 +333,7 @@ class Http2PositiveObservationSuite extends CatsEffectSuite {
   }
 
   test("positive admission is per connection and preserves malformed raw stimuli") {
-    Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit settings =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit codecSettings =>
       for {
         trace <- Transcript.create[IO]()
         writes <- Ref.of[IO, Vector[ByteVector]](Vector.empty)
@@ -340,7 +346,7 @@ class Http2PositiveObservationSuite extends CatsEffectSuite {
         other <- RawPeer
           .create[IO]((_: Int) => IO.pure(None), (_: Chunk[Byte]) => IO.unit, IO.unit, trace)
         _ <- writeFrame(peer, headers(1, Vector(":method" -> "GET")))
-        positive <- settings.positive(peer)
+        positive <- codecSettings.positive(peer)
         _ <- positive.observe(goaway(1), fromServer = true)
         malformed = Vector(0, 2, 1).map(id => headers(id, Vector(":method" -> "GET")))
         _ <- malformed.traverse_(writeFrame(peer, _))
@@ -405,6 +411,8 @@ class Http2PositiveObservationSuite extends CatsEffectSuite {
         ): Resource[IO, ResponseData[IO]] = Resource.eval(IO.raiseError(native))
       }
       val target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "native-exchange-failure"
         val version = "1"
         def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =

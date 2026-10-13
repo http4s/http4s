@@ -74,7 +74,7 @@ final class RawPeer[F[_]] private (
       else
         receive(math.min(8192, size - bytes.size.toInt)).flatMap {
           case true => F.defer(loop)
-          case false => fail(s"unexpected EOF: needed $size bytes, received ${bytes.size}")
+          case false => F.raiseError(WireReadFailure.Exact(size, bytes.size))
         }
     }
     if (size < 0) fail("negative exact-read size") else loop
@@ -94,7 +94,7 @@ final class RawPeer[F[_]] private (
           val capacity = maxBytes.toLong + delimiter.size - bytes.size
           receive(math.min(8192L, capacity).toInt).flatMap {
             case true => F.defer(loop(nextFrom))
-            case false => fail("unexpected EOF before delimiter")
+            case false => F.raiseError(WireReadFailure.Delimiter(bytes.size))
           }
         }
       }
@@ -112,8 +112,7 @@ final class RawPeer[F[_]] private (
     readUntil(delimiter, maxBytes).map(Option(_)).handleErrorWith { error =>
       RawPeer.raiseAdapterOrTimeout[F](error) *> {
         val closed = RuntimeInfo.isConnectionReset(error) || (error match {
-          case failure: IllegalArgumentException =>
-            failure.getMessage == "unexpected EOF before delimiter"
+          case _: WireReadFailure.Delimiter => true
           case _ => false
         })
         if (!closed) F.raiseError(error)
@@ -138,7 +137,7 @@ final class RawPeer[F[_]] private (
     readLock.permit.use { _ =>
       def loop: F[ByteVector] = buffered.get.flatMap { bytes =>
         if (bytes.size > maxBytes.toLong)
-          F.raiseError(new WireObservationLimit(s"body exceeds $maxBytes bytes"))
+          F.raiseError(WireBodyLimit(maxBytes))
         else
           receive(math.min(8192L, maxBytes.toLong - bytes.size + 1L).toInt)
             .handleErrorWith { case error =>

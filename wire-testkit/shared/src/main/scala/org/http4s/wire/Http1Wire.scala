@@ -16,7 +16,7 @@
 
 package org.http4s.wire
 
-import cats.effect.Async
+import cats.effect.Sync
 import cats.syntax.all._
 import scodec.bits.ByteVector
 
@@ -52,13 +52,13 @@ object Http1Wire {
     ) ++ body
 
   /** Reads a single response, including a bodyless informational response if one is sent. */
-  def readResponse[F[_]: Async](
+  def readResponse[F[_]: Sync](
       peer: RawPeer[F],
       requestMethod: String = "GET",
   ): F[Response] =
     for {
       line <- readLine(peer)
-      status <- Async[F].delay(parseStatus(line))
+      status <- Sync[F].delay(parseStatus(line))
       headers <- readHeaders(peer)
       noBody = requestMethod == "HEAD" || status < 200 || status == 204 || status == 304 ||
         (requestMethod == "CONNECT" && status >= 200 && status < 300)
@@ -67,7 +67,7 @@ object Http1Wire {
         else readBody(peer, headers, request = false)
     } yield Response(status, headers, content._1, content._2)
 
-  def readFinalResponse[F[_]: Async](
+  def readFinalResponse[F[_]: Sync](
       peer: RawPeer[F],
       requestMethod: String = "GET",
   ): F[Response] = {
@@ -80,20 +80,63 @@ object Http1Wire {
     loop(16)
   }
 
-  def readRequest[F[_]: Async](peer: RawPeer[F]): F[Request] =
+  /** A failed delimiter read retains buffered bytes, so partial response heads cannot pass as EOF. */
+  private[wire] def readFinalStatusOrClosed[F[_]: Sync](
+      peer: RawPeer[F],
+      informational: Int = 0,
+  ): F[Option[Int]] = {
+    def verify(condition: Boolean, detail: => String): F[Unit] =
+      if (condition) Sync[F].unit else Sync[F].raiseError(new ProtocolFailure(detail))
+    val head = peer.readUntilOrClosed(Http1Wire.crlf ++ Http1Wire.crlf, 65536)
+    head
+      .flatMap(_.traverse { bytes =>
+        val lines =
+          bytes.toArray.iterator.map(b => (b & 0xff).toChar).mkString.split("\r\n", -1).toVector
+        val line = lines.head
+        val validStatus = line.length >= 13 &&
+          (line.startsWith("HTTP/1.0 ") || line.startsWith("HTTP/1.1 ")) &&
+          line.substring(9, 12).forall(c => c >= '0' && c <= '9') && line(12) == ' ' &&
+          line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
+        for {
+          _ <- verify(validStatus, s"malformed target status line: $line")
+          status = line.substring(9, 12).toInt
+          _ <- verify(
+            status >= 100 && status <= 599 && status != 101,
+            s"unexpected response status: $status",
+          )
+          _ <- lines.tail.traverse_ { field =>
+            val colon = field.indexOf(':')
+            verify(
+              colon > 0 && field.take(colon).forall(tokenChar) &&
+                field.drop(colon + 1).forall(c => c == '\t' || c >= ' ' && c != 127),
+              s"malformed target field line: $field",
+            )
+          }
+        } yield status
+      })
+      .flatMap {
+        case Some(status) if status < 200 =>
+          if (informational >= 16)
+            Sync[F].raiseError(new WireObservationLimit("informational response observation limit"))
+          else Sync[F].defer(readFinalStatusOrClosed(peer, informational + 1))
+        case finalStatus => Sync[F].pure(finalStatus)
+      }
+  }
+
+  def readRequest[F[_]: Sync](peer: RawPeer[F]): F[Request] =
     readRequest(peer, generatedContent = false)
 
   /** Observes ordinary generated request framing and content, without recipient CL recovery. */
-  private[wire] def readGeneratedRequest[F[_]: Async](peer: RawPeer[F]): F[Request] =
+  private[wire] def readGeneratedRequest[F[_]: Sync](peer: RawPeer[F]): F[Request] =
     readRequest(peer, generatedContent = true)
 
-  private def readRequest[F[_]: Async](
+  private def readRequest[F[_]: Sync](
       peer: RawPeer[F],
       generatedContent: Boolean,
   ): F[Request] =
     for {
       line <- readLine(peer)
-      parts <- Async[F].delay {
+      parts <- Sync[F].delay {
         val split = line.split(" ", -1)
         check(split.length == 3, "malformed request line")
         check(split(0).nonEmpty && split(0).forall(tokenChar), "invalid request method")
@@ -103,8 +146,8 @@ object Http1Wire {
       }
       headers <- readHeaders(peer)
       _ <-
-        if (generatedContent) Async[F].delay(validateGeneratedContentLength(headers))
-        else Async[F].unit
+        if (generatedContent) Sync[F].delay(validateGeneratedContentLength(headers))
+        else Sync[F].unit
       content <- readBody(peer, headers, request = true, requireContent = generatedContent)
     } yield Request(parts._1, parts._2, headers, content._1, content._2)
 
@@ -118,11 +161,11 @@ object Http1Wire {
     )
   }
 
-  private def fail[F[_]: Async, A](message: String): F[A] =
-    Async[F].raiseError(new WireDecodingFailure(message))
+  private def fail[F[_]: Sync, A](message: String): F[A] =
+    Sync[F].raiseError(new WireDecodingFailure(message))
 
-  private def limit[F[_]: Async, A](message: String): F[A] =
-    Async[F].raiseError(new WireObservationLimit(message))
+  private def limit[F[_]: Sync, A](message: String): F[A] =
+    Sync[F].raiseError(new WireObservationLimit(message))
 
   private def check(condition: Boolean, message: String): Unit =
     if (!condition) throw new WireDecodingFailure(message)
@@ -140,7 +183,7 @@ object Http1Wire {
       .dropWhile(c => c == ' ' || c == '\t')
       .reverse
 
-  private def readLine[F[_]: Async](peer: RawPeer[F]): F[String] =
+  private def readLine[F[_]: Sync](peer: RawPeer[F]): F[String] =
     WireDecodingFailure
       .read(peer.readUntil(crlf, 8192))
       .map(_.toArray.iterator.map(b => (b & 0xff).toChar).mkString)
@@ -166,14 +209,14 @@ object Http1Wire {
     (line.take(colon), value)
   }
 
-  private def readHeaders[F[_]: Async](peer: RawPeer[F]): F[Vector[(String, String)]] = {
+  private def readHeaders[F[_]: Sync](peer: RawPeer[F]): F[Vector[(String, String)]] = {
     def loop(total: Int, headers: Vector[(String, String)]): F[Vector[(String, String)]] =
       readLine(peer).flatMap { line =>
         val next = total + line.length + 2
         if (next > MaxHeaderBytes) limit("header section too large")
         else if (line.isEmpty) headers.pure[F]
         else if (headers.size >= 256) limit("too many header fields")
-        else Async[F].delay(parseHeader(line)).flatMap(h => loop(next, headers :+ h))
+        else Sync[F].delay(parseHeader(line)).flatMap(h => loop(next, headers :+ h))
       }
     loop(0, Vector.empty)
   }
@@ -297,13 +340,13 @@ object Http1Wire {
     else ToEof
   }
 
-  private def readBody[F[_]: Async](
+  private def readBody[F[_]: Sync](
       peer: RawPeer[F],
       headers: Vector[(String, String)],
       request: Boolean,
       requireContent: Boolean = false,
   ): F[(ByteVector, Vector[(String, String)])] =
-    Async[F].delay(framing(headers, request)).flatMap {
+    Sync[F].delay(framing(headers, request)).flatMap {
       case Length(size) =>
         WireDecodingFailure.read(peer.readExact(size)).map(_ -> Vector.empty[(String, String)])
       case ToEof => peer.readToEnd(MaxBodyBytes).map(_ -> Vector.empty[(String, String)])
@@ -319,13 +362,13 @@ object Http1Wire {
         }
     }
 
-  private def readChunks[F[_]: Async](
+  private def readChunks[F[_]: Sync](
       peer: RawPeer[F]
   ): F[(ByteVector, Vector[(String, String)])] = {
     def loop(body: ByteVector): F[(ByteVector, Vector[(String, String)])] =
       for {
         line <- readLine(peer)
-        size <- Async[F].delay {
+        size <- Sync[F].delay {
           val digits = line.takeWhile(c =>
             c >= '0' && c <= '9' ||
               c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F'
@@ -347,7 +390,7 @@ object Http1Wire {
             for {
               chunk <- WireDecodingFailure.read(peer.readExact(size))
               ending <- WireDecodingFailure.read(peer.readExact(2))
-              _ <- if (ending == crlf) Async[F].unit else fail[F, Unit]("missing chunk CRLF")
+              _ <- if (ending == crlf) Sync[F].unit else fail[F, Unit]("missing chunk CRLF")
               next <- loop(body ++ chunk)
             } yield next
       } yield result

@@ -42,6 +42,7 @@ private object Http2PositiveCompletionFixture {
 }
 
 class Http2PositiveCompletionSuite extends CatsEffectSuite {
+
   import Http2PositiveCompletionFixture.Mode
 
   private val pingBytes = ByteVector.fromValidHex("0102030405060708")
@@ -205,6 +206,8 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
       )
     }
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "independent-causal-server"
       val version = "review"
       def client(p: Protocol, a: SocketAddress[IpAddress]) =
@@ -237,6 +240,8 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
     transcript <- Transcript.create[IO]()
     own <- Transcript.create[IO]()
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "independent-causal-client"
       val version = "review"
       def server(p: Protocol, s: ServerScenario) =
@@ -476,6 +481,8 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
       )
       address = SocketAddress(ip"127.0.0.1", port"1")
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "causal-flow-completion"
         val version = "1"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -630,6 +637,8 @@ class Http2PositiveCompletionSuite extends CatsEffectSuite {
         tr,
       )
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "causal-control-buffered"
         val version = "1"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(

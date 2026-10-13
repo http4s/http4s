@@ -58,6 +58,8 @@ final case class CaseContext(
     serverConnection: (SocketAddress[IpAddress], Transcript[IO]) => Resource[IO, RawPeer[IO]] =
       (address: SocketAddress[IpAddress], transcript: Transcript[IO]) =>
         WirePeerTransport.connect[IO](address, transcript),
+    clientListener: Transcript[IO] => Resource[IO, WirePeerTransport.Listener[IO]] = transcript =>
+      WirePeerTransport.bind[IO](transcript),
 ) {
   def server(
       protocol: Protocol,
@@ -84,7 +86,7 @@ final case class CaseContext(
   def client[A](protocol: Protocol)(
       exercise: ClientDriver[IO] => IO[A]
   )(serve: RawPeer[IO] => IO[Unit]): IO[A] =
-    WirePeerTransport.bind[IO](transcript).use { listener =>
+    clientListener(transcript).use { listener =>
       CaseContext.withClientAndPeer(
         target.client(protocol, listener.address),
         listener.accept,

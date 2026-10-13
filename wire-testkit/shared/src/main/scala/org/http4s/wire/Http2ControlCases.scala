@@ -37,7 +37,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- Http2PeerSettings
@@ -68,7 +68,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -127,7 +127,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "3.4", "An invalid client connection preface is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- IO.unit
@@ -148,7 +148,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "3.4", "The client magic must be immediately followed by a SETTINGS frame.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- IO.unit
@@ -169,7 +169,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "3.4", "A server preface that starts with PING is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -209,7 +209,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -234,7 +234,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -259,7 +259,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -284,7 +284,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -305,7 +305,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "4.1", "The reserved frame-header bit is ignored on receipt.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -338,7 +338,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -368,7 +368,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -393,7 +393,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.5", "An empty non-ACK SETTINGS frame is valid and is acknowledged.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -420,7 +420,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -448,7 +448,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -475,7 +475,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -502,7 +502,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -529,7 +529,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -556,7 +556,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -583,7 +583,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.7", "An endpoint does not respond to a PING that already has ACK set.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -609,7 +609,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.7", "A PING acknowledgment copies all eight opaque octets exactly.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -640,7 +640,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -682,7 +682,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -724,7 +724,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -766,7 +766,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -806,7 +806,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "4.1", "The reserved frame-header bit is ignored on receipt.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -860,7 +860,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -909,7 +909,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -951,7 +951,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.5", "An empty non-ACK SETTINGS frame is valid and is acknowledged.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -995,7 +995,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1042,7 +1042,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1086,7 +1086,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1130,7 +1130,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1174,7 +1174,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1218,7 +1218,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1262,7 +1262,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.7", "An endpoint does not respond to a PING that already has ACK set.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1308,7 +1308,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.7", "A PING acknowledgment copies all eight opaque octets exactly.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -1353,7 +1353,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.5", "A nonzero SETTINGS stream identifier is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1370,7 +1370,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.5", "A nonzero SETTINGS stream identifier is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1407,7 +1407,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1429,7 +1429,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1466,7 +1466,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1492,7 +1492,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1531,7 +1531,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1553,7 +1553,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1590,7 +1590,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1612,7 +1612,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1644,7 +1644,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.5.2", "SETTINGS_MAX_FRAME_SIZE below 16384 is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1661,7 +1661,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.5.2", "SETTINGS_MAX_FRAME_SIZE below 16384 is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1693,7 +1693,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.5.2", "SETTINGS_MAX_FRAME_SIZE above 16777215 is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1710,7 +1710,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.5.2", "SETTINGS_MAX_FRAME_SIZE above 16777215 is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1742,7 +1742,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.7", "PING with a nonzero stream identifier is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1764,7 +1764,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.7", "PING with a nonzero stream identifier is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1801,7 +1801,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.7", "PING with nine payload octets is a connection frame-size error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1824,7 +1824,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.7", "PING with nine payload octets is a connection frame-size error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1863,7 +1863,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.7", "PING acknowledgments also require exactly eight payload octets.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1886,7 +1886,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.7", "PING acknowledgments also require exactly eight payload octets.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1925,7 +1925,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.3", "A PRIORITY frame on stream zero is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1945,7 +1945,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.3", "A PRIORITY frame on stream zero is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -1980,7 +1980,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.4", "RST_STREAM on stream zero is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -1998,7 +1998,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.4", "RST_STREAM on stream zero is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2032,7 +2032,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.4", "RST_STREAM on an idle stream is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2050,7 +2050,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.4", "RST_STREAM on an idle stream is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2091,7 +2091,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2115,7 +2115,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2154,7 +2154,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2180,7 +2180,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2220,7 +2220,7 @@ object Http2ControlCases {
       Role.Server,
       Rfc(9113, "6.8", "GOAWAY on a nonzero stream identifier is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2240,7 +2240,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.8", "GOAWAY on a nonzero stream identifier is a connection error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2280,7 +2280,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2306,7 +2306,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2345,7 +2345,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2377,7 +2377,7 @@ object Http2ControlCases {
       Role.Client,
       Rfc(9113, "6.7", "A PING with seven payload octets is a connection frame-size error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -2419,7 +2419,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2446,7 +2446,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2473,7 +2473,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2500,7 +2500,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2527,7 +2527,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2554,7 +2554,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2581,7 +2581,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2608,7 +2608,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2635,7 +2635,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2663,7 +2663,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -2696,7 +2696,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -2740,7 +2740,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -2784,7 +2784,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -2828,7 +2828,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -2872,7 +2872,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -2916,7 +2916,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -2960,7 +2960,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -3004,7 +3004,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -3050,7 +3050,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         context.client(Protocol.Http2)(driver =>
           driver
@@ -3101,7 +3101,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3123,7 +3123,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -3160,7 +3160,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3182,7 +3182,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { closed =>
           context.client(Protocol.Http2)(driver => observeConnectionRejection(driver, closed.get)) {
@@ -3219,7 +3219,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, server) =>
           for {
             _ <- establishServer(peer, disablePush = true)
@@ -3254,7 +3254,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer, disablePush = true)
@@ -3291,7 +3291,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3316,7 +3316,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejected =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3352,7 +3352,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3377,7 +3377,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejected =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3413,7 +3413,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         val body = ByteVector.fill(40000)(42.toByte)
         context.server(Protocol.Http2, ServerScenario.Reply(body = body)).use { case (peer, _) =>
           for {
@@ -3453,7 +3453,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         val body = ByteVector.fill(40000)(42.toByte)
         context.client(Protocol.Http2)(driver =>
@@ -3524,7 +3524,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         val body = ByteVector.fill(40000)(42.toByte)
         context.server(Protocol.Http2, ServerScenario.Reply(body = body)).use { case (peer, _) =>
           for {
@@ -3568,7 +3568,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3601,7 +3601,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { observed =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3642,7 +3642,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3676,7 +3676,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { observed =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3722,7 +3722,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3762,7 +3762,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3802,7 +3802,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- establishServer(peer)
@@ -3842,7 +3842,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { observed =>
           context.client(Protocol.Http2)(driver =>
@@ -3905,7 +3905,7 @@ object Http2ControlCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(7L)
         Deferred[IO, Unit].flatMap { observed =>
           context.client(Protocol.Http2)(driver =>

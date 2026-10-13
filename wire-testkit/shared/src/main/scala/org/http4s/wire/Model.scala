@@ -107,10 +107,7 @@ trait WireTarget[F[_]] {
   /** Bind case-local diagnostics. Adapters report fixture/cleanup faults independently of
     * native protocol outcomes; the callback must finish before their resources are released.
     */
-  def withFailureObserver(observe: AdapterFailure => F[Unit]): WireTarget[F] = {
-    val _ = observe
-    this
-  }
+  def withFailureObserver(observe: AdapterFailure => F[Unit]): WireTarget[F]
   def server(protocol: Protocol, scenario: ServerScenario): Resource[F, ServerHandle[F]]
   def client(
       protocol: Protocol,

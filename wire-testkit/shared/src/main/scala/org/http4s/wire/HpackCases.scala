@@ -16,6 +16,7 @@
 
 package org.http4s.wire
 
+import cats.ApplicativeThrow
 import cats.effect.Async
 import cats.effect.Deferred
 import cats.effect.IO
@@ -45,7 +46,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "wire"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -81,7 +82,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -112,7 +113,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.2", "A four-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("user-agent" -> "wire"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -143,7 +144,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.2", "A four-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -174,7 +175,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.3", "A never-indexed literal appends the supplied new name and value.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "wire"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -205,7 +206,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.3", "A never-indexed literal appends the supplied new name and value.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -236,7 +237,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.3", "A never-indexed literal can use a static indexed name.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("authorization" -> "token"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -267,7 +268,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.3", "A never-indexed literal can use a static indexed name.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -303,7 +304,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "wire"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -339,7 +340,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -370,7 +371,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.2.1", "A six-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("user-agent" -> "wire"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -401,7 +402,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.2.1", "A six-bit indexed literal name can refer to the static table.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -432,7 +433,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "2.3.3", "Static index 61 remains valid when the dynamic table is empty.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("www-authenticate" -> ""))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -463,7 +464,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "2.3.3", "Static index 61 remains valid when the dynamic table is empty.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -499,7 +500,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("accept-charset" -> "utf-8"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -535,7 +536,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -571,7 +572,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "www.example.com"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -607,7 +608,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -643,7 +644,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("custom-key" -> "custom-value"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -681,7 +682,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -714,7 +715,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A literal can Huffman encode both name and value.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("custom-key" -> "custom-value"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -745,7 +746,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A literal can Huffman encode both name and value.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -776,7 +777,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A zero-octet Huffman value is an empty string.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> ""))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -807,7 +808,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A zero-octet Huffman value is an empty string.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -838,7 +839,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "An octet-aligned Huffman symbol requires no padding.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "&"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -869,7 +870,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "An octet-aligned Huffman symbol requires no padding.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -900,7 +901,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Seven most-significant EOS bits are permitted as Huffman padding.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "00000"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -931,7 +932,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Seven most-significant EOS bits are permitted as Huffman padding.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -962,7 +963,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A zero-length raw string produces an empty field value.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> ""))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -993,7 +994,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A zero-length raw string produces an empty field value.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1029,7 +1030,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "\u0080\u00ff"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1065,7 +1066,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1101,7 +1102,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(
           Vector(
             "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1141,7 +1142,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1181,7 +1182,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(
           Vector(
             "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1221,7 +1222,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1261,7 +1262,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(
           Vector(
             "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1301,7 +1302,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1341,7 +1342,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(
           Vector(
             "x" -> "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1381,7 +1382,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1421,7 +1422,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(
           Vector(
             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -> "v"
@@ -1461,7 +1462,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1501,7 +1502,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1537,7 +1538,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1573,7 +1574,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1610,7 +1611,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1647,7 +1648,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a", "x" -> "b"), Vector("x" -> "b", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1684,7 +1685,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1721,7 +1722,7 @@ object HpackCases {
         "MUST NOT",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a", "x" -> "a"), Vector("x" -> "a", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1758,7 +1759,7 @@ object HpackCases {
         "MUST NOT",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1795,7 +1796,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1832,7 +1833,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1869,7 +1870,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1906,7 +1907,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -1943,7 +1944,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "b"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -1980,7 +1981,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2017,7 +2018,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2054,7 +2055,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2091,7 +2092,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("x" -> "b", "x" -> "a"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2128,7 +2129,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2165,7 +2166,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("x" -> "c", "x" -> "c"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2202,7 +2203,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2239,7 +2240,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(boundaryEntries, Vector("x-0" -> "v"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2278,7 +2279,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2317,7 +2318,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2354,7 +2355,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2391,7 +2392,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a", "y" -> "b"), Vector("y" -> "b"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2428,7 +2429,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2465,7 +2466,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("y" -> "b", "y" -> "b"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2502,7 +2503,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2539,7 +2540,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "a"), Vector("xx" -> "b"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2576,7 +2577,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2613,7 +2614,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val expected = Vector(Vector("x" -> "www.example.com"), Vector("x" -> "www.example.com"))
         context.client(Protocol.Http2)(driver =>
           expected
@@ -2650,7 +2651,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -2682,7 +2683,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "6.1", "Index zero in an indexed representation is a decoding error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -2709,7 +2710,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "6.1", "Index zero in an indexed representation is a decoding error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -2732,7 +2733,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -2764,7 +2765,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -2787,7 +2788,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -2819,7 +2820,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -2842,7 +2843,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -2874,7 +2875,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -2897,7 +2898,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -2929,7 +2930,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -2952,7 +2953,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -2984,7 +2985,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3007,7 +3008,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3039,7 +3040,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3057,7 +3058,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A literal name cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3084,7 +3085,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A literal name cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3107,7 +3108,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3139,7 +3140,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3157,7 +3158,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "A literal value cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3184,7 +3185,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "A literal value cannot extend beyond the completed field block.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3207,7 +3208,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3239,7 +3240,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3262,7 +3263,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3294,7 +3295,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3317,7 +3318,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3349,7 +3350,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3372,7 +3373,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3404,7 +3405,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3427,7 +3428,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3459,7 +3460,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3482,7 +3483,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3514,7 +3515,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3537,7 +3538,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3569,7 +3570,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3592,7 +3593,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3625,7 +3626,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3644,7 +3645,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3671,7 +3672,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3689,7 +3690,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman name padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3717,7 +3718,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman name padding longer than seven bits is a decoding error.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3736,7 +3737,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman value padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3763,7 +3764,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman value padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3781,7 +3782,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.2", "Huffman name padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3808,7 +3809,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.2", "Huffman name padding must match the most significant EOS bits.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3831,7 +3832,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3863,7 +3864,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3886,7 +3887,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3918,7 +3919,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -3936,7 +3937,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "5.1", "A saturated dynamic-table size prefix requires a complete integer.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -3965,7 +3966,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "5.1", "A saturated dynamic-table size prefix requires a complete integer.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -3993,7 +3994,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -4026,7 +4027,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4053,7 +4054,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4096,7 +4097,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4123,7 +4124,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4166,7 +4167,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4193,7 +4194,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4236,7 +4237,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4258,7 +4259,7 @@ object HpackCases {
       Role.Client,
       Rfc(7541, "4.4", "An entry evicted during insertion is no longer addressable.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4302,7 +4303,7 @@ object HpackCases {
       Role.Server,
       Rfc(7541, "4.4", "An entry evicted during insertion is no longer addressable.", "MUST"),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4333,7 +4334,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4387,7 +4388,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4423,7 +4424,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4466,7 +4467,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4493,7 +4494,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4542,7 +4543,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4573,7 +4574,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             driver
@@ -4616,7 +4617,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             session <- connect(peer)
@@ -4648,7 +4649,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { rejectedOnWire =>
           context.client(Protocol.Http2)(driver =>
             ClientObservation(driver.exchange(EmptyRequest))(_.body.compile.drain) { result =>
@@ -4687,7 +4688,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
             session <- connect(peer)
@@ -4717,7 +4718,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
         val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
         context.client(Protocol.Http2)(driver =>
@@ -4752,7 +4753,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
         context
           .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
@@ -4783,7 +4784,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
         val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
         Deferred[IO, Unit].flatMap { settingsApplied =>
@@ -4843,7 +4844,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
         context
           .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
@@ -4890,7 +4891,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
         val request = EmptyRequest.copy(headers = EmptyRequest.headers ++ fields)
         Deferred[IO, Unit].flatMap { settingsApplied =>
@@ -4952,7 +4953,7 @@ object HpackCases {
         "MUST",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         val fields = Vector("x-first" -> "one", "x-second" -> "two", "x-third" -> "three")
         context
           .server(Protocol.Http2, ServerScenario.Reply(headers = fields, body = ByteVector.empty))
@@ -5028,8 +5029,9 @@ object HpackCases {
     ByteVector(kind.toByte) ++ integer(name.length.toLong, 7, 0) ++ octets(name) ++
       integer(value.length.toLong, 7, 0) ++ octets(value)
 
-  private def verify[F[_]: Async](condition: Boolean, detail: => String): F[Unit] =
-    if (condition) Async[F].unit else Async[F].raiseError(new ProtocolFailure(detail))
+  private def verify[F[_]: ApplicativeThrow](condition: Boolean, detail: => String): F[Unit] =
+    if (condition) ApplicativeThrow[F].unit
+    else ApplicativeThrow[F].raiseError(new ProtocolFailure(detail))
 
   private def session[F[_]: Async](
       peer: RawPeer[F],
@@ -5158,23 +5160,18 @@ object HpackCases {
 
   private def next[F[_]: Async](
       session: Session[F]
-  )(implicit peerSettings: Http2PeerSettings[F]): F[Http2Wire.Frame] = {
-    def loop(remaining: Int): F[Http2Wire.Frame] =
-      observationBound(remaining > 0, "too many control frames before HPACK traffic") *>
-        Http2Wire
-          .readFrame(session.peer)
-          .flatTap(frame =>
-            peerSettings.positive(session.peer).flatMap(_.observe(frame, session.fromServer))
-          )
-          .flatMap { frame =>
-            frame.frameType match {
-              case Http2Wire.Headers | Http2Wire.Data | Http2Wire.RstStream =>
-                frame.pure[F]
-              case _ => control(session, frame) *> loop(remaining - 1)
-            }
-          }
-    loop(1024)
-  }
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Http2Wire.Frame] =
+    Http2FrameReader.readUntil(
+      Http2Wire.readFrame(session.peer),
+      1024,
+      "too many control frames before HPACK traffic",
+    )(
+      frame => peerSettings.positive(session.peer).flatMap(_.observe(frame, session.fromServer)),
+      frame =>
+        frame.frameType == Http2Wire.Headers || frame.frameType == Http2Wire.Data ||
+          frame.frameType == Http2Wire.RstStream,
+      frame => control(session, frame),
+    )
 
   private def awaitAcknowledgments[F[_]: Async](session: Session[F], count: Int)(implicit
       peerSettings: Http2PeerSettings[F]
@@ -5564,8 +5561,7 @@ object HpackCases {
     }
 
   private def eof(error: Throwable): Boolean = error match {
-    case _: IllegalArgumentException =>
-      Option(error.getMessage).exists(_.startsWith("unexpected EOF"))
+    case _: WireReadFailure => true
     case _ => false
   }
 

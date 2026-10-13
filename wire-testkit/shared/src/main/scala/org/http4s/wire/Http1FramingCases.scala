@@ -38,25 +38,11 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.client(Protocol.Http1)(driver =>
-        driver
-          .exchange(RequestData(headers = Vector("Content-Length" -> "0")))
-          .use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, ByteVector.empty)
-            } yield ()
-          }
-          .handleErrorWith(unexpectedTargetRejection)
-      ) { peer =>
-        for {
-          request <- Http1Wire.readRequest(peer)
-          _ <- Check.equal(request.method, "GET")
-          _ <- Check.equal(request.body, ByteVector.empty)
-          _ <- peer.write(Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"))
-        } yield ()
-      }
+      clientResponse(
+        context,
+        Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"),
+        ByteVector.empty,
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -70,21 +56,11 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          _ <- peer.write(
-            Http1Wire
-              .ascii("POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 0\r\n\r\n")
-          )
-          response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
-          _ <- Check.equal(response.status, 200)
-          received <- server.received
-          _ <- Check.equal(response.body, ByteVector.empty)
-          _ <- Check.equal(received.method, "POST")
-          _ <- Check.equal(received.path, "/framing")
-          _ <- Check.equal(received.body, ByteVector.empty)
-        } yield ()
-      }
+      serverEcho(
+        context,
+        Http1Wire.ascii("POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 0\r\n\r\n"),
+        ByteVector.empty,
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -98,25 +74,11 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.client(Protocol.Http1)(driver =>
-        driver
-          .exchange(RequestData(headers = Vector("Content-Length" -> "0")))
-          .use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          }
-          .handleErrorWith(unexpectedTargetRejection)
-      ) { peer =>
-        for {
-          request <- Http1Wire.readRequest(peer)
-          _ <- Check.equal(request.method, "GET")
-          _ <- Check.equal(request.body, ByteVector.empty)
-          _ <- peer.write(Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 0003\r\n\r\nabc"))
-        } yield ()
-      }
+      clientResponse(
+        context,
+        Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 0003\r\n\r\nabc"),
+        Http1Wire.ascii("abc"),
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -130,21 +92,13 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          _ <- peer.write(
-            Http1Wire
-              .ascii("POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 0003\r\n\r\nabc")
-          )
-          response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
-          _ <- Check.equal(response.status, 200)
-          received <- server.received
-          _ <- Check.equal(response.body, Http1Wire.ascii("abc"))
-          _ <- Check.equal(received.method, "POST")
-          _ <- Check.equal(received.path, "/framing")
-          _ <- Check.equal(received.body, Http1Wire.ascii("abc"))
-        } yield ()
-      }
+      serverEcho(
+        context,
+        Http1Wire.ascii(
+          "POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 0003\r\n\r\nabc"
+        ),
+        Http1Wire.ascii("abc"),
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -158,29 +112,13 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.client(Protocol.Http1)(driver =>
-        driver
-          .exchange(RequestData(headers = Vector("Content-Length" -> "0")))
-          .use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, Http1Wire.ascii("abc"))
-            } yield ()
-          }
-          .handleErrorWith(unexpectedTargetRejection)
-      ) { peer =>
-        for {
-          request <- Http1Wire.readRequest(peer)
-          _ <- Check.equal(request.method, "GET")
-          _ <- Check.equal(request.body, ByteVector.empty)
-          _ <- peer.write(
-            Http1Wire.ascii(
-              "HTTP/1.1 200 OK\r\nContent-Length: 00000000000000000000000000000003\r\n\r\nabc"
-            )
-          )
-        } yield ()
-      }
+      clientResponse(
+        context,
+        Http1Wire.ascii(
+          "HTTP/1.1 200 OK\r\nContent-Length: 00000000000000000000000000000003\r\n\r\nabc"
+        ),
+        Http1Wire.ascii("abc"),
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -194,22 +132,13 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          _ <- peer.write(
-            Http1Wire.ascii(
-              "POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 00000000000000000000000000000003\r\n\r\nabc"
-            )
-          )
-          response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
-          _ <- Check.equal(response.status, 200)
-          received <- server.received
-          _ <- Check.equal(response.body, Http1Wire.ascii("abc"))
-          _ <- Check.equal(received.method, "POST")
-          _ <- Check.equal(received.path, "/framing")
-          _ <- Check.equal(received.body, Http1Wire.ascii("abc"))
-        } yield ()
-      }
+      serverEcho(
+        context,
+        Http1Wire.ascii(
+          "POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 00000000000000000000000000000003\r\n\r\nabc"
+        ),
+        Http1Wire.ascii("abc"),
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -218,28 +147,13 @@ object Http1FramingCases {
       Role.Client,
       Rfc(9112, "6.3", "Content-Length counts octets, including NUL and non-ASCII bytes.", "MUST"),
     ) { context =>
-      context.client(Protocol.Http1)(driver =>
-        driver
-          .exchange(RequestData(headers = Vector("Content-Length" -> "0")))
-          .use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, ByteVector.fromValidHex("00ff80fe"))
-            } yield ()
-          }
-          .handleErrorWith(unexpectedTargetRejection)
-      ) { peer =>
-        for {
-          request <- Http1Wire.readRequest(peer)
-          _ <- Check.equal(request.method, "GET")
-          _ <- Check.equal(request.body, ByteVector.empty)
-          _ <- peer.write(
-            Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n") ++ ByteVector
-              .fromValidHex("00ff80fe")
-          )
-        } yield ()
-      }
+      clientResponse(
+        context,
+        Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n") ++ ByteVector.fromValidHex(
+          "00ff80fe"
+        ),
+        ByteVector.fromValidHex("00ff80fe"),
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -248,22 +162,13 @@ object Http1FramingCases {
       Role.Server,
       Rfc(9112, "6.3", "Request Content-Length counts octets rather than characters.", "MUST"),
     ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          _ <- peer.write(
-            Http1Wire.ascii(
-              "POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 4\r\n\r\n"
-            ) ++ ByteVector.fromValidHex("00ff80fe")
-          )
-          response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
-          _ <- Check.equal(response.status, 200)
-          received <- server.received
-          _ <- Check.equal(response.body, ByteVector.fromValidHex("00ff80fe"))
-          _ <- Check.equal(received.method, "POST")
-          _ <- Check.equal(received.path, "/framing")
-          _ <- Check.equal(received.body, ByteVector.fromValidHex("00ff80fe"))
-        } yield ()
-      }
+      serverEcho(
+        context,
+        Http1Wire.ascii(
+          "POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 4\r\n\r\n"
+        ) ++ ByteVector.fromValidHex("00ff80fe"),
+        ByteVector.fromValidHex("00ff80fe"),
+      )
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
     WireCase(
@@ -3863,8 +3768,7 @@ object Http1FramingCases {
       .flatTap(_.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]))
       .flatMap {
         case Right(bytes) => Check.equal(bytes, ByteVector.empty)
-        case Left(error: WireObservationLimit)
-            if error.getMessage.startsWith("body exceeds 0 bytes;") =>
+        case Left(WireBodyLimit(0)) =>
           Check(false, "additional bytes followed a response requiring connection closure")
         case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.unit
         case Left(error) => IO.raiseError(error)
@@ -3883,55 +3787,50 @@ object Http1FramingCases {
 
   private def unexpectedEof[A](error: Throwable): IO[A] =
     RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
-      case eof: IllegalArgumentException
-          if Option(eof.getMessage).exists(_.startsWith("unexpected EOF")) =>
+      case eof: WireReadFailure =>
         IO.raiseError(
           new ProtocolFailure(s"the target closed before completing a required response: $eof")
         )
       case other => IO.raiseError(other)
     })
 
-  /** A failed delimiter read retains buffered bytes, so partial response heads cannot pass as EOF. */
-  private def responseHeadOrEof(peer: RawPeer[IO], informational: Int = 0): IO[Option[Int]] = {
-    val head = peer.readUntilOrClosed(Http1Wire.crlf ++ Http1Wire.crlf, 65536)
-    head
-      .flatMap(_.traverse { bytes =>
-        val lines =
-          bytes.toArray.iterator.map(b => (b & 0xff).toChar).mkString.split("\r\n", -1).toVector
-        val line = lines.head
-        val validStatus = line.length >= 13 &&
-          (line.startsWith("HTTP/1.0 ") || line.startsWith("HTTP/1.1 ")) &&
-          line.substring(9, 12).forall(c => c >= '0' && c <= '9') && line(12) == ' ' &&
-          line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
-        for {
-          _ <- Check(validStatus, s"malformed target status line: $line")
-          status = line.substring(9, 12).toInt
-          _ <- Check(
-            status >= 100 && status <= 599 && status != 101,
-            s"unexpected response status: $status",
-          )
-          _ <- lines.tail.traverse_ { field =>
-            val colon = field.indexOf(':')
-            Check(
-              colon > 0 && field.take(colon).forall(tokenChar) &&
-                field.drop(colon + 1).forall(c => c == '\t' || c >= ' ' && c != 127),
-              s"malformed target field line: $field",
-            )
+  private def clientResponse(
+      context: CaseContext,
+      bytes: ByteVector,
+      expected: ByteVector,
+  ): IO[Unit] =
+    context.client(Protocol.Http1)(driver =>
+      driver
+        .exchange(RequestData(headers = Vector("Content-Length" -> "0")))
+        .use { response =>
+          response.body.compile.to(Chunk).flatMap { body =>
+            Check.equal(response.status, 200) *> Check.equal(body.toByteVector, expected)
           }
-        } yield status
-      })
-      .flatMap {
-        case Some(status) if status < 200 =>
-          if (informational >= 16)
-            IO.raiseError(new WireObservationLimit("informational response observation limit"))
-          else IO.defer(responseHeadOrEof(peer, informational + 1))
-        case finalStatus => IO.pure(finalStatus)
+        }
+        .handleErrorWith(unexpectedTargetRejection)
+    ) { peer =>
+      Http1Wire.readRequest(peer).flatMap { request =>
+        Check.equal(request.method, "GET") *> Check.equal(request.body, ByteVector.empty) *>
+          peer.write(bytes)
       }
-  }
+    }
 
-  private def tokenChar(c: Char): Boolean =
-    c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' ||
-      "!#$%&'*+-.^_`|~".contains(c)
+  private def serverEcho(context: CaseContext, bytes: ByteVector, expected: ByteVector): IO[Unit] =
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      for {
+        _ <- peer.write(bytes)
+        response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
+        _ <- Check.equal(response.status, 200)
+        received <- server.received
+        _ <- Check.equal(response.body, expected)
+        _ <- Check.equal(received.method, "POST")
+        _ <- Check.equal(received.path, "/framing")
+        _ <- Check.equal(received.body, expected)
+      } yield ()
+    }
+
+  private def responseHeadOrEof(peer: RawPeer[IO]): IO[Option[Int]] =
+    Http1Wire.readFinalStatusOrClosed(peer)
 
   private def rejected(error: Throwable): IO[Unit] =
     RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {

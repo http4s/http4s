@@ -16,6 +16,7 @@
 
 package org.http4s.wire
 
+import cats.ApplicativeThrow
 import cats.effect.Async
 import cats.effect.Ref
 import cats.syntax.all._
@@ -95,20 +96,26 @@ private[wire] object Http2PeerSettings {
       }
     }
 
-    def sending(frame: Frame, initiatesRequests: Boolean): State = {
+    def sending(frame: Frame, initiatesRequests: Boolean): Either[WireObservationLimit, State] = {
       // Invalid stream zero/even/reused/decreasing IDs are intentional stimuli, not new admissions.
       val opens = initiatesRequests && frame.frameType == Headers &&
         frame.streamId > highest && (frame.streamId & 1) == 1
-      val next =
-        if (!opens) this
-        else {
-          if (streams.size.toLong >= concurrent)
-            throw new WireObservationLimit(
-              s"request stream ${frame.streamId} needs an available MAX_CONCURRENT_STREAMS slot ($concurrent advertised, ${streams.size} open)"
+      if (opens && streams.size.toLong >= concurrent)
+        Left(
+          new WireObservationLimit(
+            s"request stream ${frame.streamId} needs an available MAX_CONCURRENT_STREAMS slot ($concurrent advertised, ${streams.size} open)"
+          )
+        )
+      else {
+        val next =
+          if (opens)
+            copy(
+              highest = frame.streamId,
+              streams = streams.updated(frame.streamId, (false, false)),
             )
-          copy(highest = frame.streamId, streams = streams.updated(frame.streamId, (false, false)))
-        }
-      next.end(frame, local = true)
+          else this
+        Right(next.end(frame, local = true))
+      }
     }
   }
 
@@ -126,19 +133,21 @@ private[wire] object Http2PeerSettings {
   )
 
   // Existing independent codec callers do not need a case prerequisite scope.
-  implicit def untracked[F[_]: Async]: Http2PeerSettings[F] = new Http2PeerSettings[F] {
+  def untracked[F[_]: ApplicativeThrow]: Http2PeerSettings[F] = new Http2PeerSettings[F] {
     def positive(peer: RawPeer[F]): F[Http2PositiveObservation[F]] =
-      Http2PositiveObservation.create[F]
-    def received(peer: RawPeer[F], frame: Frame): F[Unit] = Async[F].unit
+      ApplicativeThrow[F].raiseError(
+        new IllegalStateException("positive observation requires a connection scope")
+      )
+    def received(peer: RawPeer[F], frame: Frame): F[Unit] = ApplicativeThrow[F].unit
     def knownFields(peer: RawPeer[F], octetFields: Vector[(String, String)]): F[Unit] =
-      Async[F].unit
+      ApplicativeThrow[F].unit
     def sending(peer: RawPeer[F], frames: Vector[Frame], requireFieldAcceptance: Boolean): F[Unit] =
-      Async[F].unit
+      ApplicativeThrow[F].unit
   }
 
-  def scoped[F[_]: Async](initiatesRequests: Boolean)(
-      run: Http2PeerSettings[F] => F[Unit]
-  ): F[Unit] =
+  def scoped[F[_]: Async, A](initiatesRequests: Boolean)(
+      run: Http2PeerSettings[F] => F[A]
+  ): F[A] =
     Ref.of[F, Map[RawPeer[F], Connection[F]]](Map.empty).flatMap { connections =>
       def connection(peer: RawPeer[F]): F[Connection[F]] = connections.get.flatMap { current =>
         current.get(peer) match {
@@ -269,15 +278,23 @@ private[wire] object Http2PeerSettings {
                   )
                     current.positive.openingStream(frame.streamId)
                   else Async[F].unit
-                } *> current.state.update(_.sending(frame, initiatesRequests)) *>
+                } *> current.state
+                  .modify { state =>
+                    val next = state.sending(frame, initiatesRequests)
+                    (next.getOrElse(state), next.void)
+                  }
+                  .flatMap(_.liftTo[F]) *>
                   fieldSection.flatMap { consumed =>
-                    current.state.update(state =>
-                      frames
-                        .slice(index + 1, index + consumed)
-                        .foldLeft(state)((next, continuation) =>
-                          next.sending(continuation, initiatesRequests)
-                        )
-                    ) *>
+                    current.state
+                      .modify { state =>
+                        val next = frames
+                          .slice(index + 1, index + consumed)
+                          .foldM(state)((next, continuation) =>
+                            next.sending(continuation, initiatesRequests)
+                          )
+                        (next.getOrElse(state), next.void)
+                      }
+                      .flatMap(_.liftTo[F]) *>
                       loop(index + consumed)
                   }
               }

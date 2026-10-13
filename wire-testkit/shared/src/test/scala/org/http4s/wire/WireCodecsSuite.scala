@@ -23,16 +23,15 @@ import cats.effect.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
-import fs2.Pipe
-import fs2.Stream
-import fs2.io.net.Socket
-import fs2.io.net.SocketOption
 import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 private[wire] object WireCodecsSuite {
+
   def runH2ServerCase(id: String, peer: Resource[IO, RawPeer[IO]]): IO[Unit] = {
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "frame-boundary-fixture"
       val version = "oracle-challenge"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -62,41 +61,44 @@ private[wire] object WireCodecsSuite {
       input <- Ref.of[IO, ByteVector](bytes)
       output <- Ref.of[IO, ByteVector](ByteVector.empty)
       transcript <- Transcript.create[IO]()
-      socket = new Socket[IO] {
-        private val addr = SocketAddress(ip"127.0.0.1", port"1")
-        def read(maxBytes: Int): IO[Option[Chunk[Byte]]] =
-          input
-            .modify { remaining =>
-              if (remaining.isEmpty) (remaining, None)
-              else {
-                val (head, tail) = remaining.splitAt(math.min(maxBytes, fragment).toLong)
-                (tail, Some(Chunk.byteVector(head)))
-              }
+      read = (maxBytes: Int) =>
+        input
+          .modify { remaining =>
+            if (remaining.isEmpty) (remaining, None)
+            else {
+              val (head, tail) = remaining.splitAt(math.min(maxBytes, fragment).toLong)
+              (tail, Some(Chunk.byteVector(head)))
             }
-            .flatMap(_.fold(whenEmpty)(chunk => IO.pure(Some(chunk))))
-        def reads: Stream[IO, Byte] =
-          Stream.repeatEval(read(8192)).unNoneTerminate.flatMap(Stream.chunk)
-        def readN(numBytes: Int): IO[Chunk[Byte]] =
-          reads.take(numBytes.toLong).compile.toVector.map(Chunk.from)
-        def write(chunk: Chunk[Byte]): IO[Unit] = output.update(_ ++ ByteVector.view(chunk.toArray))
-        def writes: Pipe[IO, Byte, Nothing] = _.chunks.evalMap(write).drain
-        def endOfInput: IO[Unit] = IO.unit
-        def endOfOutput: IO[Unit] = IO.unit
-        def isOpen: IO[Boolean] = IO.pure(true)
-        def localAddress: IO[SocketAddress[IpAddress]] = IO.pure(addr)
-        def remoteAddress: IO[SocketAddress[IpAddress]] = IO.pure(addr)
-        def address: GenSocketAddress = addr
-        def peerAddress: GenSocketAddress = addr
-        def getOption[A](key: SocketOption.Key[A]): IO[Option[A]] = IO.pure(None)
-        def setOption[A](key: SocketOption.Key[A], value: A): IO[Unit] = IO.unit
-        def supportedOptions: IO[Set[SocketOption.Key[_]]] = IO.pure(Set.empty)
-      }
-      raw <- RawPeer.create(socket, transcript)
+          }
+          .flatMap(_.fold(whenEmpty)(chunk => IO.pure(Some(chunk))))
+      write = (chunk: Chunk[Byte]) => output.update(_ ++ ByteVector.view(chunk.toArray))
+      raw <- RawPeer.create(read, write, IO.unit, transcript)
     } yield (raw, output.get)
 }
 
 class WireCodecsSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import WireCodecsSuite.peer
+
+  test("diagnostic text cannot impersonate a typed wire boundary") {
+    val error = new IllegalArgumentException("unexpected EOF: needed 1 bytes, received 0")
+    peer(ByteVector.empty, whenEmpty = IO.raiseError(error)).flatMap { case (raw, _) =>
+      Http2Wire.readFrameOrClose(raw).attempt.assertEquals(Left(error))
+    }
+  }
+
+  test("untracked codecs cannot silently create a positive observer") {
+    peer(ByteVector.empty).flatMap { case (raw, _) =>
+      Http2PeerSettings.untracked[IO].positive(raw).intercept[IllegalStateException]
+    }
+  }
+
+  test("peer settings scope preserves arbitrary result types") {
+    Http2PeerSettings.scoped[IO, Int](initiatesRequests = true)(_ => IO.pure(42)).assertEquals(42)
+  }
 
   private def ascii(value: String): ByteVector = Http1Wire.ascii(value)
   private def hex(value: String): ByteVector = ByteVector.fromValidHex(value)

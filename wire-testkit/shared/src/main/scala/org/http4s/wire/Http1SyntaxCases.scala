@@ -108,16 +108,7 @@ object Http1SyntaxCases {
         "SHOULD",
       ),
     ) { ctx =>
-      ctx.server(Protocol.Http1).use { case (peer, server) =>
-        for {
-          _ <- peer.writeAscii("GET / http/1.1\r\nHost: wire.test\r\n\r\n")
-          response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 400)
-          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
-          observed <- server.pollReceived
-          _ <- Check.equal(observed, None)
-        } yield ()
-      }
+      rejectedRequest(ctx, "GET / http/1.1\r\nHost: wire.test\r\n\r\n")
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2
     WireCase(
@@ -131,16 +122,7 @@ object Http1SyntaxCases {
         "SHOULD",
       ),
     ) { ctx =>
-      ctx.server(Protocol.Http1).use { case (peer, server) =>
-        for {
-          _ <- peer.writeAscii("GET / HTTP/1.12\r\nHost: wire.test\r\n\r\n")
-          response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 400)
-          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
-          observed <- server.pollReceived
-          _ <- Check.equal(observed, None)
-        } yield ()
-      }
+      rejectedRequest(ctx, "GET / HTTP/1.12\r\nHost: wire.test\r\n\r\n")
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2
     WireCase(
@@ -154,16 +136,7 @@ object Http1SyntaxCases {
         "SHOULD",
       ),
     ) { ctx =>
-      ctx.server(Protocol.Http1).use { case (peer, server) =>
-        for {
-          _ <- peer.writeAscii("GE(T / HTTP/1.1\r\nHost: wire.test\r\n\r\n")
-          response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 400)
-          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
-          observed <- server.pollReceived
-          _ <- Check.equal(observed, None)
-        } yield ()
-      }
+      rejectedRequest(ctx, "GE(T / HTTP/1.1\r\nHost: wire.test\r\n\r\n")
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2
     WireCase(
@@ -177,16 +150,7 @@ object Http1SyntaxCases {
         "SHOULD",
       ),
     ) { ctx =>
-      ctx.server(Protocol.Http1).use { case (peer, server) =>
-        for {
-          _ <- peer.writeAscii("GET / HTTP/1.1\r\nHost: wire.test\r\nX(Wire: value\r\n\r\n")
-          response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 400)
-          _ <- Http1FramingCases.expectClosedAfterResponse(peer)
-          observed <- server.pollReceived
-          _ <- Check.equal(observed, None)
-        } yield ()
-      }
+      rejectedRequest(ctx, "GET / HTTP/1.1\r\nHost: wire.test\r\nX(Wire: value\r\n\r\n")
     },
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-3.2
     WireCase(
@@ -1995,45 +1959,20 @@ object Http1SyntaxCases {
   private def latin1(bytes: ByteVector): String =
     bytes.toArray.iterator.map(b => (b & 0xff).toChar).mkString
 
-  private def tokenChar(c: Char): Boolean =
-    c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' ||
-      "!#$%&'*+-.^_`|~".contains(c)
+  private def rejectedRequest(context: CaseContext, bytes: String): IO[Unit] =
+    context.server(Protocol.Http1).use { case (peer, server) =>
+      for {
+        _ <- peer.writeAscii(bytes)
+        response <- Http1Wire.readFinalResponse(peer)
+        _ <- Check.equal(response.status, 400)
+        _ <- Http1FramingCases.expectClosedAfterResponse(peer)
+        observed <- server.pollReceived
+        _ <- Check.equal(observed, None)
+      } yield ()
+    }
 
-  /** Observe either a complete response head or genuinely empty EOF. Partial heads are failures. */
-  private def responseHeadOrEof(peer: RawPeer[IO], informational: Int = 0): IO[Option[Int]] =
-    peer
-      .readUntilOrClosed(Http1Wire.crlf ++ Http1Wire.crlf, 65536)
-      .flatMap {
-        case Some(bytes) =>
-          val lines = latin1(bytes).split("\r\n", -1).toVector
-          val line = lines.head
-          val validStatus = line.length >= 13 &&
-            (line.startsWith("HTTP/1.0 ") || line.startsWith("HTTP/1.1 ")) &&
-            line.substring(9, 12).forall(c => c >= '0' && c <= '9') && line(12) == ' ' &&
-            line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
-          (for {
-            _ <- Check(validStatus, s"malformed target status-line: $line")
-            status = line.substring(9, 12).toInt
-            _ <- Check(
-              status >= 100 && status <= 599 && status != 101,
-              s"unexpected target status: $status",
-            )
-            _ <- lines.tail.traverse_ { field =>
-              val colon = field.indexOf(':')
-              Check(
-                colon > 0 && field.take(colon).forall(tokenChar) &&
-                  field.drop(colon + 1).forall(c => c == '\t' || c >= ' ' && c != 127),
-                s"malformed target field line: $field",
-              )
-            }
-          } yield status).flatMap { status =>
-            if (status >= 200) IO.pure(Some(status))
-            else if (informational >= 16)
-              IO.raiseError(new WireObservationLimit("informational response observation limit"))
-            else IO.defer(responseHeadOrEof(peer, informational + 1))
-          }
-        case None => IO.pure(None)
-      }
+  private def responseHeadOrEof(peer: RawPeer[IO]): IO[Option[Int]] =
+    Http1Wire.readFinalStatusOrClosed(peer)
 
   private def normalizedFold(observed: Vector[String], logicalValue: String): Boolean =
     observed.nonEmpty && observed.forall(_.matches(logicalValue))

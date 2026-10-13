@@ -33,6 +33,10 @@ import scodec.bits.ByteVector
 import scala.concurrent.duration._
 
 class OracleChallengeSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   override val munitIOTimeout: Duration = 15.seconds
 
   private val accepted = Http1Wire.ascii("accepted")
@@ -79,6 +83,8 @@ class OracleChallengeSuite extends CatsEffectSuite {
       }
       (underlying, probe) = fixture
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = underlying.name
         val version = underlying.version
         def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -440,6 +446,8 @@ private[wire] final class ScriptedTarget[F[_]: Async: Network] private (
     script: ScriptedTarget.Script[F],
     probe: ScriptedTarget.Probe[F],
 ) extends WireTarget[F] {
+  def withFailureObserver(observe: AdapterFailure => F[Unit]): WireTarget[F] = this
+
   val name: String = "scripted"
   val version: String = "oracle-challenge"
 
@@ -478,6 +486,7 @@ private[wire] final class ScriptedTarget[F[_]: Async: Network] private (
 }
 
 private[wire] object ScriptedTarget {
+
   type Script[F[_]] = (RawPeer[F], RequestData => F[Unit]) => F[Unit]
 
   final case class Probe[F[_]](

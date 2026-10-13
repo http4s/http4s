@@ -88,6 +88,8 @@ class Http2ClosedWriteSuite extends CatsEffectSuite {
     val initial = encode(settings()) ++ encode(settings()) ++ encode(settings()) ++
       encode(Frame(Ping, 0, 0, ByteVector.fill(8)(0))) ++ verdict
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "deterministic-write-reset"
       val version = "1"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =

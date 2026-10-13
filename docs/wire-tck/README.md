@@ -72,8 +72,9 @@ minimal codec pipeline, not an independent application framework.
 
 ## Ignore policy
 
-Only `IgnoreRegistry.scala` may suppress cases in ordinary runs. Each exact ID
-records platforms, observed failure, evidence revision, review status and a local
+Only `IgnoreRegistry`, loaded from [ignores.tsv](ignores.tsv), may suppress cases
+in ordinary runs. The build and runtime consume the same six-column metadata.
+Each exact ID records platforms, observed failure, evidence revision, review status and a local
 tracking reference. An ignored case is skipped, never counted as passing. Full
 comparison suites bypass ignores. Test defects are repaired, not registered as
 Ember noncompliance. Provisional entries retain interpretation or observation

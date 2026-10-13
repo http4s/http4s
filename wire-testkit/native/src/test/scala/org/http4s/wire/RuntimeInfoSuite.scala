@@ -29,6 +29,10 @@ import java.io.IOException
 import java.net.SocketException
 
 class RuntimeInfoSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import WireCodecsSuite.peer
 
   private val resets = Vector(

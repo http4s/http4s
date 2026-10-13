@@ -44,6 +44,8 @@ class CaseContextSuite extends CatsEffectSuite {
       exercise: ClientDriver[IO] => IO[A]
   )(serve: RawPeer[IO] => IO[Unit]): IO[A] = {
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "coordination-fixture"
       val version = "local"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -386,6 +388,8 @@ class CaseContextSuite extends CatsEffectSuite {
     val selected =
       InteractionCases.all.find(_.id == "h2.client.interaction-eager-server-settings").get
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "zero-window-client"
       val version = "local"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =

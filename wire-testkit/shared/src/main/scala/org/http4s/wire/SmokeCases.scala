@@ -109,7 +109,7 @@ object SmokeCases {
       Role.Server,
       Rfc(9113, "6.7", "A non-ACK PING requires an ACK PING carrying the identical payload."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           Http2Wire.clientHandshake(peer) *> pingRoundTrip(peer)
         }
@@ -122,7 +122,7 @@ object SmokeCases {
       Role.Server,
       Rfc(9113, "6.7", "A PING payload of seven octets causes a connection error."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- Http2Wire.clientHandshake(peer)
@@ -146,7 +146,7 @@ object SmokeCases {
       Role.Client,
       Rfc(9113, "8.1", "A response consists of a field block followed by DATA through END_STREAM."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(3L)
         scriptedClient(context, Protocol.Http2)(expectBody) { peer =>
           readHttp2Request(peer).flatMap { streamId =>
@@ -170,7 +170,7 @@ object SmokeCases {
       Role.Client,
       Rfc(9113, "8.1.1", "Clients reject a response whose content-length disagrees with its DATA."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(3L)
         Deferred[IO, Unit].flatMap { observed =>
           context.client(Protocol.Http2)(driver => expectRejection(driver, observed.get)) { peer =>

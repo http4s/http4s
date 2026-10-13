@@ -481,7 +481,7 @@ object InteractionCases {
         "An eager server SETTINGS preface can arrive while the client sends its preface and must be acknowledged after that preface.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         context.client(Protocol.Http2)(driver =>
           targetOperation(checkExchange(driver, RequestData(path = "/eager"), 200, Binary))
         ) { peer =>
@@ -520,7 +520,7 @@ object InteractionCases {
         "An eager initial SETTINGS window applies to DATA released after its acknowledgment, and WINDOW_UPDATE permits progress.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { release =>
           context.client(Protocol.Http2)(driver =>
             targetOperation {
@@ -580,7 +580,7 @@ object InteractionCases {
         "MAY",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             _ <- Http2PeerSettings.write(
@@ -617,7 +617,7 @@ object InteractionCases {
         "Interleaved DATA belongs to its stream, including when the later stream reaches END_STREAM first.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             settings <- connectServer(peer)
@@ -654,7 +654,7 @@ object InteractionCases {
         "Trailers complete their own stream without ending or contaminating another stream's DATA sequence.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             settings <- connectServer(peer)
@@ -690,7 +690,7 @@ object InteractionCases {
         "Resetting one incomplete upload does not prevent the other stream from completing or publish the incomplete upload as complete.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             settings <- connectServer(peer)
@@ -735,7 +735,7 @@ object InteractionCases {
         "The connection compression context retains a valid dynamic entry after its request stream is reset.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
           for {
             settings <- connectServer(peer)
@@ -805,7 +805,7 @@ object InteractionCases {
         "Responses are associated by stream when the later request completes before an earlier response body.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { firstOpen =>
           context.client(Protocol.Http2)(driver =>
             targetOperation {
@@ -882,7 +882,7 @@ object InteractionCases {
         "An interim response and its final response remain on their request stream and cannot become another stream's response.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         context.client(Protocol.Http2)(driver =>
           targetOperation {
             driver.exchange(RequestData(path = "/one")).use { response =>
@@ -952,7 +952,7 @@ object InteractionCases {
         "A complete DATA-terminated response is retained when NO_ERROR resets the unfinished request upload.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { neverRelease =>
           context.client(Protocol.Http2)(driver =>
             targetOperation {
@@ -1011,7 +1011,7 @@ object InteractionCases {
         "A response completed in HEADERS is retained when NO_ERROR resets the unfinished request upload.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { neverRelease =>
           context.client(Protocol.Http2)(driver =>
             targetOperation {
@@ -1716,8 +1716,7 @@ object InteractionCases {
       .flatMap {
         case Right(bytes) => Check.equal(bytes, ByteVector.empty)
         case Left(error) if RuntimeInfo.isConnectionReset(error) => IO.unit
-        case Left(error: WireObservationLimit)
-            if error.getMessage.startsWith("body exceeds 0 bytes;") =>
+        case Left(WireBodyLimit(0)) =>
           Check(false, "additional response bytes followed a response requiring connection closure")
         case Left(error) => IO.raiseError(error)
       }

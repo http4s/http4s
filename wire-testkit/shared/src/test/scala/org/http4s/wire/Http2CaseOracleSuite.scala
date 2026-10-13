@@ -32,27 +32,82 @@ import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 class Http2CaseOracleSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
 
   private type HpackFields = Vector[(String, String)]
 
+  private sealed abstract class Closure(label: String) {
+    override def toString: String = label
+  }
+  private object Closure {
+    case object Writable extends Closure("writable")
+    case object PostHead extends Closure("post-head")
+    case object FirstData extends Closure("first-data")
+    case object MiddleData extends Closure("middle-data")
+    case object FinalData extends Closure("final-data")
+    case object Trailers extends Closure("trailers")
+    case object PartialCredit extends Closure("partial-credit")
+  }
+
+  private sealed abstract class Ending(label: String) {
+    override def toString: String = label
+  }
+  private object Ending {
+    case object Data extends Ending("data")
+    case object Trailers extends Ending("trailers")
+    case object ContinuedTrailers extends Ending("continued-trailers")
+    case object WrongBody extends Ending("wrong-body")
+    case object MissingEnd extends Ending("missing-end")
+    case object TruncatedFrame extends Ending("truncated-frame")
+    case object HeldIncomplete extends Ending("held-incomplete")
+    case object BadHpack extends Ending("bad-hpack")
+    case object BadTrailers extends Ending("bad-trailers")
+    case object BadSettings extends Ending("bad-settings")
+    case object BadPing extends Ending("bad-ping")
+    case object InterruptedTrailers extends Ending("interrupted-trailers")
+    case object Oversize extends Ending("oversize")
+  }
+
+  private sealed abstract class Fault(label: String, val adapter: Boolean, val timeout: Boolean) {
+    override def toString: String = label
+  }
+  private object Fault {
+    case object Closed extends Fault("closed", false, false)
+    case object UnrelatedIo extends Fault("unrelated-io", false, false)
+    case object WrappedClose extends Fault("wrapped-close", false, false)
+    case object Timeout extends Fault("timeout", false, true)
+    case object Adapter extends Fault("adapter", true, false)
+    case object SuppressedTimeout extends Fault("suppressed-timeout", false, true)
+    case object SuppressedAdapter extends Fault("suppressed-adapter", true, false)
+    case object WrappedSuppressedAdapter extends Fault("wrapped-suppressed-adapter", true, false)
+    case object SuppressedAdapterTimeout extends Fault("suppressed-adapter-timeout", true, true)
+  }
+
+  private final class CompletionCase(val id: String, val stateCase: Boolean, val extraAcks: Int) {
+    override def toString: String = id
+  }
+  private val stateCompletion =
+    new CompletionCase("h2.server.peer-concurrency-zero-allows-responses", true, 0)
   private val bufferedCompletionCases = Vector(
-    "h2.server.default-frame-size-splits-data",
-    "h2.server.settings-replace-frame-limit",
-    "h2.server.peer-concurrency-zero-allows-responses",
+    new CompletionCase("h2.server.default-frame-size-splits-data", false, 0),
+    new CompletionCase("h2.server.settings-replace-frame-limit", false, 2),
+    stateCompletion,
   )
 
   for {
     id <- bufferedCompletionCases
-    closure <- Vector(
-      "writable",
-      "post-head",
-      "first-data",
-      "middle-data",
-      "final-data",
-      "trailers",
-      "partial-credit",
+    closure <- Vector[Closure](
+      Closure.Writable,
+      Closure.PostHead,
+      Closure.FirstData,
+      Closure.MiddleData,
+      Closure.FinalData,
+      Closure.Trailers,
+      Closure.PartialCredit,
     )
-    ending <- Vector("data", "trailers", "continued-trailers")
+    ending <- Vector[Ending](Ending.Data, Ending.Trailers, Ending.ContinuedTrailers)
     padded <- Vector(false, true)
   } test(s"H2 buffered completion: legal/$id/$closure/$ending/padded=$padded") {
     checkBufferedCompletion(id, closure, ending, padded)
@@ -60,56 +115,56 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
 
   for {
     id <- bufferedCompletionCases
-    ending <- Vector(
-      "wrong-body",
-      "missing-end",
-      "truncated-frame",
-      "held-incomplete",
-      "bad-hpack",
-      "bad-trailers",
-      "bad-settings",
-      "bad-ping",
-      "interrupted-trailers",
+    ending <- Vector[Ending](
+      Ending.WrongBody,
+      Ending.MissingEnd,
+      Ending.TruncatedFrame,
+      Ending.HeldIncomplete,
+      Ending.BadHpack,
+      Ending.BadTrailers,
+      Ending.BadSettings,
+      Ending.BadPing,
+      Ending.InterruptedTrailers,
     ) ++
-      (if (id.endsWith("peer-concurrency-zero-allows-responses")) Vector.empty
-       else Vector("oversize"))
+      (if (id.stateCase) Vector.empty
+       else Vector[Ending](Ending.Oversize))
   } test(s"H2 buffered completion: invalid/$id/$ending") {
-    checkBufferedCompletion(id, "post-head", ending, padded = true)
+    checkBufferedCompletion(id, Closure.PostHead, ending, padded = true)
   }
 
   for {
     id <- bufferedCompletionCases
-    fault <- Vector(
-      "unrelated-io",
-      "wrapped-close",
-      "timeout",
-      "adapter",
-      "suppressed-timeout",
-      "suppressed-adapter",
-      "wrapped-suppressed-adapter",
-      "suppressed-adapter-timeout",
+    fault <- Vector[Fault](
+      Fault.UnrelatedIo,
+      Fault.WrappedClose,
+      Fault.Timeout,
+      Fault.Adapter,
+      Fault.SuppressedTimeout,
+      Fault.SuppressedAdapter,
+      Fault.WrappedSuppressedAdapter,
+      Fault.SuppressedAdapterTimeout,
     )
   } test(s"H2 buffered completion: provenance/$id/$fault") {
-    checkBufferedCompletion(id, "post-head", "trailers", padded = false, fault)
+    checkBufferedCompletion(id, Closure.PostHead, Ending.Trailers, padded = false, fault)
   }
 
-  for (closure <- Vector("writable", "post-head", "partial-credit"))
+  for (closure <- Vector[Closure](Closure.Writable, Closure.PostHead, Closure.PartialCredit))
     test(s"H2 buffered completion: State attempted credit/$closure") {
       checkBufferedCompletion(
-        "h2.server.peer-concurrency-zero-allows-responses",
+        stateCompletion,
         closure,
-        "trailers",
+        Ending.Trailers,
         padded = true,
         exhaustInitialCredit = true,
       )
     }
 
   private def checkBufferedCompletion(
-      id: String,
-      closure: String,
-      ending: String,
+      id: CompletionCase,
+      closure: Closure,
+      ending: Ending,
       padded: Boolean,
-      fault: String = "closed",
+      fault: Fault = Fault.Closed,
       exhaustInitialCredit: Boolean = false,
   ): IO[Unit] = {
     import Http2Wire._
@@ -120,93 +175,100 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       readBlocked <- Deferred[IO, Unit]
       released <- Deferred[IO, Unit]
       completed <- Deferred[IO, Either[Throwable, Unit]]
-      stateCase = id.endsWith("peer-concurrency-zero-allows-responses")
+      stateCase = id.stateCase
       expected =
         if (stateCase) Http1Wire.ascii("abcdefghijklmnop") else ByteVector.fill(40000)(42.toByte)
-      body = if (ending == "wrong-body") expected.dropRight(1) ++ ByteVector(43) else expected
+      body = if (ending == Ending.WrongBody) expected.dropRight(1) ++ ByteVector(43) else expected
       head = encode(headers(1, Vector(":status" -> "200"), false))
       setup = encode(settings()) ++ encode(settings(ack = true)) ++
-        (if (id.endsWith("settings-replace-frame-limit"))
-           encode(settings(ack = true)) ++ encode(settings(ack = true))
-         else ByteVector.empty)
+        Vector.fill(id.extraAcks)(encode(settings(ack = true))).foldLeft(ByteVector.empty)(_ ++ _)
       chunks = body.grouped(if (stateCase) 6 else 16000).toVector
       frames = (if (exhaustInitialCredit)
                   Vector.fill(256)(
                     Frame(Data, Padded, 1, ByteVector(255.toByte) ++ ByteVector.fill(255)(0))
                   )
                 else Vector.empty) ++ chunks.zipWithIndex.map { case (bytes, index) =>
-        val flags = if (ending == "data" && index == chunks.size - 1) EndStream else 0
+        val flags = if (ending == Ending.Data && index == chunks.size - 1) EndStream else 0
         if (padded) Frame(Data, flags | Padded, 1, ByteVector(7) ++ bytes ++ ByteVector.fill(7)(0))
         else data(1, bytes, flags == EndStream)
       }
       // State grants precede DATA; subsequent closure positions use an incidental PING.
       // Control positions exercise the actual payload-credit write after that DATA.
       closeIndex = closure match {
-        case "middle-data" => 1
-        case "final-data" | "trailers" => 2
-        case _ => 0
+        case Closure.MiddleData => 1
+        case Closure.FinalData | Closure.Trailers => 2
+        case Closure.Writable | Closure.PostHead | Closure.FirstData | Closure.PartialCredit => 0
       }
       ping = encode(Frame(Ping, 0, 0, ByteVector.fill(8)(1)))
       prefixData = frames.take(closeIndex).foldLeft(ByteVector.empty)((b, f) => b ++ encode(f))
       closingPing =
-        if (stateCase && closure != "post-head" && closure != "partial-credit") ping
+        if (stateCase && closure != Closure.PostHead && closure != Closure.PartialCredit) ping
         else ByteVector.empty
       tailData = frames.drop(closeIndex).foldLeft(ByteVector.empty)((b, f) => b ++ encode(f))
       control = ending match {
-        case "bad-settings" => encode(settings(Vector(2 -> 1L)))
-        case "bad-ping" => encode(Frame(Ping, 0, 0, ByteVector(1)))
-        case "oversize" => encode(Frame(0xff, 0, 0, ByteVector.fill(16385)(0)))
-        case _ => encode(settings(ack = true)) ++ encode(settings()) ++ ping
+        case Ending.BadSettings => encode(settings(Vector(2 -> 1L)))
+        case Ending.BadPing => encode(Frame(Ping, 0, 0, ByteVector(1)))
+        case Ending.Oversize => encode(Frame(0xff, 0, 0, ByteVector.fill(16385)(0)))
+        case Ending.Data | Ending.Trailers | Ending.ContinuedTrailers | Ending.WrongBody |
+            Ending.MissingEnd | Ending.TruncatedFrame | Ending.HeldIncomplete | Ending.BadHpack |
+            Ending.BadTrailers | Ending.InterruptedTrailers =>
+          encode(settings(ack = true)) ++ encode(settings()) ++ ping
       }
       trailers = ending match {
-        case "data" | "missing-end" | "held-incomplete" => ByteVector.empty
-        case "truncated-frame" => encode(headers(1, Vector("x-end" -> "yes"))).dropRight(1)
-        case "bad-hpack" =>
+        case Ending.Data | Ending.MissingEnd | Ending.HeldIncomplete => ByteVector.empty
+        case Ending.TruncatedFrame => encode(headers(1, Vector("x-end" -> "yes"))).dropRight(1)
+        case Ending.BadHpack =>
           encode(Frame(Headers, EndHeaders | EndStream, 1, ByteVector(0x80.toByte)))
-        case "bad-trailers" => encode(headers(1, Vector(":status" -> "200")))
-        case "continued-trailers" | "interrupted-trailers" =>
+        case Ending.BadTrailers => encode(headers(1, Vector(":status" -> "200")))
+        case Ending.ContinuedTrailers | Ending.InterruptedTrailers =>
           val block = headers(1, Vector("x-end" -> "yes")).payload
           encode(Frame(Headers, EndStream, 1, block.take(1))) ++
-            (if (ending == "interrupted-trailers") ping else ByteVector.empty) ++
+            (if (ending == Ending.InterruptedTrailers) ping else ByteVector.empty) ++
             encode(Frame(Continuation, EndHeaders, 1, block.drop(1)))
-        case _ => encode(headers(1, Vector("x-end" -> "yes")))
+        case Ending.Trailers | Ending.WrongBody | Ending.BadSettings | Ending.BadPing |
+            Ending.Oversize =>
+          encode(headers(1, Vector("x-end" -> "yes")))
       }
       // Place validated housekeeping before END_STREAM, including after the failed grant.
       response =
-        if (ending == "data")
+        if (ending == Ending.Data)
           head ++ prefixData ++ closingPing ++ tailData
         else head ++ prefixData ++ closingPing ++ tailData ++ control ++ trailers
       shutdown =
-        if (Set("missing-end", "held-incomplete", "truncated-frame").contains(ending))
+        if (
+          Set[Ending](Ending.MissingEnd, Ending.HeldIncomplete, Ending.TruncatedFrame).contains(
+            ending
+          )
+        )
           ByteVector.empty
         else encode(Frame(GoAway, 0, 0, uint32(1) ++ uint32(0)))
       input <- Ref.of[IO, ByteVector](setup ++ response ++ shutdown)
       readCount <- Ref.of[IO, Long](0L)
-      closeAt = setup.size + (if (closure == "post-head" || closure == "partial-credit") 1L
+      closeAt = setup.size + (if (closure == Closure.PostHead || closure == Closure.PartialCredit)
+                                1L
                               else head.size + prefixData.size + 1L)
       closed <- Http2WriteFailureFixture.closedWrite
       timeout = new java.util.concurrent.TimeoutException("completion write timeout")
       adapter = new AdapterFailure("completion fixture", closed)
       error <- IO {
         fault match {
-          case "unrelated-io" => new java.io.IOException("unrelated device failure")
-          case "wrapped-close" => new java.io.IOException("unknown wrapper", closed)
-          case "timeout" => timeout
-          case "adapter" => adapter
-          case "suppressed-timeout" => closed.addSuppressed(timeout); closed
-          case "suppressed-adapter" => closed.addSuppressed(adapter); closed
-          case "suppressed-adapter-timeout" =>
+          case Fault.UnrelatedIo => new java.io.IOException("unrelated device failure")
+          case Fault.WrappedClose => new java.io.IOException("unknown wrapper", closed)
+          case Fault.Timeout => timeout
+          case Fault.Adapter => adapter
+          case Fault.SuppressedTimeout => closed.addSuppressed(timeout); closed
+          case Fault.SuppressedAdapter => closed.addSuppressed(adapter); closed
+          case Fault.SuppressedAdapterTimeout =>
             closed.addSuppressed(timeout); closed.addSuppressed(adapter); closed
-          case "wrapped-suppressed-adapter" =>
+          case Fault.WrappedSuppressedAdapter =>
             val wrapper = new RuntimeException("wrapper", closed)
             wrapper.addSuppressed(adapter)
             wrapper
-          case _ => closed
+          case Fault.Closed => closed
         }
       }
-      socket = new Socket[IO] {
-        private val addressValue = SocketAddress(ip"127.0.0.1", port"1")
-        def read(n: Int): IO[Option[Chunk[Byte]]] = input
+      read = (n: Int) =>
+        input
           .modify { bytes =>
             val (next, rest) = bytes.splitAt(n.toLong)
             (rest, next)
@@ -214,16 +276,14 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           .flatMap { bytes =>
             readCount.update(_ + bytes.size) *>
               (if (bytes.nonEmpty) IO.pure(Some(Chunk.byteVector(bytes)))
-               else if (ending == "held-incomplete")
+               else if (ending == Ending.HeldIncomplete)
                  readBlocked.complete(()).void *> IO.never[Option[Chunk[Byte]]]
                else IO.pure(None))
           }
-        def reads: Stream[IO, Byte] =
-          Stream.repeatEval(read(8192)).unNoneTerminate.flatMap(Stream.chunk)
-        def readN(n: Int): IO[Chunk[Byte]] = reads.take(n.toLong).compile.toVector.map(Chunk.from)
-        def write(bytes: Chunk[Byte]): IO[Unit] = readCount.get.flatMap { count =>
-          if (closure == "writable" || count < closeAt) IO.unit
-          else if (closure == "partial-credit") deliveredCredit.get.flatMap { delivered =>
+      write = (bytes: Chunk[Byte]) =>
+        readCount.get.flatMap { count =>
+          if (closure == Closure.Writable || count < closeAt) IO.unit
+          else if (closure == Closure.PartialCredit) deliveredCredit.get.flatMap { delivered =>
             // Control writes both grants together; State writes them separately.
             // Model one complete grant reaching the peer before the transport fails.
             (if (delivered.isEmpty) deliveredCredit.set(ByteVector(bytes.toArray).take(13))
@@ -233,20 +293,10 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           }
           else failedWrites.update(_ + 1) *> IO.raiseError[Unit](error)
         }
-        def writes: Pipe[IO, Byte, Nothing] = _.chunks.evalMap(write).drain
-        def endOfInput: IO[Unit] = IO.unit
-        def endOfOutput: IO[Unit] = IO.unit
-        def isOpen: IO[Boolean] = IO.pure(true)
-        def localAddress: IO[SocketAddress[IpAddress]] = IO.pure(addressValue)
-        def remoteAddress: IO[SocketAddress[IpAddress]] = IO.pure(addressValue)
-        def address: GenSocketAddress = addressValue
-        def peerAddress: GenSocketAddress = addressValue
-        def getOption[A](key: SocketOption.Key[A]): IO[Option[A]] = IO.pure(None)
-        def setOption[A](key: SocketOption.Key[A], value: A): IO[Unit] = IO.unit
-        def supportedOptions: IO[Set[SocketOption.Key[_]]] = IO.pure(Set.empty)
-      }
-      peer <- RawPeer.create(socket, trace)
+      peer <- RawPeer.create(read, write, IO.unit, trace)
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "buffered-completion"
         val version = "1"
         def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -263,7 +313,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         ): Resource[IO, ClientDriver[IO]] =
           Resource.eval(IO.raiseError(new UnsupportedOperationException("server only")))
       }
-      run = selected(id).run(
+      run = selected(id.id).run(
         CaseContext(
           target,
           trace,
@@ -271,7 +321,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         )
       )
       _ <-
-        if (ending == "held-incomplete") {
+        if (ending == Ending.HeldIncomplete) {
           run.attempt.flatMap(completed.complete).start.flatMap { fiber =>
             IO.race(readBlocked.get, completed.get)
               .flatMap {
@@ -284,12 +334,12 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         } else
           run.attempt.flatMap { result =>
             IO {
-              if (fault != "closed") {
+              if (fault != Fault.Closed) {
                 val expectedFailure =
-                  if (fault.contains("adapter")) adapter
-                  else if (fault.contains("timeout")) timeout
+                  if (fault.adapter) adapter
+                  else if (fault.timeout) timeout
                   else error
-                if (fault == "suppressed-timeout")
+                if (fault == Fault.SuppressedTimeout)
                   assert(
                     result.swap.exists(e =>
                       e.isInstanceOf[java.util.concurrent.TimeoutException] && (e.getCause eq error)
@@ -297,9 +347,11 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
                     result.toString,
                   )
                 else assert(result.swap.exists(_ eq expectedFailure), result.toString)
-              } else if (exhaustInitialCredit && closure == "post-head")
+              } else if (exhaustInitialCredit && closure == Closure.PostHead)
                 assert(result.swap.exists(_.isInstanceOf[ProtocolFailure]), result.toString)
-              else if (Set("data", "trailers", "continued-trailers").contains(ending))
+              else if (
+                Set[Ending](Ending.Data, Ending.Trailers, Ending.ContinuedTrailers).contains(ending)
+              )
                 assertEquals(result, Right(()))
               else
                 assert(
@@ -314,11 +366,11 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       writes <- failedWrites.get
       _ <- IO {
         val finalDataGuard =
-          !stateCase && ending == "data" && (closure == "final-data" || closure == "trailers")
-        assertEquals(writes, if (closure == "writable" || finalDataGuard) 0 else 1)
+          !stateCase && ending == Ending.Data && (closure == Closure.FinalData || closure == Closure.Trailers)
+        assertEquals(writes, if (closure == Closure.Writable || finalDataGuard) 0 else 1)
       }
       _ <-
-        if (closure == "partial-credit") deliveredCredit.get.flatMap { bytes =>
+        if (closure == Closure.PartialCredit) deliveredCredit.get.flatMap { bytes =>
           IO.fromEither(decodeAll(bytes)).flatMap { grants =>
             IO { assertEquals(grants.size, 1); assertEquals(grants.head.frameType, WindowUpdate) }
           }
@@ -359,6 +411,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           finalRead,
         )
         target = new WireTarget[IO] {
+          def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
           val name = "completed-response-closed-transport"
           val version = "1"
           def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -907,6 +961,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       wrongIndex: Boolean = false,
       rejectMode: String = "plain",
   ): WireTarget[IO] = new WireTarget[IO] {
+    def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
     import Http2Wire._
     val name = "native-http-presentation"
     val version = "1"
@@ -1110,6 +1166,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       consumed <- Deferred[IO, Unit]
       releases <- Ref.of[IO, Int](0)
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "smoke-client-lifetime"
         val version = "probe"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -1315,6 +1373,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         progressiveServerScript(id, true, "correct-error", sent, close)(peer, offer)
       }
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "progressive-cleanup"
         val version = "probe"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -1460,6 +1520,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       consumed <- Ref.of[IO, Boolean](false)
       releases <- Ref.of[IO, Int](0)
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "control-release-classification"
         val version = "probe"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -1698,6 +1760,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       failed <- Ref.of[IO, Boolean](false)
       faultSeen <- Deferred[IO, Unit]
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "stream-error-with-exchange-cleanup"; val version = "probe"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
           Resource.eval(IO.raiseError(new UnsupportedOperationException))
@@ -1816,6 +1880,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       releases <- Ref.of[IO, Int](0)
       bodySeen <- Deferred[IO, Unit]
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "message-cleanup-probe"; val version = "1"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
           Resource.eval(IO.raiseError(new UnsupportedOperationException))
@@ -4456,26 +4522,31 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
 
   test("admission counts both stream ends and permits existing streams after a reduction") {
     import Http2Wire._
-    val first = Http2PeerSettings.State(concurrent = 2).sending(headers(1, Vector.empty), true)
+    val first =
+      Http2PeerSettings.State(concurrent = 2).sending(headers(1, Vector.empty), true).toOption.get
     val two = first
       .sending(headers(3, Vector.empty, endStream = false), true)
+      .toOption
+      .get
       .received(settings(Vector(3 -> 1L)))
     assertEquals(two.streams.size, 2)
-    intercept[WireObservationLimit](two.sending(headers(5, Vector.empty), true))
+    assert(two.sending(headers(5, Vector.empty), true).isLeft)
     val one = two.received(headers(1, Vector.empty))
     assertEquals(one.streams.keySet, Set(3))
     // Existing stream 3 can still send through END_STREAM under the reduced limit.
-    val halfClosed = one.sending(data(3, ByteVector.empty), true)
-    intercept[WireObservationLimit](halfClosed.sending(headers(5, Vector.empty), true))
+    val halfClosed = one.sending(data(3, ByteVector.empty), true).toOption.get
+    assert(halfClosed.sending(headers(5, Vector.empty), true).isLeft)
     val closed = halfClosed.received(data(3, ByteVector.empty))
-    assertEquals(closed.sending(headers(5, Vector.empty), true).streams.keySet, Set(5))
+    assertEquals(closed.sending(headers(5, Vector.empty), true).toOption.get.streams.keySet, Set(5))
     val reset = two
       .sending(Frame(RstStream, 0, 1, uint32(8)), true)
+      .toOption
+      .get
       .received(Frame(RstStream, 0, 3, uint32(8)))
-    assertEquals(reset.sending(headers(5, Vector.empty), true).streams.keySet, Set(5))
+    assertEquals(reset.sending(headers(5, Vector.empty), true).toOption.get.streams.keySet, Set(5))
     val zeroThenOne = closed.received(settings(Vector(3 -> 0L, 3 -> 1L)))
     assertEquals(zeroThenOne.concurrent, 1L)
-    assertEquals(zeroThenOne.sending(headers(5, Vector.empty), true).streams.size, 1)
+    assertEquals(zeroThenOne.sending(headers(5, Vector.empty), true).toOption.get.streams.size, 1)
   }
 
   test("field-section accounting includes every UTF-8 octet and repeated occurrence") {
@@ -4564,11 +4635,12 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
 
   test("a fragmented terminal field section releases admission only at END_HEADERS") {
     import Http2Wire._
-    val open = Http2PeerSettings.State(concurrent = 1).sending(headers(1, Vector.empty), true)
+    val open =
+      Http2PeerSettings.State(concurrent = 1).sending(headers(1, Vector.empty), true).toOption.get
     val pending = open.received(Frame(Headers, EndStream, 1, ByteVector.empty))
-    intercept[WireObservationLimit](pending.sending(headers(3, Vector.empty), true))
+    assert(pending.sending(headers(3, Vector.empty), true).isLeft)
     val closed = pending.received(Frame(Continuation, EndHeaders, 1, ByteVector.empty))
-    assertEquals(closed.sending(headers(3, Vector.empty), true).streams.keySet, Set(3))
+    assertEquals(closed.sending(headers(3, Vector.empty), true).toOption.get.streams.keySet, Set(3))
   }
 
   for (
@@ -4804,8 +4876,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           trace,
         )
         result <- Http2PeerSettings
-          .scoped[IO](initiatesRequests = mode == "zero-admission") { implicit ps =>
-            ps.received(peer, settings(Vector(6 -> 0L, 3 -> 0L))) *> (mode match {
+          .scoped[IO, Unit](initiatesRequests = mode == "zero-admission") { implicit codecSettings =>
+            codecSettings.received(peer, settings(Vector(6 -> 0L, 3 -> 0L))) *> (mode match {
               case "empty-trailer" =>
                 Http2PeerSettings.writeFramingFault(
                   peer,
@@ -5374,6 +5446,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     for {
       first <- Ref.of[IO, String]("")
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "initial-table-mutant"; val version = "1"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
           Resource.eval(IO.raiseError(new UnsupportedOperationException))
@@ -5487,6 +5561,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         new RuntimeException("original fixture failure"),
       )
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "independent-control-client"
         val version = "oracle-challenge"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -5897,6 +5973,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     for {
       seen <- Ref.of[IO, Int](0)
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "finite-negative-census"; val version = "1"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
           Resource.eval(IO.raiseError(new UnsupportedOperationException))
@@ -7257,6 +7335,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         terminalRead,
       )
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "independent-observer-socket"
         val version = "1"
         def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -7320,6 +7400,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
   } test(s"observer boundaries actual client full close: $id/$malformedTail/$repeat") {
     import Http2Wire._
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "full-close-client"
       val version = "1"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -7908,14 +7990,30 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
 
   private def runClient(id: String)(script: RawPeer[IO] => IO[ResponseData[IO]]): IO[Unit] = for {
     transcript <- Transcript.create[IO]()
-    _ <- selected(id).run(CaseContext(clientTarget(script), transcript))
+    scripted <- Transcript.create[IO]()
+    _ <- MemoryPeer.pair(transcript, scripted).use { case (server, client) =>
+      val address = SocketAddress(ip"127.0.0.1", port"1")
+      val target = clientTarget(script, connection = (_, _) => Resource.pure(client))
+      selected(id).run(
+        CaseContext(
+          target,
+          transcript,
+          clientListener =
+            _ => Resource.pure(WirePeerTransport.Listener(address, Resource.pure(server))),
+        )
+      )
+    }
   } yield ()
 
   private def clientTarget(
       script: RawPeer[IO] => IO[ResponseData[IO]],
       background: RawPeer[IO] => Resource[IO, Unit] = _ => Resource.unit[IO],
       onRelease: IO[Unit] = IO.unit,
+      connection: (SocketAddress[IpAddress], Transcript[IO]) => Resource[IO, RawPeer[IO]] =
+        (address, transcript) => WirePeerTransport.connect[IO](address, transcript),
   ): WireTarget[IO] = new WireTarget[IO] {
+    def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
     val name = "scripted-client"
     val version = "oracle-challenge"
     def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -7925,9 +8023,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         address: SocketAddress[IpAddress],
     ): Resource[IO, ClientDriver[IO]] =
       for {
-        socket <- Network[IO].connect(address)
         transcript <- Resource.eval(Transcript.create[IO]())
-        peer <- Resource.eval(RawPeer.create(socket, transcript))
+        peer <- connection(address, transcript)
         _ <- Resource.onFinalize(onRelease)
         _ <- background(peer)
       } yield new ClientDriver[IO] {

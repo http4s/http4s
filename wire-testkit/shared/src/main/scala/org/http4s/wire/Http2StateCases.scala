@@ -51,7 +51,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "5.1", "DATA on an idle stream is a connection PROTOCOL_ERROR."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           connectServer(peer) *> writeFrame(peer, data(1, ByteVector.empty)) *>
             connectionError(peer, Set(1L, 2L), fromServer = true)
@@ -65,7 +65,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "5.1", "WINDOW_UPDATE on an idle stream is a connection PROTOCOL_ERROR."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           connectServer(peer) *> writeFrame(peer, windowUpdate(1, 1)) *>
             connectionError(peer, Set(1L, 2L), fromServer = true)
@@ -79,7 +79,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "5.1.1", "Client-initiated streams require odd identifiers."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           connectServer(peer) *> writeFrame(peer, headers(2, requestFields())) *>
             connectionError(peer, Set(1L, 2L), fromServer = true)
@@ -97,7 +97,7 @@ object Http2StateCases {
         "Opening stream 3 closes skipped stream 1; stream 1 cannot then be opened.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           for {
             _ <- connectServer(peer, Vector(4 -> 0L))
@@ -117,7 +117,7 @@ object Http2StateCases {
       Role.Client,
       Rfc(9113, "5.1", "A client treats DATA on an uncreated stream as a connection error."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedClient(context) { peer =>
           for {
             _ <- acceptClient(peer)
@@ -136,7 +136,7 @@ object Http2StateCases {
       Role.Client,
       Rfc(9113, "5.1", "A client treats WINDOW_UPDATE on an idle stream as a connection error."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedClient(context) { peer =>
           for {
             _ <- acceptClient(peer)
@@ -155,7 +155,7 @@ object Http2StateCases {
       Role.Client,
       Rfc(9113, "5.1", "HEADERS cannot open an unpromised server-initiated stream."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedClient(context) { peer =>
           acceptClient(peer) *> requestHead(peer) *>
             writeFrame(peer, headers(2, Vector(":status" -> "200"))) *>
@@ -170,7 +170,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "5.1", "DATA after the peer's END_STREAM requires STREAM_CLOSED."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -192,7 +192,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "5.1", "HEADERS after the peer's END_STREAM requires STREAM_CLOSED."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -213,7 +213,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "6.9", "WINDOW_UPDATE remains valid after the peer sends END_STREAM."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -249,7 +249,7 @@ object Http2StateCases {
         "Each DATA payload fits the remaining stream credit and WINDOW_UPDATE restores credit.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -285,7 +285,7 @@ object Http2StateCases {
         "An upload fits stream credit, processes PING while blocked, and resumes on WINDOW_UPDATE.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { ready =>
           context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
             for {
@@ -327,7 +327,7 @@ object Http2StateCases {
         "Only connection WINDOW_UPDATE replenishes the initial 65535 connection octets.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = LargeBody)).use {
           case (peer, _) =>
             for {
@@ -368,7 +368,7 @@ object Http2StateCases {
         "SETTINGS and stream WINDOW_UPDATE do not replenish measured upload connection credit.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { ready =>
           context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
             for {
@@ -428,7 +428,7 @@ object Http2StateCases {
         "A SETTINGS reduction preserves a negative stream window until credit becomes positive.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = LargeBody)).use {
           case (peer, _) =>
             for {
@@ -491,7 +491,7 @@ object Http2StateCases {
         "A client retains negative upload credit across SETTINGS and partial WINDOW_UPDATE.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { ready =>
           context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
             for {
@@ -556,7 +556,7 @@ object Http2StateCases {
         "A zero connection WINDOW_UPDATE increment requires a connection PROTOCOL_ERROR.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           connectServer(peer) *> writeFrame(peer, Frame(WindowUpdate, 0, 0, uint32(0))) *>
             connectionError(peer, Set(1L, 2L), fromServer = true)
@@ -574,7 +574,7 @@ object Http2StateCases {
         "A client rejects a zero connection WINDOW_UPDATE increment as a connection error.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedClient(context) { peer =>
           acceptClient(peer) *> requestHead(peer) *>
             writeFrame(peer, Frame(WindowUpdate, 0, 0, uint32(0))) *>
@@ -593,7 +593,7 @@ object Http2StateCases {
         "A zero WINDOW_UPDATE increment on an open stream requires a stream PROTOCOL_ERROR.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
@@ -622,7 +622,7 @@ object Http2StateCases {
         "A zero WINDOW_UPDATE increment on an open upload requires a stream PROTOCOL_ERROR.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedUpload(context) { peer =>
           for {
             decoder <- HpackWire.decoder[IO]()
@@ -642,7 +642,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "6.9.1", "WINDOW_UPDATE cannot increase connection credit above 2^31-1."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2).use { case (peer, _) =>
           // With no streams or DATA, the connection window is exactly 65535.
           connectServer(peer) *> writeFrame(peer, windowUpdate(0, Int.MaxValue)) *>
@@ -657,7 +657,7 @@ object Http2StateCases {
       Role.Client,
       Rfc(9113, "6.9.1", "Connection WINDOW_UPDATE overflow requires FLOW_CONTROL_ERROR."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedClient(context) { peer =>
           // The sole request stream receives no stream-credit increase. Even empty-body
           // padding can therefore debit at most 65535 octets, before or between these updates.
@@ -682,7 +682,7 @@ object Http2StateCases {
         "Two updates from zero to 2^31-1 and then 2^31 require stream FLOW_CONTROL_ERROR.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
@@ -708,7 +708,7 @@ object Http2StateCases {
       Role.Client,
       Rfc(9113, "6.9.1", "An open upload rejects a stream window above 2^31-1."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedUpload(context) { peer =>
           for {
             decoder <- HpackWire.decoder[IO]()
@@ -743,7 +743,7 @@ object Http2StateCases {
         "An initial-window SETTINGS change overflowing an active window is a connection error.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
         context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
           for {
@@ -772,7 +772,7 @@ object Http2StateCases {
         "An initial-window SETTINGS change overflowing an upload window is a connection error.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         rejectedUpload(context) { peer =>
           for {
             decoder <- HpackWire.decoder[IO]()
@@ -805,7 +805,7 @@ object Http2StateCases {
         "The maximum WINDOW_UPDATE increment is valid when the existing window is zero.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -847,7 +847,7 @@ object Http2StateCases {
         "The maximum WINDOW_UPDATE increment is accepted at measured nonpositive upload credit.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { ready =>
           context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
             for {
@@ -887,7 +887,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "6.4", "After processing RST_STREAM a server cannot resume DATA on that stream."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -908,7 +908,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "6.9", "An in-flight WINDOW_UPDATE on a closed stream is not a connection error."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {
@@ -969,7 +969,7 @@ object Http2StateCases {
       Role.Server,
       Rfc(9113, "8.7", "GOAWAY cannot declare an application-dispatched stream unprocessed."),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, server) =>
             for {
@@ -1004,7 +1004,7 @@ object Http2StateCases {
         "A client's concurrent-stream limit restricts server initiation, not responses on client streams.",
       ),
     ) { context =>
-      Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
+      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
         context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
           case (peer, _) =>
             for {

@@ -28,6 +28,9 @@ import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 class Http1CaseOracleSuite extends CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
 
   for {
     outcome <- Vector(
@@ -2374,6 +2377,8 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
         IO.raiseError(new AssertionError("unexpected application observation")),
   ): IO[Unit] = {
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "scripted-h1-reset"
       val version = "oracle-challenge"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -2403,6 +2408,8 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
       script: (RawPeer[IO], RequestData) => IO[ResponseData[IO]]
   ): IO[Unit] = {
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "scripted-h1-client"
       val version = "oracle-challenge"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =

@@ -20,23 +20,33 @@ import cats.ApplicativeThrow
 import cats.syntax.all._
 
 /** Malformed bytes observed by an independent wire decoder, never adapter or transport errors. */
-final class WireDecodingFailure(message: String) extends AssertionError(message)
+sealed class WireDecodingFailure(message: String) extends AssertionError(message)
 
 private[wire] object WireDecodingFailure {
-  // RawPeer reports exact-read/delimiter EOF with these messages. Translate only those
-  // framing boundaries at decoder read sites; invalid arguments and arbitrary I/O escape.
+  final class Truncated(val boundary: WireReadFailure)
+      extends WireDecodingFailure(boundary.getMessage)
+
   def read[F[_]: ApplicativeThrow, A](value: F[A]): F[A] =
     value.handleErrorWith {
-      case error: IllegalArgumentException
-          if error.getMessage == "unexpected EOF before delimiter" ||
-            Option(error.getMessage).exists(
-              _.matches("unexpected EOF: needed [0-9]+ bytes, received [0-9]+")
-            ) =>
-        ApplicativeThrow[F].raiseError(new WireDecodingFailure(error.getMessage))
+      case error: WireReadFailure => ApplicativeThrow[F].raiseError(new Truncated(error))
       case error => ApplicativeThrow[F].raiseError(error)
     }
 }
 
 /** The bounded observer could not finish; this establishes no protocol violation. */
-final class WireObservationLimit(message: String)
+sealed class WireObservationLimit(message: String)
     extends IllegalStateException(s"$message; observation incomplete, scenario not fully exercised")
+
+/** EOF at a requested framing boundary, distinct from invalid arguments and transport failures. */
+private[wire] sealed abstract class WireReadFailure(message: String)
+    extends IllegalArgumentException(message)
+
+private[wire] object WireReadFailure {
+  final case class Exact(needed: Int, received: Long)
+      extends WireReadFailure(s"unexpected EOF: needed $needed bytes, received $received")
+  final case class Delimiter(received: Long)
+      extends WireReadFailure("unexpected EOF before delimiter")
+}
+
+private[wire] final case class WireBodyLimit(maxBytes: Int)
+    extends WireObservationLimit(s"body exceeds $maxBytes bytes")

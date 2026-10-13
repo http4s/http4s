@@ -16,7 +16,7 @@
 
 package org.http4s.wire
 
-import cats.effect.Async
+import cats.Defer
 
 /** Exchange-local boundary for fixture-owned effect cleanup.
   *
@@ -28,7 +28,7 @@ import cats.effect.Async
   * This boundary neither changes the original exit case nor runs cleanup itself.
   */
 final class FixtureCleanup[F[_]] private[wire] (capture: F[Unit] => F[Unit])(implicit
-    F: Async[F]
+    F: Defer[F]
 ) {
   def apply(finalize: => F[Unit]): F[Unit] = capture(F.defer(finalize))
 }

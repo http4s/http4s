@@ -22,6 +22,10 @@ import com.comcast.ip4s._
 import scodec.bits.ByteVector
 import scala.concurrent.duration._
 class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
+  // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import Http2Wire._
   val binary = ByteVector(0, 1, 127, 128, 255)
   def wire(fs: Frame*): ByteVector = fs.foldLeft(ByteVector.empty)((b, f) => b ++ encode(f))
@@ -31,10 +35,11 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
       lateZero: Boolean,
       initialZero: Boolean,
       beforeSendZero: Boolean = false,
+      coalesced: Boolean = false,
   ): IO[Unit] = for {
     tr <- Transcript.create[IO]()
     queue <- Ref.of[IO, ByteVector](
-      if (id.contains("coalesced")) ByteVector.empty
+      if (coalesced) ByteVector.empty
       else encode(Http2Wire.settings(if (beforeSendZero) Vector(4 -> 0L) else Vector.empty))
     )
     delivered <- Ref.of[IO, ByteVector](ByteVector.empty)
@@ -50,7 +55,7 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
         val rest = if (b.startsWith(clientPreface)) b.drop(clientPreface.size) else b
         IO.fromEither(decodeAll(rest))
           .flatMap(_.traverse_ { f =>
-            if (f.frameType == Settings && !f.hasFlag(Ack) && !id.contains("coalesced"))
+            if (f.frameType == Settings && !f.hasFlag(Ack) && !coalesced)
               queue.update(_ ++ encode(settings(ack = true)))
             else if (f.frameType == Data)
               delivered.update(
@@ -60,7 +65,7 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
                         log.update(_ :+ s"request END_STREAM delivered: ${body.toHex}") *> queue
                           .update(
                             _ ++
-                              (if (id.contains("coalesced"))
+                              (if (coalesced)
                                  wire(
                                    settings(if (initialZero) Vector(4 -> 0L) else Vector.empty),
                                    settings(ack = true),
@@ -79,14 +84,16 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
       tr,
     )
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "causal-mapping"; val version = "1"
       def server(p: Protocol, s: ServerScenario) = Resource.pure[IO, ServerHandle[IO]](
         ServerHandle[IO](
           SocketAddress(ip"127.0.0.1", port"1"),
           delivered.get.map(b =>
             RequestData(
-              method = if (id.contains("coalesced")) "POST" else "GET",
-              path = if (id.contains("coalesced")) "/early" else "/mapping",
+              method = if (coalesced) "POST" else "GET",
+              path = if (coalesced) "/early" else "/mapping",
               body = b,
             )
           ),
@@ -113,7 +120,7 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
         assertEquals(result, Right(()))
         assertEquals(
           body,
-          if (id.contains("coalesced")) ByteVector(0, 13, 10, 127, 128, 255) else binary,
+          if (coalesced) ByteVector(0, 13, 10, 127, 128, 255) else binary,
         )
       }
     }
@@ -123,6 +130,8 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
     clientTrace <- Transcript.create[IO]()
     delivered <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "causal-negative-handoff"; val version = "1"
       def server(p: Protocol, s: ServerScenario) =
         Resource.eval(IO.raiseError[ServerHandle[IO]](new Exception("unused")))
@@ -132,7 +141,7 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
             def exchangeStream(r: RequestData, b: FixtureCleanup[IO] => fs2.Stream[IO, Byte]) =
               Resource.eval(IO.raiseError[ResponseData[IO]](new Exception("unused")))
             def exchange(r: RequestData) = Resource.eval {
-              implicit val ps: Http2PeerSettings[IO] = Http2PeerSettings.untracked[IO]
+              implicit val codecSettings: Http2PeerSettings[IO] = Http2PeerSettings.untracked[IO]
               val fields = Vector(
                 ":method" -> r.method,
                 ":scheme" -> "http",
@@ -190,6 +199,8 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
     own <- Transcript.create[IO]()
     delivered <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "no-data-client"; val version = "1"
       def server(p: Protocol, s: ServerScenario) =
         Resource.eval(IO.raiseError[ServerHandle[IO]](new Exception("unused")))
@@ -200,7 +211,7 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
               Resource.eval(IO.raiseError[ResponseData[IO]](new Exception("unused")))
             def exchangeStream(r: RequestData, b: FixtureCleanup[IO] => fs2.Stream[IO, Byte]) =
               Resource.eval {
-                implicit val ps: Http2PeerSettings[IO] = Http2PeerSettings.untracked[IO]
+                implicit val codecSettings: Http2PeerSettings[IO] = Http2PeerSettings.untracked[IO]
                 def head: IO[Frame] =
                   readFrame(peer).flatMap(f => if (f.frameType == Headers) IO.pure(f) else head)
                 for {
@@ -268,6 +279,8 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
     own <- Transcript.create[IO]()
     delivered <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "eager-window-control"
       val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -352,7 +365,7 @@ class Http2ObserverHandoffSuite extends munit.CatsEffectSuite {
 
   for ((late, initial) <- Vector((false, false), (false, true), (true, false)))
     test(s"coalesced request SETTINGS after delivered DATA late=$late initial=$initial") {
-      server("h2.server.interaction-coalesced-preface-request", late, initial)
+      server("h2.server.interaction-coalesced-preface-request", late, initial, coalesced = true)
     }
 
   for (late <- Vector(false, true))
@@ -524,6 +537,8 @@ private object Http2ControlHandoffFixture {
         trace,
       )
       target = new WireTarget[IO] {
+        def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
         val name = "handoff-probe"; val version = "1"
         def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(
           ServerHandle[IO](
@@ -573,6 +588,8 @@ private object Http2StateRequestHeadFixture {
     fault <- Ref.of[IO, Boolean](false)
     closed <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "request-head-probe"; val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
         Resource.eval(IO.raiseError(new Exception("unused")))
@@ -672,6 +689,8 @@ private object Http2StateDataBudgetFixture {
       tr,
     )
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "data-budget-probe"; val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] = Resource.pure(
         ServerHandle[IO](
@@ -702,6 +721,8 @@ private object Http2ControlDataBudgetFixture {
     delivered <- Ref.of[IO, Long](0L)
     released <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "control-budget-probe"; val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
         Resource.eval(IO.raiseError(new Exception("unused")))
@@ -766,6 +787,9 @@ private object Http2ControlDataBudgetFixture {
 }
 
 private object Http2BoundaryHandoffFixture {
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import Http2Wire._
   def goaway(last: Long, code: Long) = Frame(GoAway, 0, 0, uint32(last) ++ uint32(code))
   def smokeClient(sendGoaway: Boolean): IO[Unit] = for {
@@ -773,6 +797,8 @@ private object Http2BoundaryHandoffFixture {
     own <- Transcript.create[IO]()
     complete <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "complete-RFC-client"; val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
         Resource.eval(IO.raiseError(new Exception("unused")))
@@ -887,6 +913,8 @@ private object Http2BoundaryHandoffFixture {
       trace,
     )
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "causal-server-history"; val version = "1"
       def client(p: Protocol, a: SocketAddress[IpAddress]): Resource[IO, ClientDriver[IO]] =
         Resource.eval(IO.raiseError(new Exception("unused")))
@@ -916,6 +944,9 @@ private object Http2BoundaryHandoffFixture {
 }
 
 private object Http2HpackClientHandoffFixture {
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import Http2Wire._
   def goaway(last: Long, code: Long) = encode(Frame(GoAway, 0, 0, uint32(last) ++ uint32(code)))
   def runOne(id: String, increased: Boolean): IO[Unit] = for {
@@ -923,6 +954,8 @@ private object Http2HpackClientHandoffFixture {
     own <- Transcript.create[IO]()
     delivered <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "RFC-first-handoff-probe"; val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
         Resource.eval(IO.raiseError(new Exception("unused")))
@@ -992,12 +1025,17 @@ private object Http2HpackClientHandoffFixture {
 }
 
 private object Http2SmokeDataBudgetFixture {
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   import Http2Wire._
   def one(reduce: Boolean, beforeGoaway: Boolean): IO[Unit] = for {
     trace <- Transcript.create[IO]()
     own <- Transcript.create[IO]()
     delivered <- Ref.of[IO, Boolean](false)
     target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "smoke-post-delivery-window"; val version = "1"
       def server(p: Protocol, s: ServerScenario): Resource[IO, ServerHandle[IO]] =
         Resource.eval(IO.raiseError(new Exception("unused")))

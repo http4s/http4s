@@ -29,6 +29,9 @@ import java.io.InterruptedIOException
 import java.util.concurrent.TimeoutException
 
 abstract class SocketTimeoutChecks extends CatsEffectSuite {
+  implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
+    Http2PeerSettings.untracked[F]
+
   protected def socketTimeout(subclass: Boolean = false): Throwable
   protected def connectionReset: Throwable
 
@@ -199,6 +202,8 @@ abstract class SocketTimeoutChecks extends CatsEffectSuite {
         ("HTTP/1.1 200 \r\nContent-Length: 2", "ok")
     }
     val target = new WireTarget[IO] {
+      def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
       val name = "socket-timeout-client"
       val version = "oracle-challenge"
       def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =

@@ -42,8 +42,10 @@ Eager-preface sequencing needs an explicit script. HPACK literal encoding is for
 valid stimuli; raw hex can intentionally violate representation rules.
 
 HTTP/2 cases allocate a private `Http2PeerSettings` scope and propagate it through
-all frame readers and scripted writes. It retains observed settings separately for
-each connection. Admission checks count a request stream until both directions
+all frame readers and scripted writes. There is no implicit untracked fallback.
+Codec-only test fixtures may explicitly choose `Http2PeerSettings.untracked`;
+that mode cannot create positive observers. The scope retains observed settings
+separately for each connection. Admission checks count a request stream until both directions
 end or either direction resets it, so successive completed requests can reuse one
 slot. Existing streams can continue after a concurrency reduction. Stream-zero,
 even, reused and decreasing-ID fault stimuli are not treated as fresh admission.

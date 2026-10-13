@@ -123,40 +123,32 @@ private[wire] object Http2PositiveObservation {
       peerSettings: Http2PeerSettings[F],
       dataBudget: DataBudget,
   ): F[Frame] = peerSettings.positive(peer).flatMap { positive =>
-    def loop(remaining: Int): F[Frame] =
-      if (remaining == 0)
-        Async[F].raiseError(
-          new WireObservationLimit(
-            "too many HTTP/2 control frames without the expected frame"
-          )
-        )
-      else
-        Http2Wire.readFrame(peer).flatMap { frame =>
-          positive.observe(frame, fromServer) *> (
-            if (frame.frameType != GoAway && accept(frame)) frame.pure[F]
-            else {
-              val handled = frame.frameType match {
-                case Settings =>
-                  Async[F].delay(dataBudget.check(frame)) *>
-                    (if (frame.hasFlag(Ack)) Async[F].unit
-                     else positive.incidental(writeFrame(peer, settings(ack = true))).void)
-                case Ping =>
-                  if (frame.hasFlag(Ack)) Async[F].unit
-                  else positive.incidental(writeFrame(peer, frame.copy(flags = Ack))).void
-                case GoAway | WindowUpdate | Priority => Async[F].unit
-                case kind if kind > Continuation => Async[F].unit
-                case _ =>
-                  Async[F].raiseError[Unit](
-                    new WireDecodingFailure(
-                      s"unexpected HTTP/2 frame type ${frame.frameType} on stream ${frame.streamId}"
-                    )
-                  )
-              }
-              handled *> loop(remaining - 1)
-            }
-          )
-        }
-    loop(1024)
+    Http2FrameReader.readUntil(
+      Http2Wire.readFrame(peer),
+      1024,
+      "too many HTTP/2 control frames without the expected frame",
+    )(
+      frame => positive.observe(frame, fromServer),
+      frame => frame.frameType != GoAway && accept(frame),
+      frame =>
+        frame.frameType match {
+          case Settings =>
+            Async[F].delay(dataBudget.check(frame)) *>
+              (if (frame.hasFlag(Ack)) Async[F].unit
+               else positive.incidental(writeFrame(peer, settings(ack = true))).void)
+          case Ping =>
+            if (frame.hasFlag(Ack)) Async[F].unit
+            else positive.incidental(writeFrame(peer, frame.copy(flags = Ack))).void
+          case GoAway | WindowUpdate | Priority => Async[F].unit
+          case kind if kind > Continuation => Async[F].unit
+          case _ =>
+            Async[F].raiseError[Unit](
+              new WireDecodingFailure(
+                s"unexpected HTTP/2 frame type ${frame.frameType} on stream ${frame.streamId}"
+              )
+            )
+        },
+    )
   }
 
   def create[F[_]: Sync]: F[Http2PositiveObservation[F]] =

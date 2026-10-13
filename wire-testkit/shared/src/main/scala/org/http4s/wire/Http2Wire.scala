@@ -174,8 +174,7 @@ object Http2Wire {
       .map(_.some)
       .handleErrorWith { error =>
         RawPeer.raiseAdapterOrTimeout[F](error) *> (error match {
-          case eof: IllegalArgumentException
-              if eof.getMessage == "unexpected EOF: needed 1 bytes, received 0" =>
+          case WireReadFailure.Exact(1, 0L) =>
             none[ByteVector].pure[F]
           case reset if RuntimeInfo.isConnectionReset(reset) => none[ByteVector].pure[F]
           case other => Async[F].raiseError(other)

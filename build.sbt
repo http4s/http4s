@@ -463,6 +463,9 @@ lazy val wireTestkit = libraryCrossProject("wire-testkit")
       BuildInfoKey.action("inventoryRowsBase64") {
         WireTckBuild.encodeRows(WireTckBuild.inventoryRows((ThisBuild / baseDirectory).value))
       },
+      BuildInfoKey.action("ignoreRowsBase64") {
+        WireTckBuild.encodeRows(WireTckBuild.ignoreRows((ThisBuild / baseDirectory).value))
+      },
       BuildInfoKey.action("sectionRowsBase64") {
         WireTckBuild.encodeRows(
           IO.readLines((ThisBuild / baseDirectory).value / "docs/wire-tck/sections.tsv").drop(1)

@@ -30,6 +30,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js
 
 class WirePeerTransportSuite extends CatsEffectSuite {
+
   import WirePeerTransport._
 
   private val bytes = Chunk.array(Array[Byte](1, 2, 3, 4))
@@ -607,6 +608,8 @@ class WirePeerTransportSuite extends CatsEffectSuite {
           case _ => ByteVector.empty
         }
         val target = new WireTarget[IO] {
+          def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
+
           val name = "native-reset-order"
           val version = "1"
           def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
@@ -642,12 +645,13 @@ class WirePeerTransportSuite extends CatsEffectSuite {
           )
           remoteTrace <- Transcript.create[IO]()
           remotePeer <- remote.peer(remoteTrace)
-          script = Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit settings =>
-            serverHandshake(remotePeer) *>
-              readUntil(remotePeer, fromServer = false)(_.frameType == Headers).void *>
-              remote.write(Chunk.byteVector(controls ++ suffix)) *>
-              awaitBuffered(local, 9 + (controls ++ suffix).size.toInt) *>
-              resetAfterBuffering(local, remote) *> reset.complete(()).void
+          script = Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) {
+            implicit settings =>
+              serverHandshake(remotePeer) *>
+                readUntil(remotePeer, fromServer = false)(_.frameType == Headers).void *>
+                remote.write(Chunk.byteVector(controls ++ suffix)) *>
+                awaitBuffered(local, 9 + (controls ++ suffix).size.toInt) *>
+                resetAfterBuffering(local, remote) *> reset.complete(()).void
           }
           wireCase = Http2MessageCases.all.find(_.id == "h2.server.reject-uppercase-field-name").get
           result <- (
