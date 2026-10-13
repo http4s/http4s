@@ -12,7 +12,7 @@ The [section index](sections.tsv) classifies every heading in the four baseline
 RFCs, independently of test discovery. The detailed [inventory fragments](inventory/)
 separate client/server obligations and label each row `covered`, `gap`, or
 `excluded`. `covered` requires specific executable case IDs; `gap` identifies
-missing variants or observations; `excluded` explains the scope boundary.
+missing variants or observations; `excluded` explains a scope boundary or delegates an applicable obligation to another inventory fragment.
 `section-gaps.tsv` retains any section whose obligations have not yet been expanded.
 Those placeholders explicitly prevent a comprehensive-inventory claim.
 
@@ -86,7 +86,7 @@ records the retirement disposition and supporting evidence.
 
 ## Phase 3 checkpoint census
 
-The current inventory has 1,796 rows: 915 covered, 729 explicit gaps and 152
+At the phase 3 checkpoint, the inventory had 1,796 rows: 915 covered, 729 explicit gaps and 152
 scope exclusions, with 542 section rows. All 749 current case IDs (266 HTTP/1.1
 and 483 HTTP/2) are mapped; referenced IDs and covered-role mappings reconcile.
 These consistency checks do not establish normative completeness or the strength
@@ -94,12 +94,38 @@ of every claimed observation. Rows are not equally sized obligations, and these
 counts are not a conformance percentage. The phase-2 snapshot above remains
 historical; the three retired oracles remain explicit gaps.
 
-The current failure registry contains 153 case IDs: 92 confirmed and 61
+The phase 3 failure registry contains 153 case IDs: 92 confirmed and 61
 provisional, spanning 453 designated platform cells (150 JVM, 150 JS, 153 Native).
 Registry skips are separate from inventory gaps and never count as passing tests.
 See the independent checkpoint review (`audit/phase3-checkpoint-review.md`, historical artifact) and
 sealed census evidence (`audit/phase3-checkpoint-review.zip`, historical artifact).
 
-The current phase 3 checkpoint (`audit/phase3-accepted-status.md`, historical artifact) records completed
-validation and its limits. The phase 3 commit is still pending; phase 4 has not
-started. Fresh RFC-first spec-to-tests and tests-to-spec audits remain required.
+The phase 3 checkpoint (`audit/phase3-accepted-status.md`, historical artifact) records its completed
+validation and limits. Phase 3 was committed as
+`4dcb21681c71a013025ba4a4a140a63b4a781ee7`. The
+phase 4 audit record (`audit/phase4-status.md`, historical artifact) tracks the subsequent independent
+RFC-first audits, repairs and validation; the final phase 4 evidence record (`audit/phase4-accepted-status.md`, historical artifact) records execution and remaining acceptance gates.
+
+
+## Phase 4 inventory census
+
+The audited inventory contains 1,802 rows: 899 marked `covered`, 752 explicit
+`gap` rows and 151 marked `excluded`. The last category mixes true global scope
+exclusions with applicable obligations delegated to other inventory fragments;
+it must not be read as 151 out-of-scope requirements. All 542 section headings
+remain classified, and 22 errata dispositions are recorded. The executable
+catalog remains 749 cases (266 HTTP/1.1 and 483 HTTP/2), with both roles covered.
+
+The adversarial audits narrowed claims where an observation did not isolate the
+named obligation. In particular, the two role-specific truncated HPACK size-update
+cases also omit mandatory pseudoheaders: rejection alone does not prove an
+HPACK-specific diagnosis. Unsupported oracles retired in phase 3 remain gaps.
+The inventory records missing variants, state interactions and observation limits;
+neither section classification nor these row counts establish comprehensive
+executable coverage.
+
+The phase 4 evidence record (`audit/phase4-accepted-status.md`, historical artifact) separates the completed
+source reviews and full Scala/platform matrix from requirement coverage and gaps.
+The immutable finding ledger (`audit/phase4-findings.md`, historical artifact) and
+chronological evidence record (`audit/phase4-status.md`, historical artifact) retain prior findings,
+repairs and failed validation attempts.

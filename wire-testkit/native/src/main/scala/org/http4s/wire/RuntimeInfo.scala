@@ -25,6 +25,9 @@ object RuntimeInfo {
   val platform: String = "native"
   val runtime: String = s"Scala Native ${LinktimeInfo.runtimeVersion}"
 
+  private[wire] def isSocketTimeout(error: Throwable): Boolean =
+    error.isInstanceOf[java.net.SocketTimeoutException]
+
   private[wire] def isConnectionReset(error: Throwable): Boolean = {
     @annotation.tailrec
     def loop(current: Throwable, remaining: Int): Boolean =
@@ -43,10 +46,13 @@ object RuntimeInfo {
         }
     loop(error, 16)
   }
-  // Observed native write failure; this does not change read-side reset handling.
+  // Observed native write failures; this does not change read-side reset handling.
   private[wire] def isClosedWrite(error: Throwable): Boolean =
     error.getCause == null && error.getSuppressed.isEmpty && (error match {
-      case io: java.io.IOException => io.getMessage == "errno(32) Broken pipe"
+      case io: IOException =>
+        io.getMessage == "errno(32) Broken pipe" ||
+        (io.getClass == classOf[IOException] &&
+          io.getMessage == "errno(54) Connection reset by peer")
       case _ => false
     })
 

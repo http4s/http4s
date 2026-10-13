@@ -211,10 +211,11 @@ object Http1SyntaxCases {
           _ <-
             if (response.status == 301)
               Check(
-                values(response.headers, "location").exists(value =>
-                  value.contains("%20") && !value.exists(c => c == ' ' || c == '\t')
-                ),
-                "the redirect did not encode the target's space",
+                values(response.headers, "location") match {
+                  case Vector(location) => encodedSpaceTarget(location)
+                  case _ => false
+                },
+                "the redirect did not identify the properly encoded original target",
               )
             else IO.unit
           observed <- server.pollReceived
@@ -284,7 +285,7 @@ object Http1SyntaxCases {
           response <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(response.status, 200)
           received <- server.received
-          _ <- Check.equal(received.path, "/a%20b/%2F?q=%23%3F")
+          _ <- Check.equal(normalizeEscapeCase(received.path), "/a%20b/%2F?q=%23%3F")
         } yield ()
       }
     },
@@ -594,12 +595,13 @@ object Http1SyntaxCases {
       Rfc(
         9112,
         "3.2",
-        "Multiple Host field lines or an invalid Host field value require a 400 response.",
+        "Embedded SP makes this comma-plus-space Host value invalid and requires a 400 response.",
         "MUST",
       ),
     ) { ctx =>
       ctx.server(Protocol.Http1).use { case (peer, server) =>
         for {
+          // Comma alone is a legal reg-name sub-delimiter; the embedded SP is the defect.
           _ <- peer.writeAscii("GET / HTTP/1.1\r\nHost: wire.test, other.test\r\n\r\n")
           response <- Http1Wire.readFinalResponse(peer)
           _ <- Check.equal(response.status, 400)
@@ -802,16 +804,16 @@ object Http1SyntaxCases {
         } yield ()
       }
     },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2
+    // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
     WireCase(
       "h1.server.field-obs-text-octets",
       Protocol.Http1,
       Role.Server,
       Rfc(
-        9112,
-        "2.2",
-        "Message parsing preserves octet boundaries, including opaque obs-text in field values.",
-        "MUST",
+        9110,
+        "5.5",
+        "Recipients should treat obs-text octets as opaque field content.",
+        "SHOULD",
       ),
     ) { ctx =>
       ctx.server(Protocol.Http1).use { case (peer, server) =>
@@ -879,7 +881,7 @@ object Http1SyntaxCases {
             else
               Check.equal(response.status, 200) *> server.received.flatMap(received =>
                 Check(
-                  values(received.headers, "x-wire").exists(_.matches("one +two")),
+                  normalizedFold(values(received.headers, "x-wire"), "one +two"),
                   "an accepted obsolete fold was not replaced with one or more spaces",
                 )
               )
@@ -908,7 +910,7 @@ object Http1SyntaxCases {
             else
               Check.equal(response.status, 200) *> server.received.flatMap(received =>
                 Check(
-                  values(received.headers, "x-wire").exists(_.matches("one +two")),
+                  normalizedFold(values(received.headers, "x-wire"), "one +two"),
                   "an accepted obsolete fold was not replaced with one or more spaces",
                 )
               )
@@ -1625,16 +1627,16 @@ object Http1SyntaxCases {
         )
       )
     },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2
+    // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
     WireCase(
       "h1.client.field-obs-text-octets",
       Protocol.Http1,
       Role.Client,
       Rfc(
-        9112,
-        "2.2",
-        "Message parsing preserves octet boundaries, including opaque obs-text in field values.",
-        "MUST",
+        9110,
+        "5.5",
+        "Recipients should treat obs-text octets as opaque field content.",
+        "SHOULD",
       ),
     ) { ctx =>
       ctx.client(Protocol.Http1)(driver =>
@@ -1712,7 +1714,7 @@ object Http1SyntaxCases {
               _ <- Check.equal(response.status, 200)
               _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
               _ <- Check(
-                values(response.headers, "x-wire").exists(_.matches("one +two")),
+                normalizedFold(values(response.headers, "x-wire"), "one +two"),
                 "the obsolete fold was not replaced with one or more spaces",
               )
             } yield ()
@@ -1745,7 +1747,7 @@ object Http1SyntaxCases {
               _ <- Check.equal(response.status, 200)
               _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
               _ <- Check(
-                values(response.headers, "x-wire").exists(_.matches("one +two")),
+                normalizedFold(values(response.headers, "x-wire"), "one +two"),
                 "the obsolete fold was not replaced with one or more spaces",
               )
             } yield ()
@@ -1778,7 +1780,7 @@ object Http1SyntaxCases {
               _ <- Check.equal(response.status, 200)
               _ <- Check.equal(body.toByteVector, Http1Wire.ascii("ok"))
               _ <- Check(
-                values(response.headers, "x-wire").exists(_.matches("one +two +three")),
+                normalizedFold(values(response.headers, "x-wire"), "one +two +three"),
                 "the obsolete fold was not replaced with one or more spaces",
               )
             } yield ()
@@ -2032,6 +2034,59 @@ object Http1SyntaxCases {
           }
         case None => IO.pure(None)
       }
+
+  private def normalizedFold(observed: Vector[String], logicalValue: String): Boolean =
+    observed.nonEmpty && observed.forall(_.matches(logicalValue))
+
+  // RFC 9110 4.2.3: escape hex digits are case-insensitive; reserved octets stay encoded.
+  private def normalizeEscapeCase(value: String): String =
+    "%[0-9a-fA-F]{2}".r.replaceAllIn(value, matched => matched.matched.map(_.toUpper))
+
+  /** Equivalence for this fixture's http://wire.test/two%20words target (RFC 3986 2, 5 and 6.2;
+    * RFC 9110 4.2.3 and 10.2.2). This does not implement general redirect policy.
+    * Use an independent URI parser; keep empty path segments because they affect dot removal.
+    */
+  private def encodedSpaceTarget(location: String): Boolean = {
+    // Empty HTTP ports equal the default port. Scala.js URI rejects the empty-port spelling.
+    // Only normalize the reg-name authority; never remove a colon from a path or malformed port.
+    val parseable = location.replaceFirst("(?i)^((?:http:)?//[^/?#:]*):([/?#]|$)", "$1$2")
+    location.forall(_ < 128) && Either.catchNonFatal(new java.net.URI(parseable)).exists { uri =>
+      def normalizeEscapes(value: String): String =
+        "%([0-9a-fA-F]{2})".r.replaceAllIn(
+          value,
+          matched => {
+            val c = Integer.parseInt(matched.group(1), 16).toChar
+            if (
+              c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' ||
+              c >= '0' && c <= '9' || "-._~".contains(c)
+            ) c.toString
+            else matched.matched.map(_.toUpper)
+          },
+        )
+
+      val scheme = Option(uri.getScheme).getOrElse("http")
+      val authority = normalizeEscapes(Option(uri.getRawAuthority).getOrElse("wire.test"))
+      // The original path is at the authority root, so relative paths merge beneath '/'.
+      val rawPath = Option(uri.getRawPath).getOrElse("")
+      val path = normalizeEscapes(rawPath)
+      val segments = path.stripPrefix("/").split("/", -1).toVector
+      val resolved = segments.zipWithIndex.foldLeft(Vector.empty[String]) {
+        case (acc, (segment, index)) =>
+          val trailing = if (index == segments.size - 1) Vector("") else Vector.empty
+          segment match {
+            case "." => acc ++ trailing
+            case ".." => acc.dropRight(1) ++ trailing
+            case other => acc :+ other
+          }
+      }
+      !uri.isOpaque && rawPath.nonEmpty &&
+      (uri.getScheme == null && !location.startsWith("//") || uri.getRawAuthority != null) &&
+      scheme.equalsIgnoreCase("http") &&
+      authority.matches("(?i)wire\\.test(?::0*80|:)?") &&
+      uri.getRawQuery == null && uri.getRawFragment == null &&
+      resolved == Vector("two%20words")
+    }
+  }
 
   private def requiredAcceptanceFailure(error: Throwable): IO[Unit] =
     RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {

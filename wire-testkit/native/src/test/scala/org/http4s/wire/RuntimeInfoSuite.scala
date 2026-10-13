@@ -17,7 +17,11 @@
 package org.http4s.wire
 
 import cats.effect.IO
+import cats.effect.Deferred
+import cats.effect.Ref
+import cats.effect.Resource
 import cats.syntax.all._
+import fs2.Chunk
 import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
@@ -89,6 +93,193 @@ class RuntimeInfoSuite extends CatsEffectSuite {
             .flatMap(p => Http2Wire.readFrameOrClose(p._1).attempt)
             .map(result => assertEquals(result, Left(error)))
         }
+    }
+  }
+
+  private def closedWrite(shape: String): Throwable = {
+    val message = "errno(54) Connection reset by peer"
+    shape match {
+      case "errno32" => new IOException("errno(32) Broken pipe")
+      case "errno54" => new IOException(message)
+      case "errno104" => new IOException("errno(104) Connection reset by peer")
+      case "subclass" => new IOException(message) {}
+      case "wrapper" => new IOException("wrapper", new IOException(message))
+      case "cause" => new IOException(message, new IOException("other"))
+      case "suppressed" =>
+        val error = new IOException(message)
+        error.addSuppressed(new IOException("other"))
+        error
+      case "socket-timeout" => new java.net.SocketTimeoutException(message)
+      case "timeout" =>
+        val error = new IOException(message)
+        error.addSuppressed(new java.util.concurrent.TimeoutException("deadline"))
+        error
+      case "adapter" =>
+        val error = new IOException(message)
+        error.addSuppressed(new AdapterFailure("fixture write", new IOException("fixture")))
+        error.addSuppressed(new java.util.concurrent.TimeoutException("deadline"))
+        error
+      case _ => new IOException("unrelated write error")
+    }
+  }
+
+  private val goAway = Http2Wire.encode(
+    Http2Wire.Frame(Http2Wire.GoAway, 0, 0, Http2Wire.uint32(0) ++ Http2Wire.uint32(6))
+  )
+
+  private def rejectionPeer(
+      error: Throwable,
+      tail: ByteVector,
+      whenEmpty: IO[Option[Chunk[Byte]]] = IO.pure(None),
+  ): IO[(RawPeer[IO], IO[ByteVector], IO[Int])] = {
+    val prefix = Vector(
+      Http2Wire.settings(),
+      Http2Wire.settings(ack = true),
+      Http2Wire.Frame(Http2Wire.Ping, 0, 0, Http1Wire.ascii("12345678")),
+    )
+      .foldLeft(ByteVector.empty)((bytes, frame) => bytes ++ Http2Wire.encode(frame))
+    for {
+      input <- Ref.of[IO, ByteVector](prefix ++ tail)
+      writes <- Ref.of[IO, Int](0)
+      transcript <- Transcript.create[IO]()
+      raw <- RawPeer.create[IO](
+        (n: Int) =>
+          input
+            .modify(bytes => (bytes.drop(n.toLong), bytes.take(n.toLong)))
+            .flatMap(bytes =>
+              if (bytes.isEmpty) whenEmpty else IO.pure(Some(Chunk.byteVector(bytes)))
+            ),
+        (_: Chunk[Byte]) =>
+          writes.updateAndGet(_ + 1).flatMap(n => if (n == 4) IO.raiseError(error) else IO.unit),
+        IO.unit,
+        transcript,
+      )
+    } yield (raw, input.get, writes.get)
+  }
+
+  for (
+    shape <- Vector(
+      "errno32",
+      "errno54",
+      "errno104",
+      "subclass",
+      "wrapper",
+      "cause",
+      "suppressed",
+      "socket-timeout",
+      "timeout",
+      "adapter",
+      "ordinary",
+    )
+  )
+    test(s"Native incidental write classification requires independent rejection: $shape") {
+      val error = closedWrite(shape)
+      val recognized = shape == "errno32" || shape == "errno54"
+      assertEquals(RuntimeInfo.isClosedWrite(error), recognized)
+      for {
+        p <- rejectionPeer(error, goAway)
+        result <- WireCodecsSuite
+          .runH2ServerCase("h2.server.reject-priority-length-4", Resource.pure(p._1))
+          .attempt
+        unread <- p._2
+        writes <- p._3
+      } yield {
+        val expected =
+          if (recognized) "pass"
+          else if (shape == "socket-timeout" || shape == "timeout") "inconclusive"
+          else "error"
+        assertEquals(WireSuite.outcomeStatus(result), expected)
+        assertEquals(unread, if (recognized) ByteVector.empty else goAway)
+        assertEquals(writes, 4)
+        if (!recognized && expected == "error") {
+          val original = if (shape == "adapter") error.getSuppressed.head else error
+          assertEquals(result, Left(original))
+        }
+      }
+    }
+
+  for (
+    tail <- Vector(
+      "eof",
+      "goaway",
+      "malformed-tail",
+      "partial-header",
+      "partial-payload",
+      "ordinary",
+      "timeout",
+      "adapter",
+    )
+  )
+    test(s"Native errno54 reply failure still checks the independent drain: $tail") {
+      val readError = tail match {
+        case "timeout" => new java.net.SocketTimeoutException("read deadline")
+        case "adapter" => new AdapterFailure("fixture read", new IOException("fixture"))
+        case _ => new IOException("unrelated read error")
+      }
+      val ending =
+        if (Set("ordinary", "timeout", "adapter")(tail))
+          IO.raiseError[Option[Chunk[Byte]]](readError)
+        else IO.pure(Option.empty[Chunk[Byte]])
+      val bytes = tail match {
+        case "eof" => ByteVector.empty
+        case "malformed-tail" =>
+          goAway ++ Http2Wire.encode(Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector.empty))
+        case "partial-header" => goAway ++ ByteVector(0.toByte)
+        case "partial-payload" =>
+          goAway ++ Http2Wire.encode(Http2Wire.data(1, ByteVector.empty), Some(1))
+        case _ => goAway
+      }
+      for {
+        p <- rejectionPeer(closedWrite("errno54"), bytes, ending)
+        result <- WireCodecsSuite
+          .runH2ServerCase("h2.server.reject-priority-length-4", Resource.pure(p._1))
+          .attempt
+        unread <- p._2
+      } yield {
+        val expected = tail match {
+          case "eof" | "goaway" => "pass"
+          case "ordinary" | "adapter" => "error"
+          case "timeout" => "inconclusive"
+          case _ => "fail"
+        }
+        assertEquals(WireSuite.outcomeStatus(result), expected)
+        assertEquals(unread, ByteVector.empty)
+        if (expected == "error") assertEquals(result, Left(readError))
+      }
+    }
+
+  test(
+    "Native errno54 write failure cannot complete a held-open peer and cancellation releases it"
+  ) {
+    for {
+      draining <- Deferred[IO, Unit]
+      released <- Ref.of[IO, Boolean](false)
+      completed <- Deferred[IO, Either[Throwable, Unit]]
+      p <- rejectionPeer(closedWrite("errno54"), goAway, draining.complete(()).void *> IO.never)
+      result <- WireCodecsSuite
+        .runH2ServerCase(
+          "h2.server.reject-priority-length-4",
+          Resource.make(IO.pure(p._1))(_ => released.set(true)),
+        )
+        .attempt
+        .flatMap(completed.complete)
+        .start
+        .bracket { fiber =>
+          for {
+            _ <- draining.get
+            completion <- completed.tryGet
+            before <- released.get
+            _ <- IO { assertEquals(completion, None); assertEquals(before, false) }
+            _ <- fiber.cancel
+            outcome <- fiber.join
+          } yield outcome
+        }(_.cancel)
+      after <- released.get
+      unread <- p._2
+    } yield {
+      assert(result.isCanceled)
+      assertEquals(after, true)
+      assertEquals(unread, ByteVector.empty)
     }
   }
 }

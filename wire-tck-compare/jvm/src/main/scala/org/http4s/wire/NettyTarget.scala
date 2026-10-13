@@ -350,7 +350,8 @@ final class NettyTarget[F[_]](observer: Option[AdapterFailure => F[Unit]] = None
               val _ = message.headers().set(HttpHeaderNames.HOST, address.toString)
             }
             if (
-              !HttpUtil.isContentLengthSet(message) && !HttpUtil.isTransferEncodingChunked(message)
+              !HttpUtil.isContentLengthSet(message) &&
+              !message.headers().contains(HttpHeaderNames.TRANSFER_ENCODING)
             )
               length match {
                 case Some(value) => HttpUtil.setContentLength(message, value)
@@ -865,8 +866,8 @@ object NettyTarget {
             )
             value.headers.foreach { case (name, content) => response.headers().add(name, content) }
             if (
-              !HttpUtil
-                .isContentLengthSet(response) && !HttpUtil.isTransferEncodingChunked(response)
+              !HttpUtil.isContentLengthSet(response) &&
+              !response.headers().contains(HttpHeaderNames.TRANSFER_ENCODING)
             ) {
               if (value.streamed) {
                 // HTTP/1.0 streams have no length: the native keep-alive handler

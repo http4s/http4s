@@ -133,6 +133,432 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
     } yield ()
   }
 
+  private val foldCases = Vector(
+    "h1.server.obsolete-fold-space" -> "one\r\n two",
+    "h1.server.obsolete-fold-tab" -> "one\r\n\ttwo",
+    "h1.client.obsolete-fold-space" -> "one\r\n two",
+    "h1.client.obsolete-fold-tab" -> "one\r\n\ttwo",
+    "h1.client.obsolete-fold-multiple" -> "one\r\n two\r\n\tthree",
+  )
+  for {
+    (id, raw) <- foldCases
+    observation <- Vector(
+      "normalized",
+      "multiple-spaces",
+      "raw-only",
+      "duplicate-raw",
+      "duplicate-lf",
+      "duplicate-tab",
+      "duplicate-wrong",
+      "duplicate-normalized",
+      "missing",
+      "wrong-value",
+    )
+  } test(s"$id checks every exposed fold occurrence: $observation") {
+    val normalized = raw.replaceAll("\\r\\n[ \\t]+", " ")
+    val values = observation match {
+      case "normalized" => Vector(normalized)
+      case "multiple-spaces" => Vector(normalized.replace(" ", "   "))
+      case "raw-only" => Vector(raw)
+      case "duplicate-raw" => Vector(normalized, raw)
+      case "duplicate-lf" => Vector(normalized, raw.replace("\r", ""))
+      case "duplicate-tab" => Vector(normalized, normalized.replace(" ", "\t"))
+      case "duplicate-wrong" => Vector(normalized, "wrong")
+      case "duplicate-normalized" => Vector(normalized, normalized.replace(" ", "  "))
+      case "missing" => Vector.empty
+      case _ => Vector("wrong")
+    }
+    val headers = values.map("X-Wire" -> _)
+    val run =
+      if (id.startsWith("h1.server."))
+        runServer(id) { (peer, publish) =>
+          peer.readUntil(Http1Wire.ascii("\r\n\r\n")).flatMap { head =>
+            IO(assert(head.toArray.iterator.map(b => (b & 0xff).toChar).mkString.contains(raw))) *>
+              publish(RequestData(headers = headers)) *>
+              peer.writeAscii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+          }
+        }
+      else
+        runClient(id) { (peer, request) =>
+          for {
+            _ <- sendRequest(peer, request)
+            head <- peer.readUntil(Http1Wire.ascii("\r\n\r\n"))
+            _ <- IO(
+              assert(head.toArray.iterator.map(b => (b & 0xff).toChar).mkString.contains(raw))
+            )
+            body <- peer.readExact(2)
+          } yield response(200, body).copy(headers = headers)
+        }
+    if (Set("normalized", "multiple-spaces", "duplicate-normalized")(observation)) run
+    else run.intercept[ProtocolFailure].map(e => assert(e.getMessage.contains("fold")))
+  }
+
+  for ((id, _) <- foldCases if id.startsWith("h1.server."))
+    test(s"$id still permits 400 without application dispatch") {
+      runServer(id) { (peer, _) =>
+        peer.readUntil(Http1Wire.ascii("\r\n\r\n")) *>
+          peer.writeAscii("HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n")
+      }
+    }
+
+  for (
+    (location, legal) <- Vector(
+      "/two%20words" -> true,
+      "two%20words" -> true,
+      "./two%20words" -> true,
+      "http://wire.test/two%20words" -> true,
+      "HTTP://WIRE.TEST:80/two%20words" -> true,
+      "http://wire.test:/two%20words" -> true,
+      "//wire.test/two%20words" -> true,
+      "//wire.test:/two%20words" -> true,
+      "http://%77ire.test:/two%20words" -> true,
+      "/%74wo%20%77ords" -> true,
+      "http://%77ire.test/two%20words" -> true,
+      "/unused/../two%20words" -> true,
+      "/%E9/../two%20words" -> true,
+      "/%e9/../two%20words" -> true,
+      "/\u00e9/../two%20words" -> false,
+      "/unused//../../two%20words" -> true,
+      "" -> false,
+      "http://wire.test" -> false,
+      "http:/two%20words" -> false,
+      "///two%20words" -> false,
+      "/unrelated%20resource" -> false,
+      "/unrelated" -> false,
+      "/two words" -> false,
+      "/two%2520words" -> false,
+      "/two+words" -> false,
+      "/%2Ftwo%20words" -> false,
+      "/unused//../two%20words" -> false,
+      "/two%20words/" -> false,
+      "/two%20words?other" -> false,
+      "/two%20words#other" -> false,
+      "http://other.test/two%20words" -> false,
+      "https://wire.test/two%20words" -> false,
+      "http://wire.test:81/two%20words" -> false,
+      "http://wire.test::/two%20words" -> false,
+      "http://user@wire.test/two%20words" -> false,
+      "/two%20words%" -> false,
+    )
+  ) test(s"encoded-target redirect checks resolved components: $location") {
+    val run = runServer("h1.server.space-in-request-target") { (peer, _) =>
+      peer.readUntil(Http1Wire.ascii("\r\n\r\n")).flatMap { head =>
+        IO(
+          assert(
+            head.toArray.iterator
+              .map(b => (b & 0xff).toChar)
+              .mkString
+              .startsWith("GET /two words HTTP/1.1\r\n")
+          )
+        ) *>
+          peer.write(
+            ByteVector.view(
+              ("HTTP/1.1 301 Moved Permanently\r\nLocation: " + location +
+                "\r\nContent-Length: 0\r\n\r\n").map(_.toByte).toArray
+            )
+          )
+      }
+    }
+    if (legal) run
+    else run.intercept[ProtocolFailure].map(e => assert(e.getMessage.contains("redirect")))
+  }
+
+  test("invalid-target oracle retains the 400 alternative") {
+    runServer("h1.server.space-in-request-target") { (peer, _) =>
+      peer.readUntil(Http1Wire.ascii("\r\n\r\n")) *>
+        peer.writeAscii("HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n")
+    }
+  }
+
+  for {
+    role <- Vector("server", "client")
+    preserve <- Vector(false, true)
+  } test(s"$role opaque-content recommendation retains exact octets: preserve=$preserve") {
+    val id = s"h1.$role.field-obs-text-octets"
+    val value = if (preserve) "\u0080\u00ff\u00c3(" else "\ufffd\ufffd\ufffd("
+    val headers = Vector("X-Wire" -> value, "X-After" -> "intact")
+    val run =
+      if (role == "server")
+        runServer(id) { (peer, publish) =>
+          peer.readUntil(Http1Wire.ascii("\r\n\r\n")) *>
+            publish(RequestData(path = "/octets", headers = headers)) *>
+            peer.writeAscii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+        }
+      else
+        runClient(id) { (peer, request) =>
+          sendRequest(peer, request) *> peer.readUntil(Http1Wire.ascii("\r\n\r\n")) *>
+            peer.readExact(2).map(body => response(200, body).copy(headers = headers))
+        }
+    val checkResult = if (preserve) run else run.intercept[ProtocolFailure].void
+    checkResult *> IO {
+      assertEquals(
+        selected(id).references.map(r => (r.number, r.section, r.strength)),
+        Vector((9110, "5.5", "SHOULD")),
+      )
+    }
+  }
+
+  for (
+    (path, legal) <- Vector(
+      "/a%20b/%2F?q=%23%3F" -> true,
+      "/a%20b/%2f?q=%23%3f" -> true,
+      "/a%20b/%2f?q=%23%3F" -> true,
+      "/a%20b//?q=%23%3F" -> false,
+      "/a%20b/%2F?q=#?" -> false,
+      "/A%20b/%2F?q=%23%3F" -> false,
+    )
+  ) test(s"origin percent escape equivalence: $path") {
+    val run = runServer("h1.server.origin-percent-encoded") { (peer, publish) =>
+      Http1Wire.readRequest(peer).flatMap { request =>
+        IO(assertEquals(request.target, "/a%20b/%2F?q=%23%3F")) *>
+          publish(RequestData(path = path)) *>
+          peer.writeAscii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+      }
+    }
+    if (legal) run else run.intercept[ProtocolFailure].void
+  }
+
+  for (second <- Vector("/unrelated", "/two%20words"))
+    test(s"encoded-target redirect requires one Location: $second") {
+      runServer("h1.server.space-in-request-target") { (peer, _) =>
+        peer.readUntil(Http1Wire.crlf ++ Http1Wire.crlf) *>
+          peer.write(
+            Http1Wire.message(
+              "HTTP/1.1 301 Moved Permanently",
+              Vector("Location" -> "/two%20words", "Location" -> second, "Content-Length" -> "0"),
+              ByteVector.empty,
+            )
+          )
+      }.intercept[ProtocolFailure].void
+    }
+
+  for {
+    role <- Vector("client", "server")
+    streamed <- Vector(false, true)
+    variant <- Vector("single", "leading-zero-ows", "equal-list", "duplicate")
+  } test(s"generated sender Content-Length $role streamed=$streamed $variant") {
+    val suffix = if (streamed) {
+      if (role == "client") "streamed-binary-content" else "streamed-content"
+    } else if (role == "client") "known-binary-length"
+    else "known-binary-content"
+    val body = ByteVector.fromValidHex(
+      if (!streamed) "00ff80" else if (role == "client") "00ff80fe" else "6100ff6263"
+    )
+    val size = body.size.toString
+    val fields = variant match {
+      case "single" => Vector("Content-Length" -> size)
+      case "leading-zero-ows" => Vector("Content-Length" -> s" \t00$size \t")
+      case "equal-list" => Vector("Content-Length" -> s"$size, $size")
+      case _ => Vector("Content-Length" -> size, "Content-Length" -> size)
+    }
+    val id = s"h1.$role.sender-$suffix"
+    val run =
+      if (role == "client")
+        runClient(id) { (peer, request) =>
+          peer.write(
+            Http1Wire.message(s"${request.method} ${request.path} HTTP/1.1", fields, body)
+          ) *>
+            Http1Wire.readFinalResponse(peer).map(r => response(r.status, r.body))
+        }
+      else
+        runServerBytes(id, Http1Wire.message("HTTP/1.1 200 OK", fields, body), IO.pure(None))
+    if (variant == "single" || variant == "leading-zero-ows") run
+    else
+      run
+        .intercept[WireDecodingFailure]
+        .map(e =>
+          assert(e.getMessage.contains("generated content-length must be one decimal field"))
+        )
+  }
+
+  for {
+    streamed <- Vector(false, true)
+    variant <- Vector("plain", "gzip", "gzip-bad-chunk", "gzip-bad-trailer")
+  } test(s"generated sender transfer content streamed=$streamed $variant") {
+    val suffix = if (streamed) "streamed-binary-content" else "known-binary-length"
+    val plain = ByteVector.fromValidHex(if (streamed) "00ff80fe" else "00ff80")
+    // Independently decoded with Python gzip, including the gzip CRC and length checks.
+    val gzip = ByteVector.fromValidHex(
+      if (streamed) "1f8b08000000000000ff63f8dff00f00a1ac5afe04000000"
+      else "1f8b08000000000000ff63f8df000040a7dd8103000000"
+    )
+    val body = if (variant == "plain") plain else gzip
+    val ending = variant match {
+      case "gzip-bad-chunk" => "XX0\r\n\r\n"
+      case "gzip-bad-trailer" => "\r\n0\r\nContent-Length: 0\r\n\r\n"
+      case _ => "\r\n0\r\n\r\n"
+    }
+    val encoded = Http1Wire.ascii(body.size.toHexString + "\r\n") ++ body ++ Http1Wire.ascii(ending)
+    val run = runClient(s"h1.client.sender-$suffix") { (peer, request) =>
+      peer.write(
+        Http1Wire.message(
+          s"${request.method} ${request.path} HTTP/1.1",
+          Vector("Transfer-Encoding" -> (if (variant == "plain") "chunked" else "gzip, chunked")),
+          encoded,
+        )
+      ) *> Http1Wire.readFinalResponse(peer).map(r => response(r.status, r.body))
+    }
+    variant match {
+      case "plain" => run
+      case "gzip" =>
+        run
+          .intercept[WireObservationLimit]
+          .map(e =>
+            assertEquals(
+              e.getMessage,
+              "cannot observe request content: unsupported transfer decoding: gzip; observation incomplete, scenario not fully exercised",
+            )
+          )
+      case "gzip-bad-chunk" =>
+        run
+          .intercept[WireDecodingFailure]
+          .map(e => assertEquals(e.getMessage, "missing chunk CRLF"))
+      case _ =>
+        run
+          .intercept[WireDecodingFailure]
+          .map(e => assertEquals(e.getMessage, "framing field in trailers"))
+    }
+  }
+
+  for {
+    streamed <- Vector(false, true)
+    whitespace <- Vector("", " ", "\t")
+    last <- Vector(false, true)
+  } test(
+    s"generated sender bare extension streamed=$streamed whitespace='$whitespace' last=$last"
+  ) {
+    val suffix = if (streamed) "streamed-binary-content" else "known-binary-length"
+    val body = ByteVector.fromValidHex(if (streamed) "00ff80fe" else "00ff80")
+    val extension = s";flag$whitespace"
+    val encoded = Http1Wire.ascii(body.size.toHexString + (if (last) "" else extension) + "\r\n") ++
+      body ++ Http1Wire.ascii("\r\n0" + (if (last) extension else "") + "\r\n\r\n")
+    val run = runClient(s"h1.client.sender-$suffix") { (peer, request) =>
+      peer.write(
+        Http1Wire.message(
+          s"${request.method} ${request.path} HTTP/1.1",
+          Vector("Transfer-Encoding" -> "chunked"),
+          encoded,
+        )
+      ) *> Http1Wire.readFinalResponse(peer).map(r => response(r.status, r.body))
+    }
+    if (whitespace.isEmpty) run
+    else
+      run
+        .intercept[WireDecodingFailure]
+        .map(e => assertEquals(e.getMessage, "trailing whitespace after bare chunk extension"))
+  }
+
+  for {
+    suffix <- Vector("known-binary-content", "streamed-content")
+    transfer <- Vector(
+      "",
+      " \t",
+      ",",
+      "chunked,",
+      ",chunked",
+      "chunked,,chunked",
+      "gzip",
+      "chunked",
+    )
+  } test(s"sender $suffix validates zero or negotiated transfer codings: '$transfer'") {
+    val body =
+      if (suffix == "known-binary-content") ByteVector.fromValidHex("00ff80")
+      else ByteVector.fromValidHex("6100ff6263")
+    val encoded =
+      if (transfer.contains("chunked"))
+        Http1Wire.ascii(body.size.toHexString + "\r\n") ++ body ++ Http1Wire.ascii("\r\n0\r\n\r\n")
+      else body
+    val run = runServer(s"h1.server.sender-$suffix") { (peer, _) =>
+      Http1Wire.readRequest(peer) *>
+        peer.write(
+          Http1Wire.message(
+            "HTTP/1.1 200 OK",
+            Vector("Transfer-Encoding" -> transfer, "Connection" -> "close"),
+            encoded,
+          )
+        ) *>
+        peer.endOfOutput
+    }
+    if (transfer.trim.isEmpty || transfer == "chunked") run
+    else
+      run.attempt.map(result =>
+        assert(
+          result.swap
+            .exists(e => e.isInstanceOf[WireDecodingFailure] || e.isInstanceOf[ProtocolFailure]),
+          result.toString,
+        )
+      )
+  }
+
+  for {
+    framing <- Vector("content-length", "chunk-size")
+    complete <- Vector(false, true)
+    error <- Vector(false, true)
+  } test(s"$framing overflow checks completed publication: complete=$complete/error=$error") {
+    val run = runServer(s"h1.server.$framing-prevents-integer-wraparound") { (peer, publish) =>
+      peer.readToEnd().flatMap { stimulus =>
+        val framingBytes =
+          if (framing == "content-length") "Content-Length: 18446744073709551619\r\n\r\nabc"
+          else "Transfer-Encoding: chunked\r\n\r\n10000000000000003\r\nabc\r\n0\r\n\r\n"
+        IO(
+          assertEquals(
+            stimulus,
+            Http1Wire.ascii(
+              "POST /framing HTTP/1.1\r\nHost: wire.test\r\n" + framingBytes
+            ),
+          )
+        ) *>
+          (if (complete)
+             publish(RequestData(method = "POST", path = "/framing", body = Http1Wire.ascii("abc")))
+           else IO.unit) *>
+          (if (error) peer.writeAscii("HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n")
+           else IO.unit) *>
+          peer.endOfOutput
+      }
+    }
+    if (complete) run.intercept[ProtocolFailure].map(e => assert(e.getMessage.contains("complete")))
+    else run
+  }
+
+  for {
+    suffix <- Vector(
+      "request-head",
+      "fixed-length-empty",
+      "fixed-length-prefix",
+      "chunk-size",
+      "chunk-data",
+      "chunk-delimiter",
+      "terminal-chunk",
+      "trailer-terminator",
+      "trailer-field",
+    )
+    field <- Vector(
+      "X-Valid: one\t two",
+      "INVALID FIELD WITHOUT COLON",
+      "Bad Name: value",
+      "X-Bad: a\u0000b",
+      "X-Bad: a\u007fb",
+    )
+    informational <- Vector(false, true)
+  } test(
+    s"incomplete $suffix validates complete error fields: '$field'/informational=$informational"
+  ) {
+    val run = runServer(s"h1.server.incomplete-$suffix") { (peer, publish) =>
+      Http1Wire.readRequest(peer).flatMap { ready =>
+        publish(RequestData(path = ready.target, body = ready.body)) *>
+          peer.writeAscii("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok")
+      } *> peer.readToEnd() *>
+        peer.writeAscii(
+          if (informational)
+            s"HTTP/1.1 100 Continue\r\n$field\r\n\r\nHTTP/1.1 400 Bad Request\r\nContent-Length: 99\r\n\r\nshort"
+          else s"HTTP/1.1 400 Bad Request\r\n$field\r\nContent-Length: 99\r\n\r\nshort"
+        ) *>
+        peer.endOfOutput
+    }
+    if (field.startsWith("X-Valid")) run
+    else run.intercept[WireDecodingFailure].map(e => assert(e.getMessage.contains("header field")))
+  }
+
   private val recoverySuffixes = Vector(
     "explicit-plus-size",
     "hex-prefix-size",
@@ -1088,6 +1514,205 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
     if (close) run.intercept[WireObservationLimit].void else run
   }
 
+  private val serverInteractionCases = Vector(
+    "h2.server.interaction-coalesced-preface-request",
+    "h2.server.interaction-interleaved-request-data",
+    "h2.server.interaction-trailers-between-other-stream-data",
+    "h2.server.interaction-reset-other-upload-stream",
+    "h2.server.interaction-reset-retains-compression-context",
+  )
+
+  private def interactionServerControl(
+      id: String,
+      push: String = "if-enabled",
+      settings: Vector[(Int, Long)] = Vector.empty,
+      settingsPhase: String = "initial",
+      informationals: Vector[String] = Vector.empty,
+      checkInitial: Boolean = true,
+  ): IO[Unit] = runServer(id) { (peer, publish) =>
+    def sendSettings: IO[Unit] = Http2Wire.writeFrame(peer, Http2Wire.settings(settings))
+    def promise(stream: Int): Http2Wire.Frame = Http2Wire.Frame(
+      Http2Wire.PushPromise,
+      Http2Wire.EndHeaders,
+      stream,
+      Http2Wire.uint32(2) ++ HpackWire.encodeLiteral(
+        Vector(
+          ":method" -> "GET",
+          ":scheme" -> "http",
+          ":authority" -> "wire.test",
+          ":path" -> "/pushed",
+        )
+      ),
+    )
+    for {
+      preface <- peer.readExact(Http2Wire.clientPreface.size.toInt)
+      _ <- IO(assertEquals(preface, Http2Wire.clientPreface))
+      initial <- Http2Wire.readFrame(peer)
+      _ <-
+        if (checkInitial) IO(assertEquals(initial, Http2Wire.settings(Vector(2 -> 0L))))
+        else IO.unit
+      enabled = !initial.payload
+        .grouped(6)
+        .exists(entry =>
+          entry.take(2) == ByteVector(0, 2) && Http2Wire.readUint32(entry.drop(2)) == 0L
+        )
+      _ <-
+        if (settingsPhase == "initial") sendSettings
+        else Http2Wire.writeFrame(peer, Http2Wire.settings())
+      _ <- if (settingsPhase == "pre-ack") sendSettings else IO.unit
+      _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
+      decoder <- HpackWire.decoder[IO]()
+      _ <- {
+        val reset = id.contains("interaction-reset-")
+        val expected = if (reset || id.endsWith("coalesced-preface-request")) 1 else 2
+        def loop(
+            fields: Map[Int, Vector[(String, String)]],
+            bodies: Map[Int, ByteVector],
+            completed: Int,
+        ): IO[Unit] =
+          if (completed == expected) {
+            if (reset)
+              Http2Wire
+                .readUntil(peer, fromServer = false)(_.frameType == Http2Wire.Ping)
+                .flatMap(ping => Http2Wire.writeFrame(peer, ping.copy(flags = Http2Wire.Ack)))
+            else IO.unit
+          } else
+            Http2Wire.readFrame(peer).flatMap { frame =>
+              def finish(
+                  nextFields: Map[Int, Vector[(String, String)]],
+                  nextBodies: Map[Int, ByteVector],
+              ): IO[Unit] = {
+                val stream = frame.streamId
+                val headers = nextFields(stream)
+                val body = nextBodies.getOrElse(stream, ByteVector.empty)
+                val path = headers.collectFirst { case (":path", value) => value }.get
+                val emitPush = push == "always" || (push == "if-enabled" && enabled)
+                publish(
+                  RequestData(method = "POST", path = path, headers = headers, body = body)
+                ) *>
+                  (if (settingsPhase == "later") sendSettings else IO.unit) *>
+                  (if (emitPush) Http2Wire.writeFrame(peer, promise(stream)) else IO.unit) *>
+                  informationals.foldLeft(IO.unit)((send, status) =>
+                    send *>
+                      Http2Wire.writeFrame(
+                        peer,
+                        Http2Wire.headers(stream, Vector(":status" -> status), endStream = false),
+                      )
+                  ) *>
+                  Http2Wire.writeFrame(
+                    peer,
+                    Http2Wire.headers(stream, Vector(":status" -> "200"), endStream = false),
+                  ) *>
+                  Http2Wire.writeFrame(peer, Http2Wire.data(stream, body)) *>
+                  loop(nextFields, nextBodies, completed + 1)
+              }
+              if (frame.frameType == Http2Wire.Headers)
+                Http2Wire.readHeaders(peer, frame, decoder).flatMap { headers =>
+                  val next =
+                    if (fields.contains(frame.streamId)) fields
+                    else fields.updated(frame.streamId, headers)
+                  if (frame.hasFlag(Http2Wire.EndStream)) finish(next, bodies)
+                  else loop(next, bodies, completed)
+                }
+              else if (frame.frameType == Http2Wire.Data) {
+                val next = bodies.updated(
+                  frame.streamId,
+                  bodies.getOrElse(frame.streamId, ByteVector.empty) ++ Http2Wire.unpad(frame),
+                )
+                if (frame.hasFlag(Http2Wire.EndStream)) finish(fields, next)
+                else loop(fields, next, completed)
+              } else loop(fields, bodies, completed)
+            }
+        loop(Map.empty, Map.empty, 0)
+      }
+    } yield ()
+  }
+
+  for (id <- serverInteractionCases) {
+    test(s"$id disables initially enabled optional push") {
+      interactionServerControl(id)
+    }
+    test(s"$id accepts a push-if-enabled server") {
+      interactionServerControl(id, checkInitial = false)
+    }
+    test(s"$id rejects push after acknowledged disablement") {
+      interactionServerControl(id, push = "always")
+        .intercept[ProtocolFailure]
+        .map(error => assert(error.getMessage.contains("PUSH_PROMISE after push disablement")))
+    }
+    for {
+      phase <- Vector("initial", "pre-ack", "later")
+      value <- Vector(0L, 1L)
+    } test(s"$id validates server ENABLE_PUSH=$value at $phase") {
+      val run = interactionServerControl(
+        id,
+        push = "never",
+        settings = Vector(2 -> value),
+        settingsPhase = phase,
+        checkInitial = false,
+      )
+      if (value == 1L)
+        run
+          .intercept[ProtocolFailure]
+          .map(error => assert(error.getMessage.contains("invalid ENABLE_PUSH")))
+      else run
+    }
+    for (
+      statuses <- Vector(Vector("100"), Vector("103"), Vector("100", "103", "100"), Vector("101"))
+    )
+      test(s"$id validates informational responses $statuses") {
+        val run = interactionServerControl(
+          id,
+          push = "never",
+          informationals = statuses,
+          checkInitial = false,
+        )
+        if (statuses.contains("101"))
+          run
+            .intercept[ProtocolFailure]
+            .map(error => assert(error.getMessage.contains("invalid response status")))
+        else run
+      }
+  }
+
+  for (phase <- Vector("initial", "later"))
+    test(s"interaction accepts client ENABLE_PUSH=1 at $phase") {
+      runClient("h2.client.interaction-eager-server-settings") { (peer, request) =>
+        for {
+          _ <- peer.write(
+            Http2Wire.clientPreface ++ Http2Wire.encode(
+              Http2Wire.settings(if (phase == "initial") Vector(2 -> 1L) else Vector.empty)
+            )
+          )
+          _ <- Http2Wire.readFrame(peer)
+          _ <- Http2Wire.readFrame(peer)
+          _ <-
+            if (phase == "later") Http2Wire.writeFrame(peer, Http2Wire.settings(Vector(2 -> 1L)))
+            else IO.unit
+          _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
+          _ <- Http2Wire.writeFrame(
+            peer,
+            Http2Wire.headers(
+              1,
+              Vector(
+                ":method" -> request.method,
+                ":scheme" -> "http",
+                ":authority" -> "wire.test",
+                ":path" -> request.path,
+              ),
+            ),
+          )
+          decoder <- HpackWire.decoder[IO]()
+          head <- Http2Wire.readUntil(peer, fromServer = true)(_.frameType == Http2Wire.Headers)
+          fields <- Http2Wire.readHeaders(peer, head, decoder)
+          data <- Http2Wire.readFrame(peer)
+        } yield response(
+          fields.collectFirst { case (":status", status) => status.toInt }.get,
+          data.payload,
+        )
+      }
+    }
+
   private val settingsServerCases = Vector(
     "h2.server.interaction-interleaved-request-data",
     "h2.server.interaction-trailers-between-other-stream-data",
@@ -1552,7 +2177,7 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
   }
 
   for (id <- resetInteractionCases) {
-    test(s"$id reports crossing PUSH_PROMISE as unexercised") {
+    test(s"$id rejects crossing PUSH_PROMISE after initial disablement") {
       val promise = Http2Wire.Frame(
         Http2Wire.PushPromise,
         Http2Wire.EndHeaders,
@@ -1566,7 +2191,9 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
           )
         ),
       )
-      resetInteraction(id, Vector(promise)).intercept[WireObservationLimit].void
+      resetInteraction(id, Vector(promise))
+        .intercept[ProtocolFailure]
+        .map(error => assert(error.getMessage.contains("PUSH_PROMISE after push disablement")))
     }
     test(s"$id requires a valid shared HPACK entry after discarded headers") {
       resetInteraction(id, Vector.empty, indexedResponse = true).intercept[WireDecodingFailure].void

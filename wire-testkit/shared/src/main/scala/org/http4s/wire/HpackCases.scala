@@ -5120,7 +5120,16 @@ object HpackCases {
   private def control[F[_]: Async](session: Session[F], frame: Http2Wire.Frame)(implicit
       peerSettings: Http2PeerSettings[F]
   ): F[Unit] =
-    control(session, frame, (write: F[Unit]) => write.as(true)).void
+    peerSettings.positive(session.peer).flatMap { positive =>
+      positive.observe(frame, session.fromServer) *>
+        (if (frame.frameType == Http2Wire.GoAway) Async[F].unit
+         else
+           control(
+             session,
+             frame,
+             (write: F[Unit]) => positive.incidental(write).map(_.writable),
+           ).void)
+    }
 
   private def control[F[_]: Async](
       session: Session[F],
@@ -5152,13 +5161,18 @@ object HpackCases {
   )(implicit peerSettings: Http2PeerSettings[F]): F[Http2Wire.Frame] = {
     def loop(remaining: Int): F[Http2Wire.Frame] =
       observationBound(remaining > 0, "too many control frames before HPACK traffic") *>
-        Http2Wire.readFrame(session.peer).flatMap { frame =>
-          frame.frameType match {
-            case Http2Wire.Headers | Http2Wire.Data | Http2Wire.RstStream | Http2Wire.GoAway =>
-              frame.pure[F]
-            case _ => control(session, frame) *> loop(remaining - 1)
+        Http2Wire
+          .readFrame(session.peer)
+          .flatTap(frame =>
+            peerSettings.positive(session.peer).flatMap(_.observe(frame, session.fromServer))
+          )
+          .flatMap { frame =>
+            frame.frameType match {
+              case Http2Wire.Headers | Http2Wire.Data | Http2Wire.RstStream =>
+                frame.pure[F]
+              case _ => control(session, frame) *> loop(remaining - 1)
+            }
           }
-        }
     loop(1024)
   }
 
@@ -5384,7 +5398,11 @@ object HpackCases {
                 readBody(session, first)
                   .map(body => Message(head, body, firstBlock.getOrElse(head.block)))
         } yield response)
-    loop(1024, None).handleErrorWith(incompleteTarget[F, Message])
+    peerSettings.positive(session.peer).flatMap { positive =>
+      positive.expecting(Set(streamId)) *> loop(1024, None)
+        .flatTap(_ => positive.completed(Set(streamId)))
+        .handleErrorWith(incompleteTarget[F, Message])
+    }
   }
 
   private def checkFields(
@@ -5451,13 +5469,12 @@ object HpackCases {
       session: Session[F],
       streamId: Int,
       before: F[Unit],
-  )(implicit peerSettings: Http2PeerSettings[F]): F[Unit] = {
-    def checked(
-        frame: Http2Wire.Frame,
-        state: Http2RejectionChecks.State,
-    ): F[Http2RejectionChecks.State] =
-      Async[F].fromEither(Http2RejectionChecks.validate(frame, session.fromServer, state)).flatTap {
-        _ =>
+  )(implicit peerSettings: Http2PeerSettings[F]): F[Unit] =
+    peerSettings.positive(session.peer).flatMap { observation =>
+      def checked(
+          frame: Http2Wire.Frame
+      ): F[Http2RejectionChecks.State] =
+        observation.observeControl(frame, session.fromServer).flatTap { _ =>
           frame.frameType match {
             case Http2Wire.GoAway =>
               val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
@@ -5472,42 +5489,40 @@ object HpackCases {
               )
             case _ => Async[F].unit
           }
-      }
-
-    def loop(remaining: Int, state: Http2RejectionChecks.State, closing: Boolean): F[Unit] =
-      observationBound(remaining > 0, "no connection error within the frame bound") *>
-        Http2Wire.readFrameOrClose(session.peer).flatMap {
-          case None => before
-          case Some(frame) =>
-            before *> checked(frame, state).flatMap { next =>
-              frame.frameType match {
-                case Http2Wire.GoAway if Http2Wire.readUint32(frame.payload.slice(4, 8)) != 0L =>
-                  for {
-                    remainder <- session.peer.readToEnd(65536, allowReset = true)
-                    frames <- Async[F]
-                      .fromEither(Http2Wire.decodeAll(remainder))
-                      .handleErrorWith(invalidTarget[F, Vector[Http2Wire.Frame]])
-                    _ <- frames.foldLeftM(next)((previous, observed) =>
-                      before *> checked(observed, previous)
-                    )
-                    _ <- before
-                  } yield ()
-                case Http2Wire.GoAway | Http2Wire.RstStream => loop(remaining - 1, next, closing)
-                // An HTTP error response is insufficient; require the connection close.
-                case Http2Wire.Headers | Http2Wire.Continuation | Http2Wire.Data =>
-                  loop(remaining - 1, next, closing)
-                case _ =>
-                  control(
-                    session,
-                    frame,
-                    (write: F[Unit]) =>
-                      if (closing) false.pure[F] else Http2RejectionWrite.reply(write),
-                  ).flatMap(written => loop(remaining - 1, next, closing || !written))
-              }
-            }
         }
-    loop(1024, Http2RejectionChecks.State(), closing = false)
-  }
+
+      def loop(remaining: Int, closing: Boolean): F[Unit] =
+        observationBound(remaining > 0, "no connection error within the frame bound") *>
+          Http2Wire.readFrameOrClose(session.peer).flatMap {
+            case None => before
+            case Some(frame) =>
+              before *> checked(frame).flatMap { _ =>
+                frame.frameType match {
+                  case Http2Wire.GoAway if Http2Wire.readUint32(frame.payload.slice(4, 8)) != 0L =>
+                    for {
+                      remainder <- session.peer.readToEnd(65536, allowReset = true)
+                      frames <- Async[F]
+                        .fromEither(Http2Wire.decodeAll(remainder))
+                        .handleErrorWith(invalidTarget[F, Vector[Http2Wire.Frame]])
+                      _ <- frames.traverse_(observed => before *> checked(observed))
+                      _ <- before
+                    } yield ()
+                  case Http2Wire.GoAway | Http2Wire.RstStream => loop(remaining - 1, closing)
+                  // An HTTP error response is insufficient; require the connection close.
+                  case Http2Wire.Headers | Http2Wire.Continuation | Http2Wire.Data =>
+                    loop(remaining - 1, closing)
+                  case _ =>
+                    control(
+                      session,
+                      frame,
+                      (write: F[Unit]) =>
+                        if (closing) false.pure[F] else Http2RejectionWrite.reply(write),
+                    ).flatMap(written => loop(remaining - 1, closing || !written))
+                }
+              }
+          }
+      loop(1024, closing = false)
+    }
 
   private def requireRejected(result: Either[Throwable, Unit]): IO[Unit] =
     result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {

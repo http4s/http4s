@@ -81,6 +81,16 @@ object Http1Wire {
   }
 
   def readRequest[F[_]: Async](peer: RawPeer[F]): F[Request] =
+    readRequest(peer, generatedContent = false)
+
+  /** Observes ordinary generated request framing and content, without recipient CL recovery. */
+  private[wire] def readGeneratedRequest[F[_]: Async](peer: RawPeer[F]): F[Request] =
+    readRequest(peer, generatedContent = true)
+
+  private def readRequest[F[_]: Async](
+      peer: RawPeer[F],
+      generatedContent: Boolean,
+  ): F[Request] =
     for {
       line <- readLine(peer)
       parts <- Async[F].delay {
@@ -92,8 +102,21 @@ object Http1Wire {
         (split(0), split(1))
       }
       headers <- readHeaders(peer)
-      content <- readBody(peer, headers, request = true)
+      _ <-
+        if (generatedContent) Async[F].delay(validateGeneratedContentLength(headers))
+        else Async[F].unit
+      content <- readBody(peer, headers, request = true, requireContent = generatedContent)
     } yield Request(parts._1, parts._2, headers, content._1, content._2)
+
+  // RFC 9110 Sections 5.3 and 8.6: recipient equal-value recovery does not license generation.
+  private[wire] def validateGeneratedContentLength(headers: Vector[(String, String)]): Unit = {
+    val lengths = headers.collect { case (k, v) if k.equalsIgnoreCase("content-length") => v }
+    check(
+      lengths.isEmpty || lengths.size == 1 && lengths.head.nonEmpty &&
+        lengths.head.forall(c => c >= '0' && c <= '9'),
+      "generated content-length must be one decimal field",
+    )
+  }
 
   private def fail[F[_]: Async, A](message: String): F[A] =
     Async[F].raiseError(new WireDecodingFailure(message))
@@ -135,7 +158,7 @@ object Http1Wire {
     status
   }
 
-  private def parseHeader(line: String): (String, String) = {
+  private[wire] def parseHeader(line: String): (String, String) = {
     val colon = line.indexOf(':')
     check(colon > 0 && line.take(colon).forall(tokenChar), "invalid header field name")
     val value = trimOws(line.drop(colon + 1))
@@ -185,6 +208,7 @@ object Http1Wire {
       i += 1
       ows()
       token()
+      val nameEnd = i
       ows()
       if (i < value.length && value(i) == '=') {
         i += 1
@@ -205,7 +229,10 @@ object Http1Wire {
           check(i < value.length, "unterminated quoted extension")
           i += 1
         } else token()
-      } else check(allowBare, "missing transfer-coding parameter value")
+      } else {
+        check(allowBare, "missing transfer-coding parameter value")
+        check(i == nameEnd || i < value.length, "trailing whitespace after bare chunk extension")
+      }
     }
   }
 
@@ -229,7 +256,8 @@ object Http1Wire {
     }
     check(!quoted && !escaped, "unterminated transfer-coding parameter")
     parts += input.substring(begin)
-    parts.result().map { part =>
+    val members = if (trimOws(input).isEmpty) Vector.empty else parts.result()
+    members.map { part =>
       val coding = trimOws(part)
       val token = coding.takeWhile(tokenChar)
       check(token.nonEmpty, "empty transfer coding")
@@ -243,7 +271,7 @@ object Http1Wire {
   }
 
   private sealed trait Framing
-  private case object Chunked extends Framing
+  private final case class Chunked(remainingCodings: Vector[String]) extends Framing
   private case object ToEof extends Framing
   private final case class Length(size: Int) extends Framing
 
@@ -254,7 +282,7 @@ object Http1Wire {
     if (transfers.nonEmpty) {
       val codings = transferCodings(transfers)
       check(codings.count(_ == "chunked") <= 1, "repeated chunked transfer coding")
-      if (codings.last == "chunked") Chunked
+      if (codings.lastOption.contains("chunked")) Chunked(codings.init)
       else {
         check(!request, "request transfer coding must end in chunked")
         ToEof
@@ -273,12 +301,22 @@ object Http1Wire {
       peer: RawPeer[F],
       headers: Vector[(String, String)],
       request: Boolean,
+      requireContent: Boolean = false,
   ): F[(ByteVector, Vector[(String, String)])] =
     Async[F].delay(framing(headers, request)).flatMap {
       case Length(size) =>
         WireDecodingFailure.read(peer.readExact(size)).map(_ -> Vector.empty[(String, String)])
       case ToEof => peer.readToEnd(MaxBodyBytes).map(_ -> Vector.empty[(String, String)])
-      case Chunked => readChunks(peer)
+      case Chunked(remainingCodings) =>
+        readChunks(peer).flatMap { content =>
+          // Validate the complete observable chunk/trailer framing before reporting the limit.
+          if (requireContent && remainingCodings.nonEmpty)
+            limit(
+              "cannot observe request content: unsupported transfer decoding: " +
+                remainingCodings.mkString(", ")
+            )
+          else content.pure[F]
+        }
     }
 
   private def readChunks[F[_]: Async](

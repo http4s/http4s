@@ -22,7 +22,7 @@ package org.http4s.wire
 private[wire] object Http2RejectionChecks {
   import Http2Wire._
 
-  final case class State(lastStreamId: Option[Long] = None)
+  final case class State(lastStreamId: Option[Long] = None, responded: Int = 0)
 
   def validate(
       frame: Frame,
@@ -68,16 +68,28 @@ private[wire] object Http2RejectionChecks {
       case _ => Right(())
     }
     envelope.flatMap { _ =>
-      if (frame.frameType != GoAway) Right(state)
-      else {
-        val last = readUint32(frame.payload.take(4)) & 0x7fffffffL
-        for {
-          _ <- require(
-            last == 0L || (last & 1L) == (if (fromServer) 1L else 0L),
-            "GOAWAY Last-Stream-ID has the wrong initiator",
-          )
-          _ <- require(state.lastStreamId.forall(last <= _), "GOAWAY Last-Stream-ID increased")
-        } yield State(Some(last))
+      // A server GOAWAY bounds client-initiated (odd) requests, never pushed streams.
+      val response = fromServer && (frame.streamId & 1) == 1 &&
+        (frame.frameType == Headers || frame.frameType == Data)
+      val highest = if (response) math.max(state.responded, frame.streamId) else state.responded
+      val observed = state.copy(responded = highest)
+      val sequence =
+        if (frame.frameType != GoAway) Right(observed)
+        else {
+          val last = readUint32(frame.payload.take(4)) & 0x7fffffffL
+          for {
+            _ <- require(
+              last == 0L || (last & 1L) == (if (fromServer) 1L else 0L),
+              "GOAWAY Last-Stream-ID has the wrong initiator",
+            )
+            _ <- require(state.lastStreamId.forall(last <= _), "GOAWAY Last-Stream-ID increased")
+          } yield observed.copy(lastStreamId = Some(last))
+        }
+      sequence.flatMap { next =>
+        require(
+          !fromServer || next.lastStreamId.forall(_ >= next.responded.toLong),
+          "GOAWAY excludes an observed response stream",
+        ).map(_ => next)
       }
     }
   }

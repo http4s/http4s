@@ -103,6 +103,165 @@ class WirePeerTransportSuite extends CatsEffectSuite {
     }
   }
 
+  private def graphFailure(kind: String): Throwable = kind match {
+    case "adapter" => new AdapterFailure("marker graph fixture", new RuntimeException("failed"))
+    case "timeout" => new java.util.concurrent.TimeoutException("deadline")
+    case _ => new IllegalStateException("independent marker failure")
+  }
+
+  private def addGraphFailure(marker: Throwable, placement: String, extra: Throwable): IO[Unit] =
+    IO {
+      assert(marker.getSuppressed.isEmpty)
+      assert(marker.getCause.getSuppressed.isEmpty)
+      assertEquals(marker.getCause.getCause, null)
+      placement match {
+        case "marker-suppressed" => marker.addSuppressed(extra)
+        case "cause-suppressed" => marker.getCause.addSuppressed(extra)
+        case _ => val _ = marker.getCause.initCause(extra)
+      }
+      if (placement != "marker-suppressed") assert(marker.getSuppressed.isEmpty)
+    }
+
+  private def assertCleanNativeMarker(marker: Throwable, native: js.Any): Unit = {
+    assert(marker.getSuppressed.isEmpty)
+    marker.getCause match {
+      case cause @ js.JavaScriptException(value) =>
+        assert(value == native)
+        assertEquals(cause.getCause, null)
+        assert(cause.getSuppressed.isEmpty)
+      case other => fail(s"expected native marker cause, got $other")
+    }
+  }
+
+  private def assertGraphFailure(
+      write: WriteFailure,
+      extra: Throwable,
+      kind: String,
+      contextualRead: Boolean,
+  ): IO[Unit] =
+    Http2RejectionWrite.reply(IO.raiseError[Unit](write)).attempt.map { result =>
+      assert(!RuntimeInfo.isClosedWrite(write))
+      assert(!RuntimeInfo.isConnectionReset(write))
+      if (contextualRead || kind == "unrelated")
+        assert(result.swap.exists(_ eq write), result.toString)
+      else if (kind == "adapter") assert(result.swap.exists(_ eq extra), result.toString)
+      else
+        assert(
+          result.swap.exists(error =>
+            error.isInstanceOf[java.util.concurrent.TimeoutException] && (error.getCause eq write)
+          ),
+          result.toString,
+        )
+    }
+
+  for {
+    code <- Vector("EPIPE", "ECONNRESET")
+    placement <- Vector("marker-suppressed", "cause-suppressed", "deeper-cause")
+    kind <- Vector("unrelated", "adapter", "timeout")
+  } test(s"native write marker preserves $code/$placement/$kind graph") {
+    for {
+      write <- IO(new WriteFailure(nativeError(code, "write")))
+      _ = assertCleanNativeMarker(write, write.nativeError)
+      _ = assert(RuntimeInfo.isClosedWrite(write))
+      _ = assert(!RuntimeInfo.isConnectionReset(write))
+      _ <- Http2RejectionWrite.reply(IO.raiseError[Unit](write)).assertEquals(false)
+      extra = graphFailure(kind)
+      _ <- addGraphFailure(write, placement, extra)
+      _ <- assertGraphFailure(write, extra, kind, contextualRead = false)
+    } yield ()
+  }
+
+  for {
+    code <- Vector("EPIPE", "ECONNRESET", "ERR_SOCKET_CLOSED")
+    marker <- Vector("write", "read")
+    placement <- Vector("marker-suppressed", "cause-suppressed", "deeper-cause")
+    kind <- Vector("unrelated", "adapter", "timeout")
+  } test(s"contextual native marker preserves $code/$marker/$placement/$kind graph") {
+    pair
+      .use { case (local, remote) =>
+        for {
+          _ <- resetAfterBuffering(local, remote)
+          _ <- inject(local)((_, _, cb) =>
+            cb(
+              if (code == "ERR_SOCKET_CLOSED") js.Dynamic.literal(code = code)
+              else nativeError(code, "write")
+            )
+          )
+          failed <- local.write(bytes).attempt
+          write <- failed match {
+            case Left(write: WriteFailure) => IO.pure(write)
+            case other =>
+              IO.raiseError[WriteFailure](new IllegalStateException(s"expected marker: $other"))
+          }
+          read <- IO(write.precedingReadReset.getOrElse(fail("expected independent read reset")))
+          _ = assertCleanNativeMarker(write, write.nativeError)
+          _ = assertCleanNativeMarker(read, read.nativeError)
+          _ = assert(RuntimeInfo.isConnectionReset(read))
+          _ = assert(!RuntimeInfo.isClosedWrite(read))
+          _ = assert(RuntimeInfo.isClosedWrite(write))
+          _ <- Http2RejectionWrite.reply(IO.raiseError[Unit](write)).assertEquals(false)
+          extra = graphFailure(kind)
+          _ <- addGraphFailure(if (marker == "read") read else write, placement, extra)
+          _ = assert(write.precedingReadReset.exists(_ eq read))
+          _ = assertEquals(RuntimeInfo.isConnectionReset(read), marker != "read")
+          _ <- assertGraphFailure(write, extra, kind, contextualRead = marker == "read")
+        } yield ()
+      }
+      .timeout(5.seconds)
+  }
+
+  test("scripted closed-write fixture carries native write provenance") {
+    Http2WriteFailureFixture.closedWrite.flatMap { error =>
+      IO {
+        error match {
+          case write: WriteFailure =>
+            assertEquals(nativeCode(write.nativeError, "code"), Some("EPIPE"))
+            assertEquals(nativeCode(write.nativeError, "syscall"), Some("write"))
+            assertEquals(write.precedingReadReset, None)
+            write.getCause match {
+              case js.JavaScriptException(native) => assert(native == write.nativeError)
+              case other => fail(s"expected native write cause, got $other")
+            }
+          case other => fail(s"expected scripted write failure, got $other")
+        }
+        assert(RuntimeInfo.isClosedWrite(error))
+        assert(!RuntimeInfo.isConnectionReset(error))
+      } *> Http2RejectionWrite.reply(IO.raiseError[Unit](error)).assertEquals(false)
+    }
+  }
+
+  test("scripted closed-write fixture isolates repeated evaluations of the same effect") {
+    val fixture = Http2WriteFailureFixture.closedWrite
+    val extra = new IllegalStateException("independent fixture failure")
+    for {
+      first <- fixture
+      _ <- IO {
+        first.addSuppressed(extra)
+        first.getCause.addSuppressed(extra)
+      }
+      second <- fixture
+      _ <- IO {
+        assert(!(first eq second))
+        assert(!(first.getCause eq second.getCause))
+        (first, second) match {
+          case (left: WriteFailure, right: WriteFailure) =>
+            assert(left.nativeError != right.nativeError)
+          case other => fail(s"expected scripted write failures, got $other")
+        }
+        assertEquals(first.getSuppressed.toVector, Vector(extra))
+        assertEquals(first.getCause.getSuppressed.toVector, Vector(extra))
+        assert(second.getSuppressed.isEmpty)
+        assert(second.getCause.getSuppressed.isEmpty)
+        assert(!RuntimeInfo.isClosedWrite(first))
+        assert(RuntimeInfo.isClosedWrite(second))
+        assert(!RuntimeInfo.isConnectionReset(second))
+      }
+      result <- Http2RejectionWrite.reply(IO.raiseError[Unit](first)).attempt
+      _ = assert(result.swap.exists(_ eq first), result.toString)
+      _ <- Http2RejectionWrite.reply(IO.raiseError[Unit](second)).assertEquals(false)
+    } yield ()
+  }
+
   test("unknown callback failure stays infrastructure and does not erase input failure") {
     pair.use { case (local, _) =>
       for {

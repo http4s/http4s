@@ -121,8 +121,9 @@ object Http2StateCases {
         rejectedClient(context) { peer =>
           for {
             _ <- acceptClient(peer)
-            request <- requestHead(peer)
-            _ <- writeFrame(peer, data(request.streamId + 2, ByteVector.empty))
+            _ <- requestHead(peer)
+            // No PUSH_PROMISE was sent: even stream 2 is independently idle.
+            _ <- writeFrame(peer, data(2, ByteVector.empty))
             _ <- connectionError(peer, Set(1L, 2L), fromServer = false)
           } yield ()
         }
@@ -139,8 +140,9 @@ object Http2StateCases {
         rejectedClient(context) { peer =>
           for {
             _ <- acceptClient(peer)
-            request <- requestHead(peer)
-            _ <- writeFrame(peer, windowUpdate(request.streamId + 2, 1))
+            _ <- requestHead(peer)
+            // Valid even when the first request uses the maximum odd identifier.
+            _ <- writeFrame(peer, windowUpdate(2, 1))
             _ <- connectionError(peer, Set(1L, 2L), fromServer = false)
           } yield ()
         }
@@ -288,9 +290,11 @@ object Http2StateCases {
           context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
             for {
               decoder <- HpackWire.decoder[IO]()
-              stream <- openUpload(peer, decoder, Vector(4 -> 3L))
+              opened <- openUpload(peer, decoder, Vector(4 -> 3L))
+              stream = opened._1
+              initial = opened._2
               _ <- ready.complete(())
-              stopped <- barrier(peer, false, decoder, stream, Progress(3))
+              stopped <- barrier(peer, false, decoder, stream, initial)
               increment = completionIncrement(SmallBody, stopped)
               _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
               _ <- if (increment > 0) writeFrame(peer, windowUpdate(stream, increment)) else IO.unit
@@ -299,7 +303,10 @@ object Http2StateCases {
                 false,
                 decoder,
                 stream,
-                stopped.copy(credit = stopped.credit + increment),
+                stopped.copy(
+                  credit = stopped.credit + increment,
+                  otherCredit = stopped.otherCredit + completionBudget(SmallBody, stopped),
+                ),
                 boundary = false,
               )
               _ <- Check.equal(complete.body, SmallBody)
@@ -366,14 +373,28 @@ object Http2StateCases {
           context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
             for {
               decoder <- HpackWire.decoder[IO]()
-              stream <- openUpload(peer, decoder, Vector(4 -> 131072L))
+              opened <- openUpload(peer, decoder, Vector(4 -> 131072L))
+              stream = opened._1
+              initial = opened._2
               _ <- ready.complete(())
-              stopped <- barrier(peer, false, decoder, stream, Progress(65535))
+              stopped <- barrier(
+                peer,
+                false,
+                decoder,
+                stream,
+                initial.copy(credit = initial.otherCredit, otherCredit = initial.credit),
+              )
               _ <- Http2PeerSettings.write(
                 peer,
                 encode(windowUpdate(stream, 1)) ++ encode(settings(Vector(4 -> 262144L))),
               )
-              unchanged <- settingsAck(peer, false, decoder, stream, stopped)
+              unchanged <- settingsAck(
+                peer,
+                false,
+                decoder,
+                stream,
+                stopped.copy(otherCredit = stopped.otherCredit + 131073),
+              )
               confirmed <- barrier(peer, false, decoder, stream, unchanged)
               increment = completionIncrement(LargeBody, confirmed)
               _ <- writeFrame(peer, windowUpdate(stream, completionBudget(LargeBody, confirmed)))
@@ -383,7 +404,10 @@ object Http2StateCases {
                 false,
                 decoder,
                 stream,
-                confirmed.copy(credit = confirmed.credit + increment),
+                confirmed.copy(
+                  credit = confirmed.credit + increment,
+                  otherCredit = confirmed.otherCredit + completionBudget(LargeBody, confirmed),
+                ),
                 boundary = false,
               )
               _ <- Check.equal(complete.body, LargeBody)
@@ -429,14 +453,26 @@ object Http2StateCases {
               _ <- writeFrame(peer, windowUpdate(1, 1))
               stopped <- barrier(peer, true, decoder, 1, zero.copy(credit = zero.credit + 1))
               increment = completionIncrement(LargeBody, stopped)
-              _ <- writeFrame(peer, windowUpdate(0, completionBudget(LargeBody, stopped)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(1, increment)) else IO.unit
+              positive <- peerSettings.positive(peer)
+              _ <-
+                if (stopped.ended) IO.unit
+                else
+                  positive
+                    .incidental(
+                      writeFrame(peer, windowUpdate(0, completionBudget(LargeBody, stopped)))
+                    )
+                    .void
+              streamGrant <-
+                if (!stopped.ended && increment > 0)
+                  positive.incidental(writeFrame(peer, windowUpdate(1, increment)))
+                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
               complete <- readData(
                 peer,
                 true,
                 decoder,
                 1,
-                stopped.copy(credit = stopped.credit + increment),
+                stopped
+                  .copy(credit = stopped.credit + (if (streamGrant.attempted) increment else 0)),
                 boundary = false,
               )
               _ <- Check.equal(complete.body, LargeBody)
@@ -460,9 +496,13 @@ object Http2StateCases {
           context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
             for {
               decoder <- HpackWire.decoder[IO]()
-              stream <- openUpload(peer, decoder, Vector(4 -> 65535L))
+              opened <- openUpload(peer, decoder, Vector(4 -> 65535L))
+              stream = opened._1
+              initial = opened._2
               _ <- ready.complete(())
-              prefix <- firstPositiveData(peer, false, decoder, stream, Progress(65535))
+              prefix <-
+                if (initial.credit < 65535L) IO.pure(initial)
+                else firstPositiveData(peer, false, decoder, stream, initial)
               sampled <- barrier(peer, false, decoder, stream, prefix)
               _ <- Check(!sampled.ended, "body ended before its complete content")
               // Keep connection credit sufficient even for a padding-only prefix.
@@ -470,7 +510,13 @@ object Http2StateCases {
               _ <- writeFrame(peer, settings(Vector(4 -> 0L)))
               // RFC 9113 6.9.3 permits in-flight DATA under the old window.
               // Its ACK synchronizes application of the new-minus-old delta (6.5.3).
-              acknowledged <- settingsAck(peer, false, decoder, stream, sampled)
+              acknowledged <- settingsAck(
+                peer,
+                false,
+                decoder,
+                stream,
+                sampled.copy(otherCredit = sampled.otherCredit + 65536),
+              )
               negative = acknowledged.copy(credit = acknowledged.credit - 65535)
               _ <- observationBound(negative.credit < 0, "negative stream credit was not observed")
               negativeStopped <- barrier(peer, false, decoder, stream, negative)
@@ -486,7 +532,10 @@ object Http2StateCases {
                 false,
                 decoder,
                 stream,
-                stopped.copy(credit = stopped.credit + increment),
+                stopped.copy(
+                  credit = stopped.credit + increment,
+                  otherCredit = stopped.otherCredit + completionBudget(LargeBody, stopped),
+                ),
                 boundary = false,
               )
               _ <- Check.equal(complete.body, LargeBody)
@@ -577,9 +626,11 @@ object Http2StateCases {
         rejectedUpload(context) { peer =>
           for {
             decoder <- HpackWire.decoder[IO]()
-            stream <- openUpload(peer, decoder, Vector(4 -> 0L))
+            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+            stream = opened._1
+            initial = opened._2
             _ <- writeFrame(peer, Frame(WindowUpdate, 0, stream, uint32(0)))
-            _ <- streamError(peer, stream, Set(1L, 2L), fromServer = false)
+            _ <- streamError(peer, stream, Set(1L, 2L), fromServer = false, upload = Some(initial))
           } yield ()
         }
       }
@@ -608,9 +659,14 @@ object Http2StateCases {
     ) { context =>
       Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
         rejectedClient(context) { peer =>
-          // The request contains no DATA octets, leaving the full initial connection window.
+          // The sole request stream receives no stream-credit increase. Even empty-body
+          // padding can therefore debit at most 65535 octets, before or between these updates.
+          // 65535 + Int.MaxValue + 1 - debit is unconditionally above Int.MaxValue.
           acceptClient(peer) *> requestHead(peer) *>
-            writeFrame(peer, windowUpdate(0, Int.MaxValue)) *>
+            Http2PeerSettings.write(
+              peer,
+              encode(windowUpdate(0, Int.MaxValue)) ++ encode(windowUpdate(0, 1)),
+            ) *>
             connectionError(peer, Set(1L, 2L, 3L), fromServer = false)
         }
       }
@@ -656,13 +712,22 @@ object Http2StateCases {
         rejectedUpload(context) { peer =>
           for {
             decoder <- HpackWire.decoder[IO]()
-            stream <- openUpload(peer, decoder, Vector(4 -> 0L))
-            // The upload source remains gated, so no DATA can reduce the window between updates.
+            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+            stream = opened._1
+            initial = opened._2
+            // No connection credit is granted: all padding, including setup DATA,
+            // can debit at most 65535 octets. A 65536 delta forces overflow.
             _ <- Http2PeerSettings.write(
               peer,
-              encode(windowUpdate(stream, Int.MaxValue)) ++ encode(windowUpdate(stream, 1)),
+              encode(windowUpdate(stream, Int.MaxValue)) ++ encode(windowUpdate(stream, 65536)),
             )
-            _ <- streamError(peer, stream, Set(1L, 2L, 3L), fromServer = false)
+            _ <- streamError(
+              peer,
+              stream,
+              Set(1L, 2L, 3L),
+              fromServer = false,
+              upload = Some(initial.copy(credit = initial.credit + Int.MaxValue)),
+            )
           } yield ()
         }
       }
@@ -711,12 +776,20 @@ object Http2StateCases {
         rejectedUpload(context) { peer =>
           for {
             decoder <- HpackWire.decoder[IO]()
-            stream <- openUpload(peer, decoder, Vector(4 -> 0L))
+            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+            stream = opened._1
+            initial = opened._2
+            // The 65536 SETTINGS delta exceeds all unrefreshed connection credit.
             _ <- Http2PeerSettings.write(
               peer,
-              encode(windowUpdate(stream, Int.MaxValue)) ++ encode(settings(Vector(4 -> 1L))),
+              encode(windowUpdate(stream, Int.MaxValue)) ++ encode(settings(Vector(4 -> 65536L))),
             )
-            _ <- connectionError(peer, Set(1L, 2L, 3L), fromServer = false)
+            _ <- connectionError(
+              peer,
+              Set(1L, 2L, 3L),
+              fromServer = false,
+              upload = Some(stream -> initial.copy(credit = initial.credit + Int.MaxValue)),
+            )
           } yield ()
         }
       }
@@ -745,13 +818,17 @@ object Http2StateCases {
               // Track connection credit here; the stream is already at its maximum.
               connection = stopped.copy(credit = 65535)
               increment = completionIncrement(SmallBody, connection)
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
+              positive <- peerSettings.positive(peer)
+              grant <-
+                if (increment > 0) positive.incidental(writeFrame(peer, windowUpdate(0, increment)))
+                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
               complete <- readData(
                 peer,
                 true,
                 decoder,
                 1,
-                connection.copy(credit = connection.credit + increment),
+                connection
+                  .copy(credit = connection.credit + (if (grant.attempted) increment else 0)),
                 boundary = false,
               )
               _ <- Check.equal(complete.body, SmallBody)
@@ -764,19 +841,28 @@ object Http2StateCases {
       "h2.client.maximum-stream-window-update",
       Protocol.Http2,
       Role.Client,
-      Rfc(9113, "6.9", "The maximum WINDOW_UPDATE increment is accepted at zero upload credit."),
+      Rfc(
+        9113,
+        "6.9",
+        "The maximum WINDOW_UPDATE increment is accepted at measured nonpositive upload credit.",
+      ),
     ) { context =>
       Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
         Deferred[IO, Unit].flatMap { ready =>
           context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
             for {
               decoder <- HpackWire.decoder[IO]()
-              stream <- openUpload(peer, decoder, Vector(4 -> 0L))
+              opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+              stream = opened._1
+              initial = opened._2
               _ <- ready.complete(())
-              stopped <- barrier(peer, false, decoder, stream, Progress(0))
+              stopped <- barrier(peer, false, decoder, stream, initial)
               _ <- writeFrame(peer, windowUpdate(stream, Int.MaxValue))
-              // Track connection credit here; the stream is already at its maximum.
-              connection = stopped.copy(credit = 65535)
+              // Track connection credit while retaining the measured stream debit.
+              connection = stopped.copy(
+                credit = stopped.otherCredit,
+                otherCredit = stopped.credit + Int.MaxValue,
+              )
               increment = completionIncrement(SmallBody, connection)
               _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
               complete <- readData(
@@ -810,26 +896,7 @@ object Http2StateCases {
               _ <- writeFrame(peer, headers(1, requestFields()))
               _ <- responseHead(peer, 1, decoder)
               _ <- writeFrame(peer, Frame(RstStream, 0, 1, uint32(8)))
-              _ <- resetBarrier(peer, true, decoder, 1)
-              // Sample later output after a causal PING barrier; this is not an unbounded
-              // proof of reset processing or of the absence of independently scheduled output.
-              budget = completionBudget(SmallBody, Progress(0))
-              _ <- Http2PeerSettings.write(
-                peer,
-                encode(windowUpdate(1, 65535)) ++ encode(headers(3, requestFields())) ++
-                  encode(windowUpdate(0, budget)) ++ encode(windowUpdate(3, budget)),
-              )
-              _ <- responseHead(peer, 3, decoder)
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                3,
-                Progress(budget.toLong),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-              _ <- barrier(peer, true, decoder, 3, complete)
+              _ <- resetCompletion(peer, decoder)
             } yield ()
         }
       }
@@ -871,16 +938,23 @@ object Http2StateCases {
               // Carry the actual connection remainder into a fresh response state.
               next = Progress(first.credit)
               secondIncrement = completionIncrement(SmallBody, next)
-              _ <- writeFrame(peer, windowUpdate(3, completionBudget(SmallBody, next)))
-              _ <-
-                if (secondIncrement > 0) writeFrame(peer, windowUpdate(0, secondIncrement))
-                else IO.unit
+              positive <- peerSettings.positive(peer)
+              streamGrant <- positive
+                .incidental(writeFrame(peer, windowUpdate(3, completionBudget(SmallBody, next))))
+              connectionGrant <-
+                if (secondIncrement > 0)
+                  positive.incidental(writeFrame(peer, windowUpdate(0, secondIncrement)))
+                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
               second <- readData(
                 peer,
                 true,
                 decoder,
                 3,
-                next.copy(credit = next.credit + secondIncrement),
+                next.copy(
+                  credit = next.credit + (if (connectionGrant.attempted) secondIncrement else 0),
+                  otherCredit =
+                    65535L + (if (streamGrant.attempted) completionBudget(SmallBody, next) else 0),
+                ),
                 boundary = false,
               )
               _ <- Check.equal(second.body, SmallBody)
@@ -908,7 +982,7 @@ object Http2StateCases {
               _ <- writeFrame(peer, data(9, ByteVector.empty))
               bytes <- peer.readToEnd(1024 * 1024, allowReset = true)
               frames <- IO.fromEither(decodeAll(bytes))
-              _ <- checkConnectionFrames(frames, Set(1L, 2L), fromServer = true)
+              _ <- checkConnectionFrames(peer, frames, Set(1L, 2L), fromServer = true)
               _ <- frames.filter(_.frameType == GoAway).traverse_ { frame =>
                 Check(
                   (readUint32(frame.payload.take(4)) & 0x7fffffffL) >= 7L,
@@ -940,14 +1014,29 @@ object Http2StateCases {
               _ <- responseHead(peer, 1, decoder)
               initial = Progress(65535)
               increment = completionIncrement(SmallBody, initial)
-              _ <- writeFrame(peer, windowUpdate(1, completionBudget(SmallBody, initial)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
+              // A complete response may already be buffered after legal closure.
+              // Stop optional writes on recognized closure; readData still proves completion.
+              positive <- peerSettings.positive(peer)
+              streamGrant <- positive.incidental(
+                writeFrame(peer, windowUpdate(1, completionBudget(SmallBody, initial)))
+              )
+              connectionGrant <-
+                if (increment > 0)
+                  positive.incidental(writeFrame(peer, windowUpdate(0, increment)))
+                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
               complete <- readData(
                 peer,
                 true,
                 decoder,
                 1,
-                initial.copy(credit = initial.credit + increment),
+                // Failed writes may have delivered a complete grant, but a skipped
+                // connection write cannot enlarge its window. Bound both dimensions.
+                initial.copy(
+                  credit = initial.credit + (if (connectionGrant.attempted) increment else 0),
+                  otherCredit = initial.credit + (if (streamGrant.attempted)
+                                                    completionBudget(SmallBody, initial)
+                                                  else 0),
+                ),
                 boundary = false,
               )
               _ <- Check.equal(complete.body, SmallBody)
@@ -961,6 +1050,8 @@ object Http2StateCases {
       credit: Long,
       body: ByteVector = ByteVector.empty,
       ended: Boolean = false,
+      // Client uploads retain the independent window alongside the sampled one.
+      otherCredit: Long = Long.MaxValue,
   )
 
   private def requestFields(): Vector[(String, String)] =
@@ -988,7 +1079,7 @@ object Http2StateCases {
         first.frameType == Settings && !first.hasFlag(Ack),
         "server preface requires SETTINGS",
       )
-      _ <- control(peer, first, fromServer = true)
+      _ <- positiveControl(peer, first, fromServer = true)
       decoder <- HpackWire.decoder[IO]()
       _ <- settingsAck(peer, true, decoder, 0, Progress(0))
     } yield ()
@@ -1016,7 +1107,7 @@ object Http2StateCases {
       peer: RawPeer[IO]
   )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Frame] =
     for {
-      first <- readUntil(peer, fromServer = false)(_.frameType == Headers)
+      first <- Http2PositiveObservation.readUntil(peer, fromServer = false)(_.frameType == Headers)
       decoder <- HpackWire.decoder[IO]()
       fields <- readHeaders(peer, first, decoder)
       _ <- Check(
@@ -1031,13 +1122,22 @@ object Http2StateCases {
       peer: RawPeer[IO],
       decoder: HpackWire.Decoder[IO],
       values: Vector[(Int, Long)],
-  )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Int] = {
-    def loop(stream: Option[Int], acknowledged: Boolean, remaining: Int): IO[Int] =
+  )(implicit
+      peerSettings: Http2PeerSettings[IO],
+      dataBudget: Http2Wire.DataBudget,
+  ): IO[(Int, Progress)] = {
+    val advertised = values.collectFirst { case (4, value) => value }.getOrElse(65535L)
+    def loop(
+        stream: Option[Int],
+        acknowledged: Boolean,
+        progress: Progress,
+        remaining: Int,
+    ): IO[(Int, Progress)] =
       (stream, acknowledged) match {
-        case (Some(id), true) => IO.pure(id)
+        case (Some(id), true) => IO.pure(id -> progress)
         case _ =>
           observationBound(remaining > 0, "missing request HEADERS or SETTINGS acknowledgment") *>
-            readFrame(peer).flatMap { frame =>
+            positiveFrame(peer, fromServer = false).flatMap { frame =>
               if (frame.frameType == Headers)
                 for {
                   _ <- Check(stream.isEmpty, "unexpected second upload stream")
@@ -1054,19 +1154,29 @@ object Http2StateCases {
                     !frame.hasFlag(EndStream),
                     "upload HEADERS prematurely ended the stream",
                   )
-                  id <- loop(Some(frame.streamId), acknowledged, remaining - 1)
+                  id <- loop(Some(frame.streamId), acknowledged, progress, remaining - 1)
                 } yield id
               else if (frame.frameType == Settings && frame.hasFlag(Ack))
-                control(peer, frame, fromServer = false) *> loop(stream, true, remaining - 1)
+                positiveControl(peer, frame, fromServer = false) *> loop(
+                  stream,
+                  true,
+                  progress.copy(credit = progress.credit + advertised - 65535L),
+                  remaining - 1,
+                )
+              else if (frame.frameType == Data)
+                Check(stream.nonEmpty, "upload DATA preceded HEADERS") *>
+                  consumeGated(frame, stream.getOrElse(0), progress)
+                    .flatMap(next => loop(stream, acknowledged, next, remaining - 1))
               else
-                control(peer, frame, fromServer = false) *> loop(
+                positiveControl(peer, frame, fromServer = false) *> loop(
                   stream,
                   acknowledged,
+                  progress,
                   remaining - 1,
                 )
             }
       }
-    acceptClient(peer, values) *> loop(None, false, 1024)
+    acceptClient(peer, values) *> loop(None, false, Progress(65535L, otherCredit = 65535L), 1024)
   }
 
   private def responseHead(
@@ -1077,7 +1187,7 @@ object Http2StateCases {
     def loop(remaining: Int): IO[Unit] =
       observationBound(remaining > 0, "too many informational response sections") *>
         (for {
-          first <- readUntil(peer, fromServer = true)(_.frameType == Headers)
+          first <- positiveHead(peer, fromServer = true)
           _ <- Check.equal(first.streamId, stream)
           fields <- readHeaders(peer, first, decoder)
           statuses = fields.collect { case (":status", value) => value }
@@ -1092,7 +1202,7 @@ object Http2StateCases {
                 IO.defer(loop(remaining - 1))
             else Check.equal(statuses, Vector("200"))
         } yield ())
-    validObservation(loop(1024))
+    peerSettings.positive(peer).flatMap(_.expecting(Set(stream))) *> loop(1024)
   }
 
   private def consume(frame: Frame, stream: Int, progress: Progress): IO[Progress] =
@@ -1100,8 +1210,8 @@ object Http2StateCases {
       _ <- Check.equal(frame.streamId, stream)
       _ <- Check(!progress.ended, "DATA arrived after END_STREAM")
       _ <- Check(
-        frame.payload.size <= math.max(0L, progress.credit),
-        s"DATA payload ${frame.payload.size} exceeds remaining credit ${progress.credit}",
+        frame.payload.size <= math.max(0L, math.min(progress.credit, progress.otherCredit)),
+        s"DATA payload ${frame.payload.size} exceeds remaining credit ${math.min(progress.credit, progress.otherCredit)}",
       )
       bytes <- IO(unpad(frame))
       _ <- observationBound(
@@ -1112,7 +1222,14 @@ object Http2StateCases {
       progress.credit - frame.payload.size,
       progress.body ++ bytes,
       frame.hasFlag(EndStream),
+      progress.otherCredit - frame.payload.size,
     )
+
+  private def consumeGated(frame: Frame, stream: Int, progress: Progress): IO[Progress] =
+    consume(frame, stream, progress).flatTap { next =>
+      Check(!next.ended, "upload DATA prematurely ended the stream") *>
+        Check(next.body.isEmpty, "DATA contained gated upload content")
+    }
 
   private def consumeTrailers(
       peer: RawPeer[IO],
@@ -1148,14 +1265,14 @@ object Http2StateCases {
         observationBound(
           !current.ended && remaining > 0,
           "positive DATA prerequisite was not observed",
-        ) *> readFrame(peer).flatMap { frame =>
+        ) *> positiveFrame(peer, fromServer).flatMap { frame =>
           if (frame.frameType == Data)
             consume(frame, stream, current).flatMap(loop(_, remaining - 1))
           else if (frame.frameType == Headers)
             consumeTrailers(peer, decoder, frame, stream, current).flatMap(loop(_, remaining - 1))
-          else control(peer, frame, fromServer) *> loop(current, remaining - 1)
+          else positiveControl(peer, frame, fromServer) *> loop(current, remaining - 1)
         }
-    validObservation(loop(initial, 4096))
+    loop(initial, 4096)
   }
 
   private def readData(
@@ -1170,17 +1287,30 @@ object Http2StateCases {
       dataBudget: Http2Wire.DataBudget,
   ): IO[Progress] = {
     def loop(current: Progress, remaining: Int): IO[Progress] =
-      if (current.ended || (boundary && current.credit == 0L)) IO.pure(current)
+      if (current.ended)
+        (if (fromServer) peerSettings.positive(peer).flatMap(_.completed(Set(stream))) else IO.unit)
+          .as(current)
+      else if (boundary && current.credit == 0L) IO.pure(current)
       else
-        observationBound(remaining > 0, "too many frames before DATA completion") *> readFrame(peer)
+        observationBound(remaining > 0, "too many frames before DATA completion") *> positiveFrame(
+          peer,
+          fromServer,
+        )
           .flatMap { frame =>
             if (frame.frameType == Data)
               consume(frame, stream, current).flatMap(loop(_, remaining - 1))
             else if (frame.frameType == Headers)
-              consumeTrailers(peer, decoder, frame, stream, current).flatMap(loop(_, remaining - 1))
-            else control(peer, frame, fromServer) *> loop(current, remaining - 1)
+              consumeTrailers(peer, decoder, frame, stream, current).flatMap(
+                loop(_, remaining - 1)
+              )
+            else
+              positiveControl(
+                peer,
+                frame,
+                fromServer,
+              ).flatMap(_ => loop(current, remaining - 1))
           }
-    validObservation(loop(initial, CompletionFrameLimit))
+    loop(initial, CompletionFrameLimit)
   }
 
   /** No frame-skipping reader is used here: every DATA payload before the ACK consumes credit. */
@@ -1195,87 +1325,150 @@ object Http2StateCases {
       dataBudget: Http2Wire.DataBudget,
   ): IO[Progress] = {
     def loop(current: Progress, remaining: Int): IO[Progress] =
-      observationBound(remaining > 0, "missing PING acknowledgment") *> readFrame(peer).flatMap {
-        frame =>
-          if (frame.frameType == Ping && frame.hasFlag(Ack))
-            Check.equal(frame.streamId, 0) *> Check.equal(frame.payload, PingBytes).as(current)
-          else if (frame.frameType == Data)
-            consume(frame, stream, current).flatMap(loop(_, remaining - 1))
-          else if (frame.frameType == Headers)
-            consumeTrailers(peer, decoder, frame, stream, current).flatMap(loop(_, remaining - 1))
-          else control(peer, frame, fromServer) *> loop(current, remaining - 1)
+      observationBound(remaining > 0, "missing PING acknowledgment") *> positiveFrame(
+        peer,
+        fromServer,
+      ).flatMap { frame =>
+        if (frame.frameType == Ping && frame.hasFlag(Ack))
+          Check.equal(frame.streamId, 0) *> Check.equal(frame.payload, PingBytes) *>
+            (if (fromServer && current.ended)
+               peerSettings.positive(peer).flatMap(_.completed(Set(stream)))
+             else IO.unit).as(current)
+        else if (frame.frameType == Data)
+          consume(frame, stream, current).flatMap(loop(_, remaining - 1))
+        else if (frame.frameType == Headers)
+          consumeTrailers(peer, decoder, frame, stream, current).flatMap(loop(_, remaining - 1))
+        else positiveControl(peer, frame, fromServer) *> loop(current, remaining - 1)
       }
-    writeFrame(peer, Frame(Ping, 0, 0, PingBytes)) *> validObservation(loop(initial, 4096))
+    writeFrame(peer, Frame(Ping, 0, 0, PingBytes)) *> loop(initial, 4096)
   }
 
-  /** A reset can cross already queued output. Drain only to the first matching PING ACK;
-    * keep the connection HPACK state and charge even discarded frames to the observation budget.
+  /** Retain the retired stream through both PING samples and stream-3 completion.
+    * PING can overtake queued output (RFC 9113 5.4.2/6.7). Only positive DATA is
+    * impossible under stream 1's original zero credit; neither ACK proves a drained queue.
     */
-  private def resetBarrier(
+  private def resetCompletion(
       peer: RawPeer[IO],
-      fromServer: Boolean,
       decoder: HpackWire.Decoder[IO],
-      stream: Int,
   )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Unit] = {
+    val budget = completionBudget(SmallBody, Progress(0))
+    // Stages: first PING, response head, response body, final PING.
+    final case class Observation(
+        retired: Progress = Progress(0),
+        active: Progress = Progress(budget.toLong),
+        connectionCredit: Long = 65535L,
+        stage: Int = 0,
+    )
     def loop(
-        current: Progress,
+        state: Observation,
         pending: Option[Frame],
         remaining: Int,
         retained: Long,
     ): IO[Unit] =
-      observationBound(remaining > 0, "missing reset PING acknowledgment") *>
-        readFrame(peer).flatMap { frame =>
+      observationBound(remaining > 0, "reset completion observation limit") *>
+        positiveFrame(peer, fromServer = true).flatMap { frame =>
           Http2ObservationBudget.reserve[IO](retained, frame.payload.size + 9L).flatMap {
             reserved =>
-              def trailers(section: Frame): IO[Unit] =
-                if (section.hasFlag(EndHeaders))
-                  consumeTrailers(peer, decoder, section, stream, current)
-                    .flatMap(loop(_, None, remaining - 1, reserved))
-                else loop(current, Some(section), remaining - 1, reserved)
+              def continue(next: Observation): IO[Unit] =
+                if (next.stage == 2 && next.active.ended)
+                  Check.equal(next.active.body, SmallBody) *>
+                    peerSettings.positive(peer).flatMap(_.completed(Set(3))) *>
+                    writeFrame(peer, Frame(Ping, 0, 0, PingBytes)) *>
+                    loop(next.copy(stage = 3), None, remaining - 1, reserved)
+                else loop(next, None, remaining - 1, reserved)
+
+              def section(head: Frame): IO[Unit] =
+                if (!head.hasFlag(EndHeaders)) loop(state, Some(head), remaining - 1, reserved)
+                else if (head.streamId == 1)
+                  consumeTrailers(peer, decoder, head, 1, state.retired)
+                    .flatMap(next => continue(state.copy(retired = next)))
+                else if (state.stage == 1)
+                  for {
+                    fields <- readHeaders(peer, head, decoder)
+                    statuses = fields.collect { case (":status", value) => value }
+                    informational = statuses match {
+                      case Vector(value) =>
+                        value.length == 3 && value.head == '1' && value.forall(_.isDigit)
+                      case _ => false
+                    }
+                    _ <- Check(!head.hasFlag(EndStream), "nonempty response ended in HEADERS")
+                    _ <-
+                      if (informational)
+                        Check(
+                          statuses != Vector("101"),
+                          "HTTP/2 does not permit status 101",
+                        ) *> continue(state)
+                      else Check.equal(statuses, Vector("200")) *> continue(state.copy(stage = 2))
+                  } yield ()
+                else
+                  Check(state.stage == 2, "unexpected response HEADERS") *>
+                    consumeTrailers(peer, decoder, head, 3, state.active)
+                      .flatMap(next => continue(state.copy(active = next)))
 
               pending match {
-                case Some(section) =>
+                case Some(head) =>
                   Check(
-                    frame.frameType == Continuation && frame.streamId == stream,
-                    "expected an uninterrupted CONTINUATION on the reset stream",
+                    frame.frameType == Continuation && frame.streamId == head.streamId,
+                    "expected an uninterrupted CONTINUATION on the same stream",
                   ) *>
-                    trailers(
-                      section.copy(
-                        flags = section.flags | (frame.flags & EndHeaders),
-                        payload = section.payload ++ frame.payload,
+                    section(
+                      head.copy(
+                        flags = head.flags | (frame.flags & EndHeaders),
+                        payload = head.payload ++ frame.payload,
                       )
                     )
                 case None if frame.frameType == Ping && frame.hasFlag(Ack) =>
-                  Check.equal(frame.streamId, 0) *> Check.equal(frame.payload, PingBytes)
+                  Check.equal(frame.streamId, 0) *> Check.equal(frame.payload, PingBytes) *>
+                    (if (state.stage == 0)
+                       peerSettings.positive(peer).flatMap(_.expecting(Set(3))) *>
+                         Http2PeerSettings.write(
+                           peer,
+                           encode(windowUpdate(1, 65535)) ++ encode(headers(3, requestFields())) ++
+                             encode(windowUpdate(0, budget)) ++ encode(windowUpdate(3, budget)),
+                         ) *>
+                         continue(
+                           state.copy(stage = 1, connectionCredit = state.connectionCredit + budget)
+                         )
+                     else Check.equal(state.stage, 3))
                 case None if frame.frameType == RstStream =>
-                  Check.equal(frame.streamId, stream) *> Check.equal(frame.payload.size, 4L) *>
-                    loop(current.copy(ended = true), None, remaining - 1, reserved)
+                  Check.equal(frame.streamId, 1) *> Check.equal(frame.payload.size, 4L) *>
+                    continue(state.copy(retired = state.retired.copy(ended = true)))
                 case None if frame.frameType == Data =>
-                  consume(frame, stream, current).flatMap(loop(_, None, remaining - 1, reserved))
+                  if (frame.streamId == 1)
+                    consume(frame, 1, state.retired.copy(otherCredit = state.connectionCredit))
+                      .flatMap(next =>
+                        continue(state.copy(retired = next, connectionCredit = next.otherCredit))
+                      )
+                  else
+                    Check(state.stage == 2 || state.stage == 3, "DATA preceded response HEADERS") *>
+                      consume(frame, 3, state.active.copy(otherCredit = state.connectionCredit))
+                        .flatMap(next =>
+                          continue(state.copy(active = next, connectionCredit = next.otherCredit))
+                        )
                 case None if frame.frameType == Headers =>
                   for {
-                    _ <- Check.equal(frame.streamId, stream)
-                    _ <- Check(!current.ended, "HEADERS arrived after END_STREAM or RST_STREAM")
-                    _ <- Check(frame.hasFlag(EndStream), "trailing HEADERS must carry END_STREAM")
+                    _ <- Check(
+                      frame.streamId == 1 || (frame.streamId == 3 && state.stage > 0),
+                      "unexpected HEADERS stream",
+                    )
                     unpadded <- IO(unpad(frame))
                     _ <- Check(
                       !frame.hasFlag(0x20) || unpadded.size >= 5L,
                       "truncated HEADERS priority fields",
                     )
-                    _ <- trailers(
+                    _ <- section(
                       frame.copy(
                         flags = frame.flags & ~(Padded | 0x20),
                         payload = if (frame.hasFlag(0x20)) unpadded.drop(5) else unpadded,
                       )
                     )
                   } yield ()
-                case None =>
-                  control(peer, frame, fromServer) *> loop(current, None, remaining - 1, reserved)
+                case None => positiveControl(peer, frame, fromServer = true) *> continue(state)
               }
           }
         }
     writeFrame(peer, Frame(Ping, 0, 0, PingBytes)) *>
-      validObservation(loop(Progress(0), None, 4096, 0L))
+      loop(Observation(), None, 4096, 0L)
   }
 
   private def settingsAck(
@@ -1289,17 +1482,49 @@ object Http2StateCases {
       dataBudget: Http2Wire.DataBudget,
   ): IO[Progress] = {
     def loop(current: Progress, remaining: Int): IO[Progress] =
-      observationBound(remaining > 0, "missing SETTINGS acknowledgment") *> readFrame(peer).flatMap {
-        frame =>
-          if (frame.frameType == Settings && frame.hasFlag(Ack))
-            control(peer, frame, fromServer).as(current)
-          else if (frame.frameType == Data)
-            consume(frame, stream, current).flatMap(loop(_, remaining - 1))
-          else if (frame.frameType == Headers)
-            consumeTrailers(peer, decoder, frame, stream, current).flatMap(loop(_, remaining - 1))
-          else control(peer, frame, fromServer) *> loop(current, remaining - 1)
+      observationBound(remaining > 0, "missing SETTINGS acknowledgment") *> positiveFrame(
+        peer,
+        fromServer,
+      ).flatMap { frame =>
+        if (frame.frameType == Settings && frame.hasFlag(Ack))
+          positiveControl(peer, frame, fromServer).as(current)
+        else if (frame.frameType == Data)
+          consume(frame, stream, current).flatMap(loop(_, remaining - 1))
+        else if (frame.frameType == Headers)
+          consumeTrailers(peer, decoder, frame, stream, current).flatMap(loop(_, remaining - 1))
+        else positiveControl(peer, frame, fromServer) *> loop(current, remaining - 1)
       }
-    validObservation(loop(initial, 4096))
+    loop(initial, 4096)
+  }
+
+  private def positiveFrame(peer: RawPeer[IO], fromServer: Boolean)(implicit
+      peerSettings: Http2PeerSettings[IO]
+  ): IO[Frame] =
+    readFrame(peer).flatTap(frame =>
+      peerSettings.positive(peer).flatMap(_.observe(frame, fromServer))
+    )
+
+  private def positiveHead(peer: RawPeer[IO], fromServer: Boolean)(implicit
+      peerSettings: Http2PeerSettings[IO],
+      dataBudget: Http2Wire.DataBudget,
+  ): IO[Frame] =
+    Http2PositiveObservation.readUntil(peer, fromServer)(_.frameType == Headers)
+
+  private def positiveControl(peer: RawPeer[IO], frame: Frame, fromServer: Boolean)(implicit
+      peerSettings: Http2PeerSettings[IO],
+      dataBudget: Http2Wire.DataBudget,
+  ): IO[Boolean] = peerSettings.positive(peer).flatMap { positive =>
+    positive.observe(frame, fromServer) *> (frame.frameType match {
+      case GoAway => IO.pure(true)
+      case Settings =>
+        IO(
+          dataBudget.check(frame)
+        ) *> (if (frame.hasFlag(Ack)) IO.pure(true)
+              else positive.incidental(writeFrame(peer, settings(ack = true))).map(_.writable))
+      case Ping if !frame.hasFlag(Ack) =>
+        positive.incidental(writeFrame(peer, frame.copy(flags = Ack))).map(_.writable)
+      case _ => control(peer, frame, fromServer)
+    })
   }
 
   private def control(
@@ -1333,28 +1558,36 @@ object Http2StateCases {
       peer: RawPeer[IO],
       codes: Set[Long],
       fromServer: Boolean,
-      initialState: Http2RejectionChecks.State = Http2RejectionChecks.State(),
-  ): IO[Unit] =
+      upload: Option[(Int, Progress)] = None,
+  )(implicit peerSettings: Http2PeerSettings[IO]): IO[Unit] =
     for {
       // GOAWAY is best effort; actual EOF, before target-resource cleanup, proves closure.
       bytes <- peer.readToEnd(1024 * 1024, allowReset = true)
       frames <- IO.fromEither(decodeAll(bytes))
-      _ <- checkConnectionFrames(frames, codes, fromServer, initialState)
+      _ <- checkConnectionFrames(peer, frames, codes, fromServer, upload)
     } yield ()
 
   private def checkConnectionFrames(
+      peer: RawPeer[IO],
       frames: Vector[Frame],
       codes: Set[Long],
       fromServer: Boolean,
-      initialState: Http2RejectionChecks.State = Http2RejectionChecks.State(),
-  ): IO[Unit] =
-    frames
-      .foldLeftM(initialState) { (previous, frame) =>
-        IO.fromEither(Http2RejectionChecks.validate(frame, fromServer, previous)).flatTap { _ =>
-          if (frame.frameType == GoAway) checkGoAway(frame, codes) else IO.unit
+      upload: Option[(Int, Progress)] = None,
+  )(implicit peerSettings: Http2PeerSettings[IO]): IO[Unit] =
+    peerSettings.positive(peer).flatMap { observation =>
+      frames
+        .foldLeftM(upload) { (current, frame) =>
+          for {
+            _ <- observation.observeControl(frame, fromServer)
+            _ <- if (frame.frameType == GoAway) checkGoAway(frame, codes) else IO.unit
+            measured <- current.traverse { case (stream, progress) =>
+              if (frame.frameType == Data) consumeGated(frame, stream, progress).map(stream -> _)
+              else IO.pure(stream -> progress)
+            }
+          } yield measured
         }
-      }
-      .void
+        .void
+    }
 
   // Caller validates the envelope before reading fixed fields.
   private def checkGoAway(frame: Frame, codes: Set[Long]): IO[Unit] = IO.defer {
@@ -1373,36 +1606,46 @@ object Http2StateCases {
       stream: Int,
       codes: Set[Long],
       fromServer: Boolean,
-  )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Unit] = {
-    def loop(remaining: Int, state: Http2RejectionChecks.State, closing: Boolean): IO[Unit] =
-      observationBound(remaining > 0, "missing stream reset or connection closure") *> frameOrEof(
-        peer
-      )
-        .flatMap {
-          case None => IO.unit // Section 5.4.1 permits escalation to a connection error.
-          case Some(frame) =>
-            IO.fromEither(Http2RejectionChecks.validate(frame, fromServer, state)).flatMap { next =>
-              frame.frameType match {
-                case RstStream =>
-                  Check.equal(frame.streamId, stream) *>
-                    Check(
-                      codes.contains(readUint32(frame.payload)),
-                      s"unexpected RST_STREAM: $frame",
-                    ) *> (if (closing) loop(remaining - 1, next, closing) else IO.unit)
-                case GoAway =>
-                  checkGoAway(frame, codes) *>
-                    (if (readUint32(frame.payload.slice(4, 8)) == 0L)
-                       loop(remaining - 1, next, closing)
-                     else connectionError(peer, codes, fromServer, next))
-                case _ =>
-                  control(peer, frame, fromServer, rejecting = true, closing = closing).flatMap(
-                    written => loop(remaining - 1, next, closing || !written)
-                  )
+      upload: Option[Progress] = None,
+  )(implicit peerSettings: Http2PeerSettings[IO]): IO[Unit] =
+    peerSettings.positive(peer).flatMap { observation =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget.empty
+      def loop(
+          remaining: Int,
+          closing: Boolean,
+          current: Option[Progress],
+      ): IO[Unit] =
+        observationBound(remaining > 0, "missing stream reset or connection closure") *> frameOrEof(
+          peer
+        )
+          .flatMap {
+            case None => IO.unit // Section 5.4.1 permits escalation to a connection error.
+            case Some(frame) =>
+              observation.observeControl(frame, fromServer).flatMap { _ =>
+                frame.frameType match {
+                  case RstStream =>
+                    Check.equal(frame.streamId, stream) *>
+                      Check(
+                        codes.contains(readUint32(frame.payload)),
+                        s"unexpected RST_STREAM: $frame",
+                      ) *> (if (closing) loop(remaining - 1, closing, current) else IO.unit)
+                  case GoAway =>
+                    checkGoAway(frame, codes) *>
+                      (if (readUint32(frame.payload.slice(4, 8)) == 0L)
+                         loop(remaining - 1, closing, current)
+                       else connectionError(peer, codes, fromServer, current.map(stream -> _)))
+                  case Data if current.nonEmpty =>
+                    consumeGated(frame, stream, current.get)
+                      .flatMap(p => loop(remaining - 1, closing, Some(p)))
+                  case _ =>
+                    control(peer, frame, fromServer, rejecting = true, closing = closing).flatMap(
+                      written => loop(remaining - 1, closing || !written, current)
+                    )
+                }
               }
-            }
-        }
-    loop(4096, Http2RejectionChecks.State(), closing = false)
-  }
+          }
+      loop(4096, closing = false, upload)
+    }
 
   private def upload(
       driver: ClientDriver[IO],
@@ -1454,9 +1697,6 @@ object Http2StateCases {
     })
 
   private def validExchange(operation: IO[Unit]): IO[Unit] =
-    validObservation(operation)
-
-  private def validObservation[A](operation: IO[A]): IO[A] =
     operation.handleErrorWith { error =>
       RawPeer.raiseAdapterOrTimeout[IO](error) *> (error match {
         case error: ProtocolFailure => IO.raiseError(error)

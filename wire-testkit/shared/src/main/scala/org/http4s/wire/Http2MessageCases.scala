@@ -1657,16 +1657,17 @@ object Http2MessageCases {
         }
       }
     },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+    // Syntax: RFC 9113 8.2.1; opaque preservation: RFC 9110 5.5 SHOULD.
+    // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
     WireCase(
       "h2.server.field-value-interior-tab-and-obs-text",
       Protocol.Http2,
       Role.Server,
       Rfc(
-        9113,
-        "8.2.1",
-        "Interior HTAB and obs-text field-value octets are permitted by the field grammar.",
-        "syntax",
+        9110,
+        "5.5",
+        "Recipients should treat the permitted obs-text field-value octets as opaque data.",
+        "SHOULD",
       ),
     ) { context =>
       Http2PeerSettings.scoped[IO](initiatesRequests = true) { implicit peerSettings =>
@@ -3102,16 +3103,17 @@ object Http2MessageCases {
         }
       }
     },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+    // Syntax: RFC 9113 8.2.1; opaque preservation: RFC 9110 5.5 SHOULD.
+    // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
     WireCase(
       "h2.client.field-value-interior-tab-and-obs-text",
       Protocol.Http2,
       Role.Client,
       Rfc(
-        9113,
-        "8.2.1",
-        "Interior HTAB and obs-text field-value octets are permitted by the field grammar.",
-        "syntax",
+        9110,
+        "5.5",
+        "Recipients should treat the permitted obs-text field-value octets as opaque data.",
+        "SHOULD",
       ),
     ) { context =>
       Http2PeerSettings.scoped[IO](initiatesRequests = false) { implicit peerSettings =>
@@ -4758,7 +4760,7 @@ object Http2MessageCases {
             _ <- Check.equal(response.body, ByteVector.empty)
             received <- server.received
             _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/a%2Fb?x=%20&x=two")
+            _ <- Check.equal(normalizeEscapeCase(received.path), "/a%2Fb?x=%20&x=two")
 
           } yield ()
         }
@@ -6547,24 +6549,29 @@ object Http2MessageCases {
   )(implicit
       peerSettings: Http2PeerSettings[IO],
       dataBudget: Http2Wire.DataBudget,
-  ): IO[Http2Wire.Frame] = {
+  ): IO[Http2Wire.Frame] = peerSettings.positive(peer).flatMap { positive =>
     def loop(remaining: Int): IO[Http2Wire.Frame] =
       observationBound(remaining > 0, "too many control frames before the request") *>
         Http2Wire.readFrame(peer).flatMap { frame =>
-          IO.fromEither(
-            Http2RejectionChecks.validate(frame, fromServer = false)
-          ) *> (frame.frameType match {
+          positive.observe(frame, fromServer = false) *> (frame.frameType match {
             case Http2Wire.Settings =>
               receiveSettings(frame, pushDisabled) *>
                 (if (frame.hasFlag(Http2Wire.Ack)) IO.unit
-                 else Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))) *>
+                 else
+                   positive
+                     .incidental(Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true)))
+                     .void) *>
                 loop(remaining - 1)
             case Http2Wire.Ping =>
               Check(frame.streamId == 0 && frame.payload.size == 8L, "invalid client PING") *>
                 (if (frame.hasFlag(Http2Wire.Ack)) IO.unit
-                 else Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack))) *>
+                 else
+                   positive
+                     .incidental(Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack)))
+                     .void) *>
                 loop(remaining - 1)
-            case Http2Wire.WindowUpdate | Http2Wire.Priority => loop(remaining - 1)
+            case Http2Wire.GoAway | Http2Wire.WindowUpdate | Http2Wire.Priority =>
+              loop(remaining - 1)
             case kind if kind > Http2Wire.Continuation => loop(remaining - 1)
             case _ => IO.pure(frame)
           })
@@ -6584,12 +6591,13 @@ object Http2MessageCases {
       Http2Wire.writeFrame(peer, Http2Wire.settings(Vector(2 -> 0L)))
 
   private def readResponse(peer: RawPeer[IO], streamId: Int)(implicit
-      peerSettings: Http2PeerSettings[IO],
-      dataBudget: Http2Wire.DataBudget,
+      peerSettings: Http2PeerSettings[IO]
   ): IO[CapturedResponse] = {
+    // Every caller has already delivered all local DATA before observing its response.
+    implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget.empty
     def response(decoder: HpackWire.Decoder[IO]): IO[CapturedResponse] =
       for {
-        first <- Http2Wire.readUntil(peer, fromServer = true)(frame =>
+        first <- Http2PositiveObservation.readUntil(peer, fromServer = true)(frame =>
           frame.frameType == Http2Wire.Headers || frame.frameType == Http2Wire.RstStream ||
             frame.frameType == Http2Wire.GoAway
         )
@@ -6612,7 +6620,14 @@ object Http2MessageCases {
             readContent(peer, streamId, first.hasFlag(Http2Wire.EndStream), decoder)
               .map { case (body, trailers) => CapturedResponse(status, fields, body, trailers) }
       } yield result
-    HpackWire.decoder[IO]().flatMap(response).handleErrorWith(unexpectedEof)
+    peerSettings.positive(peer).flatMap { positive =>
+      positive.expecting(Set(streamId)) *>
+        HpackWire
+          .decoder[IO]()
+          .flatMap(response)
+          .flatTap(_ => positive.completed(Set(streamId)))
+          .handleErrorWith(unexpectedEof)
+    }
   }
 
   private def readContent(
@@ -6633,7 +6648,7 @@ object Http2MessageCases {
       observationBound(remaining > 0, "too many content frames") *>
         requestFrame
           .getOrElse(
-            Http2Wire.readUntil(peer, fromServer = true)(frame =>
+            Http2PositiveObservation.readUntil(peer, fromServer = true)(frame =>
               frame.frameType == Http2Wire.Data || frame.frameType == Http2Wire.Headers ||
                 frame.frameType == Http2Wire.RstStream || frame.frameType == Http2Wire.GoAway
             )
@@ -6678,7 +6693,7 @@ object Http2MessageCases {
       streamId: Int,
       connection: Boolean,
       code: Long,
-  )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Unit] =
+  )(implicit peerSettings: Http2PeerSettings[IO]): IO[Unit] =
     readRejection(peer, streamId, connection, code, fromServer = true, allowMessageFrames = true)
 
   /** A timeout is never evidence of rejection. RST_STREAM, or connection closure, is required.
@@ -6694,101 +6709,100 @@ object Http2MessageCases {
       beforeFrame: IO[Unit] = IO.unit,
       incidentalPromisedStreams: Set[Int] = Set.empty,
       originalRequestStream: Option[Int] = None,
-  )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Unit] = {
-    val codes = Set(1L, 2L, code)
-    sealed trait ResetDisposition
-    case object OriginalRequestReset extends ResetDisposition
-    case object RequireConnectionClosure extends ResetDisposition
-    case object FaultStreamRejected extends ResetDisposition
+  )(implicit peerSettings: Http2PeerSettings[IO]): IO[Unit] =
+    peerSettings.positive(peer).flatMap { observation =>
+      val codes = Set(1L, 2L, code)
+      sealed trait ResetDisposition
+      case object OriginalRequestReset extends ResetDisposition
+      case object RequireConnectionClosure extends ResetDisposition
+      case object FaultStreamRejected extends ResetDisposition
 
-    def checkReset(
-        frame: Http2Wire.Frame,
-        connectionRequired: Boolean,
-    ): IO[ResetDisposition] =
-      // checked validates the envelope first. A reset of the known original request
-      // is incidental, and cannot change how rejection of the promised stream is proved.
-      if (originalRequestStream.contains(frame.streamId)) IO.pure(OriginalRequestReset)
-      else
-        Check.equal(frame.streamId, streamId) *> IO.defer {
-          if (
-            incidentalPromisedStreams(frame.streamId) &&
-            (connectionRequired || !codes.contains(Http2Wire.readUint32(frame.payload)))
-          )
-            // Refusal is permitted for any reason (8.4.2); subsequent resets cannot
-            // independently establish rejection after the first reset (5.4).
-            IO.pure(RequireConnectionClosure)
-          else
-            Check(
-              codes.contains(Http2Wire.readUint32(frame.payload)),
-              "incorrect RST_STREAM error code",
-            ).as(if (connectionRequired) RequireConnectionClosure else FaultStreamRejected)
-        }
-    def checkFrameKind(frame: Http2Wire.Frame): IO[Unit] = frame.frameType match {
-      // Progressive origin processing does not replace wire rejection. The same
-      // caller policy applies to live frames and frames captured after GOAWAY.
-      case Http2Wire.Headers | Http2Wire.Continuation | Http2Wire.Data =>
-        Check(
-          allowMessageFrames,
-          "the client sent unexpected message frames after its complete request",
-        )
-      case Http2Wire.Settings | Http2Wire.Ping | Http2Wire.RstStream | Http2Wire.GoAway |
-          Http2Wire.WindowUpdate | Http2Wire.Priority =>
-        IO.unit
-      case kind if kind > Http2Wire.Continuation => IO.unit
-      case _ => Check(false, s"unexpected frame while awaiting rejection: $frame")
-    }
-    def checked(
-        frame: Http2Wire.Frame,
-        state: Http2RejectionChecks.State,
-    ): IO[Http2RejectionChecks.State] =
-      IO.fromEither(Http2RejectionChecks.validate(frame, fromServer, state))
-        .flatTap(_ => checkFrameKind(frame))
-        .flatTap { _ =>
-          if (frame.frameType != Http2Wire.GoAway) IO.unit
-          else {
-            val observed = Http2Wire.readUint32(frame.payload.slice(4, 8))
-            Check(observed == 0L || codes.contains(observed), "incorrect GOAWAY error code")
+      def checkReset(
+          frame: Http2Wire.Frame,
+          connectionRequired: Boolean,
+      ): IO[ResetDisposition] =
+        // checked validates the envelope first. A reset of the known original request
+        // is incidental, and cannot change how rejection of the promised stream is proved.
+        if (originalRequestStream.contains(frame.streamId)) IO.pure(OriginalRequestReset)
+        else
+          Check.equal(frame.streamId, streamId) *> IO.defer {
+            if (
+              incidentalPromisedStreams(frame.streamId) &&
+              (connectionRequired || !codes.contains(Http2Wire.readUint32(frame.payload)))
+            )
+              // Refusal is permitted for any reason (8.4.2); subsequent resets cannot
+              // independently establish rejection after the first reset (5.4).
+              IO.pure(RequireConnectionClosure)
+            else
+              Check(
+                codes.contains(Http2Wire.readUint32(frame.payload)),
+                "incorrect RST_STREAM error code",
+              ).as(if (connectionRequired) RequireConnectionClosure else FaultStreamRejected)
           }
-        }
-    def loop(
-        remaining: Int,
-        connectionRequired: Boolean,
-        state: Http2RejectionChecks.State,
-        closedWrite: Boolean,
-    ): IO[Unit] =
-      observationBound(remaining > 0, "too many frames without required protocol rejection") *>
-        Http2Wire.readFrameOrClose(peer).flatMap {
-          case None => beforeFrame
-          case Some(frame) =>
-            beforeFrame *> checked(frame, state).flatMap { next =>
-              frame.frameType match {
-                case Http2Wire.RstStream =>
-                  checkReset(frame, connectionRequired).flatMap {
-                    case OriginalRequestReset =>
-                      loop(remaining - 1, connectionRequired, next, closedWrite)
-                    case RequireConnectionClosure =>
-                      loop(remaining - 1, connectionRequired = true, next, closedWrite)
-                    case FaultStreamRejected => IO.unit
-                  }
-                case Http2Wire.GoAway if Http2Wire.readUint32(frame.payload.slice(4, 8)) == 0L =>
-                  loop(remaining - 1, connectionRequired, next, closedWrite)
-                case Http2Wire.GoAway =>
-                  // Error GOAWAY still requires actual closure (5.4.1), with every captured
-                  // tail frame checked under the same kind, role, sequence, scope and code policy.
-                  for {
-                    rest <- peer.readToEnd(65536, allowReset = true)
-                    frames <- IO.fromEither(Http2Wire.decodeAll(rest))
-                    _ <- frames.foldLeftM(next) { (previous, observed) =>
-                      beforeFrame *> checked(observed, previous).flatTap { _ =>
-                        if (observed.frameType == Http2Wire.RstStream)
-                          checkReset(observed, connectionRequired = true).void
-                        else IO.unit
-                      }
+      def checkFrameKind(frame: Http2Wire.Frame): IO[Unit] = frame.frameType match {
+        // Progressive origin processing does not replace wire rejection. The same
+        // caller policy applies to live frames and frames captured after GOAWAY.
+        case Http2Wire.Headers | Http2Wire.Continuation | Http2Wire.Data =>
+          Check(
+            allowMessageFrames,
+            "the client sent unexpected message frames after its complete request",
+          )
+        case Http2Wire.Settings | Http2Wire.Ping | Http2Wire.RstStream | Http2Wire.GoAway |
+            Http2Wire.WindowUpdate | Http2Wire.Priority =>
+          IO.unit
+        case kind if kind > Http2Wire.Continuation => IO.unit
+        case _ => Check(false, s"unexpected frame while awaiting rejection: $frame")
+      }
+      def checked(
+          frame: Http2Wire.Frame
+      ): IO[Http2RejectionChecks.State] =
+        observation
+          .observeControl(frame, fromServer)
+          .flatTap(_ => checkFrameKind(frame))
+          .flatTap { _ =>
+            if (frame.frameType != Http2Wire.GoAway) IO.unit
+            else {
+              val observed = Http2Wire.readUint32(frame.payload.slice(4, 8))
+              Check(observed == 0L || codes.contains(observed), "incorrect GOAWAY error code")
+            }
+          }
+      def loop(
+          remaining: Int,
+          connectionRequired: Boolean,
+          closedWrite: Boolean,
+      ): IO[Unit] =
+        observationBound(remaining > 0, "too many frames without required protocol rejection") *>
+          Http2Wire.readFrameOrClose(peer).flatMap {
+            case None => beforeFrame
+            case Some(frame) =>
+              beforeFrame *> checked(frame).flatMap { _ =>
+                frame.frameType match {
+                  case Http2Wire.RstStream =>
+                    checkReset(frame, connectionRequired).flatMap {
+                      case OriginalRequestReset =>
+                        loop(remaining - 1, connectionRequired, closedWrite)
+                      case RequireConnectionClosure =>
+                        loop(remaining - 1, connectionRequired = true, closedWrite)
+                      case FaultStreamRejected => IO.unit
                     }
-                    _ <- beforeFrame
-                  } yield ()
-                case Http2Wire.Settings =>
-                  IO(dataBudget.check(frame)) *>
+                  case Http2Wire.GoAway if Http2Wire.readUint32(frame.payload.slice(4, 8)) == 0L =>
+                    loop(remaining - 1, connectionRequired, closedWrite)
+                  case Http2Wire.GoAway =>
+                    // Error GOAWAY still requires actual closure (5.4.1), with every captured
+                    // tail frame checked under the same kind, role, sequence, scope and code policy.
+                    for {
+                      rest <- peer.readToEnd(65536, allowReset = true)
+                      frames <- IO.fromEither(Http2Wire.decodeAll(rest))
+                      _ <- frames.traverse_ { observed =>
+                        beforeFrame *> checked(observed).flatTap { _ =>
+                          if (observed.frameType == Http2Wire.RstStream)
+                            checkReset(observed, connectionRequired = true).void
+                          else IO.unit
+                        }
+                      }
+                      _ <- beforeFrame
+                    } yield ()
+                  case Http2Wire.Settings =>
                     (if (closedWrite || frame.hasFlag(Http2Wire.Ack)) IO.pure(!closedWrite)
                      else
                        Http2RejectionWrite.reply(
@@ -6798,31 +6812,34 @@ object Http2MessageCases {
                         loop(
                           remaining - 1,
                           connectionRequired || !written,
-                          next,
                           closedWrite || !written,
                         )
                       )
-                case Http2Wire.Ping =>
-                  (if (closedWrite || frame.hasFlag(Http2Wire.Ack)) IO.pure(!closedWrite)
-                   else
-                     Http2RejectionWrite.reply(
-                       Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack))
-                     ))
-                    .flatMap(written =>
-                      loop(
-                        remaining - 1,
-                        connectionRequired || !written,
-                        next,
-                        closedWrite || !written,
+                  case Http2Wire.Ping =>
+                    (if (closedWrite || frame.hasFlag(Http2Wire.Ack)) IO.pure(!closedWrite)
+                     else
+                       Http2RejectionWrite.reply(
+                         Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack))
+                       ))
+                      .flatMap(written =>
+                        loop(
+                          remaining - 1,
+                          connectionRequired || !written,
+                          closedWrite || !written,
+                        )
                       )
-                    )
-                // Frame acceptance is shared with the captured tail; replies remain live-only.
-                case _ => loop(remaining - 1, connectionRequired, next, closedWrite)
+                  // Frame acceptance is shared with the captured tail; replies remain live-only.
+                  case _ => loop(remaining - 1, connectionRequired, closedWrite)
+                }
               }
-            }
-        }
-    loop(1024, connection, Http2RejectionChecks.State(), closedWrite = false)
-  }
+          }
+      loop(1024, connection, closedWrite = false)
+    }
+
+  // RFC 9110 4.2.3 / RFC 3986 6.2.2.1: normalize only escape hex spelling.
+  // Encoded reserved delimiters, path case and query content/order remain significant.
+  private def normalizeEscapeCase(value: String): String =
+    "%[0-9a-fA-F]{2}".r.replaceAllIn(value, matched => matched.matched.map(_.toUpper))
 
   private def checkGeneratedFields(
       fields: Vector[(String, String)],

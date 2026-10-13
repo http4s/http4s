@@ -1,8 +1,13 @@
 # HTTP wire conformance TCK
 
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Run `sbt --client tckCheck` and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+
 The catalog tests clients and servers through real loopback sockets. Each `WireCase`
 is an individual MUnit test, shared unchanged by Ember and Netty. Ordinary Ember
 runs apply `IgnoreRegistry`; comparison runs execute every case.
+
+The phase 4 validation and audit record (`audit/phase4-accepted-status.md`, historical artifact) reports
+the completed Scala/platform matrix, implementation deviations and explicit coverage gaps.
 
 ## Running
 

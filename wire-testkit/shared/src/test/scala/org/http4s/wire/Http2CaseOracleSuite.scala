@@ -35,6 +35,676 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
 
   private type HpackFields = Vector[(String, String)]
 
+  private val bufferedCompletionCases = Vector(
+    "h2.server.default-frame-size-splits-data",
+    "h2.server.settings-replace-frame-limit",
+    "h2.server.peer-concurrency-zero-allows-responses",
+  )
+
+  for {
+    id <- bufferedCompletionCases
+    closure <- Vector(
+      "writable",
+      "post-head",
+      "first-data",
+      "middle-data",
+      "final-data",
+      "trailers",
+      "partial-credit",
+    )
+    ending <- Vector("data", "trailers", "continued-trailers")
+    padded <- Vector(false, true)
+  } test(s"H2 buffered completion: legal/$id/$closure/$ending/padded=$padded") {
+    checkBufferedCompletion(id, closure, ending, padded)
+  }
+
+  for {
+    id <- bufferedCompletionCases
+    ending <- Vector(
+      "wrong-body",
+      "missing-end",
+      "truncated-frame",
+      "held-incomplete",
+      "bad-hpack",
+      "bad-trailers",
+      "bad-settings",
+      "bad-ping",
+      "interrupted-trailers",
+    ) ++
+      (if (id.endsWith("peer-concurrency-zero-allows-responses")) Vector.empty
+       else Vector("oversize"))
+  } test(s"H2 buffered completion: invalid/$id/$ending") {
+    checkBufferedCompletion(id, "post-head", ending, padded = true)
+  }
+
+  for {
+    id <- bufferedCompletionCases
+    fault <- Vector(
+      "unrelated-io",
+      "wrapped-close",
+      "timeout",
+      "adapter",
+      "suppressed-timeout",
+      "suppressed-adapter",
+      "wrapped-suppressed-adapter",
+      "suppressed-adapter-timeout",
+    )
+  } test(s"H2 buffered completion: provenance/$id/$fault") {
+    checkBufferedCompletion(id, "post-head", "trailers", padded = false, fault)
+  }
+
+  for (closure <- Vector("writable", "post-head", "partial-credit"))
+    test(s"H2 buffered completion: State attempted credit/$closure") {
+      checkBufferedCompletion(
+        "h2.server.peer-concurrency-zero-allows-responses",
+        closure,
+        "trailers",
+        padded = true,
+        exhaustInitialCredit = true,
+      )
+    }
+
+  private def checkBufferedCompletion(
+      id: String,
+      closure: String,
+      ending: String,
+      padded: Boolean,
+      fault: String = "closed",
+      exhaustInitialCredit: Boolean = false,
+  ): IO[Unit] = {
+    import Http2Wire._
+    for {
+      trace <- Transcript.create[IO]()
+      failedWrites <- Ref.of[IO, Int](0)
+      deliveredCredit <- Ref.of[IO, ByteVector](ByteVector.empty)
+      readBlocked <- Deferred[IO, Unit]
+      released <- Deferred[IO, Unit]
+      completed <- Deferred[IO, Either[Throwable, Unit]]
+      stateCase = id.endsWith("peer-concurrency-zero-allows-responses")
+      expected =
+        if (stateCase) Http1Wire.ascii("abcdefghijklmnop") else ByteVector.fill(40000)(42.toByte)
+      body = if (ending == "wrong-body") expected.dropRight(1) ++ ByteVector(43) else expected
+      head = encode(headers(1, Vector(":status" -> "200"), false))
+      setup = encode(settings()) ++ encode(settings(ack = true)) ++
+        (if (id.endsWith("settings-replace-frame-limit"))
+           encode(settings(ack = true)) ++ encode(settings(ack = true))
+         else ByteVector.empty)
+      chunks = body.grouped(if (stateCase) 6 else 16000).toVector
+      frames = (if (exhaustInitialCredit)
+                  Vector.fill(256)(
+                    Frame(Data, Padded, 1, ByteVector(255.toByte) ++ ByteVector.fill(255)(0))
+                  )
+                else Vector.empty) ++ chunks.zipWithIndex.map { case (bytes, index) =>
+        val flags = if (ending == "data" && index == chunks.size - 1) EndStream else 0
+        if (padded) Frame(Data, flags | Padded, 1, ByteVector(7) ++ bytes ++ ByteVector.fill(7)(0))
+        else data(1, bytes, flags == EndStream)
+      }
+      // State grants precede DATA; subsequent closure positions use an incidental PING.
+      // Control positions exercise the actual payload-credit write after that DATA.
+      closeIndex = closure match {
+        case "middle-data" => 1
+        case "final-data" | "trailers" => 2
+        case _ => 0
+      }
+      ping = encode(Frame(Ping, 0, 0, ByteVector.fill(8)(1)))
+      prefixData = frames.take(closeIndex).foldLeft(ByteVector.empty)((b, f) => b ++ encode(f))
+      closingPing =
+        if (stateCase && closure != "post-head" && closure != "partial-credit") ping
+        else ByteVector.empty
+      tailData = frames.drop(closeIndex).foldLeft(ByteVector.empty)((b, f) => b ++ encode(f))
+      control = ending match {
+        case "bad-settings" => encode(settings(Vector(2 -> 1L)))
+        case "bad-ping" => encode(Frame(Ping, 0, 0, ByteVector(1)))
+        case "oversize" => encode(Frame(0xff, 0, 0, ByteVector.fill(16385)(0)))
+        case _ => encode(settings(ack = true)) ++ encode(settings()) ++ ping
+      }
+      trailers = ending match {
+        case "data" | "missing-end" | "held-incomplete" => ByteVector.empty
+        case "truncated-frame" => encode(headers(1, Vector("x-end" -> "yes"))).dropRight(1)
+        case "bad-hpack" =>
+          encode(Frame(Headers, EndHeaders | EndStream, 1, ByteVector(0x80.toByte)))
+        case "bad-trailers" => encode(headers(1, Vector(":status" -> "200")))
+        case "continued-trailers" | "interrupted-trailers" =>
+          val block = headers(1, Vector("x-end" -> "yes")).payload
+          encode(Frame(Headers, EndStream, 1, block.take(1))) ++
+            (if (ending == "interrupted-trailers") ping else ByteVector.empty) ++
+            encode(Frame(Continuation, EndHeaders, 1, block.drop(1)))
+        case _ => encode(headers(1, Vector("x-end" -> "yes")))
+      }
+      // Place validated housekeeping before END_STREAM, including after the failed grant.
+      response =
+        if (ending == "data")
+          head ++ prefixData ++ closingPing ++ tailData
+        else head ++ prefixData ++ closingPing ++ tailData ++ control ++ trailers
+      shutdown =
+        if (Set("missing-end", "held-incomplete", "truncated-frame").contains(ending))
+          ByteVector.empty
+        else encode(Frame(GoAway, 0, 0, uint32(1) ++ uint32(0)))
+      input <- Ref.of[IO, ByteVector](setup ++ response ++ shutdown)
+      readCount <- Ref.of[IO, Long](0L)
+      closeAt = setup.size + (if (closure == "post-head" || closure == "partial-credit") 1L
+                              else head.size + prefixData.size + 1L)
+      closed <- Http2WriteFailureFixture.closedWrite
+      timeout = new java.util.concurrent.TimeoutException("completion write timeout")
+      adapter = new AdapterFailure("completion fixture", closed)
+      error <- IO {
+        fault match {
+          case "unrelated-io" => new java.io.IOException("unrelated device failure")
+          case "wrapped-close" => new java.io.IOException("unknown wrapper", closed)
+          case "timeout" => timeout
+          case "adapter" => adapter
+          case "suppressed-timeout" => closed.addSuppressed(timeout); closed
+          case "suppressed-adapter" => closed.addSuppressed(adapter); closed
+          case "suppressed-adapter-timeout" =>
+            closed.addSuppressed(timeout); closed.addSuppressed(adapter); closed
+          case "wrapped-suppressed-adapter" =>
+            val wrapper = new RuntimeException("wrapper", closed)
+            wrapper.addSuppressed(adapter)
+            wrapper
+          case _ => closed
+        }
+      }
+      socket = new Socket[IO] {
+        private val addressValue = SocketAddress(ip"127.0.0.1", port"1")
+        def read(n: Int): IO[Option[Chunk[Byte]]] = input
+          .modify { bytes =>
+            val (next, rest) = bytes.splitAt(n.toLong)
+            (rest, next)
+          }
+          .flatMap { bytes =>
+            readCount.update(_ + bytes.size) *>
+              (if (bytes.nonEmpty) IO.pure(Some(Chunk.byteVector(bytes)))
+               else if (ending == "held-incomplete")
+                 readBlocked.complete(()).void *> IO.never[Option[Chunk[Byte]]]
+               else IO.pure(None))
+          }
+        def reads: Stream[IO, Byte] =
+          Stream.repeatEval(read(8192)).unNoneTerminate.flatMap(Stream.chunk)
+        def readN(n: Int): IO[Chunk[Byte]] = reads.take(n.toLong).compile.toVector.map(Chunk.from)
+        def write(bytes: Chunk[Byte]): IO[Unit] = readCount.get.flatMap { count =>
+          if (closure == "writable" || count < closeAt) IO.unit
+          else if (closure == "partial-credit") deliveredCredit.get.flatMap { delivered =>
+            // Control writes both grants together; State writes them separately.
+            // Model one complete grant reaching the peer before the transport fails.
+            (if (delivered.isEmpty) deliveredCredit.set(ByteVector(bytes.toArray).take(13))
+             else IO.unit) *>
+              (if (stateCase && delivered.isEmpty) IO.unit
+               else failedWrites.update(_ + 1) *> IO.raiseError[Unit](error))
+          }
+          else failedWrites.update(_ + 1) *> IO.raiseError[Unit](error)
+        }
+        def writes: Pipe[IO, Byte, Nothing] = _.chunks.evalMap(write).drain
+        def endOfInput: IO[Unit] = IO.unit
+        def endOfOutput: IO[Unit] = IO.unit
+        def isOpen: IO[Boolean] = IO.pure(true)
+        def localAddress: IO[SocketAddress[IpAddress]] = IO.pure(addressValue)
+        def remoteAddress: IO[SocketAddress[IpAddress]] = IO.pure(addressValue)
+        def address: GenSocketAddress = addressValue
+        def peerAddress: GenSocketAddress = addressValue
+        def getOption[A](key: SocketOption.Key[A]): IO[Option[A]] = IO.pure(None)
+        def setOption[A](key: SocketOption.Key[A], value: A): IO[Unit] = IO.unit
+        def supportedOptions: IO[Set[SocketOption.Key[_]]] = IO.pure(Set.empty)
+      }
+      peer <- RawPeer.create(socket, trace)
+      target = new WireTarget[IO] {
+        val name = "buffered-completion"
+        val version = "1"
+        def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
+          Resource.pure(
+            ServerHandle[IO](
+              SocketAddress(ip"127.0.0.1", port"1"),
+              IO.never[RequestData],
+              IO.pure(None),
+            )
+          )
+        def client(
+            protocol: Protocol,
+            address: SocketAddress[IpAddress],
+        ): Resource[IO, ClientDriver[IO]] =
+          Resource.eval(IO.raiseError(new UnsupportedOperationException("server only")))
+      }
+      run = selected(id).run(
+        CaseContext(
+          target,
+          trace,
+          (_, _) => Resource.make(IO.pure(peer))(_ => released.complete(()).void),
+        )
+      )
+      _ <-
+        if (ending == "held-incomplete") {
+          run.attempt.flatMap(completed.complete).start.flatMap { fiber =>
+            IO.race(readBlocked.get, completed.get)
+              .flatMap {
+                case Left(_) => completed.tryGet.assertEquals(None)
+                case Right(result) =>
+                  IO(fail(s"incomplete response completed before its held read: $result"))
+              }
+              .guarantee(fiber.cancel)
+          }
+        } else
+          run.attempt.flatMap { result =>
+            IO {
+              if (fault != "closed") {
+                val expectedFailure =
+                  if (fault.contains("adapter")) adapter
+                  else if (fault.contains("timeout")) timeout
+                  else error
+                if (fault == "suppressed-timeout")
+                  assert(
+                    result.swap.exists(e =>
+                      e.isInstanceOf[java.util.concurrent.TimeoutException] && (e.getCause eq error)
+                    ),
+                    result.toString,
+                  )
+                else assert(result.swap.exists(_ eq expectedFailure), result.toString)
+              } else if (exhaustInitialCredit && closure == "post-head")
+                assert(result.swap.exists(_.isInstanceOf[ProtocolFailure]), result.toString)
+              else if (Set("data", "trailers", "continued-trailers").contains(ending))
+                assertEquals(result, Right(()))
+              else
+                assert(
+                  result.swap.exists(e =>
+                    e.isInstanceOf[ProtocolFailure] || e.isInstanceOf[WireDecodingFailure]
+                  ),
+                  result.toString,
+                )
+            }
+          }
+      _ <- released.tryGet.assertEquals(Some(()))
+      writes <- failedWrites.get
+      _ <- IO {
+        val finalDataGuard =
+          !stateCase && ending == "data" && (closure == "final-data" || closure == "trailers")
+        assertEquals(writes, if (closure == "writable" || finalDataGuard) 0 else 1)
+      }
+      _ <-
+        if (closure == "partial-credit") deliveredCredit.get.flatMap { bytes =>
+          IO.fromEither(decodeAll(bytes)).flatMap { grants =>
+            IO { assertEquals(grants.size, 1); assertEquals(grants.head.frameType, WindowUpdate) }
+          }
+        }
+        else IO.unit
+    } yield ()
+  }
+
+  for (suffix <- Vector("default-frame-size-splits-data", "settings-replace-frame-limit"))
+    test(s"H2 completion repair: complete response permits closed transport/$suffix") {
+      import Http2Wire._
+      for {
+        trace <- Transcript.create[IO]()
+        eofReads <- Ref.of[IO, Int](0)
+        failedWrites <- Ref.of[IO, Int](0)
+        finalRead <- Deferred[IO, Unit]
+        frames = ByteVector.fill(40000)(42.toByte).grouped(16000).toVector.zipWithIndex.map {
+          case (bytes, index) => data(1, bytes, index == 2)
+        }
+        // Independent transport input: the final complete DATA is already readable,
+        // but the remote socket has closed and any further send would fail.
+        prefix = encode(settings()) ++ encode(settings(ack = true)) ++
+          (if (suffix == "settings-replace-frame-limit")
+             encode(settings(ack = true)) ++
+               encode(settings(ack = true))
+           else ByteVector.empty) ++
+          encode(headers(1, Vector(":status" -> "200"), false)) ++
+          frames.init.foldLeft(ByteVector.empty)((bytes, frame) => bytes ++ encode(frame))
+        writeError <- Http2WriteFailureFixture.closedWrite
+        peer <- observerSocket(
+          prefix,
+          encode(frames.last),
+          Some(writeError),
+          false,
+          trace,
+          eofReads,
+          failedWrites,
+          finalRead,
+        )
+        target = new WireTarget[IO] {
+          val name = "completed-response-closed-transport"
+          val version = "1"
+          def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
+            Resource.pure(
+              ServerHandle[IO](
+                SocketAddress(ip"127.0.0.1", port"1"),
+                IO.never[RequestData],
+                IO.pure(None),
+              )
+            )
+          def client(
+              protocol: Protocol,
+              address: SocketAddress[IpAddress],
+          ): Resource[IO, ClientDriver[IO]] =
+            Resource.eval(IO.raiseError(new UnsupportedOperationException("server only")))
+        }
+        _ <- selected("h2.server." + suffix).run(
+          CaseContext(target, trace, (_, _) => Resource.pure(peer))
+        )
+        _ <- finalRead.tryGet.assertEquals(Some(()))
+        _ <- failedWrites.get.assertEquals(0)
+      } yield ()
+    }
+
+  for (
+    suffix <- Vector(
+      "priority-does-not-open-stream",
+      "priority-on-closed-stream",
+      "default-frame-size-splits-data",
+      "settings-replace-frame-limit",
+    )
+  )
+    test(s"H2 completion repair: ordinary Control disables push/$suffix") {
+      import Http2Wire._
+      for {
+        pushDisabled <- Deferred[IO, Boolean]
+        fixture <- ScriptedTarget.create[IO] { (peer, publish) =>
+          for {
+            _ <- peer.readExact(24)
+            initial <- readFrame(peer)
+            _ <- pushDisabled.complete(
+              initial.payload
+                .grouped(6)
+                .exists(b => b.take(2) == ByteVector(0, 2) && readUint32(b.drop(2)) == 0L)
+            )
+            _ <- peer.write(encode(settings()) ++ encode(settings(ack = true)))
+            request <- readUntil(peer, fromServer = false)(_.frameType == Headers)
+            _ <- publish(RequestData(path = "/control"))
+            _ <- writeFrame(peer, headers(request.streamId, Vector(":status" -> "200"), false))
+            body =
+              if (suffix.contains("frame")) ByteVector.fill(40000)(42.toByte)
+              else Http1Wire.ascii("accepted")
+            _ <- body.grouped(16000).toVector.zipWithIndex.traverse_ { case (bytes, i) =>
+              writeFrame(peer, data(request.streamId, bytes, (i + 1) * 16000 >= body.size))
+            }
+            _ <-
+              if (suffix == "priority-on-closed-stream")
+                readUntil(peer, fromServer = false)(_.frameType == Ping)
+                  .flatMap(p => writeFrame(peer, p.copy(flags = Ack)))
+              else IO.unit
+          } yield ()
+        }
+        trace <- Transcript.create[IO]()
+        _ <- selected("h2.server." + suffix).run(CaseContext(fixture._1, trace))
+        disabled <- pushDisabled.get
+        _ <- IO(assert(disabled, "ordinary response fixture must disable push before its request"))
+      } yield ()
+    }
+
+  for {
+    role <- Vector("server", "client")
+    suffix <-
+      if (role == "server") Vector("default-frame-size-splits-data", "settings-replace-frame-limit")
+      else Vector("default-frame-size-splits-data")
+    mutation <- Vector("none", "wrong-body", "oversize")
+  } test(s"H2 completion repair: padded frame transfer/$role/$suffix/$mutation") {
+    import Http2Wire._
+    import scala.concurrent.duration._
+    def script(peer: RawPeer[IO]): IO[Unit] = {
+      def send(body: ByteVector, streamCredit: Long, connectionCredit: Long): IO[Unit] =
+        if (body.isEmpty) IO.unit
+        else {
+          val bytes = body.take(if (mutation == "oversize") 16384 else 128)
+          val payload = ByteVector(255.toByte) ++ bytes ++ ByteVector.fill(255)(0.toByte)
+          if (payload.size > math.min(streamCredit, connectionCredit))
+            readUntil(peer, fromServer = role == "client")(_.frameType == WindowUpdate).flatMap {
+              f =>
+                val increment = readUint32(f.payload)
+                send(
+                  body,
+                  streamCredit + (if (f.streamId == 1) increment else 0L),
+                  connectionCredit + (if (f.streamId == 0) increment else 0L),
+                )
+            }
+          else
+            writeFrame(
+              peer,
+              Frame(Data, Padded | (if (bytes.size == body.size) EndStream else 0), 1, payload),
+            ) *>
+              IO.defer(
+                send(
+                  body.drop(bytes.size),
+                  streamCredit - payload.size,
+                  connectionCredit - payload.size,
+                )
+              )
+        }
+      val setup =
+        if (role == "server")
+          serverHandshake(peer) *> readUntil(peer, fromServer = false)(
+            _.frameType == Headers
+          ).void *>
+            writeFrame(peer, headers(1, Vector(":status" -> "200"), false))
+        else
+          clientHandshake(peer) *> writeFrame(
+            peer,
+            headers(
+              1,
+              Vector(
+                ":method" -> "POST",
+                ":scheme" -> "http",
+                ":authority" -> "wire.test",
+                ":path" -> "/",
+                "content-length" -> "40000",
+              ),
+              false,
+            ),
+          )
+      setup *> send(
+        ByteVector.fill(40000)((if (mutation == "wrong-body") 43 else 42).toByte),
+        65535L,
+        65535L,
+      ) *>
+        (if (role == "client")
+           readUntil(peer, fromServer = true)(_.frameType == Headers).void *>
+             readUntil(peer, fromServer = true)(_.frameType == Data)
+               .flatMap(frame => IO(assertEquals(unpad(frame), Http1Wire.ascii("control"))))
+         else IO.unit)
+    }
+    val run =
+      if (role == "server") runServer(s"h2.$role.$suffix")(script)
+      else
+        runClient(s"h2.$role.$suffix")(peer =>
+          script(peer).as(response(Http1Wire.ascii("control")))
+        )
+    // Diagnostic bound only: a timeout is a failed regression, never rejection evidence.
+    if (mutation == "none") run.timeout(5.seconds)
+    else run.intercept[ProtocolFailure].void.timeout(5.seconds)
+  }
+
+  for {
+    padded <- Vector(false, true)
+    ending <- Vector("eof", "flow-error", "generic-error")
+  } test(s"H2 completion repair: empty upload really overflows/$padded/$ending") {
+    import Http2Wire._
+    import scala.concurrent.duration._
+    for {
+      exceeded <- Ref.of[IO, Boolean](false)
+      _ <- runClient("h2.client.connection-window-overflow") { peer =>
+        for {
+          _ <- clientHandshake(peer)
+          _ <- writeFrame(
+            peer,
+            headers(
+              1,
+              Vector(
+                ":method" -> "POST",
+                ":scheme" -> "http",
+                ":authority" -> "wire.test",
+                ":path" -> "/",
+                "content-length" -> "0",
+              ),
+              !padded,
+            ),
+          )
+          _ <-
+            if (padded) (Vector.fill(255)(256) :+ 255).traverse_ { n =>
+              writeFrame(
+                peer,
+                Frame(
+                  Data,
+                  Padded,
+                  1,
+                  ByteVector((n - 1).toByte) ++ ByteVector.fill(n.toLong - 1L)(0.toByte),
+                ),
+              )
+            } *> writeFrame(peer, data(1, ByteVector.empty))
+            else IO.unit
+          first <- readUntil(peer, fromServer = true)(_.frameType == WindowUpdate)
+          before = if (padded) 0L else 65535L
+          after <-
+            if (before + readUint32(first.payload) > Int.MaxValue)
+              IO.pure(before + readUint32(first.payload))
+            else
+              readUntil(peer, fromServer = true)(_.frameType == WindowUpdate)
+                .map(f => before + readUint32(first.payload) + readUint32(f.payload))
+          _ <- exceeded.set(after > Int.MaxValue)
+          _ <-
+            if (ending == "eof") IO.unit
+            else
+              writeFrame(
+                peer,
+                Frame(GoAway, 0, 0, uint32(0) ++ uint32(if (ending == "flow-error") 3 else 1)),
+              )
+          _ <- peer.endOfOutput
+          r <- IO.raiseError[ResponseData[IO]](
+            new RuntimeException("native rejected overflowing connection")
+          )
+        } yield r
+      }.timeout(5.seconds)
+      observed <- exceeded.get
+      _ <- IO(assert(observed, "fixture must exceed, not merely reach, maximum connection credit"))
+    } yield ()
+  }
+
+  for (
+    path <- Vector(
+      "/a%2Fb?x=%20&x=two",
+      "/a%2fb?x=%20&x=two",
+      "/a/b?x=%20&x=two",
+      "/A%2Fb?x=%20&x=two",
+      "/a%2Fb?x=two&x=%20",
+      "/a%2Fb?x=%20&x=changed",
+    )
+  )
+    test(s"H2 completion repair: escaped path observation/$path") {
+      import Http2Wire._
+      for {
+        fixture <- ScriptedTarget.create[IO] { (peer, publish) =>
+          for {
+            _ <- serverHandshake(peer)
+            head <- readUntil(peer, fromServer = false)(_.frameType == Headers)
+            decoder <- HpackWire.decoder[IO]()
+            fields <- readHeaders(peer, head, decoder)
+            _ <- IO(
+              assertEquals(
+                fields.collectFirst { case (":path", v) => v },
+                Some("/a%2Fb?x=%20&x=two"),
+              )
+            )
+            _ <- publish(RequestData(path = path))
+            _ <- writeFrame(peer, headers(head.streamId, Vector(":status" -> "200")))
+          } yield ()
+        }
+        trace <- Transcript.create[IO]()
+        run = selected("h2.server.request-path-and-query").run(CaseContext(fixture._1, trace))
+        _ <-
+          if (path == "/a%2Fb?x=%20&x=two" || path == "/a%2fb?x=%20&x=two") run
+          else run.intercept[ProtocolFailure].void
+      } yield ()
+    }
+
+  for {
+    role <- Vector("client", "server")
+    replace <- Vector(false, true)
+  } test(s"H2 completion repair: opaque recommendation/$role/$replace") {
+    for {
+      observed <- Ref.of[IO, Vector[(Int, HpackFields)]](Vector.empty)
+      trace <- Transcript.create[IO]()
+      c = selected(s"h2.$role.field-value-interior-tab-and-obs-text")
+      run = c.run(
+        CaseContext(
+          hpackPresentationTarget(
+            fields =>
+              fields.map { case (k, v) =>
+                k -> (if (replace) v.replace('\u0080', '\ufffd').replace('\u00ff', '\ufffd') else v)
+              },
+            observed,
+          ),
+          trace,
+        )
+      )
+      _ <-
+        if (replace)
+          run
+            .intercept[ProtocolFailure]
+            .flatMap(e =>
+              IO(assert(e.getMessage.contains("valid field octets were not preserved")))
+            )
+        else run
+      _ <- IO(
+        assert(
+          c.references.exists(r => r.number == 9110 && r.section == "5.5" && r.strength == "SHOULD")
+        )
+      )
+    } yield ()
+  }
+
+  for {
+    timing <- Vector("before", "after", "body", "last-ping")
+    queued <- Vector("empty", "terminal", "trailers", "reset", "positive", "padding")
+  } test(s"H2 completion repair: queued reset output/$timing/$queued") {
+    import Http2Wire._
+    val run = runServer("h2.server.reset-closes-blocked-stream") { peer =>
+      val entry = HpackWire.encodeLiteral(Vector("x-retired" -> "retained"))
+      val pending = queued match {
+        case "empty" => Vector(data(1, ByteVector.empty, false))
+        case "terminal" => Vector(data(1, ByteVector.empty))
+        case "trailers" =>
+          Vector(
+            Frame(Headers, EndStream, 1, ByteVector(0x40)),
+            Frame(Continuation, EndHeaders, 1, entry.drop(1)),
+          )
+        case "reset" => Vector(Frame(RstStream, 0, 1, uint32(8)))
+        case "positive" => Vector(data(1, ByteVector(1)))
+        case "padding" => Vector(Frame(Data, Padded, 1, ByteVector(0)))
+      }
+      def emit(at: String): IO[Unit] =
+        if (timing == at) pending.traverse_(writeFrame(peer, _)) else IO.unit
+      for {
+        _ <- serverHandshake(peer)
+        _ <- readUntil(peer, fromServer = false)(_.frameType == Headers)
+        _ <- writeFrame(
+          peer,
+          Frame(Headers, EndHeaders, 1, HpackWire.encodeLiteral(Vector(":status" -> "200"))),
+        )
+        _ <- readUntil(peer, fromServer = false)(_.frameType == RstStream)
+        ping <- readUntil(peer, fromServer = false)(_.frameType == Ping)
+        _ <- emit("before")
+        _ <- writeFrame(peer, ping.copy(flags = Ack))
+        _ <- emit("after")
+        _ <- readUntil(peer, fromServer = false)(f => f.frameType == Headers && f.streamId == 3)
+        _ <- writeFrame(
+          peer,
+          if (queued == "trailers" && (timing == "before" || timing == "after"))
+            Frame(Headers, EndHeaders, 3, ByteVector(0x88, 0xbe))
+          else headers(3, Vector(":status" -> "200"), false),
+        )
+        _ <- readUntil(peer, fromServer = false)(f =>
+          f.frameType == WindowUpdate && f.streamId == 3
+        )
+        _ <- emit("body")
+        _ <- writeFrame(peer, data(3, Http1Wire.ascii("abcdefghijklmnop"), false))
+        _ <- writeFrame(peer, headers(3, Vector.empty))
+        last <- readUntil(peer, fromServer = false)(_.frameType == Ping)
+        _ <- emit("last-ping")
+        _ <- writeFrame(peer, last.copy(flags = Ack))
+      } yield ()
+    }
+    if (queued == "positive" || queued == "padding")
+      run
+        .intercept[ProtocolFailure]
+        .flatMap(e => IO(assert(e.getMessage.contains("exceeds remaining credit"))))
+    else run
+  }
+
   private val hpackPresentationCases = Vector(
     "indexed-same-block",
     "dynamic-order",
@@ -2772,7 +3442,12 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     "peer-concurrency-zero-allows-responses",
   )
 
-  private def completionPaddingSender(role: String, suffix: String, mode: String): IO[Unit] = {
+  private def completionPaddingSender(
+      role: String,
+      suffix: String,
+      mode: String,
+      connectionGrant: Long => IO[Unit] = _ => IO.unit,
+  ): IO[Unit] = {
     import Http2Wire._
     final case class Sender(
         initial: Long = 65535L,
@@ -2786,6 +3461,10 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         latePadding: Boolean = false,
     )
     val negative = suffix == "negative-stream-window"
+    val early =
+      if (mode == "early-reset") 65535
+      else if (mode.startsWith("early-")) mode.stripPrefix("early-").toInt
+      else -1
     val content =
       if (negative || suffix == "connection-credit-independent")
         ByteVector.fill(65536)(0x61.toByte)
@@ -2872,8 +3551,9 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
               else if (frame.streamId == s.stream && !s.ended)
                 s.copy(streamCredit = s.streamCredit + increment)
               else s
+            val observed = if (frame.streamId == 0) connectionGrant(increment) else IO.unit
             // A maximum-stream test must not receive a second overflowing grant.
-            IO(
+            observed *> IO(
               assert(
                 increment > 0L && next.streamCredit <= Int.MaxValue &&
                   next.connectionCredit <= Int.MaxValue
@@ -2905,7 +3585,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         for {
           _ <- peer.write(clientPreface ++ encode(settings()))
           initial <- readFrame(peer)
-          _ <- writeFrame(peer, settings(ack = true))
+          _ <- if (early < 0) writeFrame(peer, settings(ack = true)) else IO.unit
           _ <- writeFrame(
             peer,
             headers(
@@ -2920,11 +3600,214 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
               endStream = false,
             ),
           )
-          _ <- produce(open(settingsState(Sender(), initial), 1)).flatMap(loop)
+          opened = open(Sender(), 1)
+          _ <-
+            if (early == 0) writeFrame(peer, data(1, ByteVector.empty, endStream = false))
+            else IO.unit
+          spent <-
+            if (early > 0) produce(opened.copy(padding = early.toLong, body = ByteVector.empty))
+            else IO.pure(opened)
+          _ <- if (early >= 0) writeFrame(peer, settings(ack = true)) else IO.unit
+          start =
+            if (early >= 0)
+              settingsState(
+                spent.copy(body = content, padding = if (early > 0) 0L else opened.padding),
+                initial,
+              )
+            else open(settingsState(Sender(), initial), 1)
+          _ <- produce(
+            if (mode == "early-reset")
+              start.copy(streamCredit = start.initial, connectionCredit = 65535L, padding = 65535L)
+            else start
+          ).flatMap(loop)
         } yield ()
     }
     if (role == "server") runServer(s"h2.$role.$suffix")(script)
     else runClient(s"h2.$role.$suffix")(peer => script(peer).as(response(ByteVector.empty)))
+  }
+
+  for {
+    suffix <- Vector(
+      "stream-credit-boundary",
+      "connection-credit-independent",
+      "negative-stream-window",
+      "maximum-stream-window-update",
+    )
+    prefix <- Vector(0, 5, 65535)
+  } test(s"Streams setup carries early DATA: $suffix/$prefix") {
+    completionPaddingSender("client", suffix, s"early-$prefix")
+  }
+
+  for (
+    suffix <- Vector(
+      "stream-credit-boundary",
+      "connection-credit-independent",
+      "negative-stream-window",
+    )
+  )
+    test(s"Streams setup rejects lost padding debit: $suffix") {
+      completionPaddingSender("client", suffix, "early-reset")
+        .intercept[ProtocolFailure]
+        .flatMap(error => IO(assert(error.getMessage.contains("exceeds remaining credit"))))
+    }
+
+  // Internal bookkeeping regression: this fixture chooses its grant; no sender emission
+  // or universal receiver grant amount is required by the protocol.
+  test("Streams maximum update retains setup connection debit in its completion grant") {
+    for {
+      grants <- Ref.of[IO, Vector[Long]](Vector.empty)
+      _ <- completionPaddingSender(
+        "client",
+        "maximum-stream-window-update",
+        "early-0",
+        n => grants.update(_ :+ n),
+      )
+      _ <- completionPaddingSender(
+        "client",
+        "maximum-stream-window-update",
+        "early-65535",
+        n => grants.update(_ :+ n),
+      )
+      observed <- grants.get
+      _ <- IO {
+        assertEquals(observed.size, 2)
+        assertEquals(observed(1) - observed(0), 65535L)
+      }
+    } yield ()
+  }
+
+  for {
+    suffix <- Vector(
+      "zero-stream-window-update",
+      "stream-window-overflow",
+      "settings-stream-window-overflow",
+    )
+    prefix <- Vector(0, 5, 65535)
+    mode <- Vector("reset", "close", "wrong-code", "body", "end", "over-credit")
+    if suffix != "settings-stream-window-overflow" || mode != "reset"
+  } test(s"Streams gated error DATA: $suffix/$prefix/$mode") {
+    import Http2Wire._
+    val run = runClient(s"h2.client.$suffix") { peer =>
+      def padding(size: Int): IO[Unit] =
+        if (size == 0) writeFrame(peer, data(1, ByteVector.empty, endStream = false))
+        else
+          (0 until size by 256).toVector.traverse_ { offset =>
+            val n = math.min(256, size - offset)
+            writeFrame(
+              peer,
+              Frame(
+                Data,
+                Padded,
+                1,
+                ByteVector((n - 1).toByte) ++ ByteVector.fill(n.toLong - 1L)(0.toByte),
+              ),
+            )
+          }
+      for {
+        _ <- peer.write(clientPreface ++ encode(settings()))
+        _ <- readFrame(peer)
+        _ <- writeFrame(
+          peer,
+          headers(
+            1,
+            Vector(
+              ":method" -> "POST",
+              ":scheme" -> "http",
+              ":authority" -> "wire.test",
+              ":path" -> "/",
+              "content-length" -> "16",
+            ),
+            endStream = false,
+          ),
+        )
+        _ <- padding(prefix)
+        _ <- writeFrame(peer, settings(ack = true))
+        first <- readUntil(peer, fromServer = true)(_.frameType == WindowUpdate)
+        _ <- IO(
+          assertEquals(
+            readUint32(first.payload),
+            if (suffix == "zero-stream-window-update") 0L else Int.MaxValue.toLong,
+          )
+        )
+        // Spend the full independently available connection remainder between updates.
+        _ <-
+          if (suffix == "zero-stream-window-update") padding(0)
+          else if (mode == "body") padding(0)
+          else padding(65535 - prefix)
+        second <- if (suffix == "zero-stream-window-update") IO.pure(first) else readFrame(peer)
+        _ <- IO {
+          if (suffix == "stream-window-overflow") assertEquals(second, windowUpdate(1, 65536))
+          if (suffix == "settings-stream-window-overflow")
+            assertEquals(second, settings(Vector(4 -> 65536L)))
+        }
+        _ <- mode match {
+          case "body" => writeFrame(peer, data(1, ByteVector(97), endStream = false))
+          case "end" => writeFrame(peer, data(1, ByteVector.empty))
+          case "over-credit" => padding(1)
+          case _ => padding(0)
+        }
+        _ <-
+          if (
+            mode == "reset" || (mode == "wrong-code" && suffix != "settings-stream-window-overflow")
+          )
+            writeFrame(peer, Frame(RstStream, 0, 1, uint32(if (mode == "wrong-code") 8 else 1)))
+          else
+            writeFrame(
+              peer,
+              Frame(GoAway, 0, 0, uint32(0) ++ uint32(if (mode == "wrong-code") 8 else 1)),
+            ) *> peer.endOfOutput
+        result <- IO.raiseError[ResponseData[IO]](new RuntimeException("native rejection"))
+      } yield result
+    }
+    if (Set("wrong-code", "body", "end", "over-credit")(mode))
+      run.intercept[ProtocolFailure].flatMap { error =>
+        IO {
+          val message = error.getMessage
+          assert(
+            if (mode == "wrong-code")
+              message.contains("unexpected RST_STREAM") || message.contains("unexpected GOAWAY")
+            else if (mode == "end") message.contains("prematurely ended")
+            else if (mode == "over-credit") message.contains("exceeds remaining credit")
+            else
+              message.contains("exceeds remaining credit") || message
+                .contains("gated upload content")
+          )
+        }
+      }
+    else run
+  }
+
+  for {
+    suffix <- Vector("idle-data", "idle-window-update")
+    stream <- Vector(1, Int.MaxValue)
+  } test(s"Streams idle identifier: $suffix/$stream") {
+    import Http2Wire._
+    runClient(s"h2.client.$suffix") { peer =>
+      for {
+        _ <- clientHandshake(peer)
+        _ <- writeFrame(
+          peer,
+          headers(
+            stream,
+            Vector(
+              ":method" -> "POST",
+              ":scheme" -> "http",
+              ":authority" -> "wire.test",
+              ":path" -> "/",
+            ),
+          ),
+        )
+        stimulus <- readUntil(peer, fromServer = true)(_.frameType != Settings)
+        _ <- IO(
+          assertEquals(
+            stimulus,
+            if (suffix == "idle-data") data(2, ByteVector.empty) else windowUpdate(2, 1),
+          )
+        )
+        _ <- writeFrame(peer, Frame(GoAway, 0, 0, uint32(0) ++ uint32(1))) *> peer.endOfOutput
+        result <- IO.raiseError[ResponseData[IO]](new RuntimeException("native rejection"))
+      } yield result
+    }
   }
 
   private val statePushCallers = Vector(
@@ -4334,6 +5217,81 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     }
   }
 
+  for {
+    id <- Vector(
+      "h2.server.reject-ping-stream-id",
+      "h2.client.reject-ping-stream-id",
+      "h2.server.reject-ping-length-nine",
+      "h2.client.reject-ping-length-nine",
+      "h2.server.reject-ping-ack-length",
+      "h2.client.reject-ping-ack-length",
+      "h2.client.reject-ping-length-seven",
+    )
+    acknowledge <- Vector(false, true)
+    code <- Vector(None, Some(0L), Some(1L), Some(2L)) ++
+      (if (id.endsWith("stream-id")) Vector.empty else Vector(Some(6L)))
+  } test(s"malformed PING contradictory ACK guard: $id/ack=$acknowledge/close=$code") {
+    import Http2Wire._
+    def close(peer: RawPeer[IO]): IO[Unit] = for {
+      malformed <- probeFrame(peer, Ping)
+      _ <- IO {
+        assertEquals(malformed.streamId, if (id.endsWith("stream-id")) 1 else 0)
+        assertEquals(malformed.hasFlag(Ack), id.endsWith("ack-length"))
+        assertEquals(
+          malformed.payload.size,
+          if (id.endsWith("stream-id")) 8L else if (id.endsWith("nine")) 9L else 7L,
+        )
+      }
+      // No legitimate PING precedes this stimulus. Even a normalized eight-byte ACK
+      // contradicts rejection, independently of how the target then closes.
+      _ <-
+        if (acknowledge)
+          writeFrame(peer, Frame(Ping, Ack, 0, (malformed.payload ++ ByteVector(0)).take(8)))
+        else IO.unit
+      _ <- code.traverse_(value =>
+        writeFrame(peer, Frame(GoAway, 0, 0, uint32(0) ++ uint32(value)))
+      )
+      _ <- peer.endOfOutput
+    } yield ()
+    val run =
+      if (id.startsWith("h2.server.")) runServer(id)(peer => serverHandshake(peer) *> close(peer))
+      else
+        runClient(id)(peer =>
+          startRequest(peer) *> close(peer) *>
+            IO.raiseError[ResponseData[IO]](new RuntimeException("native shutdown"))
+        )
+    run.attempt.map { result =>
+      if (acknowledge)
+        assert(
+          result.swap.exists(error =>
+            error.isInstanceOf[ProtocolFailure] &&
+              error.getMessage.contains("malformed PING must not be acknowledged")
+          ),
+          result.toString,
+        )
+      else assertEquals(result, Right(()))
+    }
+  }
+
+  for (role <- Vector("server", "client"))
+    test(s"malformed PING guard leaves unrelated ACK handling unchanged: $role") {
+      import Http2Wire._
+      val id = s"h2.$role.reject-settings-stream-id"
+      def close(peer: RawPeer[IO]): IO[Unit] = {
+        def stimulus: IO[Unit] = readFrame(peer).flatMap { frame =>
+          if (frame.frameType == Settings && frame.streamId == 1) IO.unit else stimulus
+        }
+        stimulus *>
+          writeFrame(peer, Frame(Ping, Ack, 0, ByteVector.fill(8)(0))) *> peer.endOfOutput
+      }
+      if (role == "server") runServer(id)(peer => serverHandshake(peer) *> close(peer))
+      else
+        runClient(id)(peer =>
+          startRequest(peer) *> close(peer) *>
+            IO.raiseError[ResponseData[IO]](new RuntimeException("native shutdown"))
+        )
+    }
+
   private val seed = ByteVector.fromValidHex("4001780161")
   private def settingsValues(reduced: Boolean): Vector[(Int, Long)] =
     if (reduced) Vector(1 -> 0L, 1 -> 4096L) else Vector.empty
@@ -4554,6 +5512,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
                     _ <- startRequest(peer)
                     _ <- probeFrame(peer, Headers)
                     data <- probeFrame(peer, Data)
+                    _ <- responded.set(true)
                     _ <-
                       if (mode == "cleanup-only") IO.unit
                       else
@@ -4566,7 +5525,8 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
                             uint32(0) ++ uint32(if (mode == "wrong-code") 7L else 1L),
                           ),
                         ) *> peer.endOfOutput
-                    _ <- responded.set(true)
+                    // Force the wire verdict to cancel this acquisition before any later witness.
+                    _ <- if (mode == "wrong-code") IO.never[Unit] else IO.unit
                     result <-
                       if (mode == "api-error")
                         IO.raiseError[ResponseData[IO]](new RuntimeException("native rejection"))
@@ -4615,7 +5575,14 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
             result.toString,
           )
         else if (mode == "wrong-code")
-          assert(result.swap.exists(_.isInstanceOf[ProtocolFailure]), result.toString)
+          assert(
+            result.swap.exists {
+              case error: ProtocolFailure =>
+                error.getMessage.startsWith("unexpected GOAWAY error code:")
+              case _ => false
+            },
+            result.toString,
+          )
         else if (mode == "api-timeout" || mode == "body-timeout")
           assertEquals(result, Left(nativeTimeout))
         else if (mode == "api-adapter") assertEquals(result, Left(nativeAdapter))
@@ -5278,7 +6245,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           _ <- IO {
             if (id.contains("priority-length")) assertEquals(malformed.payload.size, 4L)
             else if (id.contains("ping-length")) assertEquals(malformed.payload.size, 9L)
-            else if (id.endsWith("idle-data")) assertEquals(malformed.streamId, 3)
+            else if (id.endsWith("idle-data")) assertEquals(malformed.streamId, 2)
             else if (id.endsWith("zero-stream-window-update"))
               assertEquals(malformed.payload, uint32(0L))
           }
@@ -6812,6 +7779,63 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       } yield result
     }
 
+  // The fixture never sends PUSH_PROMISE: even stream 2 is idle regardless of
+  // the target's first odd request ID, including the maximum legal identifier.
+  for {
+    initialStream <- Vector(1, 17, 19, 0x7fffffff)
+    suffix <- Vector("reject-rst-idle-stream", "priority-idle", "priority-exclusive-max-dependency")
+    errorCode <-
+      if (suffix.startsWith("reject")) Vector(None, Some(0L), Some(1L), Some(2L), Some(5L))
+      else Vector(None)
+  } test(s"client idle control exact stimulus: $suffix/$initialStream/$errorCode") {
+    import Http2Wire._
+    val reset = suffix.startsWith("reject")
+    val expected =
+      if (reset) Frame(RstStream, 0, 2, uint32(8L))
+      else if (suffix == "priority-idle") Frame(Priority, 0xff, 2, uint32(0L) ++ ByteVector(0))
+      else Frame(Priority, 0xff, 2, uint32(0xffffffffL) ++ ByteVector(255.toByte))
+    for {
+      observed <- Ref.of[IO, Option[Frame]](None)
+      result <- runClient(s"h2.client.$suffix") { peer =>
+        for {
+          _ <- startRequest(peer, streamId = initialStream)
+          // readUntil rejects unexpected stream traffic, including PUSH_PROMISE.
+          stimulus <- readUntil(peer, fromServer = true)(_.frameType == expected.frameType)
+          _ <- observed.set(Some(stimulus))
+          _ <-
+            if (reset) IO.unit
+            else
+              readUntil(peer, fromServer = true)(_.frameType == Ping).flatMap(ping =>
+                writeFrame(peer, ping.copy(flags = Ack))
+              )
+          head <- readUntil(peer, fromServer = true)(_.frameType == Headers)
+          body <- readUntil(peer, fromServer = true)(_.frameType == Data)
+          _ <- Check.equal(head.streamId, initialStream)
+          _ <- Check.equal(body.streamId, initialStream)
+          _ <-
+            if (reset)
+              errorCode.traverse_(code =>
+                writeFrame(peer, Frame(GoAway, 0, 0, uint32(0L) ++ uint32(code)))
+              ) *> peer.endOfOutput
+            else IO.unit
+        } yield response(body.payload)
+      }.attempt
+      stimulus <- observed.get
+      _ <- IO {
+        assertEquals(stimulus, Some(expected))
+        if (errorCode.contains(5L))
+          assert(
+            result.swap.exists(error =>
+              error.isInstanceOf[ProtocolFailure] &&
+                error.getMessage.contains("unexpected GOAWAY error code")
+            ),
+            result.toString,
+          )
+        else assertEquals(result, Right(()))
+      }
+    } yield ()
+  }
+
   private def runPublishedServer(id: String)(script: ScriptedTarget.Script[IO]): IO[Unit] = for {
     fixture <- ScriptedTarget.create[IO](script)
     transcript <- Transcript.create[IO]()
@@ -6836,13 +7860,14 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
   private def startRequest(
       peer: RawPeer[IO],
       fields: Vector[(String, String)] = Vector.empty,
+      streamId: Int = 1,
   ): IO[Unit] =
     Http2Wire.clientHandshake(peer) *> Http2Wire.writeFrame(
       peer,
       Http2Wire.Frame(
         Http2Wire.Headers,
         Http2Wire.EndHeaders | Http2Wire.EndStream,
-        1,
+        streamId,
         HpackWire.encodeLiteral(
           Vector(
             ":method" -> "GET",

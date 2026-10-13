@@ -172,12 +172,14 @@ object Http2Wire {
   )(implicit peerSettings: Http2PeerSettings[F]): F[Option[Frame]] =
     (validateReadLimit[F](maxFrameBytes) *> peer.readExact(1))
       .map(_.some)
-      .handleErrorWith {
-        case error: IllegalArgumentException
-            if error.getMessage == "unexpected EOF: needed 1 bytes, received 0" =>
-          none[ByteVector].pure[F]
-        case error if RuntimeInfo.isConnectionReset(error) => none[ByteVector].pure[F]
-        case error => Async[F].raiseError(error)
+      .handleErrorWith { error =>
+        RawPeer.raiseAdapterOrTimeout[F](error) *> (error match {
+          case eof: IllegalArgumentException
+              if eof.getMessage == "unexpected EOF: needed 1 bytes, received 0" =>
+            none[ByteVector].pure[F]
+          case reset if RuntimeInfo.isConnectionReset(reset) => none[ByteVector].pure[F]
+          case other => Async[F].raiseError(other)
+        })
       }
       .flatMap {
         case Some(first) =>

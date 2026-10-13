@@ -19,8 +19,9 @@ package org.http4s.wire
 import cats.ApplicativeThrow
 import cats.syntax.all._
 
-/** A failed incidental reply is never a rejection verdict. False requires the caller to
-  * stop replying and independently observe bounded, validated transport closure.
+/** A failed incidental reply is never a verdict. False requires the caller to stop
+  * replying and independently observe its bounded required evidence (positive completion
+  * or validated rejection/transport closure).
   */
 private[wire] object Http2RejectionWrite {
   def reply[F[_]: ApplicativeThrow](write: F[Unit]): F[Boolean] =

@@ -2,6 +2,9 @@
 
 Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Run `sbt --client tckCheck` and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
 
+Current evidence: phase 4 matrix and audits (`audit/phase4-accepted-status.md`, historical artifact). The sections below
+retain historical execution evidence; later snapshots do not rewrite earlier failures.
+
 Baseline commit: `7ae5b1ea14c6df3f9b6b00ba5a74b2ff7adcde2d`.
 
 ## Phase 1
@@ -663,7 +666,32 @@ Scoped current-diff whitespace checks passed; plain B0-through-working-tree
 `git diff --check` still reports 167 trailing-tab warnings from the TSV format's
 empty final fields. No blanket whitespace-clean claim is made.
 
-Phase 3 acceptance support is complete for the reviewed areas, subject to fresh
-documentation postreview and the coordinator's local commit. **The phase 3 commit
-is still pending; phase 4 has not started.** The phase 4 RFC-first bidirectional
-audits remain required. No production change, remote CI dispatch or push occurred.
+At this historical checkpoint, phase 3 documentation postreview and the local
+commit were pending, and phase 4 had not started. Phase 3 subsequently completed
+and was committed as `4dcb21681c71a013025ba4a4a140a63b4a781ee7`. The
+phase 4 record (`audit/phase4-status.md`, historical artifact) documents the subsequent RFC-first
+bidirectional audits. No production change, remote CI dispatch or push occurred.
+
+
+## Phase 4 final execution matrix
+
+The final six invocations completed on one frozen revision across Scala 2.12.21,
+2.13.18 and 3.3.8. Every normal run freshly executed all harness and adapter tests
+and 749 protocol cases per Ember platform, counting registered skips separately.
+Every comparison executed 749 cases on each of Ember JVM/JS/Native and Netty JVM,
+bypassing all ignores. Every case/target outcome category matches across the three
+Scala versions. No current cases, harness members or manifests are missing.
+
+Per normal run: JVM/JS each 599 protocol passes and 150 skips; Native 596 passes
+and 153 skips. Per comparison: each Ember target 599 pass / 90 fail / 60
+inconclusive; Netty 623 pass / 97 fail / 29 inconclusive. Every invocation passes
+6,388 JVM, 6,432 JS and 6,402 Native harness tests, with 55 Ember adapter checks
+per platform; each comparison also passes 66 Netty adapter checks.
+
+The phase 4 evidence record (`audit/phase4-accepted-status.md`, historical artifact) includes all commands,
+settings, nine runtime archives and hashes, the machine-readable matrix, current
+format/header/integrity/workflow checks, failed attempts and fresh audit history.
+This is local validation, not a remote CI result or a claim of comprehensive RFC
+conformance. The inventory still records 752 explicit gaps. The final independent reporting audit (`audit/phase4-final-reporting-audit.md`, historical artifact)
+cleared acceptance; the current evidence record is the checkpoint for the
+authorized local phase commit.

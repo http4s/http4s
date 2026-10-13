@@ -492,7 +492,7 @@ object InteractionCases {
             _ <- requireSendWindow(settings, Binary.size)
             _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
             decoder <- HpackWire.decoder[IO]()
-            request <- readClientRequest(peer, decoder, awaitAck = true)
+            request <- readClientRequest(peer, decoder, Binary.size, awaitAck = true)
             _ <- Check.equal(values(request.fields, ":path"), Vector("/eager"))
             _ <- Check.equal(request.body, ByteVector.empty)
             _ <- Http2PeerSettings.write(
@@ -547,7 +547,7 @@ object InteractionCases {
               _ <- requireSendWindow(settings, 0L)
               _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
               decoder <- HpackWire.decoder[IO]()
-              request <- readClientRequest(peer, decoder, awaitAck = true, incomplete = true)
+              request <- readClientRequest(peer, decoder, 0L, awaitAck = true, incomplete = true)
               _ <- Check.equal(values(request.fields, ":method"), Vector("POST"))
               _ <- Check(
                 !request.ended && request.body.isEmpty,
@@ -555,7 +555,7 @@ object InteractionCases {
               )
               _ <- release.complete(()).void
               // Every intervening frame is inspected; a PING ACK establishes connection liveness.
-              _ <- pingBarrier(peer, Some(request.streamId))
+              _ <- pingBarrier(peer, fromServer = false, zeroWindowStream = Some(request.streamId))
               _ <- Http2Wire.writeFrame(peer, Http2Wire.windowUpdate(request.streamId, 65535))
               body <- readUpload(peer, decoder, request.streamId, request.body)
               _ <- Check.equal(body, Binary)
@@ -585,7 +585,7 @@ object InteractionCases {
           for {
             _ <- Http2PeerSettings.write(
               peer,
-              Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings()) ++
+              Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings(Vector(2 -> 0L))) ++
                 Http2Wire.encode(
                   literalHeaders(1, requestFields("/early", Binary.size), endStream = false)
                 ) ++
@@ -596,7 +596,7 @@ object InteractionCases {
               initial.frameType == Http2Wire.Settings && !initial.hasFlag(Http2Wire.Ack),
               "server preface must be non-ACK SETTINGS",
             )
-            _ <- control(peer, initial)
+            _ <- control(peer, initial, fromServer = true)
             responses <- readResponses(peer, Set(1))
             _ <- checkResponse(responses(1), Binary)
             received <- server.received
@@ -711,7 +711,7 @@ object InteractionCases {
             // reset processing. Echoing the suffix sent after CANCEL does.
             responses <- readResponses(peer, Set(3), Some(PendingReset(1, _.body == Following)))
             _ <- checkResponse(responses(3), Following)
-            _ <- pingBarrier(peer)
+            _ <- pingBarrier(peer, fromServer = true)
             received <- server.received
             _ <- Check.equal(received.path, "/two")
             _ <- Check.equal(received.body, Following)
@@ -787,7 +787,7 @@ object InteractionCases {
             _ <- Check.equal(received.path, "/after")
             _ <- Check.equal(values(received.headers, "x-state"), Vector("kept"))
             _ <- Check.equal(received.body, ByteVector.empty)
-            _ <- pingBarrier(peer)
+            _ <- pingBarrier(peer, fromServer = true)
             extra <- server.pollReceived
             _ <- Check(extra.isEmpty, s"a cancelled incomplete stream reached EchoBody: $extra")
           } yield ()
@@ -829,7 +829,7 @@ object InteractionCases {
             for {
               _ <- acceptClient(peer, Vector(3 -> 2L))
               decoder <- HpackWire.decoder[IO]()
-              first <- readClientRequest(peer, decoder)
+              first <- readClientRequest(peer, decoder, Following.size)
               _ <- Check.equal(values(first.fields, ":path"), Vector("/one"))
               _ <- Http2Wire.writeFrame(
                 peer,
@@ -843,7 +843,7 @@ object InteractionCases {
                   endStream = false,
                 ),
               )
-              second <- readClientRequest(peer, decoder)
+              second <- readClientRequest(peer, decoder, Following.size)
               _ <- Check.equal(values(second.fields, ":path"), Vector("/two"))
               _ <- Check(
                 second.streamId > first.streamId,
@@ -896,7 +896,7 @@ object InteractionCases {
           for {
             _ <- acceptClient(peer, Vector(3 -> 2L))
             decoder <- HpackWire.decoder[IO]()
-            first <- readClientRequest(peer, decoder)
+            first <- readClientRequest(peer, decoder, Following.size)
             _ <- Check.equal(values(first.fields, ":path"), Vector("/one"))
             _ <- Http2PeerSettings.write(
               peer,
@@ -915,7 +915,12 @@ object InteractionCases {
               ),
             )
             // Resource release after exposing 103 can legitimately reset the already completed stream.
-            second <- readClientRequest(peer, decoder, closedStreams = Set(first.streamId))
+            second <- readClientRequest(
+              peer,
+              decoder,
+              Following.size,
+              closedStreams = Set(first.streamId),
+            )
             _ <- Check.equal(values(second.fields, ":path"), Vector("/two"))
             _ <- Check(
               second.streamId > first.streamId,
@@ -974,9 +979,9 @@ object InteractionCases {
             for {
               _ <- acceptClient(peer)
               decoder <- HpackWire.decoder[IO]()
-              request <- readClientRequest(peer, decoder, incomplete = true)
+              request <- readClientRequest(peer, decoder, Following.size, incomplete = true)
               _ <- Check(!request.ended, "request upload ended before the withheld suffix")
-              prefix <- readUploadPrefix(peer, request.streamId, request.body, 2)
+              prefix <- readUploadPrefix(peer, request.streamId, request.body, 2, Following.size)
               _ <- Check.equal(prefix, Binary.take(2))
               _ <- Http2PeerSettings.write(
                 peer,
@@ -1034,9 +1039,9 @@ object InteractionCases {
             for {
               _ <- acceptClient(peer, responseBytes = 0L)
               decoder <- HpackWire.decoder[IO]()
-              request <- readClientRequest(peer, decoder, incomplete = true)
+              request <- readClientRequest(peer, decoder, 0L, incomplete = true)
               _ <- Check(!request.ended, "request upload ended before the withheld suffix")
-              prefix <- readUploadPrefix(peer, request.streamId, request.body, 2)
+              prefix <- readUploadPrefix(peer, request.streamId, request.body, 2, 0L)
               _ <- Check.equal(prefix, Binary.take(2))
               _ <- Http2PeerSettings.write(
                 peer,
@@ -1125,27 +1130,17 @@ object InteractionCases {
     Check.equal(response.status, Some(200)) *> Check(response.ended, "response did not end") *>
       Check.equal(response.body, expected)
 
-  private def settingsValues(frame: Http2Wire.Frame): IO[Vector[(Int, Long)]] =
+  private def settingsValues(
+      frame: Http2Wire.Frame,
+      fromServer: Boolean,
+  ): IO[Vector[(Int, Long)]] =
     for {
       _ <- Check.equal(frame.frameType, Http2Wire.Settings)
-      _ <- Check.equal(frame.streamId, 0)
-      _ <- Check.equal(frame.payload.size % 6L, 0L)
-      _ <- Check(
-        !frame.hasFlag(Http2Wire.Ack) || frame.payload.isEmpty,
-        "SETTINGS ACK carried a payload",
-      )
-      entries = (0L until frame.payload.size by 6L).map { offset =>
-        val key = ((frame.payload(offset) & 0xff) << 8) | (frame.payload(offset + 1L) & 0xff)
-        key -> Http2Wire.readUint32(frame.payload.slice(offset + 2L, offset + 6L))
-      }.toVector
-      _ <- entries.traverse_ {
-        case (2, value) => Check(value <= 1L, "invalid SETTINGS_ENABLE_PUSH")
-        case (4, value) => Check(value <= 0x7fffffffL, "invalid initial window")
-        case (5, value) =>
-          Check(value >= 16384L && value <= 0xffffffL, "invalid maximum frame size")
-        case _ => IO.unit
-      }
-    } yield entries
+      _ <- IO.fromEither(Http2RejectionChecks.validate(frame, fromServer))
+    } yield (0L until frame.payload.size by 6L).map { offset =>
+      val key = ((frame.payload(offset) & 0xff) << 8) | (frame.payload(offset + 1L) & 0xff)
+      key -> Http2Wire.readUint32(frame.payload.slice(offset + 2L, offset + 6L))
+    }.toVector
 
   private def receiveClientPreface(
       peer: RawPeer[IO]
@@ -1158,7 +1153,7 @@ object InteractionCases {
         initial.frameType == Http2Wire.Settings && !initial.hasFlag(Http2Wire.Ack),
         "client preface must be followed by non-ACK SETTINGS",
       )
-      settings <- settingsValues(initial)
+      settings <- settingsValues(initial, fromServer = false)
     } yield settings
 
   private def acceptClient(
@@ -1183,25 +1178,25 @@ object InteractionCases {
       observationBound(remaining > 0, "too many frames before SETTINGS acknowledgment") *>
         wireObservation(Http2Wire.readFrame(peer)).flatMap { frame =>
           if (frame.frameType == Http2Wire.Settings)
-            settingsValues(frame).flatMap { next =>
+            settingsValues(frame, fromServer = true).flatMap { next =>
               if (frame.hasFlag(Http2Wire.Ack)) IO.pure(values)
               else
                 Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true)) *>
                   acknowledge(values ++ next, remaining - 1)
             }
-          else control(peer, frame) *> acknowledge(values, remaining - 1)
+          else control(peer, frame, fromServer = true) *> acknowledge(values, remaining - 1)
         }
     for {
       _ <- Http2PeerSettings.write(
         peer,
-        Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings()),
+        Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings(Vector(2 -> 0L))),
       )
       initial <- wireObservation(Http2Wire.readFrame(peer))
       _ <- Check(
         initial.frameType == Http2Wire.Settings && !initial.hasFlag(Http2Wire.Ack),
         "server preface must be non-ACK SETTINGS",
       )
-      values <- settingsValues(initial)
+      values <- settingsValues(initial, fromServer = true)
       _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
       current <- acknowledge(values, 1024)
     } yield current
@@ -1217,6 +1212,7 @@ object InteractionCases {
   private def readClientRequest(
       peer: RawPeer[IO],
       decoder: HpackWire.Decoder[IO],
+      pendingResponseBytes: Long,
       awaitAck: Boolean = false,
       incomplete: Boolean = false,
       closedStreams: Set[Int] = Set.empty,
@@ -1231,65 +1227,73 @@ object InteractionCases {
           IO.pure(value)
         case _ =>
           observationBound(remaining > 0, "missing request or SETTINGS acknowledgment") *>
-            wireObservation(Http2Wire.readFrame(peer)).flatMap { frame =>
-              frame.frameType match {
-                case Http2Wire.Headers =>
-                  val next = request match {
-                    case Some(current) =>
-                      Check(!current.ended, "HEADERS followed END_STREAM") *>
-                        readRequestTrailers(peer, decoder, frame, current.streamId)
-                          .as(current.copy(ended = true))
-                    case None =>
-                      for {
-                        _ <- Check(
-                          frame.streamId > 0 && (frame.streamId & 1) == 1,
-                          "client request stream must be positive and odd",
+            wireObservation(Http2Wire.readFrame(peer))
+              .flatTap(frame => peerSettings.positive(peer).flatMap(_.observe(frame, false)))
+              .flatMap { frame =>
+                frame.frameType match {
+                  case Http2Wire.Headers =>
+                    val next = request match {
+                      case Some(current) =>
+                        Check(!current.ended, "HEADERS followed END_STREAM") *>
+                          readRequestTrailers(peer, decoder, frame, current.streamId)
+                            .as(current.copy(ended = true))
+                      case None =>
+                        for {
+                          _ <- Check(
+                            frame.streamId > 0 && (frame.streamId & 1) == 1,
+                            "client request stream must be positive and odd",
+                          )
+                          fields <- wireObservation(Http2Wire.readHeaders(peer, frame, decoder))
+                        } yield CapturedRequest(
+                          frame.streamId,
+                          fields,
+                          ByteVector.empty,
+                          frame.hasFlag(Http2Wire.EndStream),
                         )
-                        fields <- wireObservation(Http2Wire.readHeaders(peer, frame, decoder))
-                      } yield CapturedRequest(
-                        frame.streamId,
-                        fields,
-                        ByteVector.empty,
-                        frame.hasFlag(Http2Wire.EndStream),
-                      )
-                  }
-                  next.flatMap(value => loop(Some(value), acknowledged, remaining - 1))
-                case Http2Wire.Data =>
-                  request match {
-                    case Some(current) =>
-                      for {
-                        _ <- Check.equal(frame.streamId, current.streamId)
-                        _ <- Check(!current.ended, "DATA followed END_STREAM")
-                        bytes <- wireObservation(IO(Http2Wire.unpad(frame)))
-                        _ <- observationBound(
-                          current.body.size + bytes.size <= 65536L,
-                          "request exceeds interaction bound",
-                        )
-                        result <- loop(
-                          Some(
-                            current.copy(
-                              body = current.body ++ bytes,
-                              ended = frame.hasFlag(Http2Wire.EndStream),
-                            )
-                          ),
-                          acknowledged,
-                          remaining - 1,
-                        )
-                      } yield result
-                    case None =>
-                      IO.raiseError(new ProtocolFailure("DATA arrived before request HEADERS"))
-                  }
-                case Http2Wire.Settings =>
-                  control(peer, frame) *> loop(
-                    request,
-                    acknowledged || frame.hasFlag(Http2Wire.Ack),
-                    remaining - 1,
-                  )
-                case Http2Wire.RstStream if closedStreams.contains(frame.streamId) =>
-                  Check.equal(frame.payload.size, 4L) *> loop(request, acknowledged, remaining - 1)
-                case _ => control(peer, frame) *> loop(request, acknowledged, remaining - 1)
+                    }
+                    next.flatMap(value => loop(Some(value), acknowledged, remaining - 1))
+                  case Http2Wire.Data =>
+                    request match {
+                      case Some(current) =>
+                        for {
+                          _ <- Check.equal(frame.streamId, current.streamId)
+                          _ <- Check(!current.ended, "DATA followed END_STREAM")
+                          bytes <- wireObservation(IO(Http2Wire.unpad(frame)))
+                          _ <- observationBound(
+                            current.body.size + bytes.size <= 65536L,
+                            "request exceeds interaction bound",
+                          )
+                          result <- loop(
+                            Some(
+                              current.copy(
+                                body = current.body ++ bytes,
+                                ended = frame.hasFlag(Http2Wire.EndStream),
+                              )
+                            ),
+                            acknowledged,
+                            remaining - 1,
+                          )
+                        } yield result
+                      case None =>
+                        IO.raiseError(new ProtocolFailure("DATA arrived before request HEADERS"))
+                    }
+                  case Http2Wire.Settings =>
+                    control(peer, frame, fromServer = false, pendingResponseBytes) *> loop(
+                      request,
+                      acknowledged || frame.hasFlag(Http2Wire.Ack),
+                      remaining - 1,
+                    )
+                  case Http2Wire.RstStream if closedStreams.contains(frame.streamId) =>
+                    Check
+                      .equal(frame.payload.size, 4L) *> loop(request, acknowledged, remaining - 1)
+                  case _ =>
+                    control(peer, frame, fromServer = false, pendingResponseBytes) *> loop(
+                      request,
+                      acknowledged,
+                      remaining - 1,
+                    )
+                }
               }
-            }
       }
     loop(None, false, 1024)
   }
@@ -1319,145 +1323,159 @@ object InteractionCases {
         if (current.values.forall(_.ended)) IO.pure(current)
         else
           observationBound(remaining > 0, "responses exceeded frame bound") *>
-            wireObservation(Http2Wire.readFrame(peer)).flatMap { frame =>
-              val nextDataRemaining =
-                dataRemaining - (if (frame.frameType == Http2Wire.Data) frame.payload.size else 0L)
-              observationBound(
-                nextDataRemaining >= 0L,
-                "reset responses exceeded finite DATA budget",
-              ) *>
-                (frame.frameType match {
-                  case Http2Wire.PushPromise if pendingReset.exists(_.streamId == frame.streamId) =>
-                    IO.raiseError(
-                      new WireObservationLimit(
-                        "crossing PUSH_PROMISE on the reset stream requires unsupported push observation"
-                      )
-                    )
-                  case Http2Wire.Headers if pendingReset.exists(_.streamId == frame.streamId) =>
-                    wireObservation(Http2Wire.readHeaders(peer, frame, decoder)) *>
-                      loop(current, remaining - 1, pendingReset, nextDataRemaining)
-                  case Http2Wire.Data if pendingReset.exists(_.streamId == frame.streamId) =>
-                    wireObservation(IO(Http2Wire.unpad(frame))) *>
-                      loop(current, remaining - 1, pendingReset, nextDataRemaining)
-                  case Http2Wire.RstStream if pendingReset.exists(_.streamId == frame.streamId) =>
-                    Check.equal(frame.payload.size, 4L) *>
-                      loop(current, remaining - 1, pendingReset, nextDataRemaining)
-                  case Http2Wire.Headers =>
-                    for {
-                      _ <- Check(
-                        streams.contains(frame.streamId),
-                        s"HEADERS on unexpected stream ${frame.streamId}",
-                      )
-                      previous = current(frame.streamId)
-                      _ <- Check(!previous.ended, "HEADERS followed END_STREAM")
-                      fields <- wireObservation(Http2Wire.readHeaders(peer, frame, decoder))
-                      next <-
-                        if (previous.status.isDefined)
-                          Check(
-                            frame.hasFlag(Http2Wire.EndStream),
-                            "response trailers must end the stream",
-                          ) *>
+            wireObservation(Http2Wire.readFrame(peer))
+              .flatTap(frame =>
+                peerSettings.positive(peer).flatMap(_.observe(frame, fromServer = true))
+              )
+              .flatMap { frame =>
+                val nextDataRemaining =
+                  dataRemaining - (if (frame.frameType == Http2Wire.Data) frame.payload.size
+                                   else 0L)
+                observationBound(
+                  nextDataRemaining >= 0L,
+                  "reset responses exceeded finite DATA budget",
+                ) *>
+                  (frame.frameType match {
+                    // Both reference-client handshakes disable push before opening requests.
+                    case Http2Wire.PushPromise =>
+                      IO.raiseError(new ProtocolFailure("PUSH_PROMISE after push disablement"))
+                    case Http2Wire.Headers if pendingReset.exists(_.streamId == frame.streamId) =>
+                      wireObservation(Http2Wire.readHeaders(peer, frame, decoder)) *>
+                        loop(current, remaining - 1, pendingReset, nextDataRemaining)
+                    case Http2Wire.Data if pendingReset.exists(_.streamId == frame.streamId) =>
+                      wireObservation(IO(Http2Wire.unpad(frame))) *>
+                        loop(current, remaining - 1, pendingReset, nextDataRemaining)
+                    case Http2Wire.RstStream if pendingReset.exists(_.streamId == frame.streamId) =>
+                      Check.equal(frame.payload.size, 4L) *>
+                        loop(current, remaining - 1, pendingReset, nextDataRemaining)
+                    case Http2Wire.Headers =>
+                      for {
+                        _ <- Check(
+                          streams.contains(frame.streamId),
+                          s"HEADERS on unexpected stream ${frame.streamId}",
+                        )
+                        previous = current(frame.streamId)
+                        _ <- Check(!previous.ended, "HEADERS followed END_STREAM")
+                        fields <- wireObservation(Http2Wire.readHeaders(peer, frame, decoder))
+                        next <-
+                          if (previous.status.isDefined)
                             Check(
-                              !fields.exists(_._1.startsWith(":")),
-                              "pseudo-header in response trailers",
+                              frame.hasFlag(Http2Wire.EndStream),
+                              "response trailers must end the stream",
                             ) *>
-                            IO.pure(previous.copy(trailers = fields, ended = true))
-                        else {
-                          val statuses = values(fields, ":status")
-                          Check(
-                            statuses.size == 1 && statuses.head.matches("[1-5][0-9][0-9]"),
-                            "invalid response status",
-                          ) *>
-                            IO.defer {
-                              val status = statuses.head.toInt
-                              if (status < 200)
-                                Check(
-                                  !frame.hasFlag(Http2Wire.EndStream),
-                                  "interim response ended the stream",
-                                ).as(previous)
-                              else
-                                IO.pure(
-                                  previous.copy(
-                                    status = Some(status),
-                                    fields = fields,
-                                    ended = frame.hasFlag(Http2Wire.EndStream),
+                              Check(
+                                !fields.exists(_._1.startsWith(":")),
+                                "pseudo-header in response trailers",
+                              ) *>
+                              IO.pure(previous.copy(trailers = fields, ended = true))
+                          else {
+                            val statuses = values(fields, ":status")
+                            Check(
+                              statuses.size == 1 && statuses.head.matches("[1-5][0-9][0-9]") &&
+                                statuses.head != "101",
+                              "invalid response status",
+                            ) *>
+                              IO.defer {
+                                val status = statuses.head.toInt
+                                if (status < 200)
+                                  Check(
+                                    !frame.hasFlag(Http2Wire.EndStream),
+                                    "interim response ended the stream",
+                                  ).as(previous)
+                                else
+                                  IO.pure(
+                                    previous.copy(
+                                      status = Some(status),
+                                      fields = fields,
+                                      ended = frame.hasFlag(Http2Wire.EndStream),
+                                    )
                                   )
-                                )
-                            }
-                        }
-                      result <- loop(
-                        current.updated(frame.streamId, next),
+                              }
+                          }
+                        result <- loop(
+                          current.updated(frame.streamId, next),
+                          remaining - 1,
+                          pendingReset.filterNot(_.confirmedBy(next)),
+                          nextDataRemaining,
+                        )
+                      } yield result
+                    case Http2Wire.Data =>
+                      for {
+                        _ <- Check(
+                          streams.contains(frame.streamId),
+                          s"DATA on unexpected stream ${frame.streamId}",
+                        )
+                        previous = current(frame.streamId)
+                        _ <- Check(
+                          previous.status.isDefined && !previous.ended,
+                          "DATA outside the final response content sequence",
+                        )
+                        body <- wireObservation(IO(Http2Wire.unpad(frame)))
+                        _ <- observationBound(
+                          previous.body.size + body.size <= 65536L,
+                          "response exceeds interaction bound",
+                        )
+                        next = previous.copy(
+                          body = previous.body ++ body,
+                          ended = frame.hasFlag(Http2Wire.EndStream),
+                        )
+                        result <- loop(
+                          current.updated(frame.streamId, next),
+                          remaining - 1,
+                          pendingReset.filterNot(_.confirmedBy(next)),
+                          nextDataRemaining,
+                        )
+                      } yield result
+                    case _ =>
+                      control(peer, frame, fromServer = true) *> loop(
+                        current,
                         remaining - 1,
-                        pendingReset.filterNot(_.confirmedBy(next)),
+                        pendingReset,
                         nextDataRemaining,
                       )
-                    } yield result
-                  case Http2Wire.Data =>
-                    for {
-                      _ <- Check(
-                        streams.contains(frame.streamId),
-                        s"DATA on unexpected stream ${frame.streamId}",
-                      )
-                      previous = current(frame.streamId)
-                      _ <- Check(
-                        previous.status.isDefined && !previous.ended,
-                        "DATA outside the final response content sequence",
-                      )
-                      body <- wireObservation(IO(Http2Wire.unpad(frame)))
-                      _ <- observationBound(
-                        previous.body.size + body.size <= 65536L,
-                        "response exceeds interaction bound",
-                      )
-                      next = previous.copy(
-                        body = previous.body ++ body,
-                        ended = frame.hasFlag(Http2Wire.EndStream),
-                      )
-                      result <- loop(
-                        current.updated(frame.streamId, next),
-                        remaining - 1,
-                        pendingReset.filterNot(_.confirmedBy(next)),
-                        nextDataRemaining,
-                      )
-                    } yield result
-                  case _ =>
-                    control(peer, frame) *> loop(
-                      current,
-                      remaining - 1,
-                      pendingReset,
-                      nextDataRemaining,
-                    )
-                })
-            }
-      loop(
-        streams.iterator.map(_ -> CapturedResponse()).toMap,
-        1024,
-        reset,
-        if (reset.isDefined) 65535L else Long.MaxValue,
-      )
+                  })
+              }
+      peerSettings.positive(peer).flatMap { positive =>
+        positive.expecting(streams) *> loop(
+          streams.iterator.map(_ -> CapturedResponse()).toMap,
+          1024,
+          reset,
+          if (reset.isDefined) 65535L else Long.MaxValue,
+        ).flatTap(_ => positive.completed(streams))
+      }
     }
 
   /** No stream frame is skipped on the way to the PING acknowledgment. */
-  private def pingBarrier(peer: RawPeer[IO], zeroWindowStream: Option[Int] = None)(implicit
+  private def pingBarrier(
+      peer: RawPeer[IO],
+      fromServer: Boolean,
+      zeroWindowStream: Option[Int] = None,
+  )(implicit
       peerSettings: Http2PeerSettings[IO]
   ): IO[Unit] = {
     def loop(remaining: Int): IO[Unit] =
       observationBound(remaining > 0, "missing PING acknowledgment") *>
-        wireObservation(Http2Wire.readFrame(peer)).flatMap { frame =>
-          if (frame.frameType == Http2Wire.Ping && frame.hasFlag(Http2Wire.Ack))
-            Check.equal(frame.streamId, 0) *> Check.equal(frame.payload, PingBytes)
-          else if (frame.frameType == Http2Wire.Data && zeroWindowStream.contains(frame.streamId))
-            Check(frame.payload.isEmpty, "DATA consumed credit while the stream window was zero") *>
+        wireObservation(Http2Wire.readFrame(peer))
+          .flatTap(frame => peerSettings.positive(peer).flatMap(_.observe(frame, fromServer)))
+          .flatMap { frame =>
+            if (frame.frameType == Http2Wire.Ping && frame.hasFlag(Http2Wire.Ack))
+              Check.equal(frame.streamId, 0) *> Check.equal(frame.payload, PingBytes)
+            else if (frame.frameType == Http2Wire.Data && zeroWindowStream.contains(frame.streamId))
               Check(
-                !frame.hasFlag(Http2Wire.Padded),
-                "empty DATA cannot contain a pad-length octet",
+                frame.payload.isEmpty,
+                "DATA consumed credit while the stream window was zero",
               ) *>
-              Check(
-                !frame.hasFlag(Http2Wire.EndStream),
-                "upload ended before its nonempty content",
-              ) *>
-              loop(remaining - 1)
-          else control(peer, frame) *> loop(remaining - 1)
-        }
+                Check(
+                  !frame.hasFlag(Http2Wire.Padded),
+                  "empty DATA cannot contain a pad-length octet",
+                ) *>
+                Check(
+                  !frame.hasFlag(Http2Wire.EndStream),
+                  "upload ended before its nonempty content",
+                ) *>
+                loop(remaining - 1)
+            else control(peer, frame, fromServer) *> loop(remaining - 1)
+          }
     Http2Wire.writeFrame(peer, Http2Wire.Frame(Http2Wire.Ping, 0, 0, PingBytes)) *> loop(1024)
   }
 
@@ -1482,7 +1500,11 @@ object InteractionCases {
   )(implicit peerSettings: Http2PeerSettings[IO]): IO[ByteVector] = {
     def loop(body: ByteVector, remaining: Int): IO[ByteVector] =
       observationBound(remaining > 0, "upload exceeded frame bound") *> wireObservation(
-        Http2Wire.readFrame(peer)
+        Http2Wire
+          .readFrame(peer)
+          .flatTap(frame =>
+            peerSettings.positive(peer).flatMap(_.observe(frame, fromServer = false))
+          )
       )
         .flatMap { frame =>
           if (frame.frameType == Http2Wire.Data)
@@ -1499,7 +1521,7 @@ object InteractionCases {
             } yield result
           else if (frame.frameType == Http2Wire.Headers)
             readRequestTrailers(peer, decoder, frame, streamId).as(body)
-          else control(peer, frame) *> loop(body, remaining - 1)
+          else control(peer, frame, fromServer = false) *> loop(body, remaining - 1)
         }
     loop(initial, 1024)
   }
@@ -1509,45 +1531,66 @@ object InteractionCases {
       streamId: Int,
       initial: ByteVector,
       size: Int,
+      pendingResponseBytes: Long,
   )(implicit peerSettings: Http2PeerSettings[IO]): IO[ByteVector] = {
     def loop(body: ByteVector, remaining: Int): IO[ByteVector] =
       if (body.size >= size.toLong) Check.equal(body.size, size.toLong).as(body)
       else
         observationBound(remaining > 0, "upload prefix exceeded frame bound") *>
-          wireObservation(Http2Wire.readFrame(peer)).flatMap { frame =>
-            if (frame.frameType == Http2Wire.Data)
-              for {
-                _ <- Check.equal(frame.streamId, streamId)
-                _ <- Check(!frame.hasFlag(Http2Wire.EndStream), "partial upload unexpectedly ended")
-                bytes <- wireObservation(IO(Http2Wire.unpad(frame)))
-                result <- loop(body ++ bytes, remaining - 1)
-              } yield result
-            else control(peer, frame) *> loop(body, remaining - 1)
-          }
+          wireObservation(Http2Wire.readFrame(peer))
+            .flatTap(frame => peerSettings.positive(peer).flatMap(_.observe(frame, false)))
+            .flatMap { frame =>
+              if (frame.frameType == Http2Wire.Data)
+                for {
+                  _ <- Check.equal(frame.streamId, streamId)
+                  _ <- Check(
+                    !frame.hasFlag(Http2Wire.EndStream),
+                    "partial upload unexpectedly ended",
+                  )
+                  bytes <- wireObservation(IO(Http2Wire.unpad(frame)))
+                  result <- loop(body ++ bytes, remaining - 1)
+                } yield result
+              else
+                control(peer, frame, fromServer = false, pendingResponseBytes) *> loop(
+                  body,
+                  remaining - 1,
+                )
+            }
     loop(initial, 1024)
   }
 
-  private def control(peer: RawPeer[IO], frame: Http2Wire.Frame)(implicit
+  private def control(
+      peer: RawPeer[IO],
+      frame: Http2Wire.Frame,
+      fromServer: Boolean,
+      pendingResponseBytes: Long = 0L,
+  )(implicit
       peerSettings: Http2PeerSettings[IO]
-  ): IO[Unit] = frame.frameType match {
-    case Http2Wire.Settings =>
-      settingsValues(frame).flatMap { settings =>
-        if (frame.hasFlag(Http2Wire.Ack)) IO.unit
-        else
-          requireSendWindow(settings, Following.size) *>
-            Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
-      }
-    case Http2Wire.Ping =>
-      Check.equal(frame.streamId, 0) *> Check.equal(frame.payload.size, 8L) *>
-        (if (frame.hasFlag(Http2Wire.Ack)) IO.unit
-         else Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack)))
-    case Http2Wire.WindowUpdate =>
-      Check.equal(frame.payload.size, 4L) *>
-        Check((Http2Wire.readUint32(frame.payload) & 0x7fffffffL) != 0L, "zero window increment")
-    case Http2Wire.Priority =>
-      Check(frame.streamId != 0 && frame.payload.size == 5L, "invalid PRIORITY")
-    case kind if kind > Http2Wire.Continuation => IO.unit
-    case _ => Check(false, s"unexpected frame ${frame.frameType} on stream ${frame.streamId}")
+  ): IO[Unit] = peerSettings.positive(peer).flatMap { positive =>
+    positive.observe(frame, fromServer) *> (frame.frameType match {
+      case Http2Wire.Settings =>
+        settingsValues(frame, fromServer).flatMap { settings =>
+          if (frame.hasFlag(Http2Wire.Ack)) IO.unit
+          else
+            requireSendWindow(settings, pendingResponseBytes) *>
+              positive.incidental(Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))).void
+        }
+      case Http2Wire.Ping =>
+        Check.equal(frame.streamId, 0) *> Check.equal(frame.payload.size, 8L) *>
+          (if (frame.hasFlag(Http2Wire.Ack)) IO.unit
+           else
+             positive
+               .incidental(Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack)))
+               .void)
+      case Http2Wire.GoAway => IO.unit
+      case Http2Wire.WindowUpdate =>
+        Check.equal(frame.payload.size, 4L) *>
+          Check((Http2Wire.readUint32(frame.payload) & 0x7fffffffL) != 0L, "zero window increment")
+      case Http2Wire.Priority =>
+        Check(frame.streamId != 0 && frame.payload.size == 5L, "invalid PRIORITY")
+      case kind if kind > Http2Wire.Continuation => IO.unit
+      case _ => Check(false, s"unexpected frame ${frame.frameType} on stream ${frame.streamId}")
+    })
   }
 
   private def values(fields: Vector[(String, String)], name: String): Vector[String] =

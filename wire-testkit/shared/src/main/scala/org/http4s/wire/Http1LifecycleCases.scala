@@ -1827,6 +1827,16 @@ object Http1LifecycleCases {
             line.substring(9, 12).forall(c => c >= '0' && c <= '9') &&
             line.drop(13).forall(c => c == '\t' || c >= ' ' && c != 127)
           _ <- Check(valid, s"invalid response status line after incomplete request: $line")
+          fields = remaining
+            .take(end)
+            .toArray
+            .iterator
+            .map(b => (b & 0xff).toChar)
+            .mkString
+            .split("\r\n", -1)
+            .toVector
+            .tail
+          _ <- fields.traverse_(field => IO(Http1Wire.parseHeader(field)).void)
           status = line.substring(9, 12).toInt
           _ <-
             if (status >= 100 && status < 200 && status != 101)

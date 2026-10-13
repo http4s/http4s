@@ -16,6 +16,8 @@
 
 package org.http4s.wire
 
+import org.typelevel.scalaccompat.annotation.unused
+
 import scala.scalajs.js
 
 object RuntimeInfo {
@@ -23,6 +25,16 @@ object RuntimeInfo {
   val runtime: String =
     if (js.typeOf(js.Dynamic.global.process) == "undefined") "JavaScript"
     else s"Node.js ${js.Dynamic.global.process.version.asInstanceOf[String]}"
+
+  private[wire] def isSocketTimeout(@unused error: Throwable): Boolean =
+    false
+
+  private def isCleanNativeMarker(error: Throwable, nativeError: js.Any): Boolean =
+    error.getSuppressed.isEmpty && (error.getCause match {
+      case cause @ js.JavaScriptException(value) =>
+        value == nativeError && cause.getCause == null && cause.getSuppressed.isEmpty
+      case _ => false
+    })
 
   private[wire] def isConnectionReset(error: Throwable): Boolean = {
     def reset(current: Throwable): Boolean = current match {
@@ -40,7 +52,7 @@ object RuntimeInfo {
           // Never descend into a write callback's native ECONNRESET cause.
           case _: WirePeerTransport.WriteFailure => false
           case read: WirePeerTransport.ReadFailure =>
-            read.getSuppressed.isEmpty &&
+            isCleanNativeMarker(read, read.nativeError) &&
             WirePeerTransport.nativeCode(read.nativeError, "code").contains("ECONNRESET") &&
             WirePeerTransport.nativeCode(read.nativeError, "syscall").contains("read")
           case _ if reset(current) => true
@@ -49,9 +61,12 @@ object RuntimeInfo {
     loop(error, 16)
   }
 
+  // A retained read witness must stay clean even when the callback has a direct write code.
   // FS2 wraps Node's EPIPE once. Match that exact observed shape, not arbitrary causes.
   private[wire] def isClosedWrite(error: Throwable): Boolean = error match {
-    case write: WirePeerTransport.WriteFailure if write.getSuppressed.isEmpty =>
+    case write: WirePeerTransport.WriteFailure
+        if isCleanNativeMarker(write, write.nativeError) &&
+          write.precedingReadReset.forall(isConnectionReset) =>
       (WirePeerTransport.nativeCode(write.nativeError, "syscall").contains("write") &&
         WirePeerTransport
           .nativeCode(write.nativeError, "code")

@@ -1224,7 +1224,7 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, _) =>
+      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
         for {
           _ <- peer.writeAscii(
             "POST /framing HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 18446744073709551619\r\n\r\nabc"
@@ -1234,6 +1234,11 @@ object Http1FramingCases {
           _ <- Check(
             status.forall(value => value >= 400 && value <= 599),
             s"invalid framing was answered successfully: $status",
+          )
+          observed <- server.pollReceived
+          _ <- Check(
+            observed.isEmpty,
+            s"EchoBody reported a complete request after an overflowing length: $observed",
           )
         } yield ()
       }
@@ -3166,7 +3171,7 @@ object Http1FramingCases {
         "MUST",
       ),
     ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, _) =>
+      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
         for {
           _ <- peer.writeAscii(
             "POST /framing HTTP/1.1\r\nHost: wire.test\r\nTransfer-Encoding: chunked\r\n\r\n10000000000000003\r\nabc\r\n0\r\n\r\n"
@@ -3176,6 +3181,11 @@ object Http1FramingCases {
           _ <- Check(
             status.forall(value => value >= 400 && value <= 599),
             s"invalid framing was answered successfully: $status",
+          )
+          observed <- server.pollReceived
+          _ <- Check(
+            observed.isEmpty,
+            s"EchoBody reported a complete request after an overflowing length: $observed",
           )
         } yield ()
       }
@@ -3478,7 +3488,7 @@ object Http1FramingCases {
           .handleErrorWith(unexpectedTargetRejection)
       ) { peer =>
         for {
-          request <- Http1Wire.readRequest(peer)
+          request <- Http1Wire.readGeneratedRequest(peer)
           lengths = fieldValues(request.headers, "Content-Length")
           transfers = fieldValues(request.headers, "Transfer-Encoding")
           _ <- Check.equal(request.method, "POST")
@@ -3522,7 +3532,7 @@ object Http1FramingCases {
           .handleErrorWith(unexpectedTargetRejection)
       ) { peer =>
         for {
-          request <- Http1Wire.readRequest(peer)
+          request <- Http1Wire.readGeneratedRequest(peer)
           lengths = fieldValues(request.headers, "Content-Length")
           transfers = fieldValues(request.headers, "Transfer-Encoding")
           _ <- Check.equal(request.method, "POST")
@@ -3555,6 +3565,7 @@ object Http1FramingCases {
             _ <- peer
               .writeAscii("GET /framing HTTP/1.1\r\nHost: wire.test\r\nConnection: close\r\n\r\n")
             response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
+            _ <- IO(Http1Wire.validateGeneratedContentLength(response.headers))
             lengths = fieldValues(response.headers, "Content-Length")
             transfers = fieldValues(response.headers, "Transfer-Encoding")
             _ <- Check.equal(response.status, 200)
@@ -3564,7 +3575,10 @@ object Http1FramingCases {
               "a sender must not emit both CL and TE",
             )
             _ <- Check(
-              transfers.flatMap(_.split(",").map(_.trim)).forall(_.equalsIgnoreCase("chunked")),
+              transfers.isEmpty || transfers == Vector("") ||
+                transfers
+                  .flatMap(_.split(",", -1).map(_.trim))
+                  .forall(_.equalsIgnoreCase("chunked")),
               s"only chunked is acceptable without a TE request field: $transfers",
             )
             _ <- Http1FramingCases.expectClosedAfterResponse(peer)
@@ -3595,6 +3609,7 @@ object Http1FramingCases {
             _ <- peer
               .writeAscii("GET /framing HTTP/1.1\r\nHost: wire.test\r\nConnection: close\r\n\r\n")
             response <- Http1Wire.readFinalResponse(peer).handleErrorWith(unexpectedEof)
+            _ <- IO(Http1Wire.validateGeneratedContentLength(response.headers))
             lengths = fieldValues(response.headers, "Content-Length")
             transfers = fieldValues(response.headers, "Transfer-Encoding")
             _ <- Check.equal(response.status, 200)
@@ -3607,7 +3622,10 @@ object Http1FramingCases {
               "a sender must not emit both CL and TE",
             )
             _ <- Check(
-              transfers.flatMap(_.split(",").map(_.trim)).forall(_.equalsIgnoreCase("chunked")),
+              transfers.isEmpty || transfers == Vector("") ||
+                transfers
+                  .flatMap(_.split(",", -1).map(_.trim))
+                  .forall(_.equalsIgnoreCase("chunked")),
               s"only chunked is acceptable without a TE request field: $transfers",
             )
             _ <- Http1FramingCases.expectClosedAfterResponse(peer)

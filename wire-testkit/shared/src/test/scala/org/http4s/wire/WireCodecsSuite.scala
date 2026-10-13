@@ -19,6 +19,7 @@ package org.http4s.wire
 import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Ref
+import cats.effect.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
@@ -30,6 +31,28 @@ import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 private[wire] object WireCodecsSuite {
+  def runH2ServerCase(id: String, peer: Resource[IO, RawPeer[IO]]): IO[Unit] = {
+    val target = new WireTarget[IO] {
+      val name = "frame-boundary-fixture"
+      val version = "oracle-challenge"
+      def server(protocol: Protocol, scenario: ServerScenario): Resource[IO, ServerHandle[IO]] =
+        Resource.pure(
+          ServerHandle[IO](SocketAddress(ip"127.0.0.1", port"1"), IO.never, IO.pure(None))
+        )
+      def client(
+          protocol: Protocol,
+          address: SocketAddress[IpAddress],
+      ): Resource[IO, ClientDriver[IO]] =
+        Resource.eval(IO.raiseError(new UnsupportedOperationException("server only")))
+    }
+    Transcript.create[IO]().flatMap { transcript =>
+      Http2ControlCases.all
+        .find(_.id == id)
+        .get
+        .run(CaseContext(target, transcript, (_, _) => peer))
+    }
+  }
+
   def peer(
       bytes: ByteVector,
       fragment: Int = 8192,
@@ -273,6 +296,99 @@ class WireCodecsSuite extends CatsEffectSuite {
     }
   }
 
+  for (transfer <- Vector("", " \t", ",", "chunked,", ",chunked", "chunked,,gzip")) {
+    test(s"HTTP/1 empty transfer list response: '$transfer'") {
+      val run = peer(ascii(s"HTTP/1.1 200 OK\r\nTransfer-Encoding: $transfer\r\n\r\nabc"))
+        .flatMap(p => Http1Wire.readResponse(p._1))
+      if (transfer.trim.isEmpty) run.map(r => assertEquals(r.body, ascii("abc")))
+      else run.intercept[WireDecodingFailure].void
+    }
+    test(s"HTTP/1 empty transfer list cannot delimit request: '$transfer'") {
+      peer(ascii(s"POST / HTTP/1.1\r\nTransfer-Encoding: $transfer\r\n\r\nabc"))
+        .flatMap(p => Http1Wire.readRequest(p._1))
+        .intercept[WireDecodingFailure]
+        .void
+    }
+  }
+
+  test("HTTP/1 empty transfer list is still a framing field conflicting with Content-Length") {
+    peer(ascii("HTTP/1.1 200 OK\r\nTransfer-Encoding:\r\nContent-Length: 3\r\n\r\nabc"))
+      .flatMap(p => Http1Wire.readResponse(p._1))
+      .intercept[WireDecodingFailure]
+      .map(e => assert(e.getMessage.contains("both transfer-encoding and content-length")))
+  }
+
+  for {
+    extension <- Vector(
+      ";flag",
+      " ; flag",
+      ";flag \t; next",
+      ";flag \t= \tvalue",
+      ";flag ",
+      ";flag\t",
+    )
+    last <- Vector(false, true)
+  } test(s"HTTP/1 bare extension boundary '$extension' last=$last") {
+    val input = ascii(
+      "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n" +
+        "3" + (if (last) "" else extension) + "\r\nabc\r\n0" +
+        (if (last) extension else "") + "\r\n\r\n"
+    )
+    val run = peer(input, 1).flatMap(p => Http1Wire.readResponse(p._1))
+    if (extension.last == ' ' || extension.last == '\t')
+      run
+        .intercept[WireDecodingFailure]
+        .map(e => assertEquals(e.getMessage, "trailing whitespace after bare chunk extension"))
+    else run.map(r => assertEquals(r.body, ascii("abc")))
+  }
+
+  test("HTTP/1 recipient request observation retains compressed message bytes") {
+    val gzip = hex("1f8b08000000000000ff63f8df000040a7dd8103000000")
+    peer(
+      ascii("POST / HTTP/1.1\r\nTransfer-Encoding: gzip, chunked\r\n\r\n17\r\n") ++
+        gzip ++ ascii("\r\n0\r\n\r\n"),
+      1,
+    )
+      .flatMap(p => Http1Wire.readRequest(p._1))
+      .map(r => assertEquals(r.body, gzip))
+  }
+
+  test("HTTP/1 generated request content limit follows complete framing observation") {
+    val gzip = hex("1f8b08000000000000ff63f8df000040a7dd8103000000")
+    peer(
+      ascii("POST / HTTP/1.1\r\nTransfer-Encoding: GZip, ChUnKeD\r\n\r\n17\r\n") ++
+        gzip ++ ascii("\r\n0\r\nX-Trace: done\r\n\r\nnext"),
+      1,
+    ).flatMap { case (raw, _) =>
+      for {
+        error <- Http1Wire.readGeneratedRequest(raw).intercept[WireObservationLimit]
+        remaining <- raw.readExact(4)
+      } yield {
+        assert(
+          error.getMessage.startsWith(
+            "cannot observe request content: unsupported transfer decoding: gzip;"
+          )
+        )
+        assertEquals(remaining, ascii("next"))
+      }
+    }
+  }
+
+  for (generated <- Vector(false, true))
+    test(s"HTTP/1 Content-Length recovery is recipient-only: generated=$generated") {
+      peer(ascii("POST / HTTP/1.1\r\nContent-Length: 3, 03\r\nContent-Length: 003\r\n\r\nabc"))
+        .flatMap { case (raw, _) =>
+          if (generated)
+            Http1Wire
+              .readGeneratedRequest(raw)
+              .intercept[WireDecodingFailure]
+              .map(e =>
+                assertEquals(e.getMessage, "generated content-length must be one decimal field")
+              )
+          else Http1Wire.readRequest(raw).map(r => assertEquals(r.body, ascii("abc")))
+        }
+    }
+
   test("HTTP/1 accepts identical repeated content lengths") {
     peer(ascii("HTTP/1.1 200 OK\r\nContent-Length: 3, 3\r\nContent-Length: 3\r\n\r\nabc"))
       .flatMap(p => Http1Wire.readResponse(p._1))
@@ -368,6 +484,111 @@ class WireCodecsSuite extends CatsEffectSuite {
     assert(Http2Wire.decodeAll(bytes).isLeft)
     assert(Http2Wire.decodeAll(hex("00000100")).isLeft)
     peer(bytes).flatMap(p => Http2Wire.readFrame(p._1).attempt).map(r => assert(r.isLeft))
+  }
+
+  for (
+    shape <- Vector(
+      "reset",
+      "ordinary",
+      "timeout-cause",
+      "timeout-suppressed",
+      "timeout-cycle",
+      "adapter-cause",
+      "adapter-suppressed",
+      "adapter-over-timeout",
+      "eof-timeout",
+      "eof-adapter",
+    )
+  ) {
+    def failure(): (Throwable, Option[Throwable], String) = {
+      val reset = Http1ResetFixture.reset
+      val timeout = new java.util.concurrent.TimeoutException("read deadline")
+      val adapter = new AdapterFailure("fixture read", reset)
+      val error = shape match {
+        case "reset" => reset
+        case "ordinary" => new java.io.IOException("unrelated read error")
+        case "timeout-cause" => timeout.initCause(reset)
+        case "timeout-suppressed" => reset.addSuppressed(timeout); reset
+        case "timeout-cycle" =>
+          val outer = new java.io.IOException("wrapper", reset)
+          reset.initCause(outer)
+          reset.addSuppressed(timeout)
+          outer
+        case "adapter-cause" => adapter
+        case "adapter-suppressed" => reset.addSuppressed(adapter); reset
+        case "adapter-over-timeout" =>
+          timeout.initCause(reset)
+          timeout.addSuppressed(adapter)
+          timeout
+        case _ =>
+          val eof = new IllegalArgumentException("unexpected EOF: needed 1 bytes, received 0")
+          eof.addSuppressed(if (shape == "eof-timeout") timeout else adapter)
+          eof
+      }
+      val expected =
+        if (shape.contains("adapter")) Some(adapter)
+        else if (shape == "reset") None
+        else Some(error)
+      val status =
+        if (shape.contains("adapter") || shape == "ordinary") "error"
+        else if (shape == "reset") "pass"
+        else "inconclusive"
+      (error, expected, status)
+    }
+
+    test(s"HTTP/2 frame boundary preserves failure provenance: $shape") {
+      val (error, expected, status) = failure()
+      peer(ByteVector.empty, whenEmpty = IO.raiseError(error))
+        .flatMap(p => Http2Wire.readFrameOrClose(p._1).attempt)
+        .map { result =>
+          assertEquals(WireSuite.outcomeStatus(result.void), status)
+          if (status == "inconclusive") {
+            val normalized = result.swap.toOption.get
+            assert(normalized.isInstanceOf[java.util.concurrent.TimeoutException])
+            assert((normalized eq error) || (normalized.getCause eq error))
+          } else
+            expected match {
+              case Some(value) => assertEquals(result, Left(value))
+              case None => assertEquals(result, Right(None))
+            }
+        }
+    }
+
+    test(s"h2.server.reject-preface-magic preserves boundary outcome: $shape") {
+      val (error, expected, status) = failure()
+      WireCodecsSuite
+        .runH2ServerCase(
+          "h2.server.reject-preface-magic",
+          Resource.eval(peer(ByteVector.empty, whenEmpty = IO.raiseError(error)).map(_._1)),
+        )
+        .attempt
+        .map { result =>
+          assertEquals(WireSuite.outcomeStatus(result), status)
+          if (status == "error") assertEquals(result, Left(expected.get))
+        }
+    }
+
+    if (!shape.startsWith("eof-"))
+      test(s"HTTP/2 partial frames retain the read error: $shape") {
+        val header = hex("000009000000000001")
+        ((1 to 9).map(n => header.take(n.toLong)).toVector :+ (header ++ ascii("abc")))
+          .traverse_ { prefix =>
+            val (error, expected, status) = failure()
+            peer(prefix, fragment = 1, whenEmpty = IO.raiseError(error))
+              .flatMap(p => Http2Wire.readFrameOrClose(p._1).attempt)
+              .map { result =>
+                assert(result.isLeft)
+                assertEquals(
+                  WireSuite.outcomeStatus(result.void),
+                  if (shape == "reset") "error" else status,
+                )
+                if (status == "inconclusive") {
+                  val normalized = result.swap.toOption.get
+                  assert((normalized eq error) || (normalized.getCause eq error))
+                } else assertEquals(result, Left(expected.getOrElse(error)))
+              }
+          }
+      }
   }
 
   test("HTTP/2 accepts an empty connection closure before a frame") {

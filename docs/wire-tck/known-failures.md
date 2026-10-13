@@ -10,6 +10,7 @@ rejection nor a protocol deviation, and any unresolved platform keeps its
 aggregate entry provisional.
 
 The active registry has 153 IDs: 92 confirmed and 61 provisional.
+The [phase 4 refresh](#phase-4-full-catalog-refresh) records the final full matrix.
 The earlier A4 refresh added three IDs and removed eleven obsolete ignores.
 Five removals and two connection-credit evidence updates use the separate 48-cell completion-credit
 comparison described below and the accepted independent State source review.
@@ -4864,3 +4865,30 @@ This establishes neither rejection nor a protocol deviation, and no fixture
 fault was established. Earlier Native Scala 2.13.18 and current JVM/JS cells
 passed as recorded in N1's evidence section. The platform-wide ignore does not
 imply that all Scala versions fail.
+
+
+## Phase 4 full-catalog refresh
+
+Final evidence revision: `4dcb21681c71a013025ba4a4a140a63b4a781ee7:692eb7d2086481b46334888d61255a1c39173ca8a364953d985b86973f23e9b4`.
+All three complete comparisons (Scala 2.12.21, 2.13.18 and 3.3.8) execute the full
+749-case catalog on Ember JVM/JS/Native and Netty JVM. Each Ember platform has
+599 passes, 90 assertion failures and 60 inconclusive observations in each run.
+Every case/target category matches across Scala versions. All Ember nonpasses
+are already individually registered; no harness defect was added as an Ember
+protocol deviation. See all outcomes and archive hashes (`audit/phase4-accepted-status.md`, historical artifact).
+
+The registry remains 153 IDs / 453 platform cells (150 JVM, 150 JS, 153 Native),
+with 92 confirmed and 61 provisional entries. Provisional deadlines remain
+inconclusive; confirmed SHOULD deviations are not promoted to mandatory
+violations. Historical evidence and tracking anchors above remain intact.
+
+Three Native-only intermittent observations passed all current comparisons but
+retain their proven historical failure evidence: `h2.client.connection-window-overflow`,
+`h2.client.interaction-eager-server-settings`, and
+`h2.client.interaction-eager-zero-window-upload`. Current passes do not erase the
+prior ordering and deadline observations. Ordinary runs therefore skip 153 Native
+cells even though these comparisons have only 150 Native nonpasses.
+
+Netty's 623 passes / 97 failures / 29 inconclusive observations per run are an
+independent comparison, not a correctness vote. Assertions were reviewed against
+the pinned RFCs; no target-specific expected-result overrides were introduced.

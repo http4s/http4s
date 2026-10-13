@@ -738,6 +738,94 @@ class NettyTargetSuite extends CatsEffectSuite {
       .timeout(5.seconds)
   }
 
+  private def framingFields(head: ByteVector): Vector[(String, String)] =
+    head.decodeAscii.fold(throw _, identity).split("\r\n").toVector.drop(1).flatMap { line =>
+      val colon = line.indexOf(':')
+      val name = line.take(colon).toLowerCase(java.util.Locale.ROOT)
+      if (name == "content-length" || name == "transfer-encoding")
+        Vector(name -> line.drop(colon + 1).trim)
+      else Vector.empty
+    }
+
+  Vector(
+    "empty transfer coding" -> Vector("tRaNsFeR-EnCoDiNg" -> ""),
+    "opaque transfer coding" -> Vector("Transfer-Encoding" -> "gzip"),
+    "chunked transfer coding" -> Vector("Transfer-Encoding" -> "chunked"),
+    "content length" -> Vector("Content-Length" -> "03"),
+    "absent framing" -> Vector.empty[(String, String)],
+  ).foreach { case (label, headers) =>
+    Vector(false, true).foreach { streamed =>
+      test(
+        s"HTTP/1 client framing defaults preserve supplied fields: $label, streamed: $streamed"
+      ) {
+        val body = Http1Wire.ascii("abc")
+        val chunked = headers.exists(_._2 == "chunked") || (headers.isEmpty && streamed)
+        val expectedHeaders =
+          if (headers.nonEmpty)
+            headers.map { case (name, value) => name.toLowerCase(java.util.Locale.ROOT) -> value }
+          else if (streamed) Vector("transfer-encoding" -> "chunked")
+          else Vector("content-length" -> "3")
+        val expectedBody = if (chunked) Http1Wire.ascii("3\r\nabc\r\n0\r\n\r\n") else body
+        // Nonfinal request TE is deliberately invalid protocol input. This scripted peer
+        // observes adapter fidelity only; no recipient acceptance or coding support is claimed.
+        Transcript
+          .create[IO]()
+          .flatMap { transcript =>
+            CaseContext(target, transcript).client(Protocol.Http1) { client =>
+              val request = RequestData(method = "POST", headers = headers, body = body)
+              val exchange =
+                if (streamed)
+                  client.exchangeStream(request, _ => Stream.chunk(Chunk.byteVector(body)))
+                else client.exchange(request)
+              exchange.use(response =>
+                IO(assertEquals(response.status, 200)) *> response.body.compile.drain
+              )
+            } { peer =>
+              for {
+                head <- peer.readUntil(Http1Wire.ascii("\r\n\r\n"))
+                _ <- IO(assertEquals(framingFields(head), expectedHeaders))
+                bytes <- peer.readExact(expectedBody.size.toInt)
+                _ <- IO(assertEquals(bytes, expectedBody))
+                _ <- peer.writeAscii("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+              } yield ()
+            }
+          }
+          .timeout(5.seconds)
+      }
+    }
+
+    test(s"HTTP/1 server framing defaults preserve supplied fields: $label") {
+      val body = Http1Wire.ascii("abc")
+      val expectedHeaders =
+        if (headers.nonEmpty)
+          headers.map { case (name, value) => name.toLowerCase(java.util.Locale.ROOT) -> value }
+        else Vector("content-length" -> "3")
+      val expectedBody =
+        if (headers.exists(_._2 == "chunked")) Http1Wire.ascii("3\r\nabc\r\n0\r\n\r\n")
+        else body
+      // Observe raw bytes, including empty TE and opaque coding, without decoding them.
+      Transcript
+        .create[IO]()
+        .flatMap { transcript =>
+          CaseContext(target, transcript)
+            .server(
+              Protocol.Http1,
+              ServerScenario.Reply(headers = headers :+ ("Connection" -> "close"), body = body),
+            )
+            .use { case (peer, _) =>
+              for {
+                _ <- peer.writeAscii("GET / HTTP/1.1\r\nHost: wire.test\r\n\r\n")
+                head <- peer.readUntil(Http1Wire.ascii("\r\n\r\n"))
+                _ <- IO(assertEquals(framingFields(head), expectedHeaders))
+                bytes <- peer.readToEnd(65536)
+                _ <- IO(assertEquals(bytes, expectedBody))
+              } yield ()
+            }
+        }
+        .timeout(5.seconds)
+    }
+  }
+
   test("HTTP/1 prompt native replies permit repeated ordinary GET exchanges") {
     target
       .server(Protocol.Http1, ServerScenario.Reply())

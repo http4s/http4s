@@ -134,7 +134,7 @@ object SmokeCases {
             // Timeout and codec errors remain failures, never evidence of rejection.
             bytes <- peer.readToEnd(65536, allowReset = true).timeout(5.seconds)
             frames <- IO.fromEither(Http2Wire.decodeAll(bytes))
-            _ <- checkConnectionRejection(frames)
+            _ <- checkConnectionRejection(peer, frames)
           } yield ()
         }
       }
@@ -252,7 +252,9 @@ object SmokeCases {
   )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Int] =
     for {
       _ <- Http2Wire.serverHandshake(peer)
-      first <- Http2Wire.readUntil(peer, fromServer = false)(_.frameType == Http2Wire.Headers)
+      first <- Http2PositiveObservation.readUntil(peer, fromServer = false)(
+        _.frameType == Http2Wire.Headers
+      )
       decoder <- HpackWire.decoder[IO]()
       fields <- Http2Wire.readHeaders(peer, first, decoder)
       _ <- Check(
@@ -268,7 +270,7 @@ object SmokeCases {
   )(implicit peerSettings: Http2PeerSettings[IO], dataBudget: Http2Wire.DataBudget): IO[Unit] =
     for {
       _ <- Http2Wire.writeFrame(peer, Http2Wire.Frame(Http2Wire.Ping, 0, 0, PingPayload))
-      response <- Http2Wire.readUntil(peer, fromServer = true)(frame =>
+      response <- Http2PositiveObservation.readUntil(peer, fromServer = true)(frame =>
         frame.frameType == Http2Wire.Ping && frame.hasFlag(Http2Wire.Ack)
       )
       _ <- Check.equal(response.streamId, 0)
@@ -276,34 +278,33 @@ object SmokeCases {
     } yield ()
 
   private def requireStreamRejection(peer: RawPeer[IO], streamId: Int)(implicit
-      peerSettings: Http2PeerSettings[IO],
-      dataBudget: Http2Wire.DataBudget,
-  ): IO[Unit] = {
+      peerSettings: Http2PeerSettings[IO]
+  ): IO[Unit] = peerSettings.positive(peer).flatMap { observation =>
     def checked(
-        frame: Http2Wire.Frame,
-        state: Http2RejectionChecks.State,
+        frame: Http2Wire.Frame
     ): IO[Http2RejectionChecks.State] =
-      IO.fromEither(Http2RejectionChecks.validate(frame, fromServer = false, state))
+      observation
+        .observeControl(frame, fromServer = false)
         .flatTap(_ => checkStreamRejection(frame, streamId))
-    def loop(remaining: Int, state: Http2RejectionChecks.State, closing: Boolean): IO[Unit] =
+    def loop(remaining: Int, closing: Boolean): IO[Unit] =
       observationBound(remaining > 0, "too many frames without required protocol rejection") *>
         Http2Wire.readFrameOrClose(peer).flatMap {
           case None => IO.unit // A stream error may be escalated to transport termination.
           case Some(frame) =>
-            checked(frame, state).flatMap { next =>
+            checked(frame).flatMap { _ =>
               frame.frameType match {
                 case Http2Wire.RstStream =>
-                  if (closing) loop(remaining - 1, next, closing) else IO.unit
+                  if (closing) loop(remaining - 1, closing) else IO.unit
                 case Http2Wire.GoAway if Http2Wire.readUint32(frame.payload.slice(4, 8)) != 0L =>
                   peer
                     .readToEnd(65536, allowReset = true)
                     .flatMap(bytes => IO.fromEither(Http2Wire.decodeAll(bytes)))
-                    .flatMap(_.foldLeftM(next)((previous, observed) => checked(observed, previous)))
+                    .flatMap(_.traverse_(checked))
                     .void
                 case _ =>
                   (if (closing) IO.pure(false)
                    else if (frame.frameType == Http2Wire.Settings && !frame.hasFlag(Http2Wire.Ack))
-                     IO(dataBudget.check(frame)) *> Http2RejectionWrite.reply(
+                     Http2RejectionWrite.reply(
                        Http2Wire.writeFrame(
                          peer,
                          Http2Wire.settings(ack = true),
@@ -314,11 +315,11 @@ object SmokeCases {
                        Http2Wire.writeFrame(peer, frame.copy(flags = Http2Wire.Ack))
                      )
                    else IO.pure(true))
-                    .flatMap(written => loop(remaining - 1, next, closing || !written))
+                    .flatMap(written => loop(remaining - 1, closing || !written))
               }
             }
         }
-    loop(1024, Http2RejectionChecks.State(), closing = false)
+    loop(1024, closing = false)
   }
 
   // Both callers validate the complete control envelope before these verdict-specific checks.
@@ -337,31 +338,31 @@ object SmokeCases {
       case _ => IO.unit
     }
 
-  private def checkConnectionRejection(frames: Vector[Http2Wire.Frame]): IO[Unit] =
-    frames
-      .foldLeftM(Http2RejectionChecks.State()) { (previous, frame) =>
-        IO.fromEither(Http2RejectionChecks.validate(frame, fromServer = true, previous)).flatTap {
-          _ =>
-            frame.frameType match {
-              case Http2Wire.GoAway =>
-                val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
-                // Section 5.4 permits generic codes in place of the specific size error.
-                Check(
-                  code == 0L || Set(1L, 2L, 6L).contains(code),
-                  s"unexpected GOAWAY error code: $code",
-                )
-              case Http2Wire.Ping =>
-                Check(
-                  !frame.hasFlag(Http2Wire.Ack),
-                  "an invalid-length PING must not be acknowledged",
-                )
-              case Http2Wire.Settings | Http2Wire.WindowUpdate | Http2Wire.Priority => IO.unit
-              case kind if kind > Http2Wire.Continuation => IO.unit
-              case _ => Check(false, s"unexpected frame while rejecting malformed PING: $frame")
-            }
+  private def checkConnectionRejection(peer: RawPeer[IO], frames: Vector[Http2Wire.Frame])(implicit
+      peerSettings: Http2PeerSettings[IO]
+  ): IO[Unit] = peerSettings.positive(peer).flatMap { observation =>
+    frames.traverse_ { frame =>
+      observation.observeControl(frame, fromServer = true).flatTap { _ =>
+        frame.frameType match {
+          case Http2Wire.GoAway =>
+            val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
+            // Section 5.4 permits generic codes in place of the specific size error.
+            Check(
+              code == 0L || Set(1L, 2L, 6L).contains(code),
+              s"unexpected GOAWAY error code: $code",
+            )
+          case Http2Wire.Ping =>
+            Check(
+              !frame.hasFlag(Http2Wire.Ack),
+              "an invalid-length PING must not be acknowledged",
+            )
+          case Http2Wire.Settings | Http2Wire.WindowUpdate | Http2Wire.Priority => IO.unit
+          case kind if kind > Http2Wire.Continuation => IO.unit
+          case _ => Check(false, s"unexpected frame while rejecting malformed PING: $frame")
         }
       }
-      .void
+    }.void
+  }
 
   private def observationBound(condition: Boolean, detail: String): IO[Unit] =
     if (condition) IO.unit else IO.raiseError(new WireObservationLimit(detail))

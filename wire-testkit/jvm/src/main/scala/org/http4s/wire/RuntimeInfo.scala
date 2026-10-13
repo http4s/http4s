@@ -22,6 +22,9 @@ object RuntimeInfo {
   val platform: String = "jvm"
   val runtime: String = s"Java ${System.getProperty("java.version")}"
 
+  private[wire] def isSocketTimeout(error: Throwable): Boolean =
+    error.isInstanceOf[java.net.SocketTimeoutException]
+
   private[wire] def isConnectionReset(error: Throwable): Boolean = {
     @annotation.tailrec
     def loop(current: Throwable, remaining: Int): Boolean =

@@ -172,7 +172,9 @@ object RawPeer {
     def timedOut(pending: List[Throwable], seen: Set[Throwable]): Boolean = pending match {
       case Nil => false
       case current :: rest if current == null || seen(current) => timedOut(rest, seen)
-      case current :: _ if current.isInstanceOf[TimeoutException] => true
+      case current :: _
+          if current.isInstanceOf[TimeoutException] || RuntimeInfo.isSocketTimeout(current) =>
+        true
       case current :: rest =>
         timedOut(current.getCause :: current.getSuppressed.toList ::: rest, seen + current)
     }

@@ -265,7 +265,7 @@ rfc	section	title	classification	reason
 9110	4.2	HTTP-Related URI Schemes	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	4.2.1	http URI Scheme	dependency	Only framing/syntax consequences are included; general application semantics are excluded within this section.
 9110	4.2.2	https URI Scheme	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
-9110	4.2.3	http(s) Normalization and Comparison	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
+9110	4.2.3	http(s) Normalization and Comparison	applicable	Selected only for origin percent-escape hex-case equivalence and conditional encoded-target Location equivalence in RFC 9112 3.2; see inventory/h1-syntax.tsv and inventory/grammar-dependencies.tsv. No general URI comparison conformance claim.
 9110	4.2.4	Deprecation of userinfo in http(s) URIs	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	4.2.5	http(s) References with Fragment Identifiers	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	4.3	Authoritative Access	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
@@ -344,11 +344,11 @@ rfc	section	title	classification	reason
 9110	8.8.3.2	Comparison	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	8.8.3.3	Example: Entity Tags Varying on Content-Negotiated Resources	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	9	Methods	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
-9110	9.1	Overview	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
+9110	9.1	Overview	dependency	Only method token grammar imported by RFC9113 8.3.1; general method/application semantics remain excluded.
 9110	9.2	Common Method Properties	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
-9110	9.2.1	Safe Methods	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
-9110	9.2.2	Idempotent Methods	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
-9110	9.2.3	Methods and Caching	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
+9110	9.2.1	Safe Methods	dependency	Only known-safe method classification imported by RFC9113 8.4/8.4.1 push requirements; general application safety policy remains excluded.
+9110	9.2.2	Idempotent Methods	dependency	Only idempotency and uncertain-replay constraints imported by RFC9113 8.7; multi-connection retry coverage remains a gap and general application retry policy remains excluded.
+9110	9.2.3	Methods and Caching	dependency	Only method cacheability imported by RFC9113 8.4/8.4.1 push requirements; response storage and general caching policy remain excluded.
 9110	9.3	Method Definitions	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	9.3.1	GET	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	9.3.2	HEAD	dependency	Only framing/syntax consequences are included; general application semantics are excluded within this section.
@@ -367,7 +367,7 @@ rfc	section	title	classification	reason
 9110	10.1.5	User-Agent	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	10.2	Response Context Fields	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	10.2.1	Allow	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
-9110	10.2.2	Location	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
+9110	10.2.2	Location	applicable	Selected only for the single ASCII Location URI-reference and fixture-relative resolution in the existing RFC 9112 3.2 encoded-target alternative; see inventory/h1-syntax.tsv and inventory/grammar-dependencies.tsv. General redirect policy, including 308 method preservation, remains excluded.
 9110	10.2.3	Retry-After	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	10.2.4	Server	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.
 9110	11	HTTP Authentication	excluded	Outside explicitly selected RFC9110 framing/syntax dependencies; no general semantics conformance claim.

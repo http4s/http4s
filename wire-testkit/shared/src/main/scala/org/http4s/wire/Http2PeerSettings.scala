@@ -25,6 +25,7 @@ import scodec.bits.ByteVector
   * additional conformance requirements on a sender or an implementation's acceptance policy.
   */
 private[wire] trait Http2PeerSettings[F[_]] {
+  def positive(peer: RawPeer[F]): F[Http2PositiveObservation[F]]
   def received(peer: RawPeer[F], frame: Http2Wire.Frame): F[Unit]
   def knownFields(peer: RawPeer[F], octetFields: Vector[(String, String)]): F[Unit]
   def sending(
@@ -121,10 +122,13 @@ private[wire] object Http2PeerSettings {
       state: Ref[F, State],
       decoder: HpackWire.Decoder[F],
       fieldBlock: Ref[F, Option[(Int, ByteVector)]],
+      positive: Http2PositiveObservation[F],
   )
 
   // Existing independent codec callers do not need a case prerequisite scope.
   implicit def untracked[F[_]: Async]: Http2PeerSettings[F] = new Http2PeerSettings[F] {
+    def positive(peer: RawPeer[F]): F[Http2PositiveObservation[F]] =
+      Http2PositiveObservation.create[F]
     def received(peer: RawPeer[F], frame: Frame): F[Unit] = Async[F].unit
     def knownFields(peer: RawPeer[F], octetFields: Vector[(String, String)]): F[Unit] =
       Async[F].unit
@@ -144,7 +148,8 @@ private[wire] object Http2PeerSettings {
               Ref.of[F, State](State()),
               HpackWire.decoder[F](maxTableSize = Int.MaxValue),
               Ref.of[F, Option[(Int, ByteVector)]](None),
-            ).mapN(Connection(_, _, _))
+              Http2PositiveObservation.create[F],
+            ).mapN(Connection(_, _, _, _))
               .flatMap(value =>
                 connections.modify { latest =>
                   val selected = latest.getOrElse(peer, value)
@@ -154,6 +159,9 @@ private[wire] object Http2PeerSettings {
         }
       }
       run(new Http2PeerSettings[F] {
+        def positive(peer: RawPeer[F]): F[Http2PositiveObservation[F]] =
+          connection(peer).map(_.positive)
+
         def received(peer: RawPeer[F], frame: Frame): F[Unit] =
           connection(peer).flatMap(_.state.update(_.received(frame)))
 
@@ -254,7 +262,14 @@ private[wire] object Http2PeerSettings {
                       }
                       .as(1)
                   else Async[F].pure(1)
-                current.state.update(_.sending(frame, initiatesRequests)) *>
+                current.state.get.flatMap { state =>
+                  if (
+                    initiatesRequests && frame.frameType == Headers &&
+                    frame.streamId > state.highest && (frame.streamId & 1) == 1
+                  )
+                    current.positive.openingStream(frame.streamId)
+                  else Async[F].unit
+                } *> current.state.update(_.sending(frame, initiatesRequests)) *>
                   fieldSection.flatMap { consumed =>
                     current.state.update(state =>
                       frames
