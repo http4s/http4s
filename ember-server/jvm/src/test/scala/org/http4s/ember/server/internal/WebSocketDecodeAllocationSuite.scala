@@ -124,7 +124,7 @@ class WebSocketDecodeAllocationSuite extends FunSuite {
     val result = Stream
       .chunk(bytes)
       .chunkLimit(100)
-      .flatMap(Stream.chunk)
+      .unchunks
       .through(small.decodeFrames[SyncIO])
       .take(2)
       .compile
