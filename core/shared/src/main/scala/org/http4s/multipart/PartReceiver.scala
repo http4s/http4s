@@ -221,6 +221,7 @@ object PartReceiver {
       s.pull.uncons.flatMap {
         case Some((headChunk, tail)) =>
           val newBytes = acc ++ headChunk
+          val updateTotalBytes = totalBytesRead.updateAndGet(_ + headChunk.size)
 
           // Append the incoming chunk of bytes to the accumulator
           // (should be cheap to do so thanks to Chunk's Queue encoding).
@@ -228,9 +229,12 @@ object PartReceiver {
           // it all to a temp file, along with any remaining bytes from
           // the `tail` stream. Otherwise, continue pulling and accumulating
           // the in-memory buffer.
-          Pull.eval(totalBytesRead.updateAndGet(_ + headChunk.size)).flatMap { total =>
+          Pull.eval(updateTotalBytes).flatMap { total =>
             if (total > maxSizeBeforeFile) {
-              val toDump = Stream.chunk(newBytes) ++ tail
+              val countedTailBytes = tail.chunks
+                .evalTap(chunk => totalBytesRead.update(_ + chunk.size))
+                .flatMap(Stream.chunk)
+              val toDump = Stream.chunk(newBytes) ++ countedTailBytes
               Pull.output1(
                 Files[F].tempFile
                   .evalTap(path => toDump.through(Files[F].writeAll(path)).compile.drain)
