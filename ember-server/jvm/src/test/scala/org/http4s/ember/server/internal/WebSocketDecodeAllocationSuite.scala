@@ -52,7 +52,7 @@ class WebSocketDecodeAllocationSuite extends FunSuite {
     Stream
       .chunk(bytes)
       .chunkLimit(readSize)
-      .flatMap(Stream.chunk)
+      .unchunks
       .through(helpers.decodeFrames[SyncIO])
       .handleErrorWith {
         case _: WebSocketHelpers.EndOfStreamError => Stream.empty
