@@ -357,7 +357,7 @@ object EntityDecoder {
     *
     * @param headerLimit the max size for the headers, in bytes. This is required as
     *                    headers are strictly evaluated and parsed.
-    * @param maxSizeBeforeWrite the maximum size across all parts before writing to a file is triggered
+    * @param maxTotalSizeBeforeWrite the maximum size across all parts before writing to a file is triggered
     * @param maxParts the maximum number of parts this decoder accepts. NOTE: this also may mean that a body that doesn't
     *                 conform perfectly to the spec (i.e isn't terminated properly) but has a lot of parts might
     *                 be parsed correctly, despite the total body being malformed due to not conforming to the multipart
