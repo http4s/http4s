@@ -561,11 +561,6 @@ lazy val wireTckCompare = libraryCrossProject("wire-tck-compare")
   )
   .dependsOn(wireTck)
 
-addCommandAlias(
-  "tckCheck",
-  ";wire-testkit/test;wire-tck/test;wire-testkitJS/test;wire-tckJS/test;wire-testkitNative/test;wire-tckNative/test",
-)
-
 // executeTests returns protocol failures as data, so every platform finishes before reconciliation.
 lazy val tckCompare =
   taskKey[Unit]("Run the complete wire catalog and reconcile comparison reports")

@@ -1,6 +1,6 @@
 # Validation record
 
-Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Run `sbt --client tckCheck` and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
 
 Current evidence: phase 4 matrix and audits (`audit/phase4-accepted-status.md`, historical artifact). The sections below
 retain historical execution evidence; later snapshots do not rewrite earlier failures.

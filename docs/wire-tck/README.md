@@ -1,6 +1,6 @@
 # HTTP wire conformance TCK
 
-Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Run `sbt --client tckCheck` and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
 
 The catalog tests clients and servers through real loopback sockets. Each `WireCase`
 is an individual MUnit test, shared unchanged by Ember and Netty. Ordinary Ember
@@ -12,7 +12,9 @@ the completed Scala/platform matrix, implementation deviations and explicit cove
 ## Running
 
 ```
-sbt --client tckCheck
+sbt --client 'wire-testkit/test' 'wire-tck/test'
+sbt --client 'wire-testkitJS/test' 'wire-tckJS/test'
+sbt --client 'wire-testkitNative/test' 'wire-tckNative/test'
 sbt --client tckCompare
 sbt --client 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
 sbt --client 'wire-tckJS/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
@@ -23,7 +25,7 @@ sbt --client 'wire-tck-compare/testOnly org.http4s.wire.CompareNettyHttp2ServerS
 Each case also has its stable ID as an MUnit tag. Use `--include-tags=<exact ID>`
 to select one case on JVM, JS, or Native; tag matching is exact.
 
-The aliases/tasks use the selected Scala version. Prefix a command sequence with
+The test commands and comparison task use the selected Scala version. Prefix a command sequence with
 `++2.12.21`, `++2.13.18`, or `++3.3.8` to use the repository's version matrix.
 `wire-tck` and `wire-testkit` are aggregated into the ordinary platform test roots;
 `wire-tck-compare` is deliberately separate. All three modules are unpublished.
