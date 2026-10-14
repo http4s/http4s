@@ -56,6 +56,7 @@ class H2StreamSuite extends Http4sSuite {
       creditConnection: Int => IO[Unit] = _ => IO.unit,
       outgoingQueue: IO[Queue[IO, EncodableH2Frame]] = Queue.unbounded[IO, EncodableH2Frame],
       readBufferCapacity: Int = Int.MaxValue,
+      onClosed: IO[Unit] = IO.unit,
   ): IO[(H2Stream[IO], Queue[IO, EncodableH2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
@@ -95,15 +96,18 @@ class H2StreamSuite extends Http4sSuite {
         bodyDone,
         readBufferLock,
         outgoing.offer,
-        IO.unit,
+        onClosed,
         _ => IO.unit,
         creditConnection,
         logger,
       )
     } yield (stream, outgoing)
 
-  def clientStream(
-      config: H2Frame.Settings.ConnectionSettings
+  private def clientStream(
+      config: H2Frame.Settings.ConnectionSettings,
+      streamState: H2Stream.StreamState = H2Stream.StreamState.Idle,
+      onClosed: IO[Unit] = IO.unit,
+      enqueue: EncodableH2Frame => IO[Unit] = _ => IO.unit,
   ): IO[H2Stream[IO]] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
@@ -116,7 +120,7 @@ class H2StreamSuite extends Http4sSuite {
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
-          state = H2Stream.StreamState.Idle,
+          state = streamState,
           writeWindow = defaultSettings.initialWindowSize.windowSize,
           writeBlock = writeBlock,
           readWindow = config.initialWindowSize.windowSize,
@@ -132,7 +136,6 @@ class H2StreamSuite extends Http4sSuite {
         )
       )
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
-      enqueue <- Queue.unbounded[IO, EncodableH2Frame]
       stream = new H2Stream[IO](
         1,
         60.seconds,
@@ -142,8 +145,8 @@ class H2StreamSuite extends Http4sSuite {
         state,
         bodyDone,
         readBufferLock,
-        enqueue.offer,
-        IO.unit,
+        enqueue,
+        onClosed,
         _ => IO.unit,
         _ => IO.unit,
         logger,
@@ -768,5 +771,49 @@ class H2StreamSuite extends Http4sSuite {
       assert(body.isLeft, clue(body))
       assertEquals(frames, Vector.empty)
     }
+  }
+
+  private def closeTwice(name: String)(close: H2Stream[IO] => IO[Unit]): Unit =
+    test(s"$name runs onClosed only on the first close") {
+      for {
+        closed <- Ref[IO].of(0)
+        sq <- streamAndQueue(defaultSettings, onClosed = closed.update(_ + 1))
+        (stream, _) = sq
+        _ <- close(stream).replicateA_(2)
+        count <- closed.get
+      } yield assertEquals(count, 1)
+    }
+
+  closeTwice("receiveRstStream")(_.receiveRstStream(H2Frame.RstStream(1, H2Error.Cancel.value)))
+  closeTwice("rstStream")(_.rstStream(H2Error.Cancel))
+  closeTwice("receiveGoAway")(_.receiveGoAway(H2Frame.GoAway(0, 1, H2Error.NoError.value, None)))
+
+  test("client resets malformed END_STREAM response headers") {
+    for {
+      closed <- Ref[IO].of(0)
+      outgoing <- Queue.unbounded[IO, EncodableH2Frame]
+      stream <- clientStream(
+        defaultSettings,
+        H2Stream.StreamState.HalfClosedLocal,
+        closed.update(_ + 1),
+        outgoing.offer,
+      )
+      _ <- stream.receiveHeaders(
+        DecodedH2Frame.Headers(1, None, true, true, List(("content-type", "text/plain")))
+      )
+      _ <- assertIO(rstCodes(outgoing), List(H2Error.ProtocolError.value))
+      _ <- assertIOBoolean(stream.getResponse.attempt.map(_.isLeft))
+      _ <- assertIO(closed.get, 1)
+    } yield ()
+  }
+
+  test("rstStream sends nothing once the stream is closed") {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, outgoing) = sq
+      _ <- stream.receiveRstStream(H2Frame.RstStream(1, H2Error.Cancel.value))
+      _ <- stream.rstStream(H2Error.Cancel).replicateA_(2)
+      frames <- sent(outgoing)
+    } yield assertEquals(frames, Vector.empty)
   }
 }
