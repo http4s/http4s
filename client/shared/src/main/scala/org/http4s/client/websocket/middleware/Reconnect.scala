@@ -32,36 +32,31 @@ object Reconnect {
       connect: Resource[F, WSConnectionHighLevel[F]],
       reconnect: WSFrame.Close => F[Boolean],
   )(implicit F: Concurrent[F]): Resource[F, WSConnectionHighLevel[F]] =
-    NonEmptyHotswap[F, Option[Resource[F, Either[Throwable, WSConnectionHighLevel[F]]]]](
-      connect.map(c =>
-        Resource.pure[F, Either[Throwable, WSConnectionHighLevel[F]]](c.asRight).some
-      )
+    NonEmptyHotswap[F, Resource[F, Either[Throwable, WSConnectionHighLevel[F]]]](
+      connect.map(c => Resource.pure(c.asRight))
     )
       .flatMap { hs =>
-        // waits for the current connection to close, then either reconnects or clears the hotswap
+        // installed once we stop reconnecting, so users get an error instead of a connection
+        val closed: Resource[F, Either[Throwable, WSConnectionHighLevel[F]]] =
+          Resource.pure(new IllegalStateException("No active connection").asLeft)
+
+        // waits for the current connection to close, then either reconnects or installs `closed`
         def loop: F[Unit] =
-          hs.getOpt
-            .use(_.traverse(_.use {
+          hs.get
+            .use(_.use {
               case Left(_) => F.canceled *> F.never[WSFrame.Close]
               case Right(conn) => conn.closeFrame.get
-            }))
-            .flatMap {
-              case Some(close) =>
-                // we use memoize so that the swap succeeds immediately, and users will suspend while waiting for it to connect
-                // without it, users will keep getting the stale connection until the connect completes and installs the new one
-                reconnect(close).ifM(hs.swap(connect.attempt.memoize.map(_.some)) *> loop, hs.clear)
-              case None => F.unit
+            })
+            .flatMap { close =>
+              // we use memoize so that the swap succeeds immediately, and users will suspend while waiting for it to connect
+              // without it, users will keep getting the stale connection until the connect completes and installs the new one
+              reconnect(close).ifM(
+                hs.swap(connect.attempt.memoize) *> loop,
+                hs.swap(Resource.pure(closed)),
+              )
             }
 
-        loop.background
-          .as(
-            hs.getOpt
-              .evalMap(
-                _.liftTo(new IllegalStateException("No active connection"))
-              )
-              .flatten
-              .evalMap(_.liftTo)
-          )
+        loop.background.as(hs.get.flatten.evalMap(_.liftTo))
       }
       .map { conn =>
         new WSConnectionHighLevel[F] {
