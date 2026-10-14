@@ -17,8 +17,9 @@
 package org.http4s.wire
 
 import cats.ApplicativeThrow
-import cats.effect.Async
+import cats.Monad
 import cats.effect.Ref
+import cats.effect.Sync
 import cats.syntax.all._
 import scodec.bits.ByteVector
 
@@ -145,7 +146,7 @@ private[wire] object Http2PeerSettings {
       ApplicativeThrow[F].unit
   }
 
-  def scoped[F[_]: Async, A](initiatesRequests: Boolean)(
+  def scoped[F[_]: Sync, A](initiatesRequests: Boolean)(
       run: Http2PeerSettings[F] => F[A]
   ): F[A] =
     Ref.of[F, Map[RawPeer[F], Connection[F]]](Map.empty).flatMap { connections =>
@@ -177,9 +178,9 @@ private[wire] object Http2PeerSettings {
         def knownFields(peer: RawPeer[F], octetFields: Vector[(String, String)]): F[Unit] =
           connection(peer).flatMap(_.state.get).flatMap { state =>
             val size = fieldSectionSize(octetFields)
-            if (size <= state.fieldBytes) Async[F].unit
+            if (size <= state.fieldBytes) Sync[F].unit
             else
-              Async[F].raiseError[Unit](
+              Sync[F].raiseError[Unit](
                 new WireObservationLimit(
                   s"framing fault field section needs $size octets; advertised MAX_HEADER_LIST_SIZE ${state.fieldBytes} permits rejection or discard; framing scenario unexercised"
                 )
@@ -194,7 +195,7 @@ private[wire] object Http2PeerSettings {
                 val decoded =
                   if (complete) current.decoder.decode(block).attempt
                   else
-                    Async[F].pure(
+                    Sync[F].pure(
                       Left(new IllegalArgumentException("incomplete field section")): Either[
                         Throwable,
                         Vector[(String, String)],
@@ -204,25 +205,25 @@ private[wire] object Http2PeerSettings {
                   case Right(fields) =>
                     // Decoder strings represent wire octets, including every byte of UTF-8 text.
                     val size = fieldSectionSize(fields)
-                    if (!requireFieldAcceptance || size <= state.fieldBytes) Async[F].unit
+                    if (!requireFieldAcceptance || size <= state.fieldBytes) Sync[F].unit
                     else
-                      Async[F].raiseError[Unit](
+                      Sync[F].raiseError[Unit](
                         new WireObservationLimit(
                           s"field section needs $size octets; advertised MAX_HEADER_LIST_SIZE ${state.fieldBytes} permits rejection or discard; acceptance scenario unexercised"
                         )
                       )
                   case Left(_) if requireFieldAcceptance && state.fieldBytes != Long.MaxValue =>
-                    Async[F].raiseError[Unit](
+                    Sync[F].raiseError[Unit](
                       new WireObservationLimit(
                         "finite MAX_HEADER_LIST_SIZE with an intentionally malformed or separately fragmented HPACK section: acceptance prerequisite cannot be established"
                       )
                     )
                   case Left(_) =>
-                    Async[F].unit // Preserve the original deliberately malformed stimulus.
+                    Sync[F].unit // Preserve the original deliberately malformed stimulus.
                 }
               }
             def loop(index: Int): F[Unit] =
-              if (index == frames.size) Async[F].unit
+              if (index == frames.size) Sync[F].unit
               else {
                 val frame = frames(index)
                 val startsSection = frame.frameType == Headers || frame.frameType == PushPromise
@@ -267,17 +268,17 @@ private[wire] object Http2PeerSettings {
                           if (frame.hasFlag(EndHeaders))
                             section(block, complete = true) *> current.fieldBlock.set(None)
                           else current.fieldBlock.set(Some(stream -> block))
-                        case _ => Async[F].unit // An intentionally invalid standalone CONTINUATION.
+                        case _ => Sync[F].unit // An intentionally invalid standalone CONTINUATION.
                       }
                       .as(1)
-                  else Async[F].pure(1)
+                  else Sync[F].pure(1)
                 current.state.get.flatMap { state =>
                   if (
                     initiatesRequests && frame.frameType == Headers &&
                     frame.streamId > state.highest && (frame.streamId & 1) == 1
                   )
                     current.positive.openingStream(frame.streamId)
-                  else Async[F].unit
+                  else Sync[F].unit
                 } *> current.state
                   .modify { state =>
                     val next = state.sending(frame, initiatesRequests)
@@ -306,7 +307,7 @@ private[wire] object Http2PeerSettings {
   /** Compression-negative blocks need decompression even when the peer discards fields (9113 4.3).
     * Only their fault block opts out of field acceptance; positive warmups retain the default.
     */
-  def writeFrames[F[_]: Async](
+  def writeFrames[F[_]: Monad](
       peer: RawPeer[F],
       frames: Vector[Frame],
       requireFieldAcceptance: Boolean = true,
@@ -321,16 +322,16 @@ private[wire] object Http2PeerSettings {
     * wire octet strings, as supplied to literalFields, not UTF-8 text. Positive warmups must be
     * written separately on the ordinary checked path. Admission and decoder tracking remain active.
     */
-  def writeFramingFault[F[_]: Async](
+  def writeFramingFault[F[_]: Monad](
       peer: RawPeer[F],
       frames: Vector[Frame],
       octetFields: Vector[(String, String)],
   )(implicit peerSettings: Http2PeerSettings[F]): F[Unit] =
     peerSettings.knownFields(peer, octetFields) *>
-      writeFrames(peer, frames, requireFieldAcceptance = false)(Async[F], peerSettings)
+      writeFrames(peer, frames, requireFieldAcceptance = false)(Monad[F], peerSettings)
 
   /** Inspect complete frame prefixes without rejecting intentionally invalid lengths or prefaces. */
-  def write[F[_]: Async](peer: RawPeer[F], bytes: ByteVector)(implicit
+  def write[F[_]: Monad](peer: RawPeer[F], bytes: ByteVector)(implicit
       peerSettings: Http2PeerSettings[F]
   ): F[Unit] = {
     val input = if (bytes.startsWith(clientPreface)) bytes.drop(clientPreface.size) else bytes

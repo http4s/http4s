@@ -314,7 +314,7 @@ final class NettyTarget[F[_]](observer: Option[AdapterFailure => F[Unit]] = None
       ).void
     }
 
-  private def sendRequest(
+  private[wire] def sendRequest(
       channel: Channel,
       protocol: Protocol,
       address: SocketAddress[IpAddress],

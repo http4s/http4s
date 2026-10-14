@@ -25,6 +25,18 @@ import scodec.bits.ByteVector
 
 /** HTTP/2 field sections, message mapping, and message-specific error handling. */
 object Http2MessageCases {
+  private val statusCodePattern = "[1-5][0-9][0-9]".r
+
+  private val percentEscape = "%([0-9a-fA-F]{2})".r
+
+  private val connectionControlTypes = Set(
+    Http2Wire.Settings,
+    Http2Wire.Ping,
+    Http2Wire.GoAway,
+    Http2Wire.WindowUpdate,
+    Http2Wire.Priority,
+  )
+
   private val RequestFields = Vector(
     ":method" -> "GET",
     ":scheme" -> "http",
@@ -6557,13 +6569,7 @@ object Http2MessageCases {
     )(
       frame => positive.observe(frame, fromServer = false),
       frame =>
-        !Set(
-          Http2Wire.Settings,
-          Http2Wire.Ping,
-          Http2Wire.GoAway,
-          Http2Wire.WindowUpdate,
-          Http2Wire.Priority,
-        )(frame.frameType) &&
+        !connectionControlTypes(frame.frameType) &&
           frame.frameType <= Http2Wire.Continuation,
       frame =>
         frame.frameType match {
@@ -6616,7 +6622,7 @@ object Http2MessageCases {
         fields <- Http2Wire.readHeaders(peer, first, decoder).handleErrorWith(invalidTargetFrame)
         statuses = fields.collect { case (":status", value) => value }
         _ <- Check(
-          statuses.size == 1 && statuses.head.matches("[1-5][0-9][0-9]"),
+          statuses.size == 1 && statusCodePattern.pattern.matcher(statuses.head).matches(),
           "invalid response :status",
         )
         status = statuses.head.toInt
@@ -6852,7 +6858,7 @@ object Http2MessageCases {
   // RFC 9110 4.2.3 / RFC 3986 6.2.2.1: normalize only escape hex spelling.
   // Encoded reserved delimiters, path case and query content/order remain significant.
   private def normalizeEscapeCase(value: String): String =
-    "%[0-9a-fA-F]{2}".r.replaceAllIn(value, matched => matched.matched.map(_.toUpper))
+    percentEscape.replaceAllIn(value, matched => matched.matched.map(_.toUpper))
 
   private def checkGeneratedFields(
       fields: Vector[(String, String)],

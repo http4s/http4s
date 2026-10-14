@@ -147,7 +147,8 @@ class Http2ResetInteractionSuite extends CatsEffectSuite {
       "trailers",
     )
   } test(s"$id accepts queued $kind and preserves connection HPACK") {
-    val indexed = Set("headers", "continuation", "padded-data", "trailers").contains(kind)
+    val indexed =
+      kind == "headers" || kind == "continuation" || kind == "padded-data" || kind == "trailers"
     resetInteraction(id, crossingResetFrames(kind, 1), indexedResponse = indexed)
   }
 
@@ -158,7 +159,9 @@ class Http2ResetInteractionSuite extends CatsEffectSuite {
   } test(s"$id admits $kind only before reset confirmation ($timing)") {
     val run = resetInteraction(id, crossingResetFrames(kind, 1), timing)
     if (
-      id.endsWith("reset-other-upload-stream") && Set("after-head", "after-prefix").contains(timing)
+      id.endsWith(
+        "reset-other-upload-stream"
+      ) && (timing == "after-head" || timing == "after-prefix")
     ) run
     else run.intercept[ProtocolFailure].void
   }

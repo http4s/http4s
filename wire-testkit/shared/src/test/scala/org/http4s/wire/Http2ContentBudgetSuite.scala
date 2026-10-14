@@ -20,7 +20,10 @@ class Http2ContentBudgetSuite extends munit.FunSuite {
   private val policy = Http2ContentBudget.Policy(2, 8L, "frames", "bytes")
 
   test("terminal content may exactly exhaust both bounds") {
-    val full = policy.initial.reserve(3).flatMap(_.reserve(5)).toOption.get
+    val full = policy.initial
+      .reserve(3)
+      .flatMap(_.reserve(5))
+      .fold(error => fail(s"unexpected failure: $error"), identity)
     assertEquals(full.retained, 8L)
     assert(full.beforeRead.isLeft)
     assert(full.reserve(0).isLeft)
@@ -34,10 +37,18 @@ class Http2ContentBudgetSuite extends munit.FunSuite {
   }
 
   test("negative and overflowing reservations fail without changing the prior budget") {
-    val previous = policy.initial.reserve(3).toOption.get
+    val previous =
+      policy.initial.reserve(3).fold(error => fail(s"unexpected failure: $error"), identity)
     for (amount <- Vector(-1L, 6L, Long.MaxValue)) assert(previous.reserve(amount).isLeft)
-    assertEquals(previous.reserve(5).toOption.get.retained, 8L)
-    val large = policy.copy(bytes = Long.MaxValue).initial.reserve(Long.MaxValue).toOption.get
+    assertEquals(
+      previous.reserve(5).fold(error => fail(s"unexpected failure: $error"), identity).retained,
+      8L,
+    )
+    val large = policy
+      .copy(bytes = Long.MaxValue)
+      .initial
+      .reserve(Long.MaxValue)
+      .fold(error => fail(s"unexpected failure: $error"), identity)
     assert(large.reserve(1).isLeft)
   }
 

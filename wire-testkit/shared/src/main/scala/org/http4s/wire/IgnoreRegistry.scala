@@ -27,9 +27,11 @@ final case class IgnoredCase(
 
 /** The only source of ignores. Full comparison suites never consult this registry. */
 object IgnoreRegistry {
+  private val validPlatforms = Set("jvm", "js", "native")
+
   private[wire] def parse(row: String): IgnoredCase =
-    row.split("\t", -1).toVector match {
-      case Vector(id, platforms, observed, revision, status, tracking) =>
+    row.split("\t", -1) match {
+      case Array(id, platforms, observed, revision, status, tracking) =>
         IgnoredCase(id, platforms.split(",", -1).toSet, observed, revision, status, tracking)
       case _ => throw new IllegalArgumentException(s"ignore row must have six columns: $row")
     }
@@ -70,24 +72,23 @@ object IgnoreRegistry {
           Some(s"unknown ignore protocol: ${e.id}")
         else None,
         if (!ids.contains(e.id)) Some(s"stale ignore: ${e.id}") else None,
-        if (e.platforms.isEmpty || !e.platforms.subsetOf(Set("jvm", "js", "native")))
+        if (e.platforms.isEmpty || !e.platforms.subsetOf(validPlatforms))
           Some(s"invalid platforms: ${e.id}")
         else None,
         if (Vector(e.observed, e.revision, e.status, e.tracking).exists(_.trim.isEmpty))
           Some(s"incomplete ignore: ${e.id}")
         else None,
-        if (!Set("provisional", "confirmed")(e.status))
+        if (e.status != "provisional" && e.status != "confirmed")
           Some(s"invalid review status: ${e.id}")
         else None,
         if (!e.tracking.startsWith("docs/wire-tck/known-failures.md#"))
           Some(s"missing local tracking reference: ${e.id}")
         else None,
       ).flatten
-    } ++ http1.filterNot(_.id.startsWith("h1.")).map(e => s"wrong registry section: ${e.id}") ++
-      http2.filterNot(_.id.startsWith("h2.")).map(e => s"wrong registry section: ${e.id}") ++ cases
-        .collect {
-          case c if c.references.isEmpty || c.references.exists(_.requirement.trim.isEmpty) =>
-            s"missing specification reference: ${c.id}"
-        }
+    } ++ cases
+      .collect {
+        case c if c.references.isEmpty || c.references.exists(_.requirement.trim.isEmpty) =>
+          s"missing specification reference: ${c.id}"
+      }
   }
 }

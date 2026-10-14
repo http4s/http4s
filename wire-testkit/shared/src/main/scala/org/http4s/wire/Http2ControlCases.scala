@@ -24,6 +24,9 @@ import scodec.bits.ByteVector
 
 /** Plaintext HTTP/2 establishment, framing, settings, and connection controls. */
 object Http2ControlCases {
+  private def permittedGoAwayCode(code: Long): Boolean =
+    code == 0L || code == 1L || code == 2L
+
   val all: Vector[WireCase] = Vector(
     // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
     WireCase(
@@ -3742,7 +3745,7 @@ object Http2ControlCases {
             _ <- frames.filter(_.frameType == Http2Wire.GoAway).traverse_ { frame =>
               Check(frame.payload.size >= 8L, "short GOAWAY") *>
                 Check(
-                  Set(0L, 1L, 2L).contains(Http2Wire.readUint32(frame.payload.slice(4, 8))),
+                  permittedGoAwayCode(Http2Wire.readUint32(frame.payload.slice(4, 8))),
                   s"valid GOAWAY elicited a protocol error: $frame",
                 )
             }
@@ -3782,7 +3785,7 @@ object Http2ControlCases {
             _ <- frames.filter(_.frameType == Http2Wire.GoAway).traverse_ { frame =>
               Check(frame.payload.size >= 8L, "short GOAWAY") *>
                 Check(
-                  Set(0L, 1L, 2L).contains(Http2Wire.readUint32(frame.payload.slice(4, 8))),
+                  permittedGoAwayCode(Http2Wire.readUint32(frame.payload.slice(4, 8))),
                   s"valid GOAWAY elicited a protocol error: $frame",
                 )
             }
@@ -3822,7 +3825,7 @@ object Http2ControlCases {
             _ <- frames.filter(_.frameType == Http2Wire.GoAway).traverse_ { frame =>
               Check(frame.payload.size >= 8L, "short GOAWAY") *>
                 Check(
-                  Set(0L, 1L, 2L).contains(Http2Wire.readUint32(frame.payload.slice(4, 8))),
+                  permittedGoAwayCode(Http2Wire.readUint32(frame.payload.slice(4, 8))),
                   s"valid GOAWAY elicited a protocol error: $frame",
                 )
             }
@@ -3883,7 +3886,7 @@ object Http2ControlCases {
               _ <- frames.filter(_.frameType == Http2Wire.GoAway).traverse_ { frame =>
                 Check(frame.payload.size >= 8L, "short GOAWAY") *>
                   Check(
-                    Set(0L, 1L, 2L).contains(Http2Wire.readUint32(frame.payload.slice(4, 8))),
+                    permittedGoAwayCode(Http2Wire.readUint32(frame.payload.slice(4, 8))),
                     s"valid GOAWAY elicited a protocol error: $frame",
                   )
               }
@@ -3946,7 +3949,7 @@ object Http2ControlCases {
               _ <- frames.filter(_.frameType == Http2Wire.GoAway).traverse_ { frame =>
                 Check(frame.payload.size >= 8L, "short GOAWAY") *>
                   Check(
-                    Set(0L, 1L, 2L).contains(Http2Wire.readUint32(frame.payload.slice(4, 8))),
+                    permittedGoAwayCode(Http2Wire.readUint32(frame.payload.slice(4, 8))),
                     s"valid GOAWAY elicited a protocol error: $frame",
                   )
               }

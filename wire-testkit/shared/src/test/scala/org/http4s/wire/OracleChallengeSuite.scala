@@ -60,7 +60,7 @@ class OracleChallengeSuite extends CatsEffectSuite {
       outcome <- catalogCase("h1.server.get").run(CaseContext(target, transcript)).attempt
       _ <- IO {
         assertEquals(WireSuite.outcomeStatus(outcome), "fail")
-        assert(outcome.left.toOption.exists(_.isInstanceOf[WireDecodingFailure]))
+        assert(outcome.left.exists(_.isInstanceOf[WireDecodingFailure]))
         assertEquals(outcome.left.map(_.getMessage), Left("invalid framing length"))
       }
       _ <- assertReleased(probe)

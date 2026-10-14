@@ -379,7 +379,7 @@ class WireCodecsSuite extends CatsEffectSuite {
     test(s"HTTP/1 rejects $name") {
       peer(ascii("HTTP/1.1 200 OK\r\n" + tail))
         .flatMap(p => Http1Wire.readResponse(p._1).attempt)
-        .map(result => assert(result.left.toOption.exists(_.isInstanceOf[WireDecodingFailure])))
+        .map(result => assert(result.left.exists(_.isInstanceOf[WireDecodingFailure])))
     }
   }
 
@@ -414,13 +414,13 @@ class WireCodecsSuite extends CatsEffectSuite {
       )
         .flatMap(p => Http2Wire.readFrame(p._1, -1).attempt)
     } yield {
-      assert(malformed.left.toOption.exists(_.isInstanceOf[WireDecodingFailure]))
+      assert(malformed.left.exists(_.isInstanceOf[WireDecodingFailure]))
       assertEquals(WireSuite.outcomeStatus(malformed.void), "fail")
       assertEquals(ioFailure, Left(ioError))
       assertEquals(argumentFailure, Left(argumentError))
       assertEquals(WireSuite.outcomeStatus(ioFailure.void), "error")
       assertEquals(WireSuite.outcomeStatus(invalidLimit.void), "error")
-      assert(invalidLimit.left.toOption.exists(_.isInstanceOf[IllegalArgumentException]))
+      assert(invalidLimit.left.exists(_.isInstanceOf[IllegalArgumentException]))
       intercept[IllegalArgumentException](
         Http2Wire.encode(Http2Wire.Frame(-1, 0, 0, ByteVector.empty))
       )
@@ -513,7 +513,7 @@ class WireCodecsSuite extends CatsEffectSuite {
         .map { result =>
           assertEquals(WireSuite.outcomeStatus(result.void), status)
           if (status == "inconclusive") {
-            val normalized = result.swap.toOption.get
+            val normalized = result.fold(identity, value => fail(s"expected failure, got $value"))
             assert(normalized.isInstanceOf[java.util.concurrent.TimeoutException])
             assert((normalized eq error) || (normalized.getCause eq error))
           } else
@@ -553,7 +553,8 @@ class WireCodecsSuite extends CatsEffectSuite {
                   if (shape == "reset") "error" else status,
                 )
                 if (status == "inconclusive") {
-                  val normalized = result.swap.toOption.get
+                  val normalized =
+                    result.fold(identity, value => fail(s"expected failure, got $value"))
                   assert((normalized eq error) || (normalized.getCause eq error))
                 } else assertEquals(result, Left(expected.getOrElse(error)))
               }
@@ -727,7 +728,7 @@ class WireCodecsSuite extends CatsEffectSuite {
         Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings()) ++
           Http2Wire.encode(Http2Wire.settings(ack = true)),
       )
-      assert(invalid.left.toOption.exists(_.isInstanceOf[ProtocolFailure]))
+      assert(invalid.left.exists(_.isInstanceOf[ProtocolFailure]))
     }
   }
 
@@ -763,7 +764,7 @@ class WireCodecsSuite extends CatsEffectSuite {
       result <- Http2Wire.serverHandshake(p._1).attempt
       output <- p._2
     } yield {
-      assert(result.left.toOption.exists(_.isInstanceOf[ProtocolFailure]))
+      assert(result.left.exists(_.isInstanceOf[ProtocolFailure]))
       assertEquals(output, ByteVector.empty)
     }
   }

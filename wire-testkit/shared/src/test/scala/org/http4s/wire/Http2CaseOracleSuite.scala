@@ -29,6 +29,25 @@ import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 class Http2CaseOracleSuite extends CatsEffectSuite {
+  private val validResponseFramingVariants = Set(
+    "valid",
+    "fragmented",
+    "padded",
+    "trailers",
+    "fragmented-trailers",
+    "controls",
+    "early-ack",
+  )
+
+  private val validRelatedRejectionModes = Set(
+    "plain",
+    "bare-eof",
+    "graceful-prefix",
+    "graceful-only",
+    "priority-before",
+    "enable-push-zero",
+  )
+
   import Http2CleanupFixture._
 
   // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
@@ -1077,15 +1096,13 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
                       offer(request(fields)) *>
                         writeFrame(peer, headers(head.streamId, Vector(":status" -> "200"))) *> loop
                     case Left(_) =>
-                      val at = head.payload.toArray.toVector
-                        .sliding(prefix.size.toInt)
-                        .indexWhere(_ == prefix.toArray.toVector)
+                      val at = head.payload.indexOfSlice(prefix)
                       for {
                         _ <- IO(
                           assert(at >= 0, "complete request prefix precedes compression fault")
                         )
                         prefixDecoder <- HpackWire.decoder[IO]()
-                        fields <- prefixDecoder.decode(head.payload.take(at.toLong + prefix.size))
+                        fields <- prefixDecoder.decode(head.payload.take(at + prefix.size))
                         _ <- IO(
                           assertEquals(
                             fields,
@@ -2173,7 +2190,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       }.attempt.flatMap(result =>
         IO {
           assertEquals(WireSuite.outcomeStatus(result), "fail")
-          assert(result.swap.toOption.exists(_.getMessage.contains("invalid HPACK index")))
+          assert(result.left.exists(_.getMessage.contains("invalid HPACK index")))
         }
       )
     }
@@ -2276,10 +2293,10 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
               if (kind == "adapter" || kind == "observation") "error" else "fail",
             )
             if (kind == "observation" || kind == "decoder")
-              assert(result.swap.toOption.contains(error))
+              assert(result.left.exists(_ == error))
             if (kind == "native")
               assert(
-                result.swap.toOption.exists(_.getMessage.contains("native rejected valid input"))
+                result.left.exists(_.getMessage.contains("native rejected valid input"))
               )
           }
         }
@@ -2590,12 +2607,14 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           HpackWire.encodeInteger(4096, 5, 0x20) ++ HpackWire.encodeLiteral(fields),
           end = true,
         )
-        _ <- (0 until (if (suffix.endsWith("zero")) 1 else 2)).toVector.traverse_ { _ =>
-          Http2Wire.readUntil(peer, fromServer = false)(frame =>
-            frame.frameType == Http2Wire.Settings && !frame.hasFlag(Http2Wire.Ack)
-          ) *>
-            Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
-        }
+        _ <- IO
+          .defer {
+            Http2Wire.readUntil(peer, fromServer = false)(frame =>
+              frame.frameType == Http2Wire.Settings && !frame.hasFlag(Http2Wire.Ack)
+            ) *>
+              Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
+          }
+          .replicateA_(if (suffix.endsWith("zero")) 1 else 2)
         second <- Http2Wire.readUntil(peer, fromServer = false)(_.frameType == Http2Wire.Headers)
         _ <- head(
           second.streamId,
@@ -3109,7 +3128,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         result <- IO.raiseError[ResponseData[IO]](new RuntimeException("native rejection"))
       } yield result
     }
-    if (Set("wrong-code", "body", "end", "over-credit")(mode))
+    if (mode == "wrong-code" || mode == "body" || mode == "end" || mode == "over-credit")
       run.intercept[ProtocolFailure].flatMap { error =>
         IO {
           val message = error.getMessage
@@ -3202,7 +3221,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
 
   for {
     caller <- statePushCallers.filter { case (suffix, _) =>
-      Set("window-update-after-peer-end", "peer-concurrency-zero-allows-responses")(suffix)
+      suffix == "window-update-after-peer-end" || suffix == "peer-concurrency-zero-allows-responses"
     }
     partialFrame <- Vector(false, true)
   } test(s"State push capability EOF: ${caller._1}/partial-frame=$partialFrame") {
@@ -3288,7 +3307,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
               )
             case Headers =>
               val body =
-                if (Set("negative-stream-window", "connection-credit-independent")(suffix))
+                if (suffix == "negative-stream-window" || suffix == "connection-credit-independent")
                   ByteVector.fill(65536)(0x61.toByte)
                 else Http1Wire.ascii("abcdefghijklmnop")
               val next = state.copy(stream = frame.streamId, window = state.initial, body = body)
@@ -3564,7 +3583,9 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         runClient("h2.client.stream-credit-boundary")(peer =>
           script(peer).as(response(ByteVector.empty))
         )
-    if (Set("pseudo", "no-end", "interleaved", "over-credit")(ending))
+    if (
+      ending == "pseudo" || ending == "no-end" || ending == "interleaved" || ending == "over-credit"
+    )
       run.attempt.flatMap(result => IO(assertEquals(WireSuite.outcomeStatus(result), "fail")))
     else run
   }
@@ -3623,14 +3644,15 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
               else IO.unit
             _ <- readUntil(peer, fromServer = true)(_.frameType == Headers)
             _ <-
-              if (n == 0) (0 until (if (suffix.endsWith("zero")) 1 else 2)).toVector.traverse_ { _ =>
-                readUntil(peer, fromServer = true)(f =>
-                  f.frameType == Settings && !f.hasFlag(Ack)
-                ) *> writeFrame(
-                  peer,
-                  settings(ack = true),
-                )
-              }
+              if (n == 0)
+                IO.defer {
+                  readUntil(peer, fromServer = true)(f =>
+                    f.frameType == Settings && !f.hasFlag(Ack)
+                  ) *> writeFrame(
+                    peer,
+                    settings(ack = true),
+                  )
+                }.replicateA_(if (suffix.endsWith("zero")) 1 else 2)
               else IO.unit
           } yield response(ByteVector.empty)
         }
@@ -3638,7 +3660,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       _ <- IO {
         if (behavior == "zero-trailer") {
           assertEquals(WireSuite.outcomeStatus(result), "error")
-          assert(result.swap.toOption.exists(_.getMessage.contains("already chose zero capacity")))
+          assert(result.left.exists(_.getMessage.contains("already chose zero capacity")))
         } else if (behavior == "missing-minimum" || behavior == "invalid-index")
           assertEquals(WireSuite.outcomeStatus(result), "fail")
         else assertEquals(result, Right(()))
@@ -3698,17 +3720,19 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           _ <- writeFrame(peer, headers(1, Vector(":status" -> "200"), endStream = false))
           _ <- writeFrame(peer, data(1, Http1Wire.ascii("abcdefghijklmnop"), endStream = false))
           _ <- writeFrame(peer, Frame(Headers, EndStream, 1, ByteVector.empty))
-          _ <- (0 until (if (budget == "bytes") 65 else 1024)).toVector.traverse_ { _ =>
-            writeFrame(
-              peer,
-              Frame(
-                Continuation,
-                0,
-                1,
-                if (budget == "bytes") ByteVector.fill(16384)(0.toByte) else ByteVector.empty,
-              ),
-            )
-          }
+          _ <- IO
+            .defer {
+              writeFrame(
+                peer,
+                Frame(
+                  Continuation,
+                  0,
+                  1,
+                  if (budget == "bytes") ByteVector.fill(16384)(0.toByte) else ByteVector.empty,
+                ),
+              )
+            }
+            .replicateA_(if (budget == "bytes") 65 else 1024)
         } yield ()
       }.intercept[WireObservationLimit].void
     }
@@ -3754,7 +3778,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
               writeFrame(peer, Frame(Continuation, EndHeaders, 1, entry.drop(1)))
           case "bytes" | "frames" =>
             writeFrame(peer, Frame(Headers, EndStream, 1, ByteVector.empty)) *>
-              (0 until (if (ending == "bytes") 65 else 4096)).toVector.traverse_ { _ =>
+              IO.defer {
                 writeFrame(
                   peer,
                   Frame(
@@ -3764,7 +3788,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
                     if (ending == "bytes") ByteVector.fill(16384)(0.toByte) else ByteVector.empty,
                   ),
                 )
-              }
+              }.replicateA_(if (ending == "bytes") 65 else 4096)
           case _ => IO.unit
         }
         _ <- writeFrame(peer, ping.copy(flags = Ack))
@@ -3794,9 +3818,9 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       }
       assertEquals(WireSuite.outcomeStatus(result), expected)
       if (expected == "error")
-        assert(result.swap.toOption.exists(_.isInstanceOf[WireObservationLimit]))
+        assert(result.left.exists(_.isInstanceOf[WireObservationLimit]))
       if (ending == "nonempty-data" || ending == "padded-data")
-        assert(result.swap.toOption.exists(_.getMessage.contains("exceeds remaining credit")))
+        assert(result.left.exists(_.getMessage.contains("exceeds remaining credit")))
     }
   }
 
@@ -3841,34 +3865,63 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
   test("admission counts both stream ends and permits existing streams after a reduction") {
     import Http2Wire._
     val first =
-      Http2PeerSettings.State(concurrent = 2).sending(headers(1, Vector.empty), true).toOption.get
+      Http2PeerSettings
+        .State(concurrent = 2)
+        .sending(headers(1, Vector.empty), true)
+        .fold(error => fail(s"unexpected failure: $error"), identity)
     val two = first
       .sending(headers(3, Vector.empty, endStream = false), true)
-      .toOption
-      .get
+      .fold(error => fail(s"unexpected failure: $error"), identity)
       .received(settings(Vector(3 -> 1L)))
     assertEquals(two.streams.size, 2)
     assert(two.sending(headers(5, Vector.empty), true).isLeft)
     val one = two.received(headers(1, Vector.empty))
     assertEquals(one.streams.keySet, Set(3))
     // Existing stream 3 can still send through END_STREAM under the reduced limit.
-    val halfClosed = one.sending(data(3, ByteVector.empty), true).toOption.get
+    val halfClosed = one
+      .sending(data(3, ByteVector.empty), true)
+      .fold(error => fail(s"unexpected failure: $error"), identity)
     assert(halfClosed.sending(headers(5, Vector.empty), true).isLeft)
     val closed = halfClosed.received(data(3, ByteVector.empty))
-    assertEquals(closed.sending(headers(5, Vector.empty), true).toOption.get.streams.keySet, Set(5))
+    assertEquals(
+      closed
+        .sending(headers(5, Vector.empty), true)
+        .fold(error => fail(s"unexpected failure: $error"), identity)
+        .streams
+        .keySet,
+      Set(5),
+    )
     val reset = two
       .sending(Frame(RstStream, 0, 1, uint32(8)), true)
-      .toOption
-      .get
+      .fold(error => fail(s"unexpected failure: $error"), identity)
       .received(Frame(RstStream, 0, 3, uint32(8)))
-    assertEquals(reset.sending(headers(5, Vector.empty), true).toOption.get.streams.keySet, Set(5))
+    assertEquals(
+      reset
+        .sending(headers(5, Vector.empty), true)
+        .fold(error => fail(s"unexpected failure: $error"), identity)
+        .streams
+        .keySet,
+      Set(5),
+    )
     val zeroThenOne = closed.received(settings(Vector(3 -> 0L, 3 -> 1L)))
     assertEquals(zeroThenOne.concurrent, 1L)
-    assertEquals(zeroThenOne.sending(headers(5, Vector.empty), true).toOption.get.streams.size, 1)
+    assertEquals(
+      zeroThenOne
+        .sending(headers(5, Vector.empty), true)
+        .fold(error => fail(s"unexpected failure: $error"), identity)
+        .streams
+        .size,
+      1,
+    )
   }
 
   test("field-section accounting includes every UTF-8 octet and repeated occurrence") {
-    val utf8 = ByteVector.encodeUtf8("é").toOption.get.toArray.map(b => (b & 0xff).toChar).mkString
+    val utf8 = ByteVector
+      .encodeUtf8("é")
+      .fold(error => fail(s"unexpected failure: $error"), identity)
+      .toArray
+      .map(b => (b & 0xff).toChar)
+      .mkString
     val fields = Vector("x" -> utf8, "x" -> utf8, "empty" -> "")
     HpackWire.decoder[IO]().flatMap(_.decode(HpackWire.encodeLiteral(fields))).map { decoded =>
       assertEquals(Http2PeerSettings.fieldSectionSize(decoded), 35L + 35L + 37L)
@@ -3918,7 +3971,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
             assertEquals(result, Right(()))
             assertEquals(sent, 2)
           } else {
-            assert(result.swap.toOption.exists(_.isInstanceOf[WireObservationLimit]))
+            assert(result.left.exists(_.isInstanceOf[WireObservationLimit]))
             assertEquals(sent, 1)
           }
         }
@@ -3954,11 +4007,21 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
   test("a fragmented terminal field section releases admission only at END_HEADERS") {
     import Http2Wire._
     val open =
-      Http2PeerSettings.State(concurrent = 1).sending(headers(1, Vector.empty), true).toOption.get
+      Http2PeerSettings
+        .State(concurrent = 1)
+        .sending(headers(1, Vector.empty), true)
+        .fold(error => fail(s"unexpected failure: $error"), identity)
     val pending = open.received(Frame(Headers, EndStream, 1, ByteVector.empty))
     assert(pending.sending(headers(3, Vector.empty), true).isLeft)
     val closed = pending.received(Frame(Continuation, EndHeaders, 1, ByteVector.empty))
-    assertEquals(closed.sending(headers(3, Vector.empty), true).toOption.get.streams.keySet, Set(3))
+    assertEquals(
+      closed
+        .sending(headers(3, Vector.empty), true)
+        .fold(error => fail(s"unexpected failure: $error"), identity)
+        .streams
+        .keySet,
+      Set(3),
+    )
   }
 
   for (
@@ -4463,7 +4526,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         if (limit >= 181L) IO(assertEquals(result, Right(())))
         else
           IO {
-            assert(result.swap.toOption.exists(_.isInstanceOf[WireObservationLimit]))
+            assert(result.left.exists(_.isInstanceOf[WireObservationLimit]))
             assert(!sent.exists(_.frameType == Http2Wire.Headers))
           }
     }
@@ -4490,7 +4553,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           assertEquals(result, Right(()))
           assertEquals(heads.size, 2) // The first response closes stream 1; one slot suffices.
         } else {
-          assert(result.swap.toOption.exists(_.isInstanceOf[WireObservationLimit]))
+          assert(result.left.exists(_.isInstanceOf[WireObservationLimit]))
           assertEquals(heads.size, 1, "incompatible second HPACK block was sent")
         }
       }
@@ -5098,11 +5161,11 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     )
     // Every caller/setting exercises refusal; shared observer transitions use representatives.
     if (id.endsWith("odd-promised-stream") && mode == "goaway" &&
-      Set(1L, 2L, 7L, 8L)(resetCode)) ||
+      (resetCode == 1L || resetCode == 2L || resetCode == 7L || resetCode == 8L)) ||
       (!id.endsWith("odd-promised-stream") &&
-        ((mode == "goaway" && Set(7L, 8L)(resetCode)) ||
+        ((mode == "goaway" && (resetCode == 7L || resetCode == 8L)) ||
           (mode == "reset-only" && pushEnabled && !id.endsWith("stream-zero") &&
-            Set(1L, 2L)(resetCode)) ||
+            (resetCode == 1L || resetCode == 2L)) ||
           (id.endsWith("stream-zero") && !pushEnabled) ||
           (id.endsWith("unsafe-method") && pushEnabled)))
   } test(
@@ -5176,7 +5239,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         } yield response
       }
       initialStreamVerdict = mode == "reset-only" && pushEnabled &&
-        !id.endsWith("stream-zero") && Set(1L, 2L)(resetCode)
+        !id.endsWith("stream-zero") && (resetCode == 1L || resetCode == 2L)
       result <- (if (
                    mode != "reset-only" && mode != "second-reset" && mode != "goaway-without-close"
                  ) run
@@ -5193,7 +5256,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
                      }
                    }).attempt
       _ <- IO {
-        if (id.endsWith("odd-promised-stream") && Set(7L, 8L)(resetCode))
+        if (id.endsWith("odd-promised-stream") && (resetCode == 7L || resetCode == 8L))
           assert(result.swap.exists(_.isInstanceOf[ProtocolFailure]), result.toString)
         else if (mode == "goaway" || mode == "valid-response" || initialStreamVerdict)
           assertEquals(result, Right(()))
@@ -5495,14 +5558,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     id <- relatedRejectionCases
     mode <- relatedRejectionModes
   } test(s"catalog wire rejection boundaries: $id/$mode") {
-    val valid = Set(
-      "plain",
-      "bare-eof",
-      "graceful-prefix",
-      "graceful-only",
-      "priority-before",
-      "enable-push-zero",
-    )(mode) ||
+    val valid = validRelatedRejectionModes(mode) ||
       (mode == "enable-push-one" && id.startsWith("h2.client."))
     relatedRejectionProbe(id, mode).attempt.flatMap { result =>
       IO {
@@ -6958,7 +7014,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         )
       } yield ()
     }
-    if (Set("100", "103", "100-103")(variant)) run
+    if (variant == "100" || variant == "103" || variant == "100-103") run
     else
       run.intercept[ProtocolFailure].flatMap { error =>
         IO(
@@ -7010,17 +7066,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
     )
   ) test(s"response framing request stream and order: $variant") {
     val run = responseFramingClient("h2.client.default-frame-size-splits-data", variant, false)
-    if (
-      Set(
-        "valid",
-        "fragmented",
-        "padded",
-        "trailers",
-        "fragmented-trailers",
-        "controls",
-        "early-ack",
-      )(variant)
-    ) run
+    if (validResponseFramingVariants(variant)) run
     else
       run.intercept[ProtocolFailure].flatMap { error =>
         val expected = variant match {

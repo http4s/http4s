@@ -53,26 +53,20 @@ class NettyTargetSuite extends CatsEffectSuite {
               .recorder[IO](Some(failure => observed.set(Some(failure))))
               .use { failures =>
                 val source = if (wrapped) failures.source("source")(body) else body
-                IO {
-                  val send =
-                    target.getClass.getDeclaredMethods.find(_.getName.endsWith("sendRequest")).get
-                  send.setAccessible(true)
-                  send
-                    .invoke(
-                      target,
-                      channel,
-                      Protocol.Http1,
-                      com.comcast.ip4s.SocketAddress(
-                        com.comcast.ip4s.Ipv4Address.fromString("127.0.0.1").get,
-                        com.comcast.ip4s.Port.fromInt(80).get,
-                      ),
-                      RequestData(method = "POST"),
-                      source,
-                      None,
-                      channel.newPromise(),
-                    )
-                    .asInstanceOf[IO[Unit]]
-                }.flatten
+                IO.defer {
+                  target.sendRequest(
+                    channel,
+                    Protocol.Http1,
+                    com.comcast.ip4s.SocketAddress(
+                      com.comcast.ip4s.Ipv4Address.fromString("127.0.0.1").get,
+                      com.comcast.ip4s.Port.fromInt(80).get,
+                    ),
+                    RequestData(method = "POST"),
+                    source,
+                    None,
+                    channel.newPromise(),
+                  )
+                }
               }
               .attempt
             _ <- error match {

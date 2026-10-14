@@ -16,7 +16,9 @@
 
 package org.http4s.wire
 
-import cats.effect.Async
+import cats.ApplicativeThrow
+import cats.MonadThrow
+import cats.effect.Sync
 import cats.syntax.all._
 import scodec.bits.ByteVector
 
@@ -155,7 +157,7 @@ object Http2Wire {
     Frame(WindowUpdate, 0, streamId, uint32(increment.toLong))
   }
 
-  def readFrame[F[_]: Async](
+  def readFrame[F[_]: MonadThrow](
       peer: RawPeer[F],
       maxFrameBytes: Int = 0xffffff,
   )(implicit peerSettings: Http2PeerSettings[F]): F[Frame] =
@@ -166,7 +168,7 @@ object Http2Wire {
         .flatTap(peerSettings.received(peer, _))
 
   /** Accepts EOF or a reset only before the first byte of the next frame. */
-  def readFrameOrClose[F[_]: Async](
+  def readFrameOrClose[F[_]: MonadThrow](
       peer: RawPeer[F],
       maxFrameBytes: Int = 0xffffff,
   )(implicit peerSettings: Http2PeerSettings[F]): F[Option[Frame]] =
@@ -177,7 +179,7 @@ object Http2Wire {
           case WireReadFailure.Exact(1, 0L) =>
             none[ByteVector].pure[F]
           case reset if RuntimeInfo.isConnectionReset(reset) => none[ByteVector].pure[F]
-          case other => Async[F].raiseError(other)
+          case other => MonadThrow[F].raiseError(other)
         })
       }
       .flatMap {
@@ -190,11 +192,11 @@ object Http2Wire {
         case None => none[Frame].pure[F]
       }
 
-  private def validateReadLimit[F[_]: Async](maxFrameBytes: Int): F[Unit] =
-    if (maxFrameBytes >= 0) Async[F].unit
-    else Async[F].raiseError(new IllegalArgumentException("negative frame read limit"))
+  private def validateReadLimit[F[_]: ApplicativeThrow](maxFrameBytes: Int): F[Unit] =
+    if (maxFrameBytes >= 0) ApplicativeThrow[F].unit
+    else ApplicativeThrow[F].raiseError(new IllegalArgumentException("negative frame read limit"))
 
-  private def readFramePayload[F[_]: Async](
+  private def readFramePayload[F[_]: MonadThrow](
       peer: RawPeer[F],
       header: ByteVector,
       maxFrameBytes: Int,
@@ -202,7 +204,7 @@ object Http2Wire {
     val size = ((header(0) & 0xff) << 16) | ((header(1) & 0xff) << 8) | (header(2) & 0xff)
     for {
       _ <-
-        if (size <= maxFrameBytes) Async[F].unit
+        if (size <= maxFrameBytes) MonadThrow[F].unit
         else fail[F, Unit](s"frame length $size exceeds limit $maxFrameBytes")
       payload <- WireDecodingFailure.read(peer.readExact(size))
     } yield Frame(
@@ -213,13 +215,13 @@ object Http2Wire {
     )
   }
 
-  def writeFrame[F[_]: Async](peer: RawPeer[F], frame: Frame)(implicit
+  def writeFrame[F[_]: Sync](peer: RawPeer[F], frame: Frame)(implicit
       peerSettings: Http2PeerSettings[F]
   ): F[Unit] =
-    peerSettings.sending(peer, Vector(frame)) *> Async[F].delay(encode(frame)).flatMap(peer.write)
+    peerSettings.sending(peer, Vector(frame)) *> Sync[F].delay(encode(frame)).flatMap(peer.write)
 
   /** Sends the client preface and acknowledges the server's initial SETTINGS. */
-  def clientHandshake[F[_]: Async](
+  def clientHandshake[F[_]: Sync](
       peer: RawPeer[F]
   )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Unit] =
     peer.write(clientPreface ++ encode(settings())) *> receiveInitialSettings(
@@ -229,32 +231,32 @@ object Http2Wire {
       writeFrame(peer, settings(ack = true))
 
   /** Receives the complete client preface before sending server SETTINGS and their acknowledgment. */
-  def serverHandshake[F[_]: Async](
+  def serverHandshake[F[_]: Sync](
       peer: RawPeer[F]
   )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Unit] =
     WireDecodingFailure.read(peer.readExact(clientPreface.size.toInt)).flatMap { preface =>
       if (preface != clientPreface)
-        Async[F].raiseError(new ProtocolFailure("invalid HTTP/2 client preface"))
+        Sync[F].raiseError(new ProtocolFailure("invalid HTTP/2 client preface"))
       else
         receiveInitialSettings(peer, fromServer = false) *> peer.write(
           encode(settings()) ++ encode(settings(ack = true))
         )
     }
 
-  private def receiveInitialSettings[F[_]: Async](
+  private def receiveInitialSettings[F[_]: Sync](
       peer: RawPeer[F],
       fromServer: Boolean,
   )(implicit peerSettings: Http2PeerSettings[F], dataBudget: DataBudget): F[Unit] =
     readFrame(peer).flatMap { frame =>
       if (frame.frameType != Settings || frame.hasFlag(Ack))
-        Async[F].raiseError(new ProtocolFailure("initial HTTP/2 frame must be non-ACK SETTINGS"))
-      else Async[F].delay(validateSettings(frame, fromServer))
+        Sync[F].raiseError(new ProtocolFailure("initial HTTP/2 frame must be non-ACK SETTINGS"))
+      else Sync[F].delay(validateSettings(frame, fromServer))
     }
 
   /** Skips connection control and extension frames, acknowledging SETTINGS and PING.
     * Unexpected stream traffic is an error: silently consuming it could conceal a target defect.
     */
-  def readUntil[F[_]: Async](
+  def readUntil[F[_]: Sync](
       peer: RawPeer[F],
       fromServer: Boolean,
   )(
@@ -268,16 +270,16 @@ object Http2Wire {
           else {
             val handle: F[Unit] = frame.frameType match {
               case Settings =>
-                Async[F].delay(validateSettings(frame, fromServer)) *>
-                  (if (frame.hasFlag(Ack)) Async[F].unit
+                Sync[F].delay(validateSettings(frame, fromServer)) *>
+                  (if (frame.hasFlag(Ack)) Sync[F].unit
                    else writeFrame(peer, settings(ack = true)))
               case Ping =>
                 if (frame.streamId != 0 || frame.payload.size != 8)
                   fail("invalid PING frame")
-                else if (frame.hasFlag(Ack)) Async[F].unit
+                else if (frame.hasFlag(Ack)) Sync[F].unit
                 else writeFrame(peer, frame.copy(flags = Ack))
               case WindowUpdate =>
-                Async[F].delay {
+                Sync[F].delay {
                   received(frame.payload.size == 4, "invalid WINDOW_UPDATE length")
                   received(
                     (readUint32(frame.payload) & 0x7fffffffL) != 0L,
@@ -285,10 +287,10 @@ object Http2Wire {
                   )
                 }
               case Priority =>
-                Async[F].delay {
+                Sync[F].delay {
                   received(frame.streamId != 0 && frame.payload.size == 5, "invalid PRIORITY frame")
                 }
-              case kind if kind > Continuation => Async[F].unit
+              case kind if kind > Continuation => Sync[F].unit
               case _ =>
                 fail(s"unexpected HTTP/2 frame type ${frame.frameType} on stream ${frame.streamId}")
             }
@@ -298,7 +300,7 @@ object Http2Wire {
     loop(1024)
   }
 
-  def readHeaders[F[_]: Async](
+  def readHeaders[F[_]: Sync](
       peer: RawPeer[F],
       first: Frame,
       decoder: HpackWire.Decoder[F],
@@ -308,8 +310,8 @@ object Http2Wire {
       else if (frame.hasFlag(EndHeaders))
         decoder.decode(block).handleErrorWith {
           case error: IllegalArgumentException =>
-            Async[F].raiseError(new WireDecodingFailure(error.getMessage))
-          case error => Async[F].raiseError(error)
+            Sync[F].raiseError(new WireDecodingFailure(error.getMessage))
+          case error => Sync[F].raiseError(error)
         }
       else
         readFrame(peer).flatMap { next =>
@@ -318,7 +320,7 @@ object Http2Wire {
           else continue(block ++ next.payload, next, remaining - 1)
         }
 
-    Async[F]
+    Sync[F]
       .delay {
         received(first.frameType == Headers && first.streamId != 0, "expected stream HEADERS")
         val withoutPadding = unpad(first)
@@ -353,9 +355,9 @@ object Http2Wire {
   private def received(condition: Boolean, message: String): Unit =
     if (!condition) throw new WireDecodingFailure(message)
 
-  private def limit[F[_]: Async, A](message: String): F[A] =
-    Async[F].raiseError(new WireObservationLimit(message))
+  private def limit[F[_]: ApplicativeThrow, A](message: String): F[A] =
+    ApplicativeThrow[F].raiseError(new WireObservationLimit(message))
 
-  private def fail[F[_]: Async, A](message: String): F[A] =
-    Async[F].raiseError(new WireDecodingFailure(message))
+  private def fail[F[_]: ApplicativeThrow, A](message: String): F[A] =
+    ApplicativeThrow[F].raiseError(new WireDecodingFailure(message))
 }

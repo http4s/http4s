@@ -221,7 +221,7 @@ class RuntimeInfoSuite extends CatsEffectSuite {
         case _ => new IOException("unrelated read error")
       }
       val ending =
-        if (Set("ordinary", "timeout", "adapter")(tail))
+        if (tail == "ordinary" || tail == "timeout" || tail == "adapter")
           IO.raiseError[Option[Chunk[Byte]]](readError)
         else IO.pure(Option.empty[Chunk[Byte]])
       val bytes = tail match {

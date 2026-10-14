@@ -534,16 +534,15 @@ class WirePeerTransportSuite extends CatsEffectSuite {
   }
 
   test("cancellation racing native acquisition releases every allocated listener and socket") {
-    (1 to 30).toVector
-      .traverse_ { _ =>
-        bindNative[IO].use { listener =>
-          for {
-            connecting <- connectNative[IO](listener.address).use(_ => IO.never[Unit]).start
-            _ <- IO.cede
-            _ <- connecting.cancel
-          } yield ()
-        }
+    IO.defer {
+      bindNative[IO].use { listener =>
+        for {
+          connecting <- connectNative[IO](listener.address).use(_ => IO.never[Unit]).start
+          _ <- IO.cede
+          _ <- connecting.cancel
+        } yield ()
       }
+    }.replicateA_(30)
       .timeout(5.seconds)
   }
 

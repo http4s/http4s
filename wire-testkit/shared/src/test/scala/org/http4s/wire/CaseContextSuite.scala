@@ -21,7 +21,6 @@ import cats.effect.IO
 import cats.effect.Outcome
 import cats.effect.Ref
 import cats.effect.Resource
-import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Stream
@@ -209,7 +208,7 @@ class CaseContextSuite extends CatsEffectSuite {
   }
 
   test("peer failure racing completed acquisition never loses resource ownership") {
-    (1 to 100).toVector.traverse_ { _ =>
+    IO.defer {
       val primary = new IllegalStateException("script")
       for {
         acquired <- Deferred[IO, Unit]
@@ -220,11 +219,11 @@ class CaseContextSuite extends CatsEffectSuite {
         _ = assert(result.swap.exists(_ eq primary))
         _ <- released.get.assertEquals(1)
       } yield ()
-    }
+    }.replicateA_(100)
   }
 
   test("script failure cancels a client awaiting socket input before peer teardown") {
-    (1 to 100).toVector.traverse_ { _ =>
+    IO.defer {
       val primary = new WireObservationLimit("script")
       val eof = new IllegalStateException("client EOF")
       for {
@@ -248,7 +247,7 @@ class CaseContextSuite extends CatsEffectSuite {
         _ = assert(result.swap.exists(_ eq primary))
         _ <- canceled.get.assertEquals(true)
       } yield ()
-    }
+    }.replicateA_(100)
   }
 
   test("scripted socket release cannot replace its failure with client EOF") {
@@ -347,7 +346,7 @@ class CaseContextSuite extends CatsEffectSuite {
   }
 
   test("exercise failure racing completed peer acquisition never loses ownership") {
-    (1 to 100).toVector.traverse_ { _ =>
+    IO.defer {
       val primary = new IllegalStateException("exercise")
       for {
         acquired <- Deferred[IO, Unit]
@@ -361,11 +360,11 @@ class CaseContextSuite extends CatsEffectSuite {
         _ = assert(result.swap.exists(_ eq primary))
         _ <- released.get.assertEquals(1)
       } yield ()
-    }
+    }.replicateA_(100)
   }
 
   test("simultaneous exercise and script failures preserve either original race winner") {
-    (1 to 100).toVector.traverse_ { _ =>
+    IO.defer {
       val exerciseError = new IllegalStateException("exercise")
       val scriptError = new WireObservationLimit("script")
       for {
@@ -381,7 +380,7 @@ class CaseContextSuite extends CatsEffectSuite {
           .attempt
         _ = assert(result.swap.exists(error => (error eq exerciseError) || (error eq scriptError)))
       } yield ()
-    }
+    }.replicateA_(100)
   }
 
   test("eager-server-settings preserves the lawful zero-window observation limit") {
@@ -417,13 +416,13 @@ class CaseContextSuite extends CatsEffectSuite {
         }
       }
     }
-    (1 to 100).toVector.traverse_ { _ =>
+    IO.defer {
       Transcript
         .create[IO]()
         .flatMap(t => selected.run(CaseContext(target, t)))
         .timeout(5.seconds)
         .intercept[WireObservationLimit]
         .void
-    }
+    }.replicateA_(100)
   }
 }

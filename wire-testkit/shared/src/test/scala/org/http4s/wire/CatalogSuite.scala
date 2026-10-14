@@ -19,15 +19,19 @@ package org.http4s.wire
 import munit.FunSuite
 
 class CatalogSuite extends FunSuite {
+  private val caseIdPattern = "h[12]\\.(client|server)\\.[a-z0-9-]+".r
+
   override def munitFlakyOK: Boolean = false
 
   test("catalog and registry integrity") {
     assertEquals(IgnoreRegistry.validate(Catalog.all), Vector.empty)
     Catalog.all.foreach { c =>
-      assert(c.id.matches("h[12]\\.(client|server)\\.[a-z0-9-]+"), c.id)
+      assert(caseIdPattern.pattern.matcher(c.id).matches(), c.id)
       assert(c.id.startsWith(s"${c.protocol.id}.${c.role.id}."), c.id)
       assert(
-        c.references.forall(r => Set(9110, 9112, 9113, 7541)(r.number) && r.section.nonEmpty),
+        c.references.forall(r =>
+          (r.number == 9110 || r.number == 9112 || r.number == 9113 || r.number == 7541) && r.section.nonEmpty
+        ),
         c.id,
       )
     }
@@ -63,6 +67,8 @@ class CatalogSuite extends FunSuite {
     assertEquals(validate("client", Vector(client)), Vector.empty)
     assertEquals(validate("server", Vector(server)), Vector.empty)
     assertEquals(validate("both", Vector(client, server)), Vector.empty)
+    // Duplicate IDs must retain all role evidence, even though registry validation rejects them.
+    assertEquals(validate("both", Vector(client, server.copy(id = client.id))), Vector.empty)
     assert(validate("both", Vector(client)).exists(_.contains("server role")))
     assert(validate("both", Vector(server)).exists(_.contains("client role")))
     assert(validate("server", Vector(client)).exists(_.contains("server role")))

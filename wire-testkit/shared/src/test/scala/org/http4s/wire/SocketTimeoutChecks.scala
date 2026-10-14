@@ -65,7 +65,7 @@ abstract class SocketTimeoutChecks extends CatsEffectSuite {
     val error = socketFailure(shape)
     runClient(id, error, inBody).attempt.map { result =>
       assertEquals(WireSuite.outcomeStatus(result), "inconclusive")
-      val normalized = result.swap.toOption.get
+      val normalized = result.fold(identity, value => fail(s"expected failure, got $value"))
       assert(normalized.isInstanceOf[TimeoutException])
       assert(normalized.getCause eq error, "normalization must retain the original exception graph")
     }
@@ -125,7 +125,9 @@ abstract class SocketTimeoutChecks extends CatsEffectSuite {
       if (suppressed) error.addSuppressed(timeout) else error.initCause(timeout)
       RawPeer.raiseAdapterOrTimeout[IO](error).attempt.map { result =>
         assertEquals(WireSuite.outcomeStatus(result), "inconclusive")
-        assert(result.swap.toOption.get.getCause eq error)
+        assert(
+          result.fold(identity, value => fail(s"expected failure, got $value")).getCause eq error
+        )
       }
     }
 
@@ -186,8 +188,14 @@ abstract class SocketTimeoutChecks extends CatsEffectSuite {
           assertEquals(boundary, Left(adapter))
           assertEquals(actual, Left(adapter))
         } else {
-          assert(boundary.swap.toOption.get.getCause eq error)
-          assert(actual.swap.toOption.get.getCause eq error)
+          assert(
+            boundary
+              .fold(identity, value => fail(s"expected failure, got $value"))
+              .getCause eq error
+          )
+          assert(
+            actual.fold(identity, value => fail(s"expected failure, got $value")).getCause eq error
+          )
         }
       }
     }

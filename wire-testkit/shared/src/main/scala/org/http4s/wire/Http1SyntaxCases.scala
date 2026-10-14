@@ -23,6 +23,10 @@ import scodec.bits.ByteVector
 
 /** Request lines, request targets, status lines, and fields derived from RFC 9112 Sections 2-5. */
 object Http1SyntaxCases {
+  private val emptyAuthorityPort = "(?i)^((?:http:)?//[^/?#:]*):([/?#]|$)".r
+  private val fixtureAuthority = "(?i)wire\\.test(?::0*80|:)?".r
+  private val percentEscape = "%([0-9a-fA-F]{2})".r
+
   val all: Vector[WireCase] = Vector(
     // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.2
     WireCase(
@@ -1975,11 +1979,15 @@ object Http1SyntaxCases {
     Http1Wire.readFinalStatusOrClosed(peer)
 
   private def normalizedFold(observed: Vector[String], logicalValue: String): Boolean =
-    observed.nonEmpty && observed.forall(_.matches(logicalValue))
+    if (observed.isEmpty) false
+    else {
+      val pattern = java.util.regex.Pattern.compile(logicalValue)
+      observed.forall(value => pattern.matcher(value).matches())
+    }
 
   // RFC 9110 4.2.3: escape hex digits are case-insensitive; reserved octets stay encoded.
   private def normalizeEscapeCase(value: String): String =
-    "%[0-9a-fA-F]{2}".r.replaceAllIn(value, matched => matched.matched.map(_.toUpper))
+    percentEscape.replaceAllIn(value, matched => matched.matched.map(_.toUpper))
 
   /** Equivalence for this fixture's http://wire.test/two%20words target (RFC 3986 2, 5 and 6.2;
     * RFC 9110 4.2.3 and 10.2.2). This does not implement general redirect policy.
@@ -1988,10 +1996,10 @@ object Http1SyntaxCases {
   private def encodedSpaceTarget(location: String): Boolean = {
     // Empty HTTP ports equal the default port. Scala.js URI rejects the empty-port spelling.
     // Only normalize the reg-name authority; never remove a colon from a path or malformed port.
-    val parseable = location.replaceFirst("(?i)^((?:http:)?//[^/?#:]*):([/?#]|$)", "$1$2")
+    val parseable = emptyAuthorityPort.replaceFirstIn(location, "$1$2")
     location.forall(_ < 128) && Either.catchNonFatal(new java.net.URI(parseable)).exists { uri =>
       def normalizeEscapes(value: String): String =
-        "%([0-9a-fA-F]{2})".r.replaceAllIn(
+        percentEscape.replaceAllIn(
           value,
           matched => {
             val c = Integer.parseInt(matched.group(1), 16).toChar
@@ -2021,7 +2029,7 @@ object Http1SyntaxCases {
       !uri.isOpaque && rawPath.nonEmpty &&
       (uri.getScheme == null && !location.startsWith("//") || uri.getRawAuthority != null) &&
       scheme.equalsIgnoreCase("http") &&
-      authority.matches("(?i)wire\\.test(?::0*80|:)?") &&
+      fixtureAuthority.pattern.matcher(authority).matches() &&
       uri.getRawQuery == null && uri.getRawFragment == null &&
       resolved == Vector("two%20words")
     }

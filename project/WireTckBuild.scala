@@ -148,8 +148,8 @@ object WireTckBuild {
     if (!file.isFile) Vector.empty
     else
       IO.readLines(file).toVector.map { line =>
-        line.split("\t", -1).toVector match {
-          case Vector(id, status) => id -> status
+        line.split("\t", -1) match {
+          case Array(id, status) => id -> status
           case _ => "" -> "Invalid"
         }
       }
@@ -637,7 +637,7 @@ object WireTckBuild {
                   s"[$status]($platform/$suite/${parts(0)}.json)",
                 )
                 counts = counts.updated(status, counts(status) + 1)
-                if (!Set("pass", "fail", "inconclusive")(status))
+                if (status != "pass" && status != "fail" && status != "inconclusive")
                   problems += s"Blocking $status: $platform/$suite/${parts(0)}"
                 val json = directory / s"${parts(0)}.json"
                 if (
@@ -704,8 +704,8 @@ object WireTckBuild {
                 val identities =
                   if (evidence.contains(eventFile))
                     evidence(eventFile).linesIterator.toVector.flatMap { line =>
-                      line.split("\t", -1).toVector match {
-                        case Vector(id, status) => Some(id -> status)
+                      line.split("\t", -1) match {
+                        case Array(id, status) => Some(id -> status)
                         case _ => problems += s"Invalid MUnit event evidence: $eventFile"; None
                       }
                     }

@@ -328,12 +328,12 @@ object SmokeCases {
       case Http2Wire.RstStream =>
         Check.equal(frame.streamId, streamId) *> IO.defer {
           val code = Http2Wire.readUint32(frame.payload)
-          Check(Set(1L, 2L).contains(code), s"unexpected RST_STREAM error code: $code")
+          Check(code == 1L || code == 2L, s"unexpected RST_STREAM error code: $code")
         }
       case Http2Wire.GoAway =>
         IO.defer {
           val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
-          Check(code == 0L || Set(1L, 2L).contains(code), s"unexpected GOAWAY error code: $code")
+          Check(code == 0L || code == 1L || code == 2L, s"unexpected GOAWAY error code: $code")
         }
       case _ => IO.unit
     }
@@ -348,7 +348,7 @@ object SmokeCases {
             val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
             // Section 5.4 permits generic codes in place of the specific size error.
             Check(
-              code == 0L || Set(1L, 2L, 6L).contains(code),
+              code == 0L || code == 1L || code == 2L || code == 6L,
               s"unexpected GOAWAY error code: $code",
             )
           case Http2Wire.Ping =>

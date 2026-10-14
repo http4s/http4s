@@ -20,6 +20,10 @@ import scodec.bits.ByteVector
 
 /** The requirements ledger is authored separately from executable discovery. */
 object SpecInventory {
+  private val sectionKinds = Set("applicable", "dependency", "informative", "excluded")
+  private val roles = Set("client", "server", "both", "na")
+  private val strengths =
+    Set("MUST", "MUST NOT", "MUSTNOT", "SHOULD", "SHOULD NOT", "MAY", "syntax", "informative")
   final case class Entry(
       id: String,
       rfc: String,
@@ -36,8 +40,8 @@ object SpecInventory {
     if (condition) Some(value) else None
 
   def parse(row: String): Either[String, Entry] =
-    row.split("\t", -1).toVector match {
-      case Vector(id, rfc, section, role, strength, requirement, disposition, cases, notes) =>
+    row.split("\t", -1) match {
+      case Array(id, rfc, section, role, strength, requirement, disposition, cases, notes) =>
         Right(
           Entry(
             id,
@@ -65,7 +69,10 @@ object SpecInventory {
     val sectionKeys = classified.collect { case Vector(rfc, section, _, _, _) =>
       (rfc, section)
     }.toSet
-    val ids = cases.map(_.id).toSet
+    val rolesById = cases.groupBy(_.id).map { case (id, values) =>
+      id -> values.iterator.map(_.role.id).toSet
+    }
+    val ids = rolesById.keySet
     val mapped = entries.flatMap(_.cases).toSet
     parsed.collect { case Left(error) => error }.toVector ++
       entries
@@ -78,9 +85,7 @@ object SpecInventory {
       classified.collect {
         case row
             if row.size != 5 ||
-              !Set("applicable", "dependency", "informative", "excluded")(row(3)) || row(
-                4
-              ).trim.isEmpty =>
+              !sectionKinds(row(3)) || row(4).trim.isEmpty =>
           s"invalid section classification: ${row.mkString(" / ")}"
       }.toVector ++
       classified
@@ -96,10 +101,12 @@ object SpecInventory {
           case "client" | "server" => Set(entry.role)
           case _ => Set.empty[String]
         }
-        val coveredRoles = cases.filter(c => entry.cases.contains(c.id)).map(_.role.id).toSet
         val missingRoles =
-          if (entry.disposition == "covered") requiredRoles.diff(coveredRoles)
-          else Set.empty[String]
+          if (entry.disposition == "covered") {
+            val coveredRoles =
+              entry.cases.iterator.flatMap(id => rolesById.getOrElse(id, Set.empty[String])).toSet
+            requiredRoles.diff(coveredRoles)
+          } else Set.empty[String]
         missingRoles.toVector.sorted.map(role =>
           s"coverage without $role role evidence: ${entry.id}"
         ) ++ Vector(
@@ -107,22 +114,13 @@ object SpecInventory {
             s"empty obligation: ${entry.id}"
           ),
           when(!sectionKeys((entry.rfc, entry.section)))(s"unclassified RFC section: ${entry.id}"),
-          when(!Set("client", "server", "both", "na")(entry.role))(
+          when(!roles(entry.role))(
             s"invalid inventory role: ${entry.id}"
           ),
+          when(!strengths(entry.strength))(s"invalid requirement strength: ${entry.id}"),
           when(
-            !Set(
-              "MUST",
-              "MUST NOT",
-              "MUSTNOT",
-              "SHOULD",
-              "SHOULD NOT",
-              "MAY",
-              "syntax",
-              "informative",
-            )(entry.strength)
-          )(s"invalid requirement strength: ${entry.id}"),
-          when(!Set("covered", "gap", "excluded")(entry.disposition))(
+            entry.disposition != "covered" && entry.disposition != "gap" && entry.disposition != "excluded"
+          )(
             s"invalid disposition: ${entry.id}"
           ),
           when(entry.disposition == "covered" && entry.cases.isEmpty)(
@@ -138,7 +136,7 @@ object SpecInventory {
       ids.diff(mapped).toVector.sorted.map(id => s"case missing from independent inventory: $id") ++
       classified.collect {
         case Vector(rfc, section, _, kind, _)
-            if Set("applicable", "dependency")(kind) && !entries.exists(e =>
+            if (kind == "applicable" || kind == "dependency") && !entries.exists(e =>
               e.rfc == rfc &&
                 (e.section == section || e.section.startsWith(section + "."))
             ) =>

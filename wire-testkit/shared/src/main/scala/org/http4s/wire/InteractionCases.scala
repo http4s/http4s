@@ -25,6 +25,8 @@ import scodec.bits.ByteVector
 
 /** Message boundaries and connection/stream sequencing across the individual protocol rules. */
 object InteractionCases {
+  private val statusCodePattern = "[1-5][0-9][0-9]".r
+
   private val Binary = ByteVector(0, 13, 10, 127, 128, 255)
   private val Following = Http1Wire.ascii("following")
   private val RequestShaped =
@@ -1371,7 +1373,9 @@ object InteractionCases {
                           else {
                             val statuses = values(fields, ":status")
                             Check(
-                              statuses.size == 1 && statuses.head.matches("[1-5][0-9][0-9]") &&
+                              statuses.size == 1 && statusCodePattern.pattern
+                                .matcher(statuses.head)
+                                .matches() &&
                                 statuses.head != "101",
                               "invalid response status",
                             ) *>

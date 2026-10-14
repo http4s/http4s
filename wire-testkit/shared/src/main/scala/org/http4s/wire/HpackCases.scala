@@ -5477,7 +5477,7 @@ object HpackCases {
             case Http2Wire.GoAway =>
               val code = Http2Wire.readUint32(frame.payload.slice(4, 8))
               verify(
-                code == 0L || Set(1L, 2L, 9L).contains(code),
+                code == 0L || code == 1L || code == 2L || code == 9L,
                 s"compression failure used error code $code",
               )
             case Http2Wire.RstStream =>

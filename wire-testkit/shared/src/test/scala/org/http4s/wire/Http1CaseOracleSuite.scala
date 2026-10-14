@@ -192,7 +192,9 @@ class Http1CaseOracleSuite extends CatsEffectSuite {
             body <- peer.readExact(2)
           } yield response(200, body).copy(headers = headers)
         }
-    if (Set("normalized", "multiple-spaces", "duplicate-normalized")(observation)) run
+    if (
+      observation == "normalized" || observation == "multiple-spaces" || observation == "duplicate-normalized"
+    ) run
     else run.intercept[ProtocolFailure].map(e => assert(e.getMessage.contains("fold")))
   }
 
