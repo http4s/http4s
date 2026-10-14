@@ -53,8 +53,8 @@ class H2StreamSuite extends Http4sSuite {
   private def streamAndQueue(
       config: H2Frame.Settings.ConnectionSettings,
       creditConnection: Int => IO[Unit] = _ => IO.unit,
-      outgoingQueue: IO[Queue[IO, Chunk[H2Frame]]] = Queue.unbounded[IO, Chunk[H2Frame]],
-  ): IO[(H2Stream[IO], Queue[IO, Chunk[H2Frame]])] =
+      outgoingQueue: IO[Queue[IO, H2Frame]] = Queue.unbounded[IO, H2Frame],
+  ): IO[(H2Stream[IO], Queue[IO, H2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
@@ -94,7 +94,7 @@ class H2StreamSuite extends Http4sSuite {
         bodyDone,
         readBufferLock,
         hpack,
-        outgoing,
+        outgoing.offer,
         IO.unit,
         _ => IO.unit,
         creditConnection,
@@ -133,7 +133,7 @@ class H2StreamSuite extends Http4sSuite {
       )
       hpack <- Hpack.create[IO](1024)
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
-      enqueue <- Queue.unbounded[IO, Chunk[H2Frame]]
+      enqueue <- Queue.unbounded[IO, H2Frame]
       stream = new H2Stream[IO](
         1,
         60.seconds,
@@ -144,7 +144,7 @@ class H2StreamSuite extends Http4sSuite {
         bodyDone,
         readBufferLock,
         hpack,
-        enqueue,
+        enqueue.offer,
         IO.unit,
         _ => IO.unit,
         _ => IO.unit,
@@ -155,16 +155,14 @@ class H2StreamSuite extends Http4sSuite {
   private def emptyData(endStream: Boolean = false): H2Frame.Data =
     H2Frame.Data(1, ByteVector.empty, None, endStream)
 
-  private def rstCodes(outgoing: Queue[IO, Chunk[H2Frame]]): IO[List[Int]] =
+  private def rstCodes(outgoing: Queue[IO, H2Frame]): IO[List[Int]] =
     outgoing
       .tryTakeN(None)
-      .map(_.flatMap(_.toList).collect { case H2Frame.RstStream(_, code) =>
-        code.toInt
-      })
+      .map(_.toList.collect { case H2Frame.RstStream(_, code) => code.toInt })
 
   private def testMessageSize(
       stream: H2Stream[IO],
-      outgoing: Queue[IO, Chunk[H2Frame]],
+      outgoing: Queue[IO, H2Frame],
       frameSize: Int,
       messageSize: Int,
       numFrames: Int,
@@ -174,7 +172,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       _ <- stream.sendMessageBody(sample)
-      chunks <- outgoing.take.replicateA(numFrames).map(_.flatMap(_.toList))
+      chunks <- outgoing.take.replicateA(numFrames)
       data = chunks.collect { case H2Frame.Data(_, data, _, _) => data }
       _ <- assertIO(IO(data.size), numFrames)
       _ <- assertIO(IO(data.map(_.size).sum), messageSize.toLong)
@@ -357,9 +355,11 @@ class H2StreamSuite extends Http4sSuite {
         Stream.eval(gate.get).drain ++
         Stream("world").through(utf8.encode)
 
-    def assertFrame(chunk: Chunk[H2Frame], expected: String, endStream: Boolean) = {
-      assert(chunk.size == 1)
-      val frame = chunk.collectFirst { case data: H2Frame.Data => data }.get
+    def assertFrame(chunk: H2Frame, expected: String, endStream: Boolean) = {
+      val frame = chunk match {
+        case data: H2Frame.Data => data
+        case other: H2Frame => fail("unexpected frame", clues(other))
+      }
 
       assertEquals(frame.data.decodeUtf8, Right(expected))
       assertEquals(frame.endStream, endStream)
@@ -505,10 +505,10 @@ class H2StreamSuite extends Http4sSuite {
       for {
         sq <- streamAndQueue(
           defaultSettings,
-          outgoingQueue = Queue.bounded[IO, Chunk[H2Frame]](1),
+          outgoingQueue = Queue.bounded[IO, H2Frame](1),
         )
         (stream, outgoing) = sq
-        _ <- outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+        _ <- outgoing.offer(H2Frame.Ping.ack)
         _ <- stream
           .receiveData(H2Frame.Data(1, ByteVector.fill(16384)(0), None, false))
           .replicateA_(2)
@@ -549,7 +549,7 @@ class H2StreamSuite extends Http4sSuite {
       (stream, outgoing) = sq
       _ <- stream.sendMessageBody(resp)
       _ <- stream.sendTrailerHeaders(resp)
-      frames <- outgoing.tryTakeN(None).map(_.flatMap(_.toList))
+      frames <- outgoing.tryTakeN(None)
       st <- stream.state.get.map(_.state)
     } yield {
       assert(
@@ -582,7 +582,7 @@ class H2StreamSuite extends Http4sSuite {
       onReceipt <- outgoing.tryTakeN(None)
       _ <- stream.readBody.take(size.toLong).compile.drain
       _ <- stream.sendReadWindowUpdate
-      onConsume <- outgoing.tryTakeN(None).map(_.flatMap(_.toList))
+      onConsume <- outgoing.tryTakeN(None)
       toConnection <- credited.get
     } yield {
       assertEquals(onReceipt, Nil)
@@ -662,7 +662,7 @@ class H2StreamSuite extends Http4sSuite {
             H2Frame.Data(1, ByteVector.empty, Some(ByteVector.fill(126)(0)), false)
           ) >> stream.sendReadWindowUpdate
       }
-      frames <- outgoing.tryTakeN(None).map(_.flatMap(_.toList))
+      frames <- outgoing.tryTakeN(None)
       state <- stream.state.get
     } yield {
       assertEquals(state.unreadBytes, 0)
