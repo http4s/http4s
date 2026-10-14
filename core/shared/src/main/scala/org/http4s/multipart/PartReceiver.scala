@@ -233,7 +233,7 @@ object PartReceiver {
             if (total > maxSizeBeforeFile) {
               val countedTailBytes = tail.chunks
                 .evalTap(chunk => totalBytesRead.update(_ + chunk.size))
-                .flatMap(Stream.chunk)
+                .unchunks
               val toDump = Stream.chunk(newBytes) ++ countedTailBytes
               Pull.output1(
                 Files[F].tempFile
