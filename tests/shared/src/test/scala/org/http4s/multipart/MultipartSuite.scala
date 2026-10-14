@@ -22,13 +22,13 @@ import cats.effect._
 import cats.effect.std.Random
 import cats.syntax.all._
 import fs2._
+import fs2.io.file.NoSuchFileException
 import org.http4s.EntityEncoder._
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.typelevel.ci._
 
 import scala.annotation.nowarn
-import fs2.io.file.NoSuchFileException
 
 class MultipartSuite extends Http4sSuite {
   private val url = uri"https://example.com/path/to/some/where"
@@ -326,24 +326,15 @@ Content-Type: application/json
         body = EntityEncoder[IO, Multipart[IO]].toEntity(m).body,
       )
 
-      val eithers = decoder
+      decoder
         .use(_.decode(request, strict = true).value.rethrow)
         .flatMap(_.parts.toList.traverse(_.body.compile.drain.attempt))
-
-      eithers.map(_.map(_.isLeft)).assertEquals(expectedPartsBufferedToDisk)
-
-      val errors = eithers.map(
-        _.collect { case Left(t) => t.getClass }
-      )
-      // A bit of a hack, but as `MultipartParserSuite.scala` states, we have
-      // no way to directly test that the temp file got written. We instead use
-      // the `NoSuchFileException` as a signal to identify which parts got
-      // written to disk
-      val expectedErrors = expectedPartsBufferedToDisk
-        .filter(identity(_))
-        .map(_ => classOf[NoSuchFileException])
-
-      errors.assertEquals(expectedErrors)
+        .map(_.map {
+          case Left(_: NoSuchFileException) => true
+          case Left(t) => fail(t.getMessage)
+          case Right(_) => false
+        })
+        .assertEquals(expectedPartsBufferedToDisk)
     }
   }
   test("No disk buffering exactly at the limit")(
