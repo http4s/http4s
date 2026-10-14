@@ -3197,7 +3197,36 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
       suffix: String,
       expectedSettings: Vector[(Int, Long)],
       mode: String,
-  ): IO[Unit] = {
+  ): IO[Unit] =
+    runServer(s"h2.server.$suffix")(statePushScript(suffix, expectedSettings, mode))
+
+  for {
+    caller <- statePushCallers.filter { case (suffix, _) =>
+      Set("window-update-after-peer-end", "peer-concurrency-zero-allows-responses")(suffix)
+    }
+    partialFrame <- Vector(false, true)
+  } test(s"State push capability EOF: ${caller._1}/partial-frame=$partialFrame") {
+    import Http2Wire._
+    val input = clientPreface ++ encode(settings(caller._2 :+ (2 -> 0L))) ++
+      encode(headers(1, Vector(":method" -> "GET"))) ++ encode(windowUpdate(1, 16)) ++
+      (if (partialFrame) ByteVector(0) else ByteVector.empty)
+    for {
+      fixture <- ScriptedPeer.peer(input, fragment = 1)
+      (peer, output) = fixture
+      run = statePushScript(caller._1, caller._2, "obey")(peer)
+      _ <- if (partialFrame) run.intercept[WireDecodingFailure].void else run
+      frames <- output.flatMap(bytes => IO.fromEither(decodeAll(bytes)))
+    } yield assertEquals(
+      frames.filter(_.frameType == Data),
+      Vector(data(1, Http1Wire.ascii("abcdefghijklmnop"))),
+    )
+  }
+
+  private def statePushScript(
+      suffix: String,
+      expectedSettings: Vector[(Int, Long)],
+      mode: String,
+  ): RawPeer[IO] => IO[Unit] = {
     import Http2Wire._
     final case class Sender(
         initial: Long = 65535L,
@@ -3207,7 +3236,7 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
         body: ByteVector = ByteVector.empty,
         pushEnabled: Boolean = true,
     )
-    runServer(s"h2.server.$suffix") { peer =>
+    peer => {
       def flush(state: Sender): IO[Sender] = {
         val size = math.max(0L, math.min(16384L, math.min(state.window, state.connection)))
         val bytes = state.body.take(size)
@@ -3247,40 +3276,45 @@ class Http2CaseOracleSuite extends CatsEffectSuite {
           ),
         ),
       )
-      def loop(state: Sender): IO[Unit] = readFrame(peer).flatMap { frame =>
-        frame.frameType match {
-          case Settings if !frame.hasFlag(Ack) =>
-            writeFrame(peer, settings(ack = true)) *> flush(settingsState(frame, state)).flatMap(
-              loop
-            )
-          case Headers =>
-            val body =
-              if (Set("negative-stream-window", "connection-credit-independent")(suffix))
-                ByteVector.fill(65536)(0x61.toByte)
-              else Http1Wire.ascii("abcdefghijklmnop")
-            val next = state.copy(stream = frame.streamId, window = state.initial, body = body)
-            (if (mode == "push-before-head" || state.pushEnabled) push(frame.streamId)
-             else IO.unit) *>
-              writeFrame(
-                peer,
-                headers(frame.streamId, Vector(":status" -> "200"), endStream = false),
-              ) *>
-              (if (mode == "push-after-head") push(frame.streamId) else IO.unit) *>
-              (if (mode == "invalid-ping") writeFrame(peer, Frame(Ping, 0, 0, ByteVector(0)))
+      // The oracle closes its peer before the server resource cancels this loop.
+      // Treat closure between frames as normal; partial frames must still fail.
+      def loop(state: Sender): IO[Unit] = readFrameOrClose(peer).flatMap {
+        case None => IO.unit
+        case Some(frame) =>
+          frame.frameType match {
+            case Settings if !frame.hasFlag(Ack) =>
+              writeFrame(peer, settings(ack = true)) *> flush(settingsState(frame, state)).flatMap(
+                loop
+              )
+            case Headers =>
+              val body =
+                if (Set("negative-stream-window", "connection-credit-independent")(suffix))
+                  ByteVector.fill(65536)(0x61.toByte)
+                else Http1Wire.ascii("abcdefghijklmnop")
+              val next = state.copy(stream = frame.streamId, window = state.initial, body = body)
+              (if (mode == "push-before-head" || state.pushEnabled) push(frame.streamId)
                else IO.unit) *>
-              flush(next).flatMap(loop)
-          case Ping if !frame.hasFlag(Ack) =>
-            writeFrame(peer, frame.copy(flags = Ack)) *> loop(state)
-          case WindowUpdate =>
-            val increment = readUint32(frame.payload) & 0x7fffffffL
-            flush(
-              if (frame.streamId == 0) state.copy(connection = state.connection + increment)
-              else if (frame.streamId == state.stream) state.copy(window = state.window + increment)
-              else state
-            ).flatMap(loop)
-          case RstStream => loop(state.copy(body = ByteVector.empty))
-          case _ => loop(state)
-        }
+                writeFrame(
+                  peer,
+                  headers(frame.streamId, Vector(":status" -> "200"), endStream = false),
+                ) *>
+                (if (mode == "push-after-head") push(frame.streamId) else IO.unit) *>
+                (if (mode == "invalid-ping") writeFrame(peer, Frame(Ping, 0, 0, ByteVector(0)))
+                 else IO.unit) *>
+                flush(next).flatMap(loop)
+            case Ping if !frame.hasFlag(Ack) =>
+              writeFrame(peer, frame.copy(flags = Ack)) *> loop(state)
+            case WindowUpdate =>
+              val increment = readUint32(frame.payload) & 0x7fffffffL
+              flush(
+                if (frame.streamId == 0) state.copy(connection = state.connection + increment)
+                else if (frame.streamId == state.stream)
+                  state.copy(window = state.window + increment)
+                else state
+              ).flatMap(loop)
+            case RstStream => loop(state.copy(body = ByteVector.empty))
+            case _ => loop(state)
+          }
       }
       for {
         preface <- peer.readExact(clientPreface.size.toInt)
