@@ -26,6 +26,7 @@ import fs2.Stream
 import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.CloseStatusCode
 import org.http4s.websocket.WebSocketSeparatePipe
 
 import scala.concurrent.duration.FiniteDuration
@@ -82,10 +83,10 @@ private[websocket] object Heartbeat {
     (F.ref(false), F.deferred[Unit]).mapN { (pingOutstanding, stalled) =>
       val overdue: WebSocketFrame =
         WebSocketFrame
-          .Close(1011, s"No pong received within $every")
+          .Close(CloseStatusCode.UnexpectedCondition, s"No pong received within $every")
           .getOrElse(WebSocketFrame.Close())
 
-      // Pong deadline starts one interval after the write begins (not after handoff from the
+      // Pong deadline starts one interval after write begins (not after handoff from the
       // queue). Stalled writes would stop the clock, so every handoff gets the same deadline.
       // If write doesn't take a frame within one interval, `stalled` interrupts the merged
       // stream without close frame. Interrupt must be on the merged stream, not just this one—
