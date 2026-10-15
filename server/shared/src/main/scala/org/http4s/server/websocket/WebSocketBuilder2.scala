@@ -227,10 +227,10 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (false, false) => sendReceive
         case (true, true) =>
           sendReceive.compose(
-            defragFragment(maxMessageSize, DefaultMaxFragmentCount).compose(filterPingPongFrames)
+            defragFragment(maxMessageSize, maxFragmentCount).compose(filterPingPongFrames)
           )
         case (false, true) =>
-          sendReceive.compose(defragFragment(maxMessageSize, DefaultMaxFragmentCount))
+          sendReceive.compose(defragFragment(maxMessageSize, maxFragmentCount))
       }
 
     buildResponse(startHeartbeat(WebSocketCombinedPipe(finalSendReceive, onClose)))
