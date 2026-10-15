@@ -21,7 +21,6 @@ import cats.effect._
 import cats.effect.std.Queue
 import cats.effect.std.Semaphore
 import cats.effect.testkit.TestControl
-import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pipe
@@ -413,48 +412,39 @@ class H2ConnectionSuite extends H2Suite {
     }
   }
 
-  test("frames for an idle stream are a connection error") {
-    def goAwaysFor(frame: H2Frame, openRemote: List[Int]): IO[Vector[Int]] =
-      for {
-        writes <- Ref[IO].of(ByteVector.empty)
-        h2 <- mkConnection(H2Frame.Settings.ConnectionSettings.default, encode(frame), writes)
-        _ <- openRemote.traverse_(h2.initiateRemoteStreamById)
-        _ <- h2.readLoop
-        frames <- drainOutgoing(h2, writes)
-      } yield goAways(frames)
-
+  test("window update for an idle stream is a connection error") {
     for {
-      rst <- goAwaysFor(H2Error.Cancel.toRst(3), openRemote = Nil)
-      windowUpdate <- goAwaysFor(H2Frame.WindowUpdate(2, 1), openRemote = List(3))
-    } yield {
-      assertEquals(rst, Vector(H2Error.ProtocolError.value))
-      assertEquals(windowUpdate, Vector(H2Error.ProtocolError.value))
-    }
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.WindowUpdate(2, 1)),
+        writes,
+      )
+      _ <- h2.initiateRemoteStreamById(3)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
   }
 
-  test("data and rst stream on stream 0 are a connection error") {
-    def goAwaysFor(frame: H2Frame, connectionType: H2Connection.ConnectionType): IO[Vector[Int]] =
-      for {
-        writes <- Ref[IO].of(ByteVector.empty)
-        h2 <- mkConnection(
-          H2Frame.Settings.ConnectionSettings.default,
-          encode(frame),
-          Duration.Inf,
-          writes,
-          connectionType = connectionType,
-        )
-        _ <- h2.readLoop
-        frames <- drainOutgoing(h2, writes)
-      } yield goAways(frames)
-
-    List(H2Connection.ConnectionType.Server, H2Connection.ConnectionType.Client).traverse_ {
+  List[(String, H2Frame)](
+    "data" -> data(0, 10),
+    "rst stream" -> H2Error.Cancel.toRst(0),
+  ).foreach { case (name, frame) =>
+    List(H2Connection.ConnectionType.Server, H2Connection.ConnectionType.Client).foreach {
       connectionType =>
-        for {
-          onData <- goAwaysFor(data(0, 10), connectionType)
-          onRst <- goAwaysFor(H2Error.Cancel.toRst(0), connectionType)
-        } yield {
-          assertEquals(onData, Vector(H2Error.ProtocolError.value), clue(connectionType))
-          assertEquals(onRst, Vector(H2Error.ProtocolError.value), clue(connectionType))
+        test(s"$name on stream 0 is a connection error ($connectionType)") {
+          for {
+            writes <- Ref[IO].of(ByteVector.empty)
+            h2 <- mkConnection(
+              H2Frame.Settings.ConnectionSettings.default,
+              encode(frame),
+              Duration.Inf,
+              writes,
+              connectionType = connectionType,
+            )
+            _ <- h2.readLoop
+            frames <- drainOutgoing(h2, writes)
+          } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
         }
     }
   }
