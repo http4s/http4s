@@ -634,27 +634,31 @@ private[h2] class H2Connection[F[_]](
         goAway(H2Error.ProtocolError)
 
       case (settings @ H2Frame.Settings(0, false, _), _) =>
-        for {
-          t <- state.modify { s =>
-            val newSettings = H2Frame.Settings.updateSettings(settings, s.remoteSettings)
-            val differenceInWindow =
-              newSettings.initialWindowSize.windowSize - s.remoteSettings.initialWindowSize.windowSize
-            (
-              s.copy(remoteSettings = newSettings),
-              (newSettings, differenceInWindow),
-            )
-          }
-          (settings, differenceInWindow) = t
-
-          _ <- mapRef.get.flatMap { map =>
-            map.toList.traverse { case (_, stream) =>
-              stream.modifyWriteWindow(differenceInWindow)
+        // Stream creation must observe either the old settings and this adjustment,
+        // or the new settings, never a mixture of the two.
+        streamCreateAndHeaders.use { _ =>
+          for {
+            t <- state.modify { s =>
+              val newSettings = H2Frame.Settings.updateSettings(settings, s.remoteSettings)
+              val differenceInWindow =
+                newSettings.initialWindowSize.windowSize - s.remoteSettings.initialWindowSize.windowSize
+              (
+                s.copy(remoteSettings = newSettings),
+                (newSettings, differenceInWindow),
+              )
             }
-          }
-          _ <- offerFrame(H2Frame.Settings.Ack)
-          _ <- settingsAck.complete(Either.right(settings)).void
+            (settings, differenceInWindow) = t
 
-        } yield ()
+            _ <- mapRef.get.flatMap { map =>
+              map.toList.traverse { case (_, stream) =>
+                stream.modifyWriteWindow(differenceInWindow)
+              }
+            }
+            _ <- offerFrame(H2Frame.Settings.Ack)
+            _ <- settingsAck.complete(Either.right(settings)).void
+
+          } yield ()
+        }
       case (H2Frame.Settings(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Settings(_, _, _), _) =>
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
