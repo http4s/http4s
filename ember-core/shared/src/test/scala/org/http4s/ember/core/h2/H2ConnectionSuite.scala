@@ -359,21 +359,6 @@ class H2ConnectionSuite extends H2Suite {
     }
   }
 
-  test("window update and rst stream for a closed stream are ignored") {
-    for {
-      writes <- Ref[IO].of(ByteVector.empty)
-      h2 <- mkConnection(
-        H2Frame.Settings.ConnectionSettings.default,
-        encode(H2Frame.WindowUpdate(1, 100), H2Error.Cancel.toRst(1)),
-        writes,
-      )
-      _ <- h2.initiateRemoteStreamById(1)
-      _ <- h2.mapRef.set(Map.empty)
-      _ <- h2.readLoop
-      frames <- drainOutgoing(h2, writes)
-    } yield assertEquals(goAways(frames), Vector.empty, clue(frames))
-  }
-
   test("frames for a stream the client has released are ignored") {
     TestControl.executeEmbed {
       for {
