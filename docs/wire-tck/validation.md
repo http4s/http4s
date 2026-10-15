@@ -1,6 +1,6 @@
 # Validation record
 
-Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt tckCompare` to generate fresh results under `target/wire-tck-reports/`.
 
 Current evidence: phase 4 matrix and audits (`audit/phase4-accepted-status.md`, historical artifact). The sections below
 retain historical execution evidence; later snapshots do not rewrite earlier failures.
@@ -10,17 +10,17 @@ Baseline commit: `7ae5b1ea14c6df3f9b6b00ba5a74b2ff7adcde2d`.
 ## Phase 1
 
 Executed on 2026-10-10, macOS arm64, Java 27, Node.js 26.10.0, Scala 2.13.18.
-`sbt --client tckCheck` passed on JVM, Scala.js and Scala Native: each platform
+`sbt tckCheck` passed on JVM, Scala.js and Scala Native: each platform
 executed 62 harness tests (including RFC/external HPACK vectors and faulty peers),
 six Ember adapter lifecycle tests and eight protocol cases; the ninth protocol
-case, missing Host, was centrally ignored. `sbt --client tckCompare` completed all 36 outcomes: 32 passed and four failed
+case, missing Host, was centrally ignored. `sbt tckCompare` completed all 36 outcomes: 32 passed and four failed
 (the missing-Host case for each target). No cases were suppressed and all manifests
 reconciled with MUnit events and report metadata. The eight Netty adapter tests
 also passed. Recorded outcomes and transcripts (`validation/phase1.jsonl`, historical artifact) retain
 the exact catalog revision, settings and per-target evidence.
 
 Individual selection was exercised with
-`sbt --client 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --tests=h1.server.get'`:
+`sbt 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --tests=h1.server.get'`:
 exactly one case ran. Intentional comparison failures point at the case definition
 in `BaselineCases.scala`, preserving MUnit caller locations. Oracle challenges
 detect changed PING payloads, corrupt content and wrong message boundaries for
@@ -92,7 +92,7 @@ The focused codec checks passed (37 JVM cases, 50 Native cases including 13
 Native reset checks). All seven Ember adapter tests passed on every platform,
 and all eight Netty adapter tests passed during comparison.
 
-The final `sbt --client tckCheck` passed on all three platforms. JVM and Native
+The final `sbt tckCheck` passed on all three platforms. JVM and Native
 each ran 592 passing protocol cases and reported 160 registered skips; Scala.js
 ran 594 passing protocol cases and reported 158 skips. The two extra Native
 skips are the explicitly retained intermittent GOAWAY observations. Each platform
@@ -563,7 +563,7 @@ Normal Ember runs, final metadata review and phase acceptance remain pending.
 
 ### A4 normal Scala 2.13.18 runs and static checks
 
-`sbt --client tckCheck` completed with exit 0 on JVM, JS and Native. The full
+`sbt tckCheck` completed with exit 0 on JVM, JS and Native. The full
 harness passed again: 5,084 / 5,125 / 5,078 tests respectively. Normal protocol
 outcomes were JVM 599 pass / 150 skipped, JS 599 / 150, Native 598 / 151, plus
 55 passing Ember adapter tests on each platform. No ignored case counts as
@@ -625,7 +625,7 @@ normal validation is underway; phase 3 remains uncommitted.
 
 ### A4 completed Scala 3.3.8 normal validation
 
-The full Scala 3.3.8 `sbt --client` invocation of `tckCheck` completed with exit 0
+The full Scala 3.3.8 `sbt` invocation of `tckCheck` completed with exit 0
 on JVM, JS and Native, using the current 153-entry registry. All twelve protocol
 manifests and 2,247 current outcomes reconcile: 749 IDs per platform, JVM/JS each
 599 pass / 150 registered skips, Native 596 pass / 153 registered skips. All

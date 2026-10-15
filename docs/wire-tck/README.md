@@ -1,6 +1,6 @@
 # HTTP wire conformance TCK
 
-Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt tckCompare` to generate fresh results under `target/wire-tck-reports/`.
 
 The catalog tests clients and servers through real loopback sockets. Each `WireCase`
 is an individual MUnit test, shared unchanged by Ember and Netty. Ordinary Ember
@@ -12,14 +12,14 @@ the completed Scala/platform matrix, implementation deviations and explicit cove
 ## Running
 
 ```
-sbt --client 'wire-testkit/test' 'wire-tck/test'
-sbt --client 'wire-testkitJS/test' 'wire-tckJS/test'
-sbt --client 'wire-testkitNative/test' 'wire-tckNative/test'
-sbt --client tckCompare
-sbt --client 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
-sbt --client 'wire-tckJS/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
-sbt --client 'wire-tckNative/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
-sbt --client 'wire-tck-compare/testOnly org.http4s.wire.CompareNettyHttp2ServerSuite'
+sbt ';wire-testkit/test;wire-tck/test'
+sbt ';wire-testkitJS/test;wire-tckJS/test'
+sbt ';wire-testkitNative/test;wire-tckNative/test'
+sbt tckCompare
+sbt 'wire-tck/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
+sbt 'wire-tckJS/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
+sbt 'wire-tckNative/testOnly org.http4s.wire.EmberHttp1ServerSuite -- --include-tags=h1.server.get'
+sbt 'wire-tck-compare/testOnly org.http4s.wire.CompareNettyHttp2ServerSuite'
 ```
 
 Each case also has its stable ID as an MUnit tag. Use `--include-tags=<exact ID>`

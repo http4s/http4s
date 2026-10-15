@@ -1,6 +1,6 @@
 # Known Ember protocol observations
 
-Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt --client tckCompare` to generate fresh results under `target/wire-tck-reports/`.
+Generated audit and validation artifacts are not version-controlled and have been removed from this checkout. Artifact names and original revision IDs below are historical references, not available files or revisions in the rewritten branch. Use the ordinary test commands in [Running](README.md#running) and `sbt tckCompare` to generate fresh results under `target/wire-tck-reports/`.
 
 Exact entries in `IgnoreRegistry.scala` suppress ordinary runs only; comparison
 always executes every active catalog case. The A4 review below covers exact
