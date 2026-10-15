@@ -40,11 +40,10 @@ class TraversalSpec extends Http4sSuite {
       } yield q.take
 
     def assertBodyRoundTrip(req: Request[IO], input: String): IO[Unit] = {
-      // val logger = TestingLogger.impl[IO]()
       val parsedBody = for {
         read <- taking[IO, Byte](Encoder.reqToBytes[IO](req))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read)
         body <- end._1.body.compile.toVector
       } yield body
 
@@ -59,7 +58,7 @@ class TraversalSpec extends Http4sSuite {
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](req))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read)
       } yield end._1.headers.headers
 
       res.assertEquals(req.headers.headers)
@@ -68,14 +67,13 @@ class TraversalSpec extends Http4sSuite {
 
   test("Request Encoder/Parser should preserve method with known uri") {
     PropF.forAllF { (req: Request[IO]) =>
-      // val logger = TestingLogger.impl[IO]()
       val newReq = req
         .withUri(uri"http://www.google.com")
 
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](newReq))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read)
       } yield end._1.method
 
       res.assertEquals(req.method)
@@ -84,11 +82,10 @@ class TraversalSpec extends Http4sSuite {
 
   test("Request Encoder/Parser should preserve uri.scheme".ignore) {
     PropF.forAllF { (req: Request[IO]) =>
-      // val logger = TestingLogger.impl[IO]()
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](req))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read)
       } yield end._1.uri.scheme
 
       res.assertEquals(req.uri.scheme)
