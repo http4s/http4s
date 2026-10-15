@@ -17,22 +17,25 @@
 package org.http4s.wire
 
 object BaselineCases {
-  val all: Vector[WireCase] = Vector(
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-3.2
-    // A server MUST respond 400 to any HTTP/1.1 request lacking Host.
-    WireCase(
-      "h1.server.missing-host",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(9112, "3.2", "Reject an HTTP/1.1 request with no Host field using 400."),
-    ) { context =>
-      context.server(Protocol.Http1).use { case (peer, _) =>
-        for {
-          _ <- peer.writeAscii("GET / HTTP/1.1\r\n\r\n")
-          response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 400)
-        } yield ()
-      }
-    }
+  lazy val all: Vector[WireCase] = Vector(
+    h1ServerMissingHost
   )
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-3.2
+  // A server MUST respond 400 to any HTTP/1.1 request lacking Host.
+  lazy val h1ServerMissingHost: WireCase = WireCase(
+    "h1.server.missing-host",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(9112, "3.2", "Reject an HTTP/1.1 request with no Host field using 400."),
+  ) { context =>
+    context.server(Protocol.Http1).use { case (peer, _) =>
+      for {
+        _ <- peer.writeAscii("GET / HTTP/1.1\r\n\r\n")
+        response <- Http1Wire.readFinalResponse(peer)
+        _ <- Check.equal(response.status, 400)
+      } yield ()
+    }
+  }
+
 }

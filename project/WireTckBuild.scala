@@ -11,8 +11,7 @@ object WireTckBuild {
     val sources = Vector("wire-testkit", "wire-tck", "wire-tck-compare")
       .flatMap(module => (root / module ** "*.scala").get)
       .filterNot(_.getPath.contains("/target/"))
-    val specification = (root / "docs/wire-tck" ** "*.tsv").get :+
-      (root / "docs/wire-tck/baseline.md")
+    val specification = Vector(root / "docs/wire-tck/baseline.md")
     (sources ++ specification :+ (root / "build.sbt") :+ (root / "project" / "WireTckBuild.scala") :+
       (root / "project" / "Http4sPlugin.scala"))
       .sortBy(_.getPath)
@@ -22,17 +21,6 @@ object WireTckBuild {
       }
     head + ":" + digest.digest().map(b => f"${b & 0xff}%02x").mkString
   }
-
-  def inventoryRows(root: File): Seq[String] =
-    (root / "docs/wire-tck/inventory" ** "*.tsv").get
-      .sortBy(_.getName)
-      .flatMap(file => IO.readLines(file).drop(1))
-      .toVector
-
-  // BuildInfo repeats values in Scaladoc. Raw grammar examples can contain
-  // comment delimiters; encode the exact UTF-8 bytes instead of rewriting them.
-  def encodeRows(rows: Seq[String]): Seq[String] =
-    rows.map(row => java.util.Base64.getEncoder.encodeToString(row.getBytes("UTF-8")))
 
   def checkSources(root: File): Unit = {
     val files = Vector("wire-testkit", "wire-tck", "wire-tck-compare")
@@ -54,21 +42,7 @@ object WireTckBuild {
       violations.isEmpty,
       s"Local test suppression is forbidden: ${violations.mkString(", ")}",
     )
-    val tracking = ignoreRows(root).map { row =>
-      val columns = row.split("\t", -1)
-      require(columns.length == 6 && columns.forall(_.nonEmpty), s"Invalid ignore row: $row")
-      columns(5)
-    }
-    tracking.foreach { reference =>
-      val parts = reference.split("#", 2)
-      require(parts.length == 2 && (root / parts(0)).isFile, s"Missing tracking record: $reference")
-      val headings = IO.readLines(root / parts(0)).filter(_.startsWith("## ")).map(_.drop(3))
-      require(headings.contains(parts(1)), s"Missing tracking anchor: $reference")
-    }
   }
-
-  def ignoreRows(root: File): Vector[String] =
-    IO.readLines(root / "docs/wire-tck/ignores.tsv").drop(1).toVector
 
   private val comparisonName =
     "(org\\.http4s\\.wire\\.(Compare(?:Ember|Netty)Http[12](?:Server|Client)Suite))(?:\\.(.+))?".r
@@ -195,7 +169,6 @@ object WireTckBuild {
 
   /** Small build-native mutation checks: disagreement is data, fabricated evidence is fatal. */
   def checkReconciliation(): Unit = {
-    checkTrackingReferences()
     checkEvidence()
     val outcomes = Map("one" -> "pass", "two" -> "fail", "three" -> "inconclusive")
     val events = Vector("one" -> "Success", "two" -> "Failure", "three" -> "Failure")
@@ -374,28 +347,6 @@ object WireTckBuild {
     )
     require(mismatch.errors.exists(_.startsWith("Catalog revisions differ")))
   }
-
-  private def checkTrackingReferences(): Unit =
-    IO.withTemporaryDirectory { root =>
-      val registry = root / "docs/wire-tck/ignores.tsv"
-      val record = root / "tracking.md"
-      def write(reference: String): Unit =
-        IO.write(
-          registry,
-          s"id\tplatforms\tobserved\trevision\tstatus\ttracking\ncase\tjvm\tdiagnostic\trevision\tconfirmed\t$reference\n",
-        )
-      write("tracking.md#record")
-      IO.write(record, "## record\n")
-      checkSources(root)
-      def rejects(expected: String): Boolean =
-        scala.util.Try(checkSources(root)).failed.toOption.exists(_.getMessage.contains(expected))
-      write("tracking.md#missing")
-      require(rejects("Missing tracking anchor"))
-      write("missing.md#record")
-      require(rejects("Missing tracking record"))
-      IO.write(registry, "header\ninvalid\n")
-      require(rejects("Invalid ignore row"))
-    }
 
   private def checkEventListener(): Unit = {
     val suite = "CompareEmberHttp1ServerSuite"

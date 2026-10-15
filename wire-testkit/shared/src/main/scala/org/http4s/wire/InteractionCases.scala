@@ -35,864 +35,845 @@ object InteractionCases {
     Http1Wire.ascii("HTTP/1.1 299 Body Only\r\nContent-Length: 0\r\n\r\n") ++ Binary
   private val PingBytes = ByteVector(41, 43, 47, 53, 59, 61, 67, 71)
 
-  val all: Vector[WireCase] = Vector(
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.server.interaction-length-body-request-line",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "6.3",
-        "A request line inside a fixed-length body does not start the next pipelined request.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        val first = Http1Wire.message(
-          "POST /first HTTP/1.1",
-          Vector("Host" -> "wire.test", "Content-Length" -> RequestShaped.size.toString),
-          RequestShaped,
+  lazy val all: Vector[WireCase] = Vector(
+    h1ServerInteractionLengthBodyRequestLine,
+    h1ServerInteractionChunkBodyRequestLine,
+    h1ServerInteractionUnframedPostNextRequest,
+    h1ServerInteractionConflictingLengthStopsPipeline,
+    h1ServerInteractionNonfinalChunkedStopsPipeline,
+    h1ServerInteractionFramingNameWhitespaceStopsPipeline,
+    h1ServerInteractionTransferLengthStopsPipeline,
+    h1ClientInteractionHeadLengthNextResponse,
+    h1ClientInteractionHeadChunkedNextResponse,
+    h1ClientInteractionNotModifiedNextResponse,
+    h1ClientInteractionNoContentNextResponse,
+    h1ClientInteractionLengthBodyStatusLine,
+    h1ClientInteractionChunkTrailerNextResponse,
+    h1ClientInteractionInterimNextRequestAssociation,
+    h2ClientInteractionEagerServerSettings,
+    h2ClientInteractionEagerZeroWindowUpload,
+    h2ServerInteractionCoalescedPrefaceRequest,
+    h2ServerInteractionInterleavedRequestData,
+    h2ServerInteractionTrailersBetweenOtherStreamData,
+    h2ServerInteractionResetOtherUploadStream,
+    h2ServerInteractionResetRetainsCompressionContext,
+    h2ClientInteractionInterleavedResponseData,
+    h2ClientInteractionInterimNextStreamAssociation,
+    h2ClientInteractionCompleteDataResponseNoErrorReset,
+    h2ClientInteractionCompleteHeadersResponseNoErrorReset,
+  )
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ServerInteractionLengthBodyRequestLine: WireCase = WireCase(
+    "h1.server.interaction-length-body-request-line",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "6.3",
+      "A request line inside a fixed-length body does not start the next pipelined request.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      val first = Http1Wire.message(
+        "POST /first HTTP/1.1",
+        Vector("Host" -> "wire.test", "Content-Length" -> RequestShaped.size.toString),
+        RequestShaped,
+      )
+      for {
+        _ <- peer.write(first ++ followingRequest)
+        _ <- checkPipeline(peer, server, RequestShaped, Following)
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-7.1
+  lazy val h1ServerInteractionChunkBodyRequestLine: WireCase = WireCase(
+    "h1.server.interaction-chunk-body-request-line",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "7.1",
+      "Chunk data and trailers end before the following request even when content resembles a request line.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      val first = Http1Wire.message(
+        "POST /first HTTP/1.1",
+        Vector("Host" -> "wire.test", "Transfer-Encoding" -> "chunked"),
+        chunked(RequestShaped, "X-Fence: GET /trailer HTTP/1.1\r\n"),
+      )
+      for {
+        _ <- peer.write(first ++ followingRequest)
+        _ <- checkPipeline(peer, server, RequestShaped, Following, allowLengthRequired = true)
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ServerInteractionUnframedPostNextRequest: WireCase = WireCase(
+    "h1.server.interaction-unframed-post-next-request",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "6.3",
+      "A POST without framing fields has no body; the following request starts immediately after its header section.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      for {
+        _ <- peer.write(
+          Http1Wire.ascii("POST /first HTTP/1.1\r\nHost: wire.test\r\n\r\n") ++ followingRequest
         )
-        for {
-          _ <- peer.write(first ++ followingRequest)
-          _ <- checkPipeline(peer, server, RequestShaped, Following)
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-7.1
-    WireCase(
-      "h1.server.interaction-chunk-body-request-line",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "7.1",
-        "Chunk data and trailers end before the following request even when content resembles a request line.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        val first = Http1Wire.message(
-          "POST /first HTTP/1.1",
-          Vector("Host" -> "wire.test", "Transfer-Encoding" -> "chunked"),
-          chunked(RequestShaped, "X-Fence: GET /trailer HTTP/1.1\r\n"),
+        _ <- checkPipeline(peer, server, ByteVector.empty, Following)
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ServerInteractionConflictingLengthStopsPipeline: WireCase = WireCase(
+    "h1.server.interaction-conflicting-length-stops-pipeline",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "6.3",
+      "Conflicting Content-Length values require 400 and closure before a pipelined suffix can be dispatched.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      for {
+        _ <- peer.write(
+          Http1Wire.ascii(
+            "POST /invalid HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 0\r\nContent-Length: 1\r\n\r\n"
+          ) ++ followingRequest
         )
-        for {
-          _ <- peer.write(first ++ followingRequest)
-          _ <- checkPipeline(peer, server, RequestShaped, Following, allowLengthRequired = true)
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.server.interaction-unframed-post-next-request",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "6.3",
-        "A POST without framing fields has no body; the following request starts immediately after its header section.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          _ <- peer.write(
-            Http1Wire.ascii("POST /first HTTP/1.1\r\nHost: wire.test\r\n\r\n") ++ followingRequest
+        response <- wireObservation(Http1Wire.readFinalResponse(peer))
+        _ <- Check.equal(response.status, 400)
+        _ <- expectClosed(peer)
+        received <- server.pollReceived
+        _ <- Check(
+          received.isEmpty,
+          s"invalid framing or its suffix reached the application: $received",
+        )
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ServerInteractionNonfinalChunkedStopsPipeline: WireCase = WireCase(
+    "h1.server.interaction-nonfinal-chunked-stops-pipeline",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "6.3",
+      "A request with transfer coding not ending in chunked requires 400 and closure before another request.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      for {
+        // gzip is a registered coding; the framing fault is the absence of final chunked.
+        _ <- peer.write(
+          Http1Wire.ascii(
+            "POST /invalid HTTP/1.1\r\nHost: wire.test\r\nTransfer-Encoding: gzip\r\n\r\n"
+          ) ++
+            ByteVector
+              .fromValidHex("1f8b080000000000000303000000000000000000") ++ followingRequest
+        )
+        response <- wireObservation(Http1Wire.readFinalResponse(peer))
+        _ <- Check.equal(response.status, 400)
+        _ <- expectClosed(peer)
+        received <- server.pollReceived
+        _ <- Check(
+          received.isEmpty,
+          s"undelimited request or its suffix reached the application: $received",
+        )
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-5.1
+  lazy val h1ServerInteractionFramingNameWhitespaceStopsPipeline: WireCase = WireCase(
+    "h1.server.interaction-framing-name-whitespace-stops-pipeline",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "5.1",
+      "Whitespace before a framing field colon requires 400 instead of interpreting its body as another request.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      for {
+        _ <- peer.write(
+          Http1Wire.ascii(
+            "POST /invalid HTTP/1.1\r\nHost: wire.test\r\nContent-Length : 0\r\nConnection: close\r\n\r\n"
+          ) ++ followingRequest
+        )
+        response <- wireObservation(Http1Wire.readFinalResponse(peer))
+        _ <- Check.equal(response.status, 400)
+        // The explicit close option supplies the closure obligation independently of 5.1.
+        _ <- expectClosed(peer)
+        received <- server.pollReceived
+        _ <- Check(
+          received.isEmpty,
+          s"malformed field or its suffix reached the application: $received",
+        )
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.1
+  lazy val h1ServerInteractionTransferLengthStopsPipeline: WireCase = WireCase(
+    "h1.server.interaction-transfer-length-stops-pipeline",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(
+      9112,
+      "6.1",
+      "A request with Transfer-Encoding and Content-Length may be rejected or decoded by Transfer-Encoding, but the connection must close.",
+    ),
+  ) { context =>
+    context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      val first = Http1Wire.message(
+        "POST /first HTTP/1.1",
+        Vector("Host" -> "wire.test", "Transfer-Encoding" -> "chunked", "Content-Length" -> "0"),
+        chunked(RequestShaped),
+      )
+      for {
+        _ <- peer.write(first ++ followingRequest)
+        response <- wireObservation(Http1Wire.readFinalResponse(peer))
+        _ <-
+          if (response.status == 200)
+            for {
+              _ <- Check.equal(response.body, RequestShaped)
+              received <- server.received
+              _ <- Check.equal(received.path, "/first")
+              _ <- Check.equal(received.body, RequestShaped)
+            } yield ()
+          else
+            Check(
+              response.status >= 400 && response.status <= 599,
+              "expected acceptance or an error response",
+            )
+        _ <- expectClosed(peer)
+        extra <- server.pollReceived
+        _ <- Check(
+          extra.isEmpty,
+          s"ambiguous framing allowed an additional application request: $extra",
+        )
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientInteractionHeadLengthNextResponse: WireCase = WireCase(
+    "h1.client.interaction-head-length-next-response",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "6.3",
+      "Content-Length on HEAD is metadata and must not consume bytes belonging to the subsequent response.",
+    ),
+  ) { context =>
+    h1ClientPair(context)((driver, nextSeen) =>
+      targetOperation(
+        checkExchange(
+          driver,
+          RequestData(method = "HEAD", path = "/first"),
+          200,
+          ByteVector.empty,
+        ) *>
+          afterH1Continuation(nextSeen)(
+            checkExchange(driver, RequestData(path = "/second"), 201, Following)
           )
-          _ <- checkPipeline(peer, server, ByteVector.empty, Following)
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.server.interaction-conflicting-length-stops-pipeline",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "6.3",
-        "Conflicting Content-Length values require 400 and closure before a pipelined suffix can be dispatched.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+      )
+    ) { (peer, nextSeen) =>
+      serveH1Pair(
+        peer,
+        "HEAD",
+        Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 123\r\n\r\n"),
+      )(nextSeen)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientInteractionHeadChunkedNextResponse: WireCase = WireCase(
+    "h1.client.interaction-head-chunked-next-response",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "6.3",
+      "Transfer-Encoding on HEAD does not require chunks before the next response on a reused connection.",
+    ),
+  ) { context =>
+    h1ClientPair(context)((driver, nextSeen) =>
+      targetOperation(
+        checkExchange(
+          driver,
+          RequestData(method = "HEAD", path = "/first"),
+          200,
+          ByteVector.empty,
+        ) *>
+          afterH1Continuation(nextSeen)(
+            checkExchange(driver, RequestData(path = "/second"), 201, Following)
+          )
+      )
+    ) { (peer, nextSeen) =>
+      serveH1Pair(
+        peer,
+        "HEAD",
+        Http1Wire.ascii("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"),
+      )(nextSeen)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientInteractionNotModifiedNextResponse: WireCase = WireCase(
+    "h1.client.interaction-not-modified-next-response",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "6.3",
+      "A 304 response ends at its empty line; its Content-Length cannot absorb the following response.",
+    ),
+  ) { context =>
+    h1ClientPair(context)((driver, nextSeen) =>
+      targetOperation(
+        checkExchange(driver, RequestData(path = "/first"), 304, ByteVector.empty) *>
+          afterH1Continuation(nextSeen)(
+            checkExchange(driver, RequestData(path = "/second"), 201, Following)
+          )
+      )
+    ) { (peer, nextSeen) =>
+      serveH1Pair(
+        peer,
+        "GET",
+        Http1Wire.ascii("HTTP/1.1 304 Not Modified\r\nContent-Length: 123\r\n\r\n"),
+      )(nextSeen)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientInteractionNoContentNextResponse: WireCase = WireCase(
+    "h1.client.interaction-no-content-next-response",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "6.3",
+      "A 204 response without framing fields ends at its empty line and permits a subsequent response.",
+    ),
+  ) { context =>
+    h1ClientPair(context)((driver, nextSeen) =>
+      targetOperation(
+        checkExchange(driver, RequestData(path = "/first"), 204, ByteVector.empty) *>
+          afterH1Continuation(nextSeen)(
+            checkExchange(driver, RequestData(path = "/second"), 201, Following)
+          )
+      )
+    ) { (peer, nextSeen) =>
+      serveH1Pair(peer, "GET", Http1Wire.ascii("HTTP/1.1 204 No Content\r\n\r\n"))(nextSeen)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientInteractionLengthBodyStatusLine: WireCase = WireCase(
+    "h1.client.interaction-length-body-status-line",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "6.3",
+      "A status line inside fixed-length content is body data and cannot become a subsequent response.",
+    ),
+  ) { context =>
+    h1ClientPair(context)((driver, nextSeen) =>
+      targetOperation(
+        checkExchange(driver, RequestData(path = "/first"), 200, ResponseShaped) *>
+          afterH1Continuation(nextSeen)(
+            checkExchange(driver, RequestData(path = "/second"), 201, Following)
+          )
+      )
+    ) { (peer, nextSeen) =>
+      serveH1Pair(
+        peer,
+        "GET",
+        Http1Wire.message(
+          "HTTP/1.1 200 OK",
+          Vector("Content-Length" -> ResponseShaped.size.toString),
+          ResponseShaped,
+        ),
+      )(nextSeen)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-7.1
+  lazy val h1ClientInteractionChunkTrailerNextResponse: WireCase = WireCase(
+    "h1.client.interaction-chunk-trailer-next-response",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "7.1",
+      "Response-shaped chunk data ends before reuse; unadvertised trailers may be discarded or retained in order.",
+    ),
+  ) { context =>
+    h1ClientPair(context)((driver, nextSeen) =>
+      targetOperation(
+        driver.exchange(RequestData(path = "/first")).use { response =>
+          for {
+            body <- response.body.compile.to(Chunk)
+            trailers <- response.trailers
+            _ <- Check.equal(response.status, 200)
+            _ <- Check.equal(body.toByteVector, ResponseShaped)
+            retained = values(trailers, "x-fence").flatMap(_.split(",", -1).map(_.trim))
+            _ <- Check(
+              retained.isEmpty || retained == Vector("first", "second"),
+              s"retained trailers changed order or values: $retained",
+            )
+          } yield ()
+        } *> afterH1Continuation(nextSeen)(
+          checkExchange(driver, RequestData(path = "/second"), 201, Following)
+        )
+      )
+    ) { (peer, nextSeen) =>
+      serveH1Pair(
+        peer,
+        "GET",
+        Http1Wire.message(
+          "HTTP/1.1 200 OK",
+          Vector("Transfer-Encoding" -> "chunked", "Trailer" -> "X-Fence"),
+          chunked(ResponseShaped, "X-Fence: first\r\nX-Fence: second\r\n"),
+        ),
+      )(nextSeen)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-9.2
+  lazy val h1ClientInteractionInterimNextRequestAssociation: WireCase = WireCase(
+    "h1.client.interaction-interim-next-request-association",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(
+      9112,
+      "9.2",
+      "Interim and final responses to one request cannot be associated with a later request on the connection.",
+    ),
+  ) { context =>
+    Deferred[IO, Unit].flatMap { secondSeen =>
+      context.client(Protocol.Http1)(driver =>
+        targetOperation {
+          for {
+            _ <- driver.exchange(RequestData(path = "/first")).use { response =>
+              response.body.compile.to(Chunk).flatMap { body =>
+                // The frozen API may expose a 1xx. It need not expose the final response here.
+                if (response.status == 100 || response.status == 103)
+                  IO.unit
+                else Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary)
+              }
+            }
+            _ <- afterH1Continuation(secondSeen.get) {
+              driver.exchange(RequestData(path = "/second")).use { response =>
+                for {
+                  body <- response.body.compile.to(Chunk)
+                  _ <- Check.equal(response.status, 201)
+                  _ <- Check.equal(body.toByteVector, Following)
+                } yield ()
+              }
+            }
+          } yield ()
+        }
+      ) { peer =>
         for {
+          first <- Http1Wire.readRequest(peer)
+          _ <- Check.equal(first.target, "/first")
+          _ <- requirePersistence(first.headers)
           _ <- peer.write(
             Http1Wire.ascii(
-              "POST /invalid HTTP/1.1\r\nHost: wire.test\r\nContent-Length: 0\r\nContent-Length: 1\r\n\r\n"
-            ) ++ followingRequest
+              "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 103 Early Hints\r\nX-Interim: first\r\n\r\n"
+            ) ++ Http1Wire.message(
+              "HTTP/1.1 200 OK",
+              Vector("Content-Length" -> Binary.size.toString),
+              Binary,
+            )
           )
-          response <- wireObservation(Http1Wire.readFinalResponse(peer))
-          _ <- Check.equal(response.status, 400)
-          _ <- expectClosed(peer)
-          received <- server.pollReceived
-          _ <- Check(
-            received.isEmpty,
-            s"invalid framing or its suffix reached the application: $received",
-          )
+          second <- nextH1Message(peer)(Http1Wire.readRequest(peer))
+          _ <- Check.equal(second.target, "/second")
+          _ <- secondSeen.complete(()).void
+          _ <- peer.write(finalH1Response)
         } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.server.interaction-nonfinal-chunked-stops-pipeline",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "6.3",
-        "A request with transfer coding not ending in chunked requires 400 and closure before another request.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
+  lazy val h2ClientInteractionEagerServerSettings: WireCase = WireCase(
+    "h2.client.interaction-eager-server-settings",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "3.4",
+      "An eager server SETTINGS preface can arrive while the client sends its preface and must be acknowledged after that preface.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        targetOperation(checkExchange(driver, RequestData(path = "/eager"), 200, Binary))
+      ) { peer =>
         for {
-          // gzip is a registered coding; the framing fault is the absence of final chunked.
-          _ <- peer.write(
-            Http1Wire.ascii(
-              "POST /invalid HTTP/1.1\r\nHost: wire.test\r\nTransfer-Encoding: gzip\r\n\r\n"
-            ) ++
-              ByteVector
-                .fromValidHex("1f8b080000000000000303000000000000000000") ++ followingRequest
-          )
-          response <- wireObservation(Http1Wire.readFinalResponse(peer))
-          _ <- Check.equal(response.status, 400)
-          _ <- expectClosed(peer)
-          received <- server.pollReceived
-          _ <- Check(
-            received.isEmpty,
-            s"undelimited request or its suffix reached the application: $received",
-          )
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-5.1
-    WireCase(
-      "h1.server.interaction-framing-name-whitespace-stops-pipeline",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "5.1",
-        "Whitespace before a framing field colon requires 400 instead of interpreting its body as another request.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        for {
-          _ <- peer.write(
-            Http1Wire.ascii(
-              "POST /invalid HTTP/1.1\r\nHost: wire.test\r\nContent-Length : 0\r\nConnection: close\r\n\r\n"
-            ) ++ followingRequest
-          )
-          response <- wireObservation(Http1Wire.readFinalResponse(peer))
-          _ <- Check.equal(response.status, 400)
-          // The explicit close option supplies the closure obligation independently of 5.1.
-          _ <- expectClosed(peer)
-          received <- server.pollReceived
-          _ <- Check(
-            received.isEmpty,
-            s"malformed field or its suffix reached the application: $received",
-          )
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.1
-    WireCase(
-      "h1.server.interaction-transfer-length-stops-pipeline",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(
-        9112,
-        "6.1",
-        "A request with Transfer-Encoding and Content-Length may be rejected or decoded by Transfer-Encoding, but the connection must close.",
-      ),
-    ) { context =>
-      context.server(Protocol.Http1, ServerScenario.EchoBody).use { case (peer, server) =>
-        val first = Http1Wire.message(
-          "POST /first HTTP/1.1",
-          Vector("Host" -> "wire.test", "Transfer-Encoding" -> "chunked", "Content-Length" -> "0"),
-          chunked(RequestShaped),
-        )
-        for {
-          _ <- peer.write(first ++ followingRequest)
-          response <- wireObservation(Http1Wire.readFinalResponse(peer))
-          _ <-
-            if (response.status == 200)
-              for {
-                _ <- Check.equal(response.body, RequestShaped)
-                received <- server.received
-                _ <- Check.equal(received.path, "/first")
-                _ <- Check.equal(received.body, RequestShaped)
-              } yield ()
-            else
-              Check(
-                response.status >= 400 && response.status <= 599,
-                "expected acceptance or an error response",
+          // Deliberately write before reading ANY client octet. serverHandshake would hide this ordering.
+          _ <- Http2Wire.writeFrame(peer, Http2Wire.settings())
+          settings <- receiveClientPreface(peer)
+          _ <- requireSendWindow(settings, Binary.size)
+          _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
+          decoder <- HpackWire.decoder[IO]()
+          request <- readClientRequest(peer, decoder, Binary.size, awaitAck = true)
+          _ <- Check.equal(values(request.fields, ":path"), Vector("/eager"))
+          _ <- Check.equal(request.body, ByteVector.empty)
+          _ <- Http2PeerSettings.write(
+            peer,
+            Http2Wire.encode(
+              literalHeaders(
+                request.streamId,
+                Vector(":status" -> "200", "content-length" -> Binary.size.toString),
+                endStream = false,
               )
-          _ <- expectClosed(peer)
+            ) ++ Http2Wire.encode(Http2Wire.data(request.streamId, Binary)),
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
+  lazy val h2ClientInteractionEagerZeroWindowUpload: WireCase = WireCase(
+    "h2.client.interaction-eager-zero-window-upload",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "3.4",
+      "An eager initial SETTINGS window applies to DATA released after its acknowledgment, and WINDOW_UPDATE permits progress.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { release =>
+        context.client(Protocol.Http2)(driver =>
+          targetOperation {
+            driver
+              .exchangeStream(
+                RequestData(
+                  method = "POST",
+                  path = "/eager",
+                  headers = Vector("content-length" -> Binary.size.toString),
+                ),
+                _ => Stream.eval(release.get).drain ++ Stream.chunk(Chunk.byteVector(Binary)),
+              )
+              .use { response =>
+                response.body.compile.to(Chunk).flatMap { body =>
+                  Check.equal(response.status, 200) *> Check
+                    .equal(body.toByteVector, ByteVector.empty)
+                }
+              }
+          }
+        ) { peer =>
+          for {
+            _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(Vector(4 -> 0L)))
+            settings <- receiveClientPreface(peer)
+            _ <- requireSendWindow(settings, 0L)
+            _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
+            decoder <- HpackWire.decoder[IO]()
+            request <- readClientRequest(peer, decoder, 0L, awaitAck = true, incomplete = true)
+            _ <- Check.equal(values(request.fields, ":method"), Vector("POST"))
+            _ <- Check(
+              !request.ended && request.body.isEmpty,
+              "upload must remain open before its body is released",
+            )
+            _ <- release.complete(()).void
+            // Every intervening frame is inspected; a PING ACK establishes connection liveness.
+            _ <- pingBarrier(peer, fromServer = false, zeroWindowStream = Some(request.streamId))
+            _ <- Http2Wire.writeFrame(peer, Http2Wire.windowUpdate(request.streamId, 65535))
+            body <- readUpload(peer, decoder, request.streamId, request.body)
+            _ <- Check.equal(body, Binary)
+            _ <- Http2Wire.writeFrame(
+              peer,
+              literalHeaders(request.streamId, Vector(":status" -> "200")),
+            )
+          } yield ()
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
+  lazy val h2ServerInteractionCoalescedPrefaceRequest: WireCase = WireCase(
+    "h2.server.interaction-coalesced-preface-request",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "3.4",
+      "A client may send a complete request immediately after its preface without awaiting server SETTINGS.",
+      "MAY",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- Http2PeerSettings.write(
+            peer,
+            Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings(Vector(2 -> 0L))) ++
+              Http2Wire.encode(
+                literalHeaders(1, requestFields("/early", Binary.size), endStream = false)
+              ) ++
+              Http2Wire.encode(Http2Wire.data(1, Binary)),
+          )
+          initial <- wireObservation(Http2Wire.readFrame(peer))
+          _ <- Check(
+            initial.frameType == Http2Wire.Settings && !initial.hasFlag(Http2Wire.Ack),
+            "server preface must be non-ACK SETTINGS",
+          )
+          _ <- control(peer, initial, fromServer = true)
+          responses <- readResponses(peer, Set(1))
+          _ <- checkResponse(responses(1), Binary)
+          received <- server.received
+          _ <- Check.equal(received.path, "/early")
+          _ <- Check.equal(received.body, Binary)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5
+  lazy val h2ServerInteractionInterleavedRequestData: WireCase = WireCase(
+    "h2.server.interaction-interleaved-request-data",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "5",
+      "Interleaved DATA belongs to its stream, including when the later stream reaches END_STREAM first.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          settings <- connectServer(peer)
+          _ <- requireTwoStreams(settings)
+          _ <- requireSendWindow(settings, Following.size)
+          _ <- Http2PeerSettings.write(
+            peer,
+            frames(
+              literalHeaders(1, requestFields("/one", Binary.size), endStream = false),
+              literalHeaders(3, requestFields("/two", Following.size), endStream = false),
+              Http2Wire.data(1, Binary.take(2), endStream = false),
+              Http2Wire.data(3, Following.take(3), endStream = false),
+              Http2Wire.data(3, Following.drop(3)),
+              Http2Wire.data(1, Binary.drop(2)),
+            ),
+          )
+          // The server can choose either response order, and may interleave its response frames.
+          responses <- readResponses(peer, Set(1, 3))
+          _ <- checkResponse(responses(1), Binary)
+          _ <- checkResponse(responses(3), Following)
+          _ <- checkTwoRequests(server)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerInteractionTrailersBetweenOtherStreamData: WireCase = WireCase(
+    "h2.server.interaction-trailers-between-other-stream-data",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1",
+      "Trailers complete their own stream without ending or contaminating another stream's DATA sequence.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          settings <- connectServer(peer)
+          _ <- requireTwoStreams(settings)
+          _ <- requireSendWindow(settings, Following.size)
+          _ <- Http2PeerSettings.write(
+            peer,
+            frames(
+              literalHeaders(1, requestFields("/one", Binary.size), endStream = false),
+              literalHeaders(3, requestFields("/two", Following.size), endStream = false),
+              Http2Wire.data(1, Binary, endStream = false),
+              Http2Wire.data(3, Following.take(3), endStream = false),
+              literalHeaders(1, Vector("x-fence" -> "one", "x-fence" -> "two")),
+              Http2Wire.data(3, Following.drop(3)),
+            ),
+          )
+          responses <- readResponses(peer, Set(1, 3))
+          _ <- checkResponse(responses(1), Binary)
+          _ <- checkResponse(responses(3), Following)
+          _ <- checkTwoRequests(server)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.4
+  lazy val h2ServerInteractionResetOtherUploadStream: WireCase = WireCase(
+    "h2.server.interaction-reset-other-upload-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.4",
+      "Resetting one incomplete upload does not prevent the other stream from completing or publish the incomplete upload as complete.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          settings <- connectServer(peer)
+          _ <- requireTwoStreams(settings)
+          _ <- requireSendWindow(settings, Following.size)
+          _ <- Http2PeerSettings.write(
+            peer,
+            frames(
+              literalHeaders(1, requestFields("/cancelled", Binary.size), endStream = false),
+              literalHeaders(3, requestFields("/two", Following.size), endStream = false),
+              Http2Wire.data(1, Binary.take(2), endStream = false),
+              Http2Wire.data(3, Following.take(3), endStream = false),
+              Http2Wire.Frame(Http2Wire.RstStream, 0, 1, Http2Wire.uint32(8L)),
+              Http2Wire.data(3, Following.drop(3)),
+            ),
+          )
+          // RFC 9113 Section 5.1: HEADERS on an already open stream do not confirm
+          // reset processing. Echoing the suffix sent after CANCEL does.
+          responses <- readResponses(peer, Set(3), Some(PendingReset(1, _.body == Following)))
+          _ <- checkResponse(responses(3), Following)
+          _ <- pingBarrier(peer, fromServer = true)
+          received <- server.received
+          _ <- Check.equal(received.path, "/two")
+          _ <- Check.equal(received.body, Following)
           extra <- server.pollReceived
           _ <- Check(
             extra.isEmpty,
-            s"ambiguous framing allowed an additional application request: $extra",
+            s"the cancelled incomplete upload was observed as complete: $extra",
           )
         } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.interaction-head-length-next-response",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "6.3",
-        "Content-Length on HEAD is metadata and must not consume bytes belonging to the subsequent response.",
-      ),
-    ) { context =>
-      h1ClientPair(context)((driver, nextSeen) =>
-        targetOperation(
-          checkExchange(
-            driver,
-            RequestData(method = "HEAD", path = "/first"),
-            200,
-            ByteVector.empty,
-          ) *>
-            afterH1Continuation(nextSeen)(
-              checkExchange(driver, RequestData(path = "/second"), 201, Following)
-            )
-        )
-      ) { (peer, nextSeen) =>
-        serveH1Pair(
-          peer,
-          "HEAD",
-          Http1Wire.ascii("HTTP/1.1 200 OK\r\nContent-Length: 123\r\n\r\n"),
-        )(nextSeen)
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.interaction-head-chunked-next-response",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "6.3",
-        "Transfer-Encoding on HEAD does not require chunks before the next response on a reused connection.",
-      ),
-    ) { context =>
-      h1ClientPair(context)((driver, nextSeen) =>
-        targetOperation(
-          checkExchange(
-            driver,
-            RequestData(method = "HEAD", path = "/first"),
-            200,
-            ByteVector.empty,
-          ) *>
-            afterH1Continuation(nextSeen)(
-              checkExchange(driver, RequestData(path = "/second"), 201, Following)
-            )
-        )
-      ) { (peer, nextSeen) =>
-        serveH1Pair(
-          peer,
-          "HEAD",
-          Http1Wire.ascii("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"),
-        )(nextSeen)
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.interaction-not-modified-next-response",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "6.3",
-        "A 304 response ends at its empty line; its Content-Length cannot absorb the following response.",
-      ),
-    ) { context =>
-      h1ClientPair(context)((driver, nextSeen) =>
-        targetOperation(
-          checkExchange(driver, RequestData(path = "/first"), 304, ByteVector.empty) *>
-            afterH1Continuation(nextSeen)(
-              checkExchange(driver, RequestData(path = "/second"), 201, Following)
-            )
-        )
-      ) { (peer, nextSeen) =>
-        serveH1Pair(
-          peer,
-          "GET",
-          Http1Wire.ascii("HTTP/1.1 304 Not Modified\r\nContent-Length: 123\r\n\r\n"),
-        )(nextSeen)
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.interaction-no-content-next-response",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "6.3",
-        "A 204 response without framing fields ends at its empty line and permits a subsequent response.",
-      ),
-    ) { context =>
-      h1ClientPair(context)((driver, nextSeen) =>
-        targetOperation(
-          checkExchange(driver, RequestData(path = "/first"), 204, ByteVector.empty) *>
-            afterH1Continuation(nextSeen)(
-              checkExchange(driver, RequestData(path = "/second"), 201, Following)
-            )
-        )
-      ) { (peer, nextSeen) =>
-        serveH1Pair(peer, "GET", Http1Wire.ascii("HTTP/1.1 204 No Content\r\n\r\n"))(nextSeen)
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.interaction-length-body-status-line",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "6.3",
-        "A status line inside fixed-length content is body data and cannot become a subsequent response.",
-      ),
-    ) { context =>
-      h1ClientPair(context)((driver, nextSeen) =>
-        targetOperation(
-          checkExchange(driver, RequestData(path = "/first"), 200, ResponseShaped) *>
-            afterH1Continuation(nextSeen)(
-              checkExchange(driver, RequestData(path = "/second"), 201, Following)
-            )
-        )
-      ) { (peer, nextSeen) =>
-        serveH1Pair(
-          peer,
-          "GET",
-          Http1Wire.message(
-            "HTTP/1.1 200 OK",
-            Vector("Content-Length" -> ResponseShaped.size.toString),
-            ResponseShaped,
-          ),
-        )(nextSeen)
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-7.1
-    WireCase(
-      "h1.client.interaction-chunk-trailer-next-response",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "7.1",
-        "Response-shaped chunk data ends before reuse; unadvertised trailers may be discarded or retained in order.",
-      ),
-    ) { context =>
-      h1ClientPair(context)((driver, nextSeen) =>
-        targetOperation(
-          driver.exchange(RequestData(path = "/first")).use { response =>
-            for {
-              body <- response.body.compile.to(Chunk)
-              trailers <- response.trailers
-              _ <- Check.equal(response.status, 200)
-              _ <- Check.equal(body.toByteVector, ResponseShaped)
-              retained = values(trailers, "x-fence").flatMap(_.split(",", -1).map(_.trim))
-              _ <- Check(
-                retained.isEmpty || retained == Vector("first", "second"),
-                s"retained trailers changed order or values: $retained",
-              )
-            } yield ()
-          } *> afterH1Continuation(nextSeen)(
-            checkExchange(driver, RequestData(path = "/second"), 201, Following)
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-4.3
+  lazy val h2ServerInteractionResetRetainsCompressionContext: WireCase = WireCase(
+    "h2.server.interaction-reset-retains-compression-context",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "4.3",
+      "The connection compression context retains a valid dynamic entry after its request stream is reset.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          settings <- connectServer(peer)
+          _ <- prerequisite(
+            settings.reverse.collectFirst { case (1, size) => size }.forall(_ >= 43L),
+            "the advertised HPACK table cannot hold the 43-octet x-state entry",
           )
-        )
-      ) { (peer, nextSeen) =>
-        serveH1Pair(
-          peer,
-          "GET",
-          Http1Wire.message(
-            "HTTP/1.1 200 OK",
-            Vector("Transfer-Encoding" -> "chunked", "Trailer" -> "X-Fence"),
-            chunked(ResponseShaped, "X-Fence: first\r\nX-Fence: second\r\n"),
-          ),
-        )(nextSeen)
+          _ <- prerequisite(
+            settings.reverse.collectFirst { case (3, count) => count }.forall(_ >= 1L),
+            "the peer does not permit a request stream",
+          )
+          // 40 = literal with incremental indexing and a new name. Index 62 (be) is then newest.
+          insertion = ByteVector.fromValidHex("4007782d7374617465046b657074")
+          capacity = settings.reverse
+            .collectFirst { case (1, size) => size }
+            .getOrElse(4096L)
+            .min(4096L)
+            .toInt
+          minimum = settings.collect { case (1, size) => size }.foldLeft(4096L)(_.min(_)).toInt
+          resize =
+            (if (minimum < capacity) HpackWire.encodeInteger(minimum, 5, 0x20)
+             else ByteVector.empty) ++
+              (if (capacity < 4096 || minimum < capacity)
+                 HpackWire.encodeInteger(capacity, 5, 0x20)
+               else ByteVector.empty)
+          firstBlock = resize ++ HpackWire
+            .encodeLiteral(requestFields("/cancelled", 1L)) ++ insertion
+          secondBlock = HpackWire.encodeLiteral(requestFields("/after", 0L)) ++ ByteVector(
+            0xbe.toByte
+          )
+          _ <- Http2PeerSettings.write(
+            peer,
+            frames(
+              Http2Wire.Frame(Http2Wire.Headers, Http2Wire.EndHeaders, 1, firstBlock),
+              Http2Wire.Frame(Http2Wire.RstStream, 0, 1, Http2Wire.uint32(8L)),
+              Http2Wire.Frame(
+                Http2Wire.Headers,
+                Http2Wire.EndHeaders | Http2Wire.EndStream,
+                3,
+                secondBlock,
+              ),
+            ),
+          )
+          // RFC 9113 Section 5.1: this request was created after CANCEL, so its
+          // first response HEADERS confirm that the peer processed the reset.
+          responses <- readResponses(peer, Set(3), Some(PendingReset(1, _ => true)))
+          _ <- checkResponse(responses(3), ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.path, "/after")
+          _ <- Check.equal(values(received.headers, "x-state"), Vector("kept"))
+          _ <- Check.equal(received.body, ByteVector.empty)
+          _ <- pingBarrier(peer, fromServer = true)
+          extra <- server.pollReceived
+          _ <- Check(extra.isEmpty, s"a cancelled incomplete stream reached EchoBody: $extra")
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-9.2
-    WireCase(
-      "h1.client.interaction-interim-next-request-association",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(
-        9112,
-        "9.2",
-        "Interim and final responses to one request cannot be associated with a later request on the connection.",
-      ),
-    ) { context =>
-      Deferred[IO, Unit].flatMap { secondSeen =>
-        context.client(Protocol.Http1)(driver =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientInteractionInterleavedResponseData: WireCase = WireCase(
+    "h2.client.interaction-interleaved-response-data",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "Responses are associated by stream when the later request completes before an earlier response body.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { firstOpen =>
+        context.client(Protocol.Http2)(driver =>
           targetOperation {
-            for {
-              _ <- driver.exchange(RequestData(path = "/first")).use { response =>
+            val first = driver.exchange(RequestData(path = "/one")).use { response =>
+              firstOpen.complete(()).void *> response.body.compile.to(Chunk).flatMap { body =>
+                Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary) *>
+                  Check.equal(values(response.headers, "x-stream"), Vector("one"))
+              }
+            }
+            val second =
+              firstOpen.get *> driver.exchange(RequestData(path = "/two")).use { response =>
                 response.body.compile.to(Chunk).flatMap { body =>
-                  // The frozen API may expose a 1xx. It need not expose the final response here.
-                  if (response.status == 100 || response.status == 103)
-                    IO.unit
-                  else Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary)
+                  Check.equal(response.status, 201) *> Check
+                    .equal(body.toByteVector, Following) *>
+                    Check.equal(values(response.headers, "x-stream"), Vector("two"))
                 }
               }
-              _ <- afterH1Continuation(secondSeen.get) {
-                driver.exchange(RequestData(path = "/second")).use { response =>
-                  for {
-                    body <- response.body.compile.to(Chunk)
-                    _ <- Check.equal(response.status, 201)
-                    _ <- Check.equal(body.toByteVector, Following)
-                  } yield ()
-                }
-              }
-            } yield ()
-          }
-        ) { peer =>
-          for {
-            first <- Http1Wire.readRequest(peer)
-            _ <- Check.equal(first.target, "/first")
-            _ <- requirePersistence(first.headers)
-            _ <- peer.write(
-              Http1Wire.ascii(
-                "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 103 Early Hints\r\nX-Interim: first\r\n\r\n"
-              ) ++ Http1Wire.message(
-                "HTTP/1.1 200 OK",
-                Vector("Content-Length" -> Binary.size.toString),
-                Binary,
-              )
-            )
-            second <- nextH1Message(peer)(Http1Wire.readRequest(peer))
-            _ <- Check.equal(second.target, "/second")
-            _ <- secondSeen.complete(()).void
-            _ <- peer.write(finalH1Response)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
-    WireCase(
-      "h2.client.interaction-eager-server-settings",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "3.4",
-        "An eager server SETTINGS preface can arrive while the client sends its preface and must be acknowledged after that preface.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          targetOperation(checkExchange(driver, RequestData(path = "/eager"), 200, Binary))
-        ) { peer =>
-          for {
-            // Deliberately write before reading ANY client octet. serverHandshake would hide this ordering.
-            _ <- Http2Wire.writeFrame(peer, Http2Wire.settings())
-            settings <- receiveClientPreface(peer)
-            _ <- requireSendWindow(settings, Binary.size)
-            _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
-            decoder <- HpackWire.decoder[IO]()
-            request <- readClientRequest(peer, decoder, Binary.size, awaitAck = true)
-            _ <- Check.equal(values(request.fields, ":path"), Vector("/eager"))
-            _ <- Check.equal(request.body, ByteVector.empty)
-            _ <- Http2PeerSettings.write(
-              peer,
-              Http2Wire.encode(
-                literalHeaders(
-                  request.streamId,
-                  Vector(":status" -> "200", "content-length" -> Binary.size.toString),
-                  endStream = false,
-                )
-              ) ++ Http2Wire.encode(Http2Wire.data(request.streamId, Binary)),
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
-    WireCase(
-      "h2.client.interaction-eager-zero-window-upload",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "3.4",
-        "An eager initial SETTINGS window applies to DATA released after its acknowledgment, and WINDOW_UPDATE permits progress.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { release =>
-          context.client(Protocol.Http2)(driver =>
-            targetOperation {
-              driver
-                .exchangeStream(
-                  RequestData(
-                    method = "POST",
-                    path = "/eager",
-                    headers = Vector("content-length" -> Binary.size.toString),
-                  ),
-                  _ => Stream.eval(release.get).drain ++ Stream.chunk(Chunk.byteVector(Binary)),
-                )
-                .use { response =>
-                  response.body.compile.to(Chunk).flatMap { body =>
-                    Check.equal(response.status, 200) *> Check
-                      .equal(body.toByteVector, ByteVector.empty)
-                  }
-                }
-            }
-          ) { peer =>
-            for {
-              _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(Vector(4 -> 0L)))
-              settings <- receiveClientPreface(peer)
-              _ <- requireSendWindow(settings, 0L)
-              _ <- Http2Wire.writeFrame(peer, Http2Wire.settings(ack = true))
-              decoder <- HpackWire.decoder[IO]()
-              request <- readClientRequest(peer, decoder, 0L, awaitAck = true, incomplete = true)
-              _ <- Check.equal(values(request.fields, ":method"), Vector("POST"))
-              _ <- Check(
-                !request.ended && request.body.isEmpty,
-                "upload must remain open before its body is released",
-              )
-              _ <- release.complete(()).void
-              // Every intervening frame is inspected; a PING ACK establishes connection liveness.
-              _ <- pingBarrier(peer, fromServer = false, zeroWindowStream = Some(request.streamId))
-              _ <- Http2Wire.writeFrame(peer, Http2Wire.windowUpdate(request.streamId, 65535))
-              body <- readUpload(peer, decoder, request.streamId, request.body)
-              _ <- Check.equal(body, Binary)
-              _ <- Http2Wire.writeFrame(
-                peer,
-                literalHeaders(request.streamId, Vector(":status" -> "200")),
-              )
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-3.4
-    WireCase(
-      "h2.server.interaction-coalesced-preface-request",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "3.4",
-        "A client may send a complete request immediately after its preface without awaiting server SETTINGS.",
-        "MAY",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- Http2PeerSettings.write(
-              peer,
-              Http2Wire.clientPreface ++ Http2Wire.encode(Http2Wire.settings(Vector(2 -> 0L))) ++
-                Http2Wire.encode(
-                  literalHeaders(1, requestFields("/early", Binary.size), endStream = false)
-                ) ++
-                Http2Wire.encode(Http2Wire.data(1, Binary)),
-            )
-            initial <- wireObservation(Http2Wire.readFrame(peer))
-            _ <- Check(
-              initial.frameType == Http2Wire.Settings && !initial.hasFlag(Http2Wire.Ack),
-              "server preface must be non-ACK SETTINGS",
-            )
-            _ <- control(peer, initial, fromServer = true)
-            responses <- readResponses(peer, Set(1))
-            _ <- checkResponse(responses(1), Binary)
-            received <- server.received
-            _ <- Check.equal(received.path, "/early")
-            _ <- Check.equal(received.body, Binary)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5
-    WireCase(
-      "h2.server.interaction-interleaved-request-data",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "5",
-        "Interleaved DATA belongs to its stream, including when the later stream reaches END_STREAM first.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            settings <- connectServer(peer)
-            _ <- requireTwoStreams(settings)
-            _ <- requireSendWindow(settings, Following.size)
-            _ <- Http2PeerSettings.write(
-              peer,
-              frames(
-                literalHeaders(1, requestFields("/one", Binary.size), endStream = false),
-                literalHeaders(3, requestFields("/two", Following.size), endStream = false),
-                Http2Wire.data(1, Binary.take(2), endStream = false),
-                Http2Wire.data(3, Following.take(3), endStream = false),
-                Http2Wire.data(3, Following.drop(3)),
-                Http2Wire.data(1, Binary.drop(2)),
-              ),
-            )
-            // The server can choose either response order, and may interleave its response frames.
-            responses <- readResponses(peer, Set(1, 3))
-            _ <- checkResponse(responses(1), Binary)
-            _ <- checkResponse(responses(3), Following)
-            _ <- checkTwoRequests(server)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.interaction-trailers-between-other-stream-data",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1",
-        "Trailers complete their own stream without ending or contaminating another stream's DATA sequence.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            settings <- connectServer(peer)
-            _ <- requireTwoStreams(settings)
-            _ <- requireSendWindow(settings, Following.size)
-            _ <- Http2PeerSettings.write(
-              peer,
-              frames(
-                literalHeaders(1, requestFields("/one", Binary.size), endStream = false),
-                literalHeaders(3, requestFields("/two", Following.size), endStream = false),
-                Http2Wire.data(1, Binary, endStream = false),
-                Http2Wire.data(3, Following.take(3), endStream = false),
-                literalHeaders(1, Vector("x-fence" -> "one", "x-fence" -> "two")),
-                Http2Wire.data(3, Following.drop(3)),
-              ),
-            )
-            responses <- readResponses(peer, Set(1, 3))
-            _ <- checkResponse(responses(1), Binary)
-            _ <- checkResponse(responses(3), Following)
-            _ <- checkTwoRequests(server)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.4
-    WireCase(
-      "h2.server.interaction-reset-other-upload-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.4",
-        "Resetting one incomplete upload does not prevent the other stream from completing or publish the incomplete upload as complete.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            settings <- connectServer(peer)
-            _ <- requireTwoStreams(settings)
-            _ <- requireSendWindow(settings, Following.size)
-            _ <- Http2PeerSettings.write(
-              peer,
-              frames(
-                literalHeaders(1, requestFields("/cancelled", Binary.size), endStream = false),
-                literalHeaders(3, requestFields("/two", Following.size), endStream = false),
-                Http2Wire.data(1, Binary.take(2), endStream = false),
-                Http2Wire.data(3, Following.take(3), endStream = false),
-                Http2Wire.Frame(Http2Wire.RstStream, 0, 1, Http2Wire.uint32(8L)),
-                Http2Wire.data(3, Following.drop(3)),
-              ),
-            )
-            // RFC 9113 Section 5.1: HEADERS on an already open stream do not confirm
-            // reset processing. Echoing the suffix sent after CANCEL does.
-            responses <- readResponses(peer, Set(3), Some(PendingReset(1, _.body == Following)))
-            _ <- checkResponse(responses(3), Following)
-            _ <- pingBarrier(peer, fromServer = true)
-            received <- server.received
-            _ <- Check.equal(received.path, "/two")
-            _ <- Check.equal(received.body, Following)
-            extra <- server.pollReceived
-            _ <- Check(
-              extra.isEmpty,
-              s"the cancelled incomplete upload was observed as complete: $extra",
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-4.3
-    WireCase(
-      "h2.server.interaction-reset-retains-compression-context",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "4.3",
-        "The connection compression context retains a valid dynamic entry after its request stream is reset.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            settings <- connectServer(peer)
-            _ <- prerequisite(
-              settings.reverse.collectFirst { case (1, size) => size }.forall(_ >= 43L),
-              "the advertised HPACK table cannot hold the 43-octet x-state entry",
-            )
-            _ <- prerequisite(
-              settings.reverse.collectFirst { case (3, count) => count }.forall(_ >= 1L),
-              "the peer does not permit a request stream",
-            )
-            // 40 = literal with incremental indexing and a new name. Index 62 (be) is then newest.
-            insertion = ByteVector.fromValidHex("4007782d7374617465046b657074")
-            capacity = settings.reverse
-              .collectFirst { case (1, size) => size }
-              .getOrElse(4096L)
-              .min(4096L)
-              .toInt
-            minimum = settings.collect { case (1, size) => size }.foldLeft(4096L)(_.min(_)).toInt
-            resize =
-              (if (minimum < capacity) HpackWire.encodeInteger(minimum, 5, 0x20)
-               else ByteVector.empty) ++
-                (if (capacity < 4096 || minimum < capacity)
-                   HpackWire.encodeInteger(capacity, 5, 0x20)
-                 else ByteVector.empty)
-            firstBlock = resize ++ HpackWire
-              .encodeLiteral(requestFields("/cancelled", 1L)) ++ insertion
-            secondBlock = HpackWire.encodeLiteral(requestFields("/after", 0L)) ++ ByteVector(
-              0xbe.toByte
-            )
-            _ <- Http2PeerSettings.write(
-              peer,
-              frames(
-                Http2Wire.Frame(Http2Wire.Headers, Http2Wire.EndHeaders, 1, firstBlock),
-                Http2Wire.Frame(Http2Wire.RstStream, 0, 1, Http2Wire.uint32(8L)),
-                Http2Wire.Frame(
-                  Http2Wire.Headers,
-                  Http2Wire.EndHeaders | Http2Wire.EndStream,
-                  3,
-                  secondBlock,
-                ),
-              ),
-            )
-            // RFC 9113 Section 5.1: this request was created after CANCEL, so its
-            // first response HEADERS confirm that the peer processed the reset.
-            responses <- readResponses(peer, Set(3), Some(PendingReset(1, _ => true)))
-            _ <- checkResponse(responses(3), ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.path, "/after")
-            _ <- Check.equal(values(received.headers, "x-state"), Vector("kept"))
-            _ <- Check.equal(received.body, ByteVector.empty)
-            _ <- pingBarrier(peer, fromServer = true)
-            extra <- server.pollReceived
-            _ <- Check(extra.isEmpty, s"a cancelled incomplete stream reached EchoBody: $extra")
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.interaction-interleaved-response-data",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "Responses are associated by stream when the later request completes before an earlier response body.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { firstOpen =>
-          context.client(Protocol.Http2)(driver =>
-            targetOperation {
-              val first = driver.exchange(RequestData(path = "/one")).use { response =>
-                firstOpen.complete(()).void *> response.body.compile.to(Chunk).flatMap { body =>
-                  Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary) *>
-                    Check.equal(values(response.headers, "x-stream"), Vector("one"))
-                }
-              }
-              val second =
-                firstOpen.get *> driver.exchange(RequestData(path = "/two")).use { response =>
-                  response.body.compile.to(Chunk).flatMap { body =>
-                    Check.equal(response.status, 201) *> Check
-                      .equal(body.toByteVector, Following) *>
-                      Check.equal(values(response.headers, "x-stream"), Vector("two"))
-                  }
-                }
-              (first, second).parTupled.void
-            }
-          ) { peer =>
-            for {
-              _ <- acceptClient(peer, Vector(3 -> 2L))
-              decoder <- HpackWire.decoder[IO]()
-              first <- readClientRequest(peer, decoder, Following.size)
-              _ <- Check.equal(values(first.fields, ":path"), Vector("/one"))
-              _ <- Http2Wire.writeFrame(
-                peer,
-                literalHeaders(
-                  first.streamId,
-                  Vector(
-                    ":status" -> "200",
-                    "content-length" -> Binary.size.toString,
-                    "x-stream" -> "one",
-                  ),
-                  endStream = false,
-                ),
-              )
-              second <- readClientRequest(peer, decoder, Following.size)
-              _ <- Check.equal(values(second.fields, ":path"), Vector("/two"))
-              _ <- Check(
-                second.streamId > first.streamId,
-                "a second request must use a new increasing stream identifier",
-              )
-              _ <- Http2PeerSettings.write(
-                peer,
-                frames(
-                  Http2Wire.data(first.streamId, Binary.take(2), endStream = false),
-                  literalHeaders(
-                    second.streamId,
-                    Vector(
-                      ":status" -> "201",
-                      "content-length" -> Following.size.toString,
-                      "x-stream" -> "two",
-                    ),
-                    endStream = false,
-                  ),
-                  Http2Wire.data(second.streamId, Following),
-                  Http2Wire.data(first.streamId, Binary.drop(2)),
-                ),
-              )
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.interaction-interim-next-stream-association",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "An interim response and its final response remain on their request stream and cannot become another stream's response.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          targetOperation {
-            driver.exchange(RequestData(path = "/one")).use { response =>
-              response.body.compile.to(Chunk).flatMap { body =>
-                if (response.status == 103) IO.unit
-                else Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary)
-              }
-            } *> checkExchange(driver, RequestData(path = "/two"), 201, Following)
+            (first, second).parTupled.void
           }
         ) { peer =>
           for {
@@ -900,167 +881,236 @@ object InteractionCases {
             decoder <- HpackWire.decoder[IO]()
             first <- readClientRequest(peer, decoder, Following.size)
             _ <- Check.equal(values(first.fields, ":path"), Vector("/one"))
-            _ <- Http2PeerSettings.write(
+            _ <- Http2Wire.writeFrame(
               peer,
-              frames(
-                literalHeaders(
-                  first.streamId,
-                  Vector(":status" -> "103", "x-interim" -> "one"),
-                  endStream = false,
+              literalHeaders(
+                first.streamId,
+                Vector(
+                  ":status" -> "200",
+                  "content-length" -> Binary.size.toString,
+                  "x-stream" -> "one",
                 ),
-                literalHeaders(
-                  first.streamId,
-                  Vector(":status" -> "200", "content-length" -> Binary.size.toString),
-                  endStream = false,
-                ),
-                Http2Wire.data(first.streamId, Binary),
+                endStream = false,
               ),
             )
-            // Resource release after exposing 103 can legitimately reset the already completed stream.
-            second <- readClientRequest(
-              peer,
-              decoder,
-              Following.size,
-              closedStreams = Set(first.streamId),
-            )
+            second <- readClientRequest(peer, decoder, Following.size)
             _ <- Check.equal(values(second.fields, ":path"), Vector("/two"))
             _ <- Check(
               second.streamId > first.streamId,
-              "a new request reused the first stream identifier",
+              "a second request must use a new increasing stream identifier",
             )
             _ <- Http2PeerSettings.write(
               peer,
               frames(
+                Http2Wire.data(first.streamId, Binary.take(2), endStream = false),
                 literalHeaders(
                   second.streamId,
-                  Vector(":status" -> "201", "content-length" -> Following.size.toString),
+                  Vector(
+                    ":status" -> "201",
+                    "content-length" -> Following.size.toString,
+                    "x-stream" -> "two",
+                  ),
                   endStream = false,
                 ),
                 Http2Wire.data(second.streamId, Following),
+                Http2Wire.data(first.streamId, Binary.drop(2)),
               ),
             )
           } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.interaction-complete-data-response-no-error-reset",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A complete DATA-terminated response is retained when NO_ERROR resets the unfinished request upload.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { neverRelease =>
-          context.client(Protocol.Http2)(driver =>
-            targetOperation {
-              driver
-                .exchangeStream(
-                  RequestData(
-                    method = "POST",
-                    headers = Vector("content-length" -> Binary.size.toString),
-                  ),
-                  _ =>
-                    Stream
-                      .chunk(Chunk.byteVector(Binary.take(2))) ++ Stream
-                      .eval(neverRelease.get)
-                      .drain ++
-                      Stream.chunk(Chunk.byteVector(Binary.drop(2))),
-                )
-                .use { response =>
-                  response.body.compile.to(Chunk).flatMap { body =>
-                    Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Following)
-                  }
-                }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientInteractionInterimNextStreamAssociation: WireCase = WireCase(
+    "h2.client.interaction-interim-next-stream-association",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "An interim response and its final response remain on their request stream and cannot become another stream's response.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        targetOperation {
+          driver.exchange(RequestData(path = "/one")).use { response =>
+            response.body.compile.to(Chunk).flatMap { body =>
+              if (response.status == 103) IO.unit
+              else Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary)
             }
-          ) { peer =>
-            for {
-              _ <- acceptClient(peer)
-              decoder <- HpackWire.decoder[IO]()
-              request <- readClientRequest(peer, decoder, Following.size, incomplete = true)
-              _ <- Check(!request.ended, "request upload ended before the withheld suffix")
-              prefix <- readUploadPrefix(peer, request.streamId, request.body, 2, Following.size)
-              _ <- Check.equal(prefix, Binary.take(2))
-              _ <- Http2PeerSettings.write(
-                peer,
-                frames(
-                  literalHeaders(
-                    request.streamId,
-                    Vector(":status" -> "200", "content-length" -> Following.size.toString),
-                    endStream = false,
-                  ),
-                  Http2Wire.data(request.streamId, Following),
-                  Http2Wire.Frame(Http2Wire.RstStream, 0, request.streamId, Http2Wire.uint32(0L)),
+          } *> checkExchange(driver, RequestData(path = "/two"), 201, Following)
+        }
+      ) { peer =>
+        for {
+          _ <- acceptClient(peer, Vector(3 -> 2L))
+          decoder <- HpackWire.decoder[IO]()
+          first <- readClientRequest(peer, decoder, Following.size)
+          _ <- Check.equal(values(first.fields, ":path"), Vector("/one"))
+          _ <- Http2PeerSettings.write(
+            peer,
+            frames(
+              literalHeaders(
+                first.streamId,
+                Vector(":status" -> "103", "x-interim" -> "one"),
+                endStream = false,
+              ),
+              literalHeaders(
+                first.streamId,
+                Vector(":status" -> "200", "content-length" -> Binary.size.toString),
+                endStream = false,
+              ),
+              Http2Wire.data(first.streamId, Binary),
+            ),
+          )
+          // Resource release after exposing 103 can legitimately reset the already completed stream.
+          second <- readClientRequest(
+            peer,
+            decoder,
+            Following.size,
+            closedStreams = Set(first.streamId),
+          )
+          _ <- Check.equal(values(second.fields, ":path"), Vector("/two"))
+          _ <- Check(
+            second.streamId > first.streamId,
+            "a new request reused the first stream identifier",
+          )
+          _ <- Http2PeerSettings.write(
+            peer,
+            frames(
+              literalHeaders(
+                second.streamId,
+                Vector(":status" -> "201", "content-length" -> Following.size.toString),
+                endStream = false,
+              ),
+              Http2Wire.data(second.streamId, Following),
+            ),
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientInteractionCompleteDataResponseNoErrorReset: WireCase = WireCase(
+    "h2.client.interaction-complete-data-response-no-error-reset",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A complete DATA-terminated response is retained when NO_ERROR resets the unfinished request upload.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { neverRelease =>
+        context.client(Protocol.Http2)(driver =>
+          targetOperation {
+            driver
+              .exchangeStream(
+                RequestData(
+                  method = "POST",
+                  headers = Vector("content-length" -> Binary.size.toString),
                 ),
+                _ =>
+                  Stream
+                    .chunk(Chunk.byteVector(Binary.take(2))) ++ Stream
+                    .eval(neverRelease.get)
+                    .drain ++
+                    Stream.chunk(Chunk.byteVector(Binary.drop(2))),
               )
-            } yield ()
+              .use { response =>
+                response.body.compile.to(Chunk).flatMap { body =>
+                  Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Following)
+                }
+              }
           }
+        ) { peer =>
+          for {
+            _ <- acceptClient(peer)
+            decoder <- HpackWire.decoder[IO]()
+            request <- readClientRequest(peer, decoder, Following.size, incomplete = true)
+            _ <- Check(!request.ended, "request upload ended before the withheld suffix")
+            prefix <- readUploadPrefix(peer, request.streamId, request.body, 2, Following.size)
+            _ <- Check.equal(prefix, Binary.take(2))
+            _ <- Http2PeerSettings.write(
+              peer,
+              frames(
+                literalHeaders(
+                  request.streamId,
+                  Vector(":status" -> "200", "content-length" -> Following.size.toString),
+                  endStream = false,
+                ),
+                Http2Wire.data(request.streamId, Following),
+                Http2Wire.Frame(Http2Wire.RstStream, 0, request.streamId, Http2Wire.uint32(0L)),
+              ),
+            )
+          } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.interaction-complete-headers-response-no-error-reset",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A response completed in HEADERS is retained when NO_ERROR resets the unfinished request upload.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { neverRelease =>
-          context.client(Protocol.Http2)(driver =>
-            targetOperation {
-              driver
-                .exchangeStream(
-                  RequestData(
-                    method = "POST",
-                    headers = Vector("content-length" -> Binary.size.toString),
-                  ),
-                  _ =>
-                    Stream
-                      .chunk(Chunk.byteVector(Binary.take(2))) ++ Stream
-                      .eval(neverRelease.get)
-                      .drain ++
-                      Stream.chunk(Chunk.byteVector(Binary.drop(2))),
-                )
-                .use { response =>
-                  response.body.compile.to(Chunk).flatMap { body =>
-                    Check.equal(response.status, 200) *> Check
-                      .equal(body.toByteVector, ByteVector.empty)
-                  }
-                }
-            }
-          ) { peer =>
-            for {
-              _ <- acceptClient(peer, responseBytes = 0L)
-              decoder <- HpackWire.decoder[IO]()
-              request <- readClientRequest(peer, decoder, 0L, incomplete = true)
-              _ <- Check(!request.ended, "request upload ended before the withheld suffix")
-              prefix <- readUploadPrefix(peer, request.streamId, request.body, 2, 0L)
-              _ <- Check.equal(prefix, Binary.take(2))
-              _ <- Http2PeerSettings.write(
-                peer,
-                frames(
-                  literalHeaders(
-                    request.streamId,
-                    Vector(":status" -> "200", "content-length" -> "0"),
-                  ),
-                  Http2Wire.Frame(Http2Wire.RstStream, 0, request.streamId, Http2Wire.uint32(0L)),
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientInteractionCompleteHeadersResponseNoErrorReset: WireCase = WireCase(
+    "h2.client.interaction-complete-headers-response-no-error-reset",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A response completed in HEADERS is retained when NO_ERROR resets the unfinished request upload.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { neverRelease =>
+        context.client(Protocol.Http2)(driver =>
+          targetOperation {
+            driver
+              .exchangeStream(
+                RequestData(
+                  method = "POST",
+                  headers = Vector("content-length" -> Binary.size.toString),
                 ),
+                _ =>
+                  Stream
+                    .chunk(Chunk.byteVector(Binary.take(2))) ++ Stream
+                    .eval(neverRelease.get)
+                    .drain ++
+                    Stream.chunk(Chunk.byteVector(Binary.drop(2))),
               )
-            } yield ()
+              .use { response =>
+                response.body.compile.to(Chunk).flatMap { body =>
+                  Check.equal(response.status, 200) *> Check
+                    .equal(body.toByteVector, ByteVector.empty)
+                }
+              }
           }
+        ) { peer =>
+          for {
+            _ <- acceptClient(peer, responseBytes = 0L)
+            decoder <- HpackWire.decoder[IO]()
+            request <- readClientRequest(peer, decoder, 0L, incomplete = true)
+            _ <- Check(!request.ended, "request upload ended before the withheld suffix")
+            prefix <- readUploadPrefix(peer, request.streamId, request.body, 2, 0L)
+            _ <- Check.equal(prefix, Binary.take(2))
+            _ <- Http2PeerSettings.write(
+              peer,
+              frames(
+                literalHeaders(
+                  request.streamId,
+                  Vector(":status" -> "200", "content-length" -> "0"),
+                ),
+                Http2Wire.Frame(Http2Wire.RstStream, 0, request.streamId, Http2Wire.uint32(0L)),
+              ),
+            )
+          } yield ()
         }
       }
-    },
-  )
+    }
+  }
 
   private final case class CapturedRequest(
       streamId: Int,

@@ -1,3 +1,0 @@
-id	rfc	section	role	strength	requirement	disposition	cases	notes
-scope-h2-alpn-identifier	9113	3.1	both	syntax	The h2 identifier names HTTP/2 over TLS and is serialized as 0x68 0x32 in ALPN.	excluded		TLS/ALPN identification is outside the plaintext prior-knowledge baseline.
-scope-h2c-upgrade-deprecated	9113	3.1	both	informative	The historical h2c Upgrade token and HTTP2-Settings header usage are deprecated.	excluded		HTTP/1-to-HTTP/2 upgrade negotiation is outside the explicitly selected prior-knowledge mode; deprecation alone is not interpreted as a mandatory endpoint rejection rule.

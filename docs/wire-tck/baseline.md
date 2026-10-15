@@ -1,16 +1,26 @@
 # Specification baseline
 
-Frozen on 2026-10-10. The selected editions are RFC 9112, RFC 9113, RFC 7541, and explicitly listed RFC 9110 dependencies. Later updates and optional extension RFCs are outside this baseline. TLS/ALPN, HTTP/3, proxy forwarding, caching and general application semantics are excluded. Scala.js uses Node.js only as its execution runtime; there is no Node comparison adapter.
+The TCK covers HTTP/1.1 message syntax and framing from
+[RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html), HTTP/2 from
+[RFC 9113](https://www.rfc-editor.org/rfc/rfc9113.html), and HPACK from
+[RFC 7541](https://www.rfc-editor.org/rfc/rfc7541.html).
+[RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html) supplies the HTTP semantics
+needed to interpret those protocols.
 
-| RFC | Authoritative text | SHA-256 of TXT |
-|---|---|---|
-| 9112 | [RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html) | `e4f426bac6206b67fdf9e0da826154f70588db2133a0a86b15cde4ff725d8937` |
-| 9113 | [RFC 9113](https://www.rfc-editor.org/rfc/rfc9113.html) | `a00ef91b64e111a282e77ec66980f5242e77c0bb5e33e0927e3b6757080506de` |
-| 7541 | [RFC 7541](https://www.rfc-editor.org/rfc/rfc7541.html) | `2239d7f8fb839b69ae2e928e685559b11376888269f131512197a0e3bacf7f7a` |
-| 9110 | [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html) | `21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a` |
+The boundary is observable wire behavior. RFC 9110 requirements enter the scope
+where they determine parsing, framing, fields, request targets, or protocol state.
+For example, HEAD and CONNECT semantics affect framing, and URI syntax affects
+request-target validation. This does not extend coverage to general method policy,
+redirect handling, caching, or application retry behavior. TLS/ALPN, HTTP/3, proxy
+forwarding and optional protocol extensions are also outside the baseline.
 
-Verified errata incorporated: RFC 9112 [7744](https://www.rfc-editor.org/errata/eid7744) (obs-text reference to 9110 §5.5) and [8284](https://www.rfc-editor.org/errata/eid8284) (editorial change-log placement); RFC 9113 [7013](https://www.rfc-editor.org/errata/eid7013) (DATA terminology); RFC 9110 [8268](https://www.rfc-editor.org/errata/eid8268) (the matching editorial relocation). The other verified RFC 9110 errata concern TLS certificate identity (7105), 308 redirect method-preservation policy (7109), media negotiation (7138), ranges (7306), and charset semantics (7419), all outside this wire baseline. RFC 7541 has no verified errata in the fetched export; 4574 and 5094 are held for document update.
+[SpecSections](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecSections.scala)
+classifies the RFC sections, while
+[SpecInventory](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
+records the individual requirements, their executable cases, and explicit gaps
+or exclusions. Those definitions determine the detailed scope; including an RFC
+section does not imply that every requirement in it has a test.
 
-The [complete status/classification ledger](errata.tsv) was extracted on 2026-10-10 from the RFC Editor [errata JSON export](https://www.rfc-editor.org/errata.json), SHA-256 `9fd444088360c9a55b9d1543eb948d627c9e30ac3d9d9cdc222e5883be7e59ee`. Reported, rejected, and held errata do not modify this baseline. In particular RFC 9113 reported 9175 is not treated as verified.
-
-RFC 9110 dependencies: §§2.2–2.5 conformance/error handling; §4.1 URI grammar and §4.2.1 http scheme; §4.2.3 URI identity/normalization and §10.2.2 single Location URI-reference only for percent-escape equivalence and the existing RFC 9112 §3.2 encoded-target alternative (RFC 3986 §§2, 5, 6.2 grammar/resolution dependencies, restricted to this fixture); §§5.1–5.6.4 field names, occurrence/order, values, lists, whitespace, tokens and quoted strings; §§6.3–6.5 message body/trailer boundaries and §6.6.2 Trailer; §7.2 Host and §7.6.1 Connection; §8.6 Content-Length; §§8.4.1.1–8.4.1.3 only where referenced by transfer-coding requirements; §10.1.4 TE and its §12.4.2 weight/qvalue syntax dependency; §9.1 method token grammar as imported by RFC 9113 §8.3.1; §§9.2.1 and 9.2.3 only for known-safe/cacheable promised methods imported by RFC 9113 §§8.4–8.4.1; §9.2.2 only for the idempotency/uncertain-replay dependency in RFC 9113 §8.7 (existing retry observation gaps remain); §9.3.2 HEAD and §9.3.6 CONNECT only insofar as they determine framing. General method policy, caching/storage, and application retry behavior remain excluded. §7.1 target forms and §15 status-code syntax are included only as wire dependencies. General redirect/application policy remains excluded, including erratum 7109; selecting Location syntax does not select that policy. Other semantics are excluded unless an inventory row explicitly brings in a wire dependency.
+[SpecErrata](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecErrata.scala)
+records which RFC corrections are incorporated and which are excluded or pending.
+Only corrections explicitly marked as incorporated modify this baseline.

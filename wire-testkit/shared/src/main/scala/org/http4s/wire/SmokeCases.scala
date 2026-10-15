@@ -30,171 +30,187 @@ object SmokeCases {
   private val PingPayload = ByteVector(0, 17, 34, 51, 68, 85, 102, 127)
   private val EmptyRequest = RequestData(headers = Vector("Content-Length" -> "0"))
 
-  val all: Vector[WireCase] = Vector(
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.1
-    WireCase(
-      "h1.server.get",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(9112, "2.1", "A complete origin-form HTTP/1.1 request reaches the application."),
-    ) { context =>
-      context.server(Protocol.Http1).use { case (peer, server) =>
-        for {
-          // RFC 9112 Sections 2.1 and 3.2.1: an ordinary origin-form request, no body.
-          _ <- peer.writeAscii(
-            "GET /smoke?q=1 HTTP/1.1\r\nHost: wire.test\r\nX-Wire: token\r\n\r\n"
-          )
-          response <- Http1Wire.readFinalResponse(peer)
-          received <- server.received
-          _ <- Check.equal(response.status, 200)
-          _ <- Check.equal(response.body, Http1Wire.ascii("accepted"))
-          _ <- Check.equal(received.method, "GET")
-          _ <- Check.equal(received.path, "/smoke?q=1")
-          _ <- Check(
-            received.headers.exists { case (name, value) =>
-              name.equalsIgnoreCase("x-wire") && value == "token"
-            },
-            "the application did not receive the request header",
-          )
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-5.1
-    WireCase(
-      "h1.server.reject-field-name-whitespace",
-      Protocol.Http1,
-      Role.Server,
-      Rfc(9112, "5.1", "Whitespace before a request field's colon requires a 400 response."),
-    ) { context =>
-      context.server(Protocol.Http1).use { case (peer, _) =>
-        for {
-          // RFC 9112 Section 5.1: the single invalid octet is the SP before this colon.
-          _ <- peer.writeAscii("GET / HTTP/1.1\r\nHost: wire.test\r\nX-Wire : token\r\n\r\n")
-          response <- Http1Wire.readFinalResponse(peer)
-          _ <- Check.equal(response.status, 400)
-        } yield ()
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.fixed-length",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(9112, "6.3", "A valid Content-Length delimits the response body in octets."),
-    ) { context =>
-      scriptedClient(context, Protocol.Http1)(expectBody) { peer =>
-        readHttp1Request(peer) *> peer.writeAscii(
-          "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nabc"
-        )
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
-    WireCase(
-      "h1.client.reject-conflicting-content-length",
-      Protocol.Http1,
-      Role.Client,
-      Rfc(9112, "6.3", "Conflicting Content-Length values require discarding the response."),
-    ) { context =>
-      scriptedClient(context, Protocol.Http1)(driver => expectRejection(driver, IO.unit)) { peer =>
-        // Both declared lengths are fully available, so a premature EOF cannot cause rejection.
-        readHttp1Request(peer) *> peer.writeAscii(
-          "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nContent-Length: 3\r\n\r\nabc"
-        )
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.7
-    WireCase(
-      "h2.server.ping",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.7", "A non-ACK PING requires an ACK PING carrying the identical payload."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          Http2Wire.clientHandshake(peer) *> pingRoundTrip(peer)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.7
-    WireCase(
-      "h2.server.reject-ping-length",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.7", "A PING payload of seven octets causes a connection error."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          for {
-            _ <- Http2Wire.clientHandshake(peer)
-            // Establish a healthy connection before changing only the next PING's payload length.
-            _ <- pingRoundTrip(peer)
-            _ <- Http2Wire
-              .writeFrame(peer, Http2Wire.Frame(Http2Wire.Ping, 0, 0, PingPayload.take(7)))
-            // Section 6.8 permits closing without GOAWAY. Require actual EOF in either case.
-            // Timeout and codec errors remain failures, never evidence of rejection.
-            bytes <- peer.readToEnd(65536, allowReset = true).timeout(5.seconds)
-            frames <- IO.fromEither(Http2Wire.decodeAll(bytes))
-            _ <- checkConnectionRejection(peer, frames)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.headers-and-data",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.1", "A response consists of a field block followed by DATA through END_STREAM."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(3L)
-        scriptedClient(context, Protocol.Http2)(expectBody) { peer =>
-          readHttp2Request(peer).flatMap { streamId =>
-            Http2Wire.writeFrame(
-              peer,
-              Http2Wire.headers(
-                streamId,
-                Vector(":status" -> "200", "content-length" -> "3"),
-                endStream = false,
-              ),
-            ) *>
-              Http2Wire.writeFrame(peer, Http2Wire.data(streamId, Body))
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.reject-content-length-mismatch",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.1.1", "Clients reject a response whose content-length disagrees with its DATA."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(3L)
-        Deferred[IO, Unit].flatMap { observed =>
-          context.client(Protocol.Http2)(driver => expectRejection(driver, observed.get)) { peer =>
-            readHttp2Request(peer).flatMap { streamId =>
-              // A complete response stream with three DATA octets, but a declared length of four.
-              for {
-                _ <- Http2Wire.writeFrame(
-                  peer,
-                  Http2Wire.headers(
-                    streamId,
-                    Vector(":status" -> "200", "content-length" -> "4"),
-                    endStream = false,
-                  ),
-                )
-                _ <- Http2Wire.writeFrame(peer, Http2Wire.data(streamId, Body))
-                _ <- requireStreamRejection(peer, streamId)
-                _ <- observed.complete(()).void
-              } yield ()
-            }
-          }
-        }
-      }
-    },
+  lazy val all: Vector[WireCase] = Vector(
+    h1ServerGet,
+    h1ServerRejectFieldNameWhitespace,
+    h1ClientFixedLength,
+    h1ClientRejectConflictingContentLength,
+    h2ServerPing,
+    h2ServerRejectPingLength,
+    h2ClientHeadersAndData,
+    h2ClientRejectContentLengthMismatch,
   )
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-2.1
+  lazy val h1ServerGet: WireCase = WireCase(
+    "h1.server.get",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(9112, "2.1", "A complete origin-form HTTP/1.1 request reaches the application."),
+  ) { context =>
+    context.server(Protocol.Http1).use { case (peer, server) =>
+      for {
+        // RFC 9112 Sections 2.1 and 3.2.1: an ordinary origin-form request, no body.
+        _ <- peer.writeAscii(
+          "GET /smoke?q=1 HTTP/1.1\r\nHost: wire.test\r\nX-Wire: token\r\n\r\n"
+        )
+        response <- Http1Wire.readFinalResponse(peer)
+        received <- server.received
+        _ <- Check.equal(response.status, 200)
+        _ <- Check.equal(response.body, Http1Wire.ascii("accepted"))
+        _ <- Check.equal(received.method, "GET")
+        _ <- Check.equal(received.path, "/smoke?q=1")
+        _ <- Check(
+          received.headers.exists { case (name, value) =>
+            name.equalsIgnoreCase("x-wire") && value == "token"
+          },
+          "the application did not receive the request header",
+        )
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-5.1
+  lazy val h1ServerRejectFieldNameWhitespace: WireCase = WireCase(
+    "h1.server.reject-field-name-whitespace",
+    Protocol.Http1,
+    Role.Server,
+    Rfc(9112, "5.1", "Whitespace before a request field's colon requires a 400 response."),
+  ) { context =>
+    context.server(Protocol.Http1).use { case (peer, _) =>
+      for {
+        // RFC 9112 Section 5.1: the single invalid octet is the SP before this colon.
+        _ <- peer.writeAscii("GET / HTTP/1.1\r\nHost: wire.test\r\nX-Wire : token\r\n\r\n")
+        response <- Http1Wire.readFinalResponse(peer)
+        _ <- Check.equal(response.status, 400)
+      } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientFixedLength: WireCase = WireCase(
+    "h1.client.fixed-length",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(9112, "6.3", "A valid Content-Length delimits the response body in octets."),
+  ) { context =>
+    scriptedClient(context, Protocol.Http1)(expectBody) { peer =>
+      readHttp1Request(peer) *> peer.writeAscii(
+        "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nabc"
+      )
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3
+  lazy val h1ClientRejectConflictingContentLength: WireCase = WireCase(
+    "h1.client.reject-conflicting-content-length",
+    Protocol.Http1,
+    Role.Client,
+    Rfc(9112, "6.3", "Conflicting Content-Length values require discarding the response."),
+  ) { context =>
+    scriptedClient(context, Protocol.Http1)(driver => expectRejection(driver, IO.unit)) { peer =>
+      // Both declared lengths are fully available, so a premature EOF cannot cause rejection.
+      readHttp1Request(peer) *> peer.writeAscii(
+        "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nContent-Length: 3\r\n\r\nabc"
+      )
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.7
+  lazy val h2ServerPing: WireCase = WireCase(
+    "h2.server.ping",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.7", "A non-ACK PING requires an ACK PING carrying the identical payload."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        Http2Wire.clientHandshake(peer) *> pingRoundTrip(peer)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.7
+  lazy val h2ServerRejectPingLength: WireCase = WireCase(
+    "h2.server.reject-ping-length",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.7", "A PING payload of seven octets causes a connection error."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        for {
+          _ <- Http2Wire.clientHandshake(peer)
+          // Establish a healthy connection before changing only the next PING's payload length.
+          _ <- pingRoundTrip(peer)
+          _ <- Http2Wire
+            .writeFrame(peer, Http2Wire.Frame(Http2Wire.Ping, 0, 0, PingPayload.take(7)))
+          // Section 6.8 permits closing without GOAWAY. Require actual EOF in either case.
+          // Timeout and codec errors remain failures, never evidence of rejection.
+          bytes <- peer.readToEnd(65536, allowReset = true).timeout(5.seconds)
+          frames <- IO.fromEither(Http2Wire.decodeAll(bytes))
+          _ <- checkConnectionRejection(peer, frames)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientHeadersAndData: WireCase = WireCase(
+    "h2.client.headers-and-data",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.1", "A response consists of a field block followed by DATA through END_STREAM."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(3L)
+      scriptedClient(context, Protocol.Http2)(expectBody) { peer =>
+        readHttp2Request(peer).flatMap { streamId =>
+          Http2Wire.writeFrame(
+            peer,
+            Http2Wire.headers(
+              streamId,
+              Vector(":status" -> "200", "content-length" -> "3"),
+              endStream = false,
+            ),
+          ) *>
+            Http2Wire.writeFrame(peer, Http2Wire.data(streamId, Body))
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientRejectContentLengthMismatch: WireCase = WireCase(
+    "h2.client.reject-content-length-mismatch",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.1.1", "Clients reject a response whose content-length disagrees with its DATA."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(3L)
+      Deferred[IO, Unit].flatMap { observed =>
+        context.client(Protocol.Http2)(driver => expectRejection(driver, observed.get)) { peer =>
+          readHttp2Request(peer).flatMap { streamId =>
+            // A complete response stream with three DATA octets, but a declared length of four.
+            for {
+              _ <- Http2Wire.writeFrame(
+                peer,
+                Http2Wire.headers(
+                  streamId,
+                  Vector(":status" -> "200", "content-length" -> "4"),
+                  endStream = false,
+                ),
+              )
+              _ <- Http2Wire.writeFrame(peer, Http2Wire.data(streamId, Body))
+              _ <- requireStreamRejection(peer, streamId)
+              _ <- observed.complete(()).void
+            } yield ()
+          }
+        }
+      }
+    }
+  }
 
   /** Keep the scripted socket open until the target has completed its observable operation. */
   private def scriptedClient(

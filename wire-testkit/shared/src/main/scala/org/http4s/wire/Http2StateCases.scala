@@ -43,1008 +43,1062 @@ object Http2StateCases {
 
   private val EmptyPost = RequestData(method = "POST", headers = Vector("content-length" -> "0"))
 
-  val all: Vector[WireCase] = Vector(
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.server.idle-data",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "5.1", "DATA on an idle stream is a connection PROTOCOL_ERROR."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          connectServer(peer) *> writeFrame(peer, data(1, ByteVector.empty)) *>
-            connectionError(peer, Set(1L, 2L), fromServer = true)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.server.idle-window-update",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "5.1", "WINDOW_UPDATE on an idle stream is a connection PROTOCOL_ERROR."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          connectServer(peer) *> writeFrame(peer, windowUpdate(1, 1)) *>
-            connectionError(peer, Set(1L, 2L), fromServer = true)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.1
-    WireCase(
-      "h2.server.even-request-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "5.1.1", "Client-initiated streams require odd identifiers."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          connectServer(peer) *> writeFrame(peer, headers(2, requestFields())) *>
-            connectionError(peer, Set(1L, 2L), fromServer = true)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.1
-    WireCase(
-      "h2.server.skipped-stream-cannot-open",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "5.1.1",
-        "Opening stream 3 closes skipped stream 1; stream 1 cannot then be opened.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          for {
-            _ <- connectServer(peer, Vector(4 -> 0L))
-            decoder <- HpackWire.decoder[IO]()
-            _ <- writeFrame(peer, headers(3, requestFields()))
-            _ <- responseHead(peer, 3, decoder)
-            _ <- writeFrame(peer, headers(1, requestFields()))
-            _ <- connectionError(peer, Set(1L, 2L), fromServer = true)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.client.idle-data",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "5.1", "A client treats DATA on an uncreated stream as a connection error."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedClient(context) { peer =>
-          for {
-            _ <- acceptClient(peer)
-            _ <- requestHead(peer)
-            // No PUSH_PROMISE was sent: even stream 2 is independently idle.
-            _ <- writeFrame(peer, data(2, ByteVector.empty))
-            _ <- connectionError(peer, Set(1L, 2L), fromServer = false)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.client.idle-window-update",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "5.1", "A client treats WINDOW_UPDATE on an idle stream as a connection error."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedClient(context) { peer =>
-          for {
-            _ <- acceptClient(peer)
-            _ <- requestHead(peer)
-            // Valid even when the first request uses the maximum odd identifier.
-            _ <- writeFrame(peer, windowUpdate(2, 1))
-            _ <- connectionError(peer, Set(1L, 2L), fromServer = false)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.client.unpromised-server-headers",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "5.1", "HEADERS cannot open an unpromised server-initiated stream."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedClient(context) { peer =>
-          acceptClient(peer) *> requestHead(peer) *>
-            writeFrame(peer, headers(2, Vector(":status" -> "200"))) *>
-            connectionError(peer, Set(1L, 2L), fromServer = false)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.server.half-closed-remote-data",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "5.1", "DATA after the peer's END_STREAM requires STREAM_CLOSED."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              // Zero response credit holds the target in half-closed (remote), not closed.
-              _ <- connectServer(peer, Vector(4 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              _ <- writeFrame(peer, data(1, ByteVector.empty))
-              _ <- streamError(peer, 1, Set(1L, 2L, 5L), fromServer = true)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
-    WireCase(
-      "h2.server.half-closed-remote-headers",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "5.1", "HEADERS after the peer's END_STREAM requires STREAM_CLOSED."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              _ <- writeFrame(peer, headers(1, Vector("x-after-end" -> "invalid")))
-              _ <- streamError(peer, 1, Set(1L, 2L, 5L), fromServer = true)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.server.window-update-after-peer-end",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.9", "WINDOW_UPDATE remains valid after the peer sends END_STREAM."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              stopped <- barrier(peer, true, decoder, 1, Progress(0))
-              increment = completionIncrement(SmallBody, stopped)
-              _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(1, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                stopped.copy(credit = stopped.credit + increment),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
-    WireCase(
-      "h2.server.stream-credit-boundary",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9.1",
-        "Each DATA payload fits the remaining stream credit and WINDOW_UPDATE restores credit.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 3L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              stopped <- barrier(peer, true, decoder, 1, Progress(3))
-              increment = completionIncrement(SmallBody, stopped)
-              _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(1, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                stopped.copy(credit = stopped.credit + increment),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
-    WireCase(
-      "h2.client.stream-credit-boundary",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9.1",
-        "An upload fits stream credit, processes PING while blocked, and resumes on WINDOW_UPDATE.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { ready =>
-          context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
-            for {
-              decoder <- HpackWire.decoder[IO]()
-              opened <- openUpload(peer, decoder, Vector(4 -> 3L))
-              stream = opened._1
-              initial = opened._2
-              _ <- ready.complete(())
-              stopped <- barrier(peer, false, decoder, stream, initial)
-              increment = completionIncrement(SmallBody, stopped)
-              _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(stream, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                false,
-                decoder,
-                stream,
-                stopped.copy(
-                  credit = stopped.credit + increment,
-                  otherCredit = stopped.otherCredit + completionBudget(SmallBody, stopped),
-                ),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-              _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
-    WireCase(
-      "h2.server.connection-credit-independent",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9.2",
-        "Only connection WINDOW_UPDATE replenishes the initial 65535 connection octets.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = LargeBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 131072L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              stopped <- barrier(peer, true, decoder, 1, Progress(65535))
-              // Neither a stream update nor SETTINGS may alter the connection window.
-              _ <- Http2PeerSettings
-                .write(peer, encode(windowUpdate(1, 1)) ++ encode(settings(Vector(4 -> 262144L))))
-              unchanged <- settingsAck(peer, true, decoder, 1, stopped)
-              confirmed <- barrier(peer, true, decoder, 1, unchanged)
-              increment = completionIncrement(LargeBody, confirmed)
-              _ <- writeFrame(peer, windowUpdate(1, completionBudget(LargeBody, confirmed)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                confirmed.copy(credit = confirmed.credit + increment),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, LargeBody)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
-    WireCase(
-      "h2.client.connection-credit-independent",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9.2",
-        "SETTINGS and stream WINDOW_UPDATE do not replenish measured upload connection credit.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { ready =>
-          context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
-            for {
-              decoder <- HpackWire.decoder[IO]()
-              opened <- openUpload(peer, decoder, Vector(4 -> 131072L))
-              stream = opened._1
-              initial = opened._2
-              _ <- ready.complete(())
-              stopped <- barrier(
-                peer,
-                false,
-                decoder,
-                stream,
-                initial.copy(credit = initial.otherCredit, otherCredit = initial.credit),
-              )
-              _ <- Http2PeerSettings.write(
-                peer,
-                encode(windowUpdate(stream, 1)) ++ encode(settings(Vector(4 -> 262144L))),
-              )
-              unchanged <- settingsAck(
-                peer,
-                false,
-                decoder,
-                stream,
-                stopped.copy(otherCredit = stopped.otherCredit + 131073),
-              )
-              confirmed <- barrier(peer, false, decoder, stream, unchanged)
-              increment = completionIncrement(LargeBody, confirmed)
-              _ <- writeFrame(peer, windowUpdate(stream, completionBudget(LargeBody, confirmed)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                false,
-                decoder,
-                stream,
-                confirmed.copy(
-                  credit = confirmed.credit + increment,
-                  otherCredit = confirmed.otherCredit + completionBudget(LargeBody, confirmed),
-                ),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, LargeBody)
-              _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
-    WireCase(
-      "h2.server.negative-stream-window",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9.2",
-        "A SETTINGS reduction preserves a negative stream window until credit becomes positive.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = LargeBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 65535L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              prefix <- firstPositiveData(peer, true, decoder, 1, Progress(65535))
-              sampled <- barrier(peer, true, decoder, 1, prefix)
-              _ <- Check(!sampled.ended, "body ended before its complete content")
-              // Keep connection credit sufficient even for a padding-only prefix.
-              _ <- writeFrame(peer, windowUpdate(0, 65536))
-              _ <- writeFrame(peer, settings(Vector(4 -> 0L)))
-              // RFC 9113 6.9.3 permits in-flight DATA under the old window.
-              // Its ACK synchronizes application of the new-minus-old delta (6.5.3).
-              acknowledged <- settingsAck(peer, true, decoder, 1, sampled)
-              negative = acknowledged.copy(credit = acknowledged.credit - 65535)
-              _ <- observationBound(negative.credit < 0, "negative stream credit was not observed")
-              negativeStopped <- barrier(peer, true, decoder, 1, negative)
-              _ <- writeFrame(peer, windowUpdate(1, (-negativeStopped.credit).toInt))
-              zero <- barrier(peer, true, decoder, 1, negativeStopped.copy(credit = 0))
-              _ <- writeFrame(peer, windowUpdate(1, 1))
-              stopped <- barrier(peer, true, decoder, 1, zero.copy(credit = zero.credit + 1))
-              increment = completionIncrement(LargeBody, stopped)
-              positive <- peerSettings.positive(peer)
-              _ <-
-                if (stopped.ended) IO.unit
-                else
-                  positive
-                    .incidental(
-                      writeFrame(peer, windowUpdate(0, completionBudget(LargeBody, stopped)))
-                    )
-                    .void
-              streamGrant <-
-                if (!stopped.ended && increment > 0)
-                  positive.incidental(writeFrame(peer, windowUpdate(1, increment)))
-                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                stopped
-                  .copy(credit = stopped.credit + (if (streamGrant.attempted) increment else 0)),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, LargeBody)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
-    WireCase(
-      "h2.client.negative-stream-window",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9.2",
-        "A client retains negative upload credit across SETTINGS and partial WINDOW_UPDATE.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { ready =>
-          context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
-            for {
-              decoder <- HpackWire.decoder[IO]()
-              opened <- openUpload(peer, decoder, Vector(4 -> 65535L))
-              stream = opened._1
-              initial = opened._2
-              _ <- ready.complete(())
-              prefix <-
-                if (initial.credit < 65535L) IO.pure(initial)
-                else firstPositiveData(peer, false, decoder, stream, initial)
-              sampled <- barrier(peer, false, decoder, stream, prefix)
-              _ <- Check(!sampled.ended, "body ended before its complete content")
-              // Keep connection credit sufficient even for a padding-only prefix.
-              _ <- writeFrame(peer, windowUpdate(0, 65536))
-              _ <- writeFrame(peer, settings(Vector(4 -> 0L)))
-              // RFC 9113 6.9.3 permits in-flight DATA under the old window.
-              // Its ACK synchronizes application of the new-minus-old delta (6.5.3).
-              acknowledged <- settingsAck(
-                peer,
-                false,
-                decoder,
-                stream,
-                sampled.copy(otherCredit = sampled.otherCredit + 65536),
-              )
-              negative = acknowledged.copy(credit = acknowledged.credit - 65535)
-              _ <- observationBound(negative.credit < 0, "negative stream credit was not observed")
-              negativeStopped <- barrier(peer, false, decoder, stream, negative)
-              _ <- writeFrame(peer, windowUpdate(stream, (-negativeStopped.credit).toInt))
-              zero <- barrier(peer, false, decoder, stream, negativeStopped.copy(credit = 0))
-              _ <- writeFrame(peer, windowUpdate(stream, 1))
-              stopped <- barrier(peer, false, decoder, stream, zero.copy(credit = zero.credit + 1))
-              increment = completionIncrement(LargeBody, stopped)
-              _ <- writeFrame(peer, windowUpdate(0, completionBudget(LargeBody, stopped)))
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(stream, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                false,
-                decoder,
-                stream,
-                stopped.copy(
-                  credit = stopped.credit + increment,
-                  otherCredit = stopped.otherCredit + completionBudget(LargeBody, stopped),
-                ),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, LargeBody)
-              _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.server.zero-connection-window-update",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9",
-        "A zero connection WINDOW_UPDATE increment requires a connection PROTOCOL_ERROR.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          connectServer(peer) *> writeFrame(peer, Frame(WindowUpdate, 0, 0, uint32(0))) *>
-            connectionError(peer, Set(1L, 2L), fromServer = true)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.client.zero-connection-window-update",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9",
-        "A client rejects a zero connection WINDOW_UPDATE increment as a connection error.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedClient(context) { peer =>
-          acceptClient(peer) *> requestHead(peer) *>
-            writeFrame(peer, Frame(WindowUpdate, 0, 0, uint32(0))) *>
-            connectionError(peer, Set(1L, 2L), fromServer = false)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.server.zero-stream-window-update",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9",
-        "A zero WINDOW_UPDATE increment on an open stream requires a stream PROTOCOL_ERROR.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- connectServer(peer)
-            decoder <- HpackWire.decoder[IO]()
-            _ <- writeFrame(peer, headers(1, unfinishedPostFields, endStream = false))
-            _ <- barrier(peer, true, decoder, 1, Progress(0))
-            // Complete the request even on a nonconforming target; EchoBody must not be abandoned.
-            _ <- peer
-              .write(
-                encode(Frame(WindowUpdate, 0, 1, uint32(0))) ++ encode(data(1, ByteVector(97)))
-              )
-            _ <- streamError(peer, 1, Set(1L, 2L), fromServer = true)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.client.zero-stream-window-update",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9",
-        "A zero WINDOW_UPDATE increment on an open upload requires a stream PROTOCOL_ERROR.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedUpload(context) { peer =>
-          for {
-            decoder <- HpackWire.decoder[IO]()
-            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
-            stream = opened._1
-            initial = opened._2
-            _ <- writeFrame(peer, Frame(WindowUpdate, 0, stream, uint32(0)))
-            _ <- streamError(peer, stream, Set(1L, 2L), fromServer = false, upload = Some(initial))
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
-    WireCase(
-      "h2.server.connection-window-overflow",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.9.1", "WINDOW_UPDATE cannot increase connection credit above 2^31-1."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2).use { case (peer, _) =>
-          // With no streams or DATA, the connection window is exactly 65535.
-          connectServer(peer) *> writeFrame(peer, windowUpdate(0, Int.MaxValue)) *>
-            connectionError(peer, Set(1L, 2L, 3L), fromServer = true)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
-    WireCase(
-      "h2.client.connection-window-overflow",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "6.9.1", "Connection WINDOW_UPDATE overflow requires FLOW_CONTROL_ERROR."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedClient(context) { peer =>
-          // The sole request stream receives no stream-credit increase. Even empty-body
-          // padding can therefore debit at most 65535 octets, before or between these updates.
-          // 65535 + Int.MaxValue + 1 - debit is unconditionally above Int.MaxValue.
-          acceptClient(peer) *> requestHead(peer) *>
-            Http2PeerSettings.write(
-              peer,
-              encode(windowUpdate(0, Int.MaxValue)) ++ encode(windowUpdate(0, 1)),
-            ) *>
-            connectionError(peer, Set(1L, 2L, 3L), fromServer = false)
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
-    WireCase(
-      "h2.server.stream-window-overflow",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9.1",
-        "Two updates from zero to 2^31-1 and then 2^31 require stream FLOW_CONTROL_ERROR.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- connectServer(peer, Vector(4 -> 0L))
-            decoder <- HpackWire.decoder[IO]()
-            _ <- writeFrame(peer, headers(1, unfinishedPostFields, endStream = false))
-            _ <- barrier(peer, true, decoder, 1, Progress(0))
-            // EchoBody cannot produce DATA before the final request frame, so credit cannot race down.
-            _ <- Http2PeerSettings.write(
-              peer,
-              encode(windowUpdate(1, Int.MaxValue)) ++ encode(windowUpdate(1, 1)) ++
-                encode(data(1, ByteVector(97))),
-            )
-            _ <- streamError(peer, 1, Set(1L, 2L, 3L), fromServer = true)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
-    WireCase(
-      "h2.client.stream-window-overflow",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "6.9.1", "An open upload rejects a stream window above 2^31-1."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedUpload(context) { peer =>
-          for {
-            decoder <- HpackWire.decoder[IO]()
-            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
-            stream = opened._1
-            initial = opened._2
-            // No connection credit is granted: all padding, including setup DATA,
-            // can debit at most 65535 octets. A 65536 delta forces overflow.
-            _ <- Http2PeerSettings.write(
-              peer,
-              encode(windowUpdate(stream, Int.MaxValue)) ++ encode(windowUpdate(stream, 65536)),
-            )
-            _ <- streamError(
-              peer,
-              stream,
-              Set(1L, 2L, 3L),
-              fromServer = false,
-              upload = Some(initial.copy(credit = initial.credit + Int.MaxValue)),
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
-    WireCase(
-      "h2.server.settings-stream-window-overflow",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9.2",
-        "An initial-window SETTINGS change overflowing an active window is a connection error.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- connectServer(peer, Vector(4 -> 0L))
-            decoder <- HpackWire.decoder[IO]()
-            _ <- writeFrame(peer, headers(1, unfinishedPostFields, endStream = false))
-            _ <- barrier(peer, true, decoder, 1, Progress(0))
-            _ <- Http2PeerSettings.write(
-              peer,
-              encode(windowUpdate(1, Int.MaxValue)) ++ encode(settings(Vector(4 -> 1L))) ++
-                encode(data(1, ByteVector(97))),
-            )
-            _ <- connectionError(peer, Set(1L, 2L, 3L), fromServer = true)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
-    WireCase(
-      "h2.client.settings-stream-window-overflow",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9.2",
-        "An initial-window SETTINGS change overflowing an upload window is a connection error.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        rejectedUpload(context) { peer =>
-          for {
-            decoder <- HpackWire.decoder[IO]()
-            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
-            stream = opened._1
-            initial = opened._2
-            // The 65536 SETTINGS delta exceeds all unrefreshed connection credit.
-            _ <- Http2PeerSettings.write(
-              peer,
-              encode(windowUpdate(stream, Int.MaxValue)) ++ encode(settings(Vector(4 -> 65536L))),
-            )
-            _ <- connectionError(
-              peer,
-              Set(1L, 2L, 3L),
-              fromServer = false,
-              upload = Some(stream -> initial.copy(credit = initial.credit + Int.MaxValue)),
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.server.maximum-stream-window-update",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.9",
-        "The maximum WINDOW_UPDATE increment is valid when the existing window is zero.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              stopped <- barrier(peer, true, decoder, 1, Progress(0))
-              _ <- writeFrame(peer, windowUpdate(1, Int.MaxValue))
-              // Track connection credit here; the stream is already at its maximum.
-              connection = stopped.copy(credit = 65535)
-              increment = completionIncrement(SmallBody, connection)
-              positive <- peerSettings.positive(peer)
-              grant <-
-                if (increment > 0) positive.incidental(writeFrame(peer, windowUpdate(0, increment)))
-                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                connection
-                  .copy(credit = connection.credit + (if (grant.attempted) increment else 0)),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.client.maximum-stream-window-update",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.9",
-        "The maximum WINDOW_UPDATE increment is accepted at measured nonpositive upload credit.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { ready =>
-          context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
-            for {
-              decoder <- HpackWire.decoder[IO]()
-              opened <- openUpload(peer, decoder, Vector(4 -> 0L))
-              stream = opened._1
-              initial = opened._2
-              _ <- ready.complete(())
-              stopped <- barrier(peer, false, decoder, stream, initial)
-              _ <- writeFrame(peer, windowUpdate(stream, Int.MaxValue))
-              // Track connection credit while retaining the measured stream debit.
-              connection = stopped.copy(
-                credit = stopped.otherCredit,
-                otherCredit = stopped.credit + Int.MaxValue,
-              )
-              increment = completionIncrement(SmallBody, connection)
-              _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
-              complete <- readData(
-                peer,
-                false,
-                decoder,
-                stream,
-                connection.copy(credit = connection.credit + increment),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-              _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.4
-    WireCase(
-      "h2.server.reset-closes-blocked-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.4", "After processing RST_STREAM a server cannot resume DATA on that stream."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              _ <- writeFrame(peer, Frame(RstStream, 0, 1, uint32(8)))
-              _ <- resetCompletion(peer, decoder)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
-    WireCase(
-      "h2.server.window-update-on-closed-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.9", "An in-flight WINDOW_UPDATE on a closed stream is not a connection error."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer)
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              initial = Progress(65535)
-              firstIncrement = completionIncrement(SmallBody, initial)
-              _ <- writeFrame(peer, windowUpdate(1, completionBudget(SmallBody, initial)))
-              _ <-
-                if (firstIncrement > 0) writeFrame(peer, windowUpdate(0, firstIncrement))
-                else IO.unit
-              first <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                initial.copy(credit = initial.credit + firstIncrement),
-                boundary = false,
-              )
-              _ <- Check.equal(first.body, SmallBody)
-              _ <- writeFrame(peer, windowUpdate(1, 1))
-              _ <- barrier(peer, true, decoder, 1, first)
-              _ <- writeFrame(peer, headers(3, requestFields()))
-              _ <- responseHead(peer, 3, decoder)
-              // Carry the actual connection remainder into a fresh response state.
-              next = Progress(first.credit)
-              secondIncrement = completionIncrement(SmallBody, next)
-              positive <- peerSettings.positive(peer)
-              streamGrant <- positive
-                .incidental(writeFrame(peer, windowUpdate(3, completionBudget(SmallBody, next))))
-              connectionGrant <-
-                if (secondIncrement > 0)
-                  positive.incidental(writeFrame(peer, windowUpdate(0, secondIncrement)))
-                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
-              second <- readData(
-                peer,
-                true,
-                decoder,
-                3,
-                next.copy(
-                  credit = next.credit + (if (connectionGrant.attempted) secondIncrement else 0),
-                  otherCredit =
-                    65535L + (if (streamGrant.attempted) completionBudget(SmallBody, next) else 0),
-                ),
-                boundary = false,
-              )
-              _ <- Check.equal(second.body, SmallBody)
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.7
-    WireCase(
-      "h2.server.goaway-includes-dispatched-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.7", "GOAWAY cannot declare an application-dispatched stream unprocessed."),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, server) =>
-            for {
-              _ <- connectServer(peer, Vector(4 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(7, requestFields()))
-              _ <- responseHead(peer, 7, decoder)
-              received <- server.received
-              _ <- Check.equal(received.path, "/")
-              _ <- writeFrame(peer, data(9, ByteVector.empty))
-              bytes <- peer.readToEnd(1024 * 1024, allowReset = true)
-              frames <- IO.fromEither(decodeAll(bytes))
-              _ <- checkConnectionFrames(peer, frames, Set(1L, 2L), fromServer = true)
-              _ <- frames.filter(_.frameType == GoAway).traverse_ { frame =>
-                Check(
-                  (readUint32(frame.payload.take(4)) & 0x7fffffffL) >= 7L,
-                  "GOAWAY claimed an application-dispatched request was unprocessed",
-                )
-              }
-            } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.2
-    WireCase(
-      "h2.server.peer-concurrency-zero-allows-responses",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "5.1.2",
-        "A client's concurrent-stream limit restricts server initiation, not responses on client streams.",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
-          case (peer, _) =>
-            for {
-              _ <- connectServer(peer, Vector(3 -> 0L))
-              decoder <- HpackWire.decoder[IO]()
-              _ <- writeFrame(peer, headers(1, requestFields()))
-              _ <- responseHead(peer, 1, decoder)
-              initial = Progress(65535)
-              increment = completionIncrement(SmallBody, initial)
-              // A complete response may already be buffered after legal closure.
-              // Stop optional writes on recognized closure; readData still proves completion.
-              positive <- peerSettings.positive(peer)
-              streamGrant <- positive.incidental(
-                writeFrame(peer, windowUpdate(1, completionBudget(SmallBody, initial)))
-              )
-              connectionGrant <-
-                if (increment > 0)
-                  positive.incidental(writeFrame(peer, windowUpdate(0, increment)))
-                else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
-              complete <- readData(
-                peer,
-                true,
-                decoder,
-                1,
-                // Failed writes may have delivered a complete grant, but a skipped
-                // connection write cannot enlarge its window. Bound both dimensions.
-                initial.copy(
-                  credit = initial.credit + (if (connectionGrant.attempted) increment else 0),
-                  otherCredit = initial.credit + (if (streamGrant.attempted)
-                                                    completionBudget(SmallBody, initial)
-                                                  else 0),
-                ),
-                boundary = false,
-              )
-              _ <- Check.equal(complete.body, SmallBody)
-            } yield ()
-        }
-      }
-    },
+  lazy val all: Vector[WireCase] = Vector(
+    h2ServerIdleData,
+    h2ServerIdleWindowUpdate,
+    h2ServerEvenRequestStream,
+    h2ServerSkippedStreamCannotOpen,
+    h2ClientIdleData,
+    h2ClientIdleWindowUpdate,
+    h2ClientUnpromisedServerHeaders,
+    h2ServerHalfClosedRemoteData,
+    h2ServerHalfClosedRemoteHeaders,
+    h2ServerWindowUpdateAfterPeerEnd,
+    h2ServerStreamCreditBoundary,
+    h2ClientStreamCreditBoundary,
+    h2ServerConnectionCreditIndependent,
+    h2ClientConnectionCreditIndependent,
+    h2ServerNegativeStreamWindow,
+    h2ClientNegativeStreamWindow,
+    h2ServerZeroConnectionWindowUpdate,
+    h2ClientZeroConnectionWindowUpdate,
+    h2ServerZeroStreamWindowUpdate,
+    h2ClientZeroStreamWindowUpdate,
+    h2ServerConnectionWindowOverflow,
+    h2ClientConnectionWindowOverflow,
+    h2ServerStreamWindowOverflow,
+    h2ClientStreamWindowOverflow,
+    h2ServerSettingsStreamWindowOverflow,
+    h2ClientSettingsStreamWindowOverflow,
+    h2ServerMaximumStreamWindowUpdate,
+    h2ClientMaximumStreamWindowUpdate,
+    h2ServerResetClosesBlockedStream,
+    h2ServerWindowUpdateOnClosedStream,
+    h2ServerGoawayIncludesDispatchedStream,
+    h2ServerPeerConcurrencyZeroAllowsResponses,
   )
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ServerIdleData: WireCase = WireCase(
+    "h2.server.idle-data",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "5.1", "DATA on an idle stream is a connection PROTOCOL_ERROR."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        connectServer(peer) *> writeFrame(peer, data(1, ByteVector.empty)) *>
+          connectionError(peer, Set(1L, 2L), fromServer = true)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ServerIdleWindowUpdate: WireCase = WireCase(
+    "h2.server.idle-window-update",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "5.1", "WINDOW_UPDATE on an idle stream is a connection PROTOCOL_ERROR."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        connectServer(peer) *> writeFrame(peer, windowUpdate(1, 1)) *>
+          connectionError(peer, Set(1L, 2L), fromServer = true)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.1
+  lazy val h2ServerEvenRequestStream: WireCase = WireCase(
+    "h2.server.even-request-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "5.1.1", "Client-initiated streams require odd identifiers."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        connectServer(peer) *> writeFrame(peer, headers(2, requestFields())) *>
+          connectionError(peer, Set(1L, 2L), fromServer = true)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.1
+  lazy val h2ServerSkippedStreamCannotOpen: WireCase = WireCase(
+    "h2.server.skipped-stream-cannot-open",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "5.1.1",
+      "Opening stream 3 closes skipped stream 1; stream 1 cannot then be opened.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(3, requestFields()))
+          _ <- responseHead(peer, 3, decoder)
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- connectionError(peer, Set(1L, 2L), fromServer = true)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ClientIdleData: WireCase = WireCase(
+    "h2.client.idle-data",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "5.1", "A client treats DATA on an uncreated stream as a connection error."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedClient(context) { peer =>
+        for {
+          _ <- acceptClient(peer)
+          _ <- requestHead(peer)
+          // No PUSH_PROMISE was sent: even stream 2 is independently idle.
+          _ <- writeFrame(peer, data(2, ByteVector.empty))
+          _ <- connectionError(peer, Set(1L, 2L), fromServer = false)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ClientIdleWindowUpdate: WireCase = WireCase(
+    "h2.client.idle-window-update",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "5.1", "A client treats WINDOW_UPDATE on an idle stream as a connection error."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedClient(context) { peer =>
+        for {
+          _ <- acceptClient(peer)
+          _ <- requestHead(peer)
+          // Valid even when the first request uses the maximum odd identifier.
+          _ <- writeFrame(peer, windowUpdate(2, 1))
+          _ <- connectionError(peer, Set(1L, 2L), fromServer = false)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ClientUnpromisedServerHeaders: WireCase = WireCase(
+    "h2.client.unpromised-server-headers",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "5.1", "HEADERS cannot open an unpromised server-initiated stream."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedClient(context) { peer =>
+        acceptClient(peer) *> requestHead(peer) *>
+          writeFrame(peer, headers(2, Vector(":status" -> "200"))) *>
+          connectionError(peer, Set(1L, 2L), fromServer = false)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ServerHalfClosedRemoteData: WireCase = WireCase(
+    "h2.server.half-closed-remote-data",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "5.1", "DATA after the peer's END_STREAM requires STREAM_CLOSED."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          // Zero response credit holds the target in half-closed (remote), not closed.
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          _ <- writeFrame(peer, data(1, ByteVector.empty))
+          _ <- streamError(peer, 1, Set(1L, 2L, 5L), fromServer = true)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1
+  lazy val h2ServerHalfClosedRemoteHeaders: WireCase = WireCase(
+    "h2.server.half-closed-remote-headers",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "5.1", "HEADERS after the peer's END_STREAM requires STREAM_CLOSED."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          _ <- writeFrame(peer, headers(1, Vector("x-after-end" -> "invalid")))
+          _ <- streamError(peer, 1, Set(1L, 2L, 5L), fromServer = true)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ServerWindowUpdateAfterPeerEnd: WireCase = WireCase(
+    "h2.server.window-update-after-peer-end",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.9", "WINDOW_UPDATE remains valid after the peer sends END_STREAM."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          stopped <- barrier(peer, true, decoder, 1, Progress(0))
+          increment = completionIncrement(SmallBody, stopped)
+          _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
+          _ <- if (increment > 0) writeFrame(peer, windowUpdate(1, increment)) else IO.unit
+          complete <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            stopped.copy(credit = stopped.credit + increment),
+            boundary = false,
+          )
+          _ <- Check.equal(complete.body, SmallBody)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
+  lazy val h2ServerStreamCreditBoundary: WireCase = WireCase(
+    "h2.server.stream-credit-boundary",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9.1",
+      "Each DATA payload fits the remaining stream credit and WINDOW_UPDATE restores credit.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 3L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          stopped <- barrier(peer, true, decoder, 1, Progress(3))
+          increment = completionIncrement(SmallBody, stopped)
+          _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
+          _ <- if (increment > 0) writeFrame(peer, windowUpdate(1, increment)) else IO.unit
+          complete <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            stopped.copy(credit = stopped.credit + increment),
+            boundary = false,
+          )
+          _ <- Check.equal(complete.body, SmallBody)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
+  lazy val h2ClientStreamCreditBoundary: WireCase = WireCase(
+    "h2.client.stream-credit-boundary",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9.1",
+      "An upload fits stream credit, processes PING while blocked, and resumes on WINDOW_UPDATE.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { ready =>
+        context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
+          for {
+            decoder <- HpackWire.decoder[IO]()
+            opened <- openUpload(peer, decoder, Vector(4 -> 3L))
+            stream = opened._1
+            initial = opened._2
+            _ <- ready.complete(())
+            stopped <- barrier(peer, false, decoder, stream, initial)
+            increment = completionIncrement(SmallBody, stopped)
+            _ <- writeFrame(peer, windowUpdate(0, completionBudget(SmallBody, stopped)))
+            _ <- if (increment > 0) writeFrame(peer, windowUpdate(stream, increment)) else IO.unit
+            complete <- readData(
+              peer,
+              false,
+              decoder,
+              stream,
+              stopped.copy(
+                credit = stopped.credit + increment,
+                otherCredit = stopped.otherCredit + completionBudget(SmallBody, stopped),
+              ),
+              boundary = false,
+            )
+            _ <- Check.equal(complete.body, SmallBody)
+            _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
+          } yield ()
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
+  lazy val h2ServerConnectionCreditIndependent: WireCase = WireCase(
+    "h2.server.connection-credit-independent",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9.2",
+      "Only connection WINDOW_UPDATE replenishes the initial 65535 connection octets.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = LargeBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 131072L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          stopped <- barrier(peer, true, decoder, 1, Progress(65535))
+          // Neither a stream update nor SETTINGS may alter the connection window.
+          _ <- Http2PeerSettings
+            .write(peer, encode(windowUpdate(1, 1)) ++ encode(settings(Vector(4 -> 262144L))))
+          unchanged <- settingsAck(peer, true, decoder, 1, stopped)
+          confirmed <- barrier(peer, true, decoder, 1, unchanged)
+          increment = completionIncrement(LargeBody, confirmed)
+          _ <- writeFrame(peer, windowUpdate(1, completionBudget(LargeBody, confirmed)))
+          _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
+          complete <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            confirmed.copy(credit = confirmed.credit + increment),
+            boundary = false,
+          )
+          _ <- Check.equal(complete.body, LargeBody)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
+  lazy val h2ClientConnectionCreditIndependent: WireCase = WireCase(
+    "h2.client.connection-credit-independent",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9.2",
+      "SETTINGS and stream WINDOW_UPDATE do not replenish measured upload connection credit.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { ready =>
+        context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
+          for {
+            decoder <- HpackWire.decoder[IO]()
+            opened <- openUpload(peer, decoder, Vector(4 -> 131072L))
+            stream = opened._1
+            initial = opened._2
+            _ <- ready.complete(())
+            stopped <- barrier(
+              peer,
+              false,
+              decoder,
+              stream,
+              initial.copy(credit = initial.otherCredit, otherCredit = initial.credit),
+            )
+            _ <- Http2PeerSettings.write(
+              peer,
+              encode(windowUpdate(stream, 1)) ++ encode(settings(Vector(4 -> 262144L))),
+            )
+            unchanged <- settingsAck(
+              peer,
+              false,
+              decoder,
+              stream,
+              stopped.copy(otherCredit = stopped.otherCredit + 131073),
+            )
+            confirmed <- barrier(peer, false, decoder, stream, unchanged)
+            increment = completionIncrement(LargeBody, confirmed)
+            _ <- writeFrame(peer, windowUpdate(stream, completionBudget(LargeBody, confirmed)))
+            _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
+            complete <- readData(
+              peer,
+              false,
+              decoder,
+              stream,
+              confirmed.copy(
+                credit = confirmed.credit + increment,
+                otherCredit = confirmed.otherCredit + completionBudget(LargeBody, confirmed),
+              ),
+              boundary = false,
+            )
+            _ <- Check.equal(complete.body, LargeBody)
+            _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
+          } yield ()
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
+  lazy val h2ServerNegativeStreamWindow: WireCase = WireCase(
+    "h2.server.negative-stream-window",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9.2",
+      "A SETTINGS reduction preserves a negative stream window until credit becomes positive.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = LargeBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 65535L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          prefix <- firstPositiveData(peer, true, decoder, 1, Progress(65535))
+          sampled <- barrier(peer, true, decoder, 1, prefix)
+          _ <- Check(!sampled.ended, "body ended before its complete content")
+          // Keep connection credit sufficient even for a padding-only prefix.
+          _ <- writeFrame(peer, windowUpdate(0, 65536))
+          _ <- writeFrame(peer, settings(Vector(4 -> 0L)))
+          // RFC 9113 6.9.3 permits in-flight DATA under the old window.
+          // Its ACK synchronizes application of the new-minus-old delta (6.5.3).
+          acknowledged <- settingsAck(peer, true, decoder, 1, sampled)
+          negative = acknowledged.copy(credit = acknowledged.credit - 65535)
+          _ <- observationBound(negative.credit < 0, "negative stream credit was not observed")
+          negativeStopped <- barrier(peer, true, decoder, 1, negative)
+          _ <- writeFrame(peer, windowUpdate(1, (-negativeStopped.credit).toInt))
+          zero <- barrier(peer, true, decoder, 1, negativeStopped.copy(credit = 0))
+          _ <- writeFrame(peer, windowUpdate(1, 1))
+          stopped <- barrier(peer, true, decoder, 1, zero.copy(credit = zero.credit + 1))
+          increment = completionIncrement(LargeBody, stopped)
+          positive <- peerSettings.positive(peer)
+          _ <-
+            if (stopped.ended) IO.unit
+            else
+              positive
+                .incidental(
+                  writeFrame(peer, windowUpdate(0, completionBudget(LargeBody, stopped)))
+                )
+                .void
+          streamGrant <-
+            if (!stopped.ended && increment > 0)
+              positive.incidental(writeFrame(peer, windowUpdate(1, increment)))
+            else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
+          complete <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            stopped
+              .copy(credit = stopped.credit + (if (streamGrant.attempted) increment else 0)),
+            boundary = false,
+          )
+          _ <- Check.equal(complete.body, LargeBody)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
+  lazy val h2ClientNegativeStreamWindow: WireCase = WireCase(
+    "h2.client.negative-stream-window",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9.2",
+      "A client retains negative upload credit across SETTINGS and partial WINDOW_UPDATE.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { ready =>
+        context.client(Protocol.Http2)(driver => upload(driver, ready, LargeBody)) { peer =>
+          for {
+            decoder <- HpackWire.decoder[IO]()
+            opened <- openUpload(peer, decoder, Vector(4 -> 65535L))
+            stream = opened._1
+            initial = opened._2
+            _ <- ready.complete(())
+            prefix <-
+              if (initial.credit < 65535L) IO.pure(initial)
+              else firstPositiveData(peer, false, decoder, stream, initial)
+            sampled <- barrier(peer, false, decoder, stream, prefix)
+            _ <- Check(!sampled.ended, "body ended before its complete content")
+            // Keep connection credit sufficient even for a padding-only prefix.
+            _ <- writeFrame(peer, windowUpdate(0, 65536))
+            _ <- writeFrame(peer, settings(Vector(4 -> 0L)))
+            // RFC 9113 6.9.3 permits in-flight DATA under the old window.
+            // Its ACK synchronizes application of the new-minus-old delta (6.5.3).
+            acknowledged <- settingsAck(
+              peer,
+              false,
+              decoder,
+              stream,
+              sampled.copy(otherCredit = sampled.otherCredit + 65536),
+            )
+            negative = acknowledged.copy(credit = acknowledged.credit - 65535)
+            _ <- observationBound(negative.credit < 0, "negative stream credit was not observed")
+            negativeStopped <- barrier(peer, false, decoder, stream, negative)
+            _ <- writeFrame(peer, windowUpdate(stream, (-negativeStopped.credit).toInt))
+            zero <- barrier(peer, false, decoder, stream, negativeStopped.copy(credit = 0))
+            _ <- writeFrame(peer, windowUpdate(stream, 1))
+            stopped <- barrier(peer, false, decoder, stream, zero.copy(credit = zero.credit + 1))
+            increment = completionIncrement(LargeBody, stopped)
+            _ <- writeFrame(peer, windowUpdate(0, completionBudget(LargeBody, stopped)))
+            _ <- if (increment > 0) writeFrame(peer, windowUpdate(stream, increment)) else IO.unit
+            complete <- readData(
+              peer,
+              false,
+              decoder,
+              stream,
+              stopped.copy(
+                credit = stopped.credit + increment,
+                otherCredit = stopped.otherCredit + completionBudget(LargeBody, stopped),
+              ),
+              boundary = false,
+            )
+            _ <- Check.equal(complete.body, LargeBody)
+            _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
+          } yield ()
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ServerZeroConnectionWindowUpdate: WireCase = WireCase(
+    "h2.server.zero-connection-window-update",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9",
+      "A zero connection WINDOW_UPDATE increment requires a connection PROTOCOL_ERROR.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        connectServer(peer) *> writeFrame(peer, Frame(WindowUpdate, 0, 0, uint32(0))) *>
+          connectionError(peer, Set(1L, 2L), fromServer = true)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ClientZeroConnectionWindowUpdate: WireCase = WireCase(
+    "h2.client.zero-connection-window-update",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9",
+      "A client rejects a zero connection WINDOW_UPDATE increment as a connection error.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedClient(context) { peer =>
+        acceptClient(peer) *> requestHead(peer) *>
+          writeFrame(peer, Frame(WindowUpdate, 0, 0, uint32(0))) *>
+          connectionError(peer, Set(1L, 2L), fromServer = false)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ServerZeroStreamWindowUpdate: WireCase = WireCase(
+    "h2.server.zero-stream-window-update",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9",
+      "A zero WINDOW_UPDATE increment on an open stream requires a stream PROTOCOL_ERROR.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer)
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, unfinishedPostFields, endStream = false))
+          _ <- barrier(peer, true, decoder, 1, Progress(0))
+          // Complete the request even on a nonconforming target; EchoBody must not be abandoned.
+          _ <- peer
+            .write(
+              encode(Frame(WindowUpdate, 0, 1, uint32(0))) ++ encode(data(1, ByteVector(97)))
+            )
+          _ <- streamError(peer, 1, Set(1L, 2L), fromServer = true)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ClientZeroStreamWindowUpdate: WireCase = WireCase(
+    "h2.client.zero-stream-window-update",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9",
+      "A zero WINDOW_UPDATE increment on an open upload requires a stream PROTOCOL_ERROR.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedUpload(context) { peer =>
+        for {
+          decoder <- HpackWire.decoder[IO]()
+          opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+          stream = opened._1
+          initial = opened._2
+          _ <- writeFrame(peer, Frame(WindowUpdate, 0, stream, uint32(0)))
+          _ <- streamError(peer, stream, Set(1L, 2L), fromServer = false, upload = Some(initial))
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
+  lazy val h2ServerConnectionWindowOverflow: WireCase = WireCase(
+    "h2.server.connection-window-overflow",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.9.1", "WINDOW_UPDATE cannot increase connection credit above 2^31-1."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2).use { case (peer, _) =>
+        // With no streams or DATA, the connection window is exactly 65535.
+        connectServer(peer) *> writeFrame(peer, windowUpdate(0, Int.MaxValue)) *>
+          connectionError(peer, Set(1L, 2L, 3L), fromServer = true)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
+  lazy val h2ClientConnectionWindowOverflow: WireCase = WireCase(
+    "h2.client.connection-window-overflow",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "6.9.1", "Connection WINDOW_UPDATE overflow requires FLOW_CONTROL_ERROR."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedClient(context) { peer =>
+        // The sole request stream receives no stream-credit increase. Even empty-body
+        // padding can therefore debit at most 65535 octets, before or between these updates.
+        // 65535 + Int.MaxValue + 1 - debit is unconditionally above Int.MaxValue.
+        acceptClient(peer) *> requestHead(peer) *>
+          Http2PeerSettings.write(
+            peer,
+            encode(windowUpdate(0, Int.MaxValue)) ++ encode(windowUpdate(0, 1)),
+          ) *>
+          connectionError(peer, Set(1L, 2L, 3L), fromServer = false)
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
+  lazy val h2ServerStreamWindowOverflow: WireCase = WireCase(
+    "h2.server.stream-window-overflow",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9.1",
+      "Two updates from zero to 2^31-1 and then 2^31 require stream FLOW_CONTROL_ERROR.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, unfinishedPostFields, endStream = false))
+          _ <- barrier(peer, true, decoder, 1, Progress(0))
+          // EchoBody cannot produce DATA before the final request frame, so credit cannot race down.
+          _ <- Http2PeerSettings.write(
+            peer,
+            encode(windowUpdate(1, Int.MaxValue)) ++ encode(windowUpdate(1, 1)) ++
+              encode(data(1, ByteVector(97))),
+          )
+          _ <- streamError(peer, 1, Set(1L, 2L, 3L), fromServer = true)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.1
+  lazy val h2ClientStreamWindowOverflow: WireCase = WireCase(
+    "h2.client.stream-window-overflow",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "6.9.1", "An open upload rejects a stream window above 2^31-1."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedUpload(context) { peer =>
+        for {
+          decoder <- HpackWire.decoder[IO]()
+          opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+          stream = opened._1
+          initial = opened._2
+          // No connection credit is granted: all padding, including setup DATA,
+          // can debit at most 65535 octets. A 65536 delta forces overflow.
+          _ <- Http2PeerSettings.write(
+            peer,
+            encode(windowUpdate(stream, Int.MaxValue)) ++ encode(windowUpdate(stream, 65536)),
+          )
+          _ <- streamError(
+            peer,
+            stream,
+            Set(1L, 2L, 3L),
+            fromServer = false,
+            upload = Some(initial.copy(credit = initial.credit + Int.MaxValue)),
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
+  lazy val h2ServerSettingsStreamWindowOverflow: WireCase = WireCase(
+    "h2.server.settings-stream-window-overflow",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9.2",
+      "An initial-window SETTINGS change overflowing an active window is a connection error.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(1L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, unfinishedPostFields, endStream = false))
+          _ <- barrier(peer, true, decoder, 1, Progress(0))
+          _ <- Http2PeerSettings.write(
+            peer,
+            encode(windowUpdate(1, Int.MaxValue)) ++ encode(settings(Vector(4 -> 1L))) ++
+              encode(data(1, ByteVector(97))),
+          )
+          _ <- connectionError(peer, Set(1L, 2L, 3L), fromServer = true)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9.2
+  lazy val h2ClientSettingsStreamWindowOverflow: WireCase = WireCase(
+    "h2.client.settings-stream-window-overflow",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9.2",
+      "An initial-window SETTINGS change overflowing an upload window is a connection error.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      rejectedUpload(context) { peer =>
+        for {
+          decoder <- HpackWire.decoder[IO]()
+          opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+          stream = opened._1
+          initial = opened._2
+          // The 65536 SETTINGS delta exceeds all unrefreshed connection credit.
+          _ <- Http2PeerSettings.write(
+            peer,
+            encode(windowUpdate(stream, Int.MaxValue)) ++ encode(settings(Vector(4 -> 65536L))),
+          )
+          _ <- connectionError(
+            peer,
+            Set(1L, 2L, 3L),
+            fromServer = false,
+            upload = Some(stream -> initial.copy(credit = initial.credit + Int.MaxValue)),
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ServerMaximumStreamWindowUpdate: WireCase = WireCase(
+    "h2.server.maximum-stream-window-update",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.9",
+      "The maximum WINDOW_UPDATE increment is valid when the existing window is zero.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          stopped <- barrier(peer, true, decoder, 1, Progress(0))
+          _ <- writeFrame(peer, windowUpdate(1, Int.MaxValue))
+          // Track connection credit here; the stream is already at its maximum.
+          connection = stopped.copy(credit = 65535)
+          increment = completionIncrement(SmallBody, connection)
+          positive <- peerSettings.positive(peer)
+          grant <-
+            if (increment > 0) positive.incidental(writeFrame(peer, windowUpdate(0, increment)))
+            else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
+          complete <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            connection
+              .copy(credit = connection.credit + (if (grant.attempted) increment else 0)),
+            boundary = false,
+          )
+          _ <- Check.equal(complete.body, SmallBody)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ClientMaximumStreamWindowUpdate: WireCase = WireCase(
+    "h2.client.maximum-stream-window-update",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.9",
+      "The maximum WINDOW_UPDATE increment is accepted at measured nonpositive upload credit.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { ready =>
+        context.client(Protocol.Http2)(driver => upload(driver, ready, SmallBody)) { peer =>
+          for {
+            decoder <- HpackWire.decoder[IO]()
+            opened <- openUpload(peer, decoder, Vector(4 -> 0L))
+            stream = opened._1
+            initial = opened._2
+            _ <- ready.complete(())
+            stopped <- barrier(peer, false, decoder, stream, initial)
+            _ <- writeFrame(peer, windowUpdate(stream, Int.MaxValue))
+            // Track connection credit while retaining the measured stream debit.
+            connection = stopped.copy(
+              credit = stopped.otherCredit,
+              otherCredit = stopped.credit + Int.MaxValue,
+            )
+            increment = completionIncrement(SmallBody, connection)
+            _ <- if (increment > 0) writeFrame(peer, windowUpdate(0, increment)) else IO.unit
+            complete <- readData(
+              peer,
+              false,
+              decoder,
+              stream,
+              connection.copy(credit = connection.credit + increment),
+              boundary = false,
+            )
+            _ <- Check.equal(complete.body, SmallBody)
+            _ <- writeFrame(peer, headers(stream, Vector(":status" -> "200")))
+          } yield ()
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.4
+  lazy val h2ServerResetClosesBlockedStream: WireCase = WireCase(
+    "h2.server.reset-closes-blocked-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.4", "After processing RST_STREAM a server cannot resume DATA on that stream."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(4 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          _ <- writeFrame(peer, Frame(RstStream, 0, 1, uint32(8)))
+          _ <- resetCompletion(peer, decoder)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.9
+  lazy val h2ServerWindowUpdateOnClosedStream: WireCase = WireCase(
+    "h2.server.window-update-on-closed-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.9", "An in-flight WINDOW_UPDATE on a closed stream is not a connection error."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer)
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          initial = Progress(65535)
+          firstIncrement = completionIncrement(SmallBody, initial)
+          _ <- writeFrame(peer, windowUpdate(1, completionBudget(SmallBody, initial)))
+          _ <-
+            if (firstIncrement > 0) writeFrame(peer, windowUpdate(0, firstIncrement))
+            else IO.unit
+          first <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            initial.copy(credit = initial.credit + firstIncrement),
+            boundary = false,
+          )
+          _ <- Check.equal(first.body, SmallBody)
+          _ <- writeFrame(peer, windowUpdate(1, 1))
+          _ <- barrier(peer, true, decoder, 1, first)
+          _ <- writeFrame(peer, headers(3, requestFields()))
+          _ <- responseHead(peer, 3, decoder)
+          // Carry the actual connection remainder into a fresh response state.
+          next = Progress(first.credit)
+          secondIncrement = completionIncrement(SmallBody, next)
+          positive <- peerSettings.positive(peer)
+          streamGrant <- positive
+            .incidental(writeFrame(peer, windowUpdate(3, completionBudget(SmallBody, next))))
+          connectionGrant <-
+            if (secondIncrement > 0)
+              positive.incidental(writeFrame(peer, windowUpdate(0, secondIncrement)))
+            else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
+          second <- readData(
+            peer,
+            true,
+            decoder,
+            3,
+            next.copy(
+              credit = next.credit + (if (connectionGrant.attempted) secondIncrement else 0),
+              otherCredit =
+                65535L + (if (streamGrant.attempted) completionBudget(SmallBody, next) else 0),
+            ),
+            boundary = false,
+          )
+          _ <- Check.equal(second.body, SmallBody)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.7
+  lazy val h2ServerGoawayIncludesDispatchedStream: WireCase = WireCase(
+    "h2.server.goaway-includes-dispatched-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.7", "GOAWAY cannot declare an application-dispatched stream unprocessed."),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use {
+        case (peer, server) =>
+          for {
+            _ <- connectServer(peer, Vector(4 -> 0L))
+            decoder <- HpackWire.decoder[IO]()
+            _ <- writeFrame(peer, headers(7, requestFields()))
+            _ <- responseHead(peer, 7, decoder)
+            received <- server.received
+            _ <- Check.equal(received.path, "/")
+            _ <- writeFrame(peer, data(9, ByteVector.empty))
+            bytes <- peer.readToEnd(1024 * 1024, allowReset = true)
+            frames <- IO.fromEither(decodeAll(bytes))
+            _ <- checkConnectionFrames(peer, frames, Set(1L, 2L), fromServer = true)
+            _ <- frames.filter(_.frameType == GoAway).traverse_ { frame =>
+              Check(
+                (readUint32(frame.payload.take(4)) & 0x7fffffffL) >= 7L,
+                "GOAWAY claimed an application-dispatched request was unprocessed",
+              )
+            }
+          } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-5.1.2
+  lazy val h2ServerPeerConcurrencyZeroAllowsResponses: WireCase = WireCase(
+    "h2.server.peer-concurrency-zero-allows-responses",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "5.1.2",
+      "A client's concurrent-stream limit restricts server initiation, not responses on client streams.",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.Reply(body = SmallBody)).use { case (peer, _) =>
+        for {
+          _ <- connectServer(peer, Vector(3 -> 0L))
+          decoder <- HpackWire.decoder[IO]()
+          _ <- writeFrame(peer, headers(1, requestFields()))
+          _ <- responseHead(peer, 1, decoder)
+          initial = Progress(65535)
+          increment = completionIncrement(SmallBody, initial)
+          // A complete response may already be buffered after legal closure.
+          // Stop optional writes on recognized closure; readData still proves completion.
+          positive <- peerSettings.positive(peer)
+          streamGrant <- positive.incidental(
+            writeFrame(peer, windowUpdate(1, completionBudget(SmallBody, initial)))
+          )
+          connectionGrant <-
+            if (increment > 0)
+              positive.incidental(writeFrame(peer, windowUpdate(0, increment)))
+            else IO.pure(Http2PositiveObservation.Write(attempted = false, writable = true))
+          complete <- readData(
+            peer,
+            true,
+            decoder,
+            1,
+            // Failed writes may have delivered a complete grant, but a skipped
+            // connection write cannot enlarge its window. Bound both dimensions.
+            initial.copy(
+              credit = initial.credit + (if (connectionGrant.attempted) increment else 0),
+              otherCredit = initial.credit + (if (streamGrant.attempted)
+                                                completionBudget(SmallBody, initial)
+                                              else 0),
+            ),
+            boundary = false,
+          )
+          _ <- Check.equal(complete.body, SmallBody)
+        } yield ()
+      }
+    }
+  }
 
   private final case class Progress(
       credit: Long,

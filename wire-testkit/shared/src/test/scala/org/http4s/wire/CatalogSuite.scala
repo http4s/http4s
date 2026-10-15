@@ -42,24 +42,35 @@ class CatalogSuite extends FunSuite {
   }
 
   test("inventory rejects unsupported coverage and unexplained omissions") {
-    val section = Vector("9112\t2.1\tMessage Format\tapplicable\twire framing")
-    val row = "test\t9112\t2.1\tserver\tMUST\tA complete request\tcovered\tmissing-case\t"
+    val section =
+      Vector(SpecSections.Section("9112", "2.1", "Message Format", "applicable", "wire framing"))
+    val row = SpecInventory.Entry(
+      "test",
+      "9112",
+      "2.1",
+      "server",
+      "MUST",
+      "A complete request",
+      "covered",
+      Vector(SmokeCases.h1ServerGet),
+      "",
+    )
     val errors = SpecInventory.validate(Vector(row), section, Vector.empty)
     assert(errors.exists(_.contains("missing case")))
     assert(
       SpecInventory.validate(Vector.empty, section, Vector.empty).exists(_.contains("explicit gap"))
     )
-    assert(SpecInventory.parse("invalid").isLeft)
   }
 
   test("covered inventory roles require evidence for every claimed role") {
-    val section = Vector("9112\t2.1\tMessage Format\tapplicable\twire framing")
+    val section =
+      Vector(SpecSections.Section("9112", "2.1", "Message Format", "applicable", "wire framing"))
     val client = Catalog.all.find(_.role == Role.Client).get
     val server = Catalog.all.find(_.role == Role.Server).get
     def validate(role: String, cases: Vector[WireCase]): Vector[String] =
       SpecInventory.validate(
         Vector(
-          s"roles\t9112\t2.1\t$role\tMUST\tFraming\tcovered\t${cases.map(_.id).mkString(",")}\t"
+          SpecInventory.Entry("roles", "9112", "2.1", role, "MUST", "Framing", "covered", cases, "")
         ),
         section,
         cases,
@@ -73,6 +84,19 @@ class CatalogSuite extends FunSuite {
     assert(validate("both", Vector(server)).exists(_.contains("client role")))
     assert(validate("server", Vector(client)).exists(_.contains("server role")))
     assert(validate("client", Vector(server)).exists(_.contains("client role")))
+  }
+
+  test("ignores reference registered cases and apply only to their platforms") {
+    val ignored = IgnoreRegistry.all.head
+    assert(
+      IgnoreRegistry
+        .validate(Catalog.all.filterNot(_ == ignored.wireCase))
+        .contains(s"stale ignore: ${ignored.id}")
+    )
+    ignored.platforms.foreach { platform =>
+      assertEquals(IgnoreRegistry.get(ignored.id, platform), Some(ignored))
+    }
+    assertEquals(IgnoreRegistry.get(ignored.id, "unknown"), None)
   }
 
   test("registration preserves each definition's source location") {

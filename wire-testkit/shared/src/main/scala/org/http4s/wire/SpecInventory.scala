@@ -16,7 +16,7 @@
 
 package org.http4s.wire
 
-import scodec.bits.ByteVector
+import SpecSections.Section
 
 /** The requirements ledger is authored separately from executable discovery. */
 object SpecInventory {
@@ -32,67 +32,55 @@ object SpecInventory {
       strength: String,
       requirement: String,
       disposition: String,
-      cases: Vector[String],
+      cases: Vector[WireCase],
       notes: String,
   )
 
   private def when[A](condition: Boolean)(value: => A): Option[A] =
     if (condition) Some(value) else None
 
-  def parse(row: String): Either[String, Entry] =
-    row.split("\t", -1) match {
-      case Array(id, rfc, section, role, strength, requirement, disposition, cases, notes) =>
-        Right(
-          Entry(
-            id,
-            rfc,
-            section,
-            role,
-            strength,
-            requirement,
-            disposition,
-            cases.split(",").toVector.filter(_.nonEmpty),
-            notes,
-          )
-        )
-      case _ => Left(s"inventory row must have nine columns: $row")
-    }
+  val all: Vector[Entry] =
+    DependenciesInventory.all ++
+      GrammarDependenciesInventory.all ++
+      H1FramingInventory.all ++
+      H1GrammarInventory.all ++
+      H1LifecycleInventory.all ++
+      H1SyntaxInventory.all ++
+      H2ControlInventory.all ++
+      H2MessagesInventory.all ++
+      H2StatesInventory.all ++
+      HpackInventory.all ++
+      InteractionsInventory.all ++
+      Phase1Inventory.all ++
+      ScopeBoundariesInventory.all ++
+      SectionGapsInventory.all
 
   def validate(
-      rows: Seq[String],
-      sections: Seq[String],
+      entries: Vector[Entry],
+      sections: Vector[Section],
       cases: Vector[WireCase],
   ): Vector[String] = {
-    val parsed = rows.map(parse)
-    val entries = parsed.collect { case Right(value) => value }.toVector
-    val classified = sections.map(_.split("\t", -1).toVector)
-    val sectionKeys = classified.collect { case Vector(rfc, section, _, _, _) =>
-      (rfc, section)
-    }.toSet
+    val sectionKeys = sections.map(s => (s.rfc, s.section)).toSet
     val rolesById = cases.groupBy(_.id).map { case (id, values) =>
       id -> values.iterator.map(_.role.id).toSet
     }
     val ids = rolesById.keySet
-    val mapped = entries.flatMap(_.cases).toSet
-    parsed.collect { case Left(error) => error }.toVector ++
-      entries
-        .groupBy(_.id)
+    val mapped = entries.flatMap(_.cases.map(_.id)).toSet
+    entries
+      .groupBy(_.id)
+      .collect {
+        case (id, values) if values.size > 1 =>
+          s"duplicate inventory id: $id"
+      }
+      .toVector ++
+      sections.collect {
+        case section if !sectionKinds(section.classification) || section.reason.trim.isEmpty =>
+          s"invalid section classification: $section"
+      } ++
+      sections
+        .groupBy(s => (s.rfc, s.section))
         .collect {
-          case (id, values) if values.size > 1 =>
-            s"duplicate inventory id: $id"
-        }
-        .toVector ++
-      classified.collect {
-        case row
-            if row.size != 5 ||
-              !sectionKinds(row(3)) || row(4).trim.isEmpty =>
-          s"invalid section classification: ${row.mkString(" / ")}"
-      }.toVector ++
-      classified
-        .groupBy(_.take(2))
-        .collect {
-          case (key, values) if values.size > 1 =>
-            s"duplicate section classification: $key"
+          case (key, values) if values.size > 1 => s"duplicate section classification: $key"
         }
         .toVector ++
       entries.flatMap { entry =>
@@ -104,7 +92,7 @@ object SpecInventory {
         val missingRoles =
           if (entry.disposition == "covered") {
             val coveredRoles =
-              entry.cases.iterator.flatMap(id => rolesById.getOrElse(id, Set.empty[String])).toSet
+              entry.cases.iterator.flatMap(c => rolesById.getOrElse(c.id, Set.empty[String])).toSet
             requiredRoles.diff(coveredRoles)
           } else Set.empty[String]
         missingRoles.toVector.sorted.map(role =>
@@ -130,27 +118,20 @@ object SpecInventory {
             s"unexplained gap or exclusion: ${entry.id}"
           ),
         ).flatten ++ entry.cases
-          .filterNot(ids)
-          .map(id => s"inventory references missing case: ${entry.id}: $id")
+          .filterNot(cases.contains)
+          .map(id => s"inventory references missing case: ${entry.id}: ${id.id}")
       } ++
       ids.diff(mapped).toVector.sorted.map(id => s"case missing from independent inventory: $id") ++
-      classified.collect {
-        case Vector(rfc, section, _, kind, _)
-            if (kind == "applicable" || kind == "dependency") && !entries.exists(e =>
-              e.rfc == rfc &&
-                (e.section == section || e.section.startsWith(section + "."))
-            ) =>
-          s"section has no obligations or explicit gap: RFC$rfc $section"
-      }.toVector
+      sections.collect {
+        case section
+            if (section.classification == "applicable" || section.classification == "dependency") &&
+              !entries.exists(e =>
+                e.rfc == section.rfc &&
+                  (e.section == section.section || e.section.startsWith(section.section + "."))
+              ) =>
+          s"section has no obligations or explicit gap: RFC${section.rfc} ${section.section}"
+      }
   }
 
-  private def decodeRows(rows: Seq[String]): Seq[String] =
-    rows.map(row => ByteVector.fromValidBase64(row).decodeUtf8.fold(throw _, identity))
-
-  lazy val problems: Vector[String] =
-    validate(
-      decodeRows(TckBuild.inventoryRowsBase64),
-      decodeRows(TckBuild.sectionRowsBase64),
-      Catalog.all,
-    )
+  lazy val problems: Vector[String] = validate(all, SpecSections.all, Catalog.all)
 }

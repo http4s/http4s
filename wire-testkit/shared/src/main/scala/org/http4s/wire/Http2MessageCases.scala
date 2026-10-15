@@ -47,6441 +47,6785 @@ object Http2MessageCases {
     RequestData(path = "/mapping", headers = Vector("Content-Length" -> "0"))
   private val Body = ByteVector(0, 1, 127, 128, 255)
 
-  val all: Vector[WireCase] = Vector(
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.message-empty",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1",
-        "A complete valid request field section is decoded and delivered to the application.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
+  lazy val all: Vector[WireCase] = Vector(
+    h2ServerMessageEmpty,
+    h2ClientMessageEmpty,
+    h2ServerMessageBinaryData,
+    h2ServerHeadersFragmentedEndStream,
+    h2ServerHeadersEmptyFinalContinuation,
+    h2ServerHeadersZeroPadding,
+    h2ServerHeadersPadding,
+    h2ServerHeadersPriorityFields,
+    h2ServerHeadersPaddingAndPriority,
+    h2ClientMessageBinaryData,
+    h2ClientHeadersFragmentedEndStream,
+    h2ClientHeadersEmptyFinalContinuation,
+    h2ClientHeadersZeroPadding,
+    h2ClientHeadersPadding,
+    h2ClientHeadersPriorityFields,
+    h2ClientHeadersPaddingAndPriority,
+    h2ServerRejectUppercaseFieldName,
+    h2ServerRejectFieldValueNul,
+    h2ServerRejectFieldValueCr,
+    h2ServerRejectFieldValueLf,
+    h2ServerRejectConnectionField,
+    h2ServerRejectProxyConnectionField,
+    h2ServerRejectKeepAliveField,
+    h2ServerRejectTransferEncodingField,
+    h2ServerRejectUpgradeField,
+    h2ClientRejectUppercaseFieldName,
+    h2ClientRejectFieldValueNul,
+    h2ClientRejectFieldValueCr,
+    h2ClientRejectFieldValueLf,
+    h2ClientRejectConnectionField,
+    h2ClientRejectProxyConnectionField,
+    h2ClientRejectKeepAliveField,
+    h2ClientRejectTransferEncodingField,
+    h2ClientRejectUpgradeField,
+    h2ServerRejectFieldNameNul,
+    h2ServerRejectFieldNameTab,
+    h2ServerRejectFieldNameSpace,
+    h2ServerRejectFieldNameControlBoundary,
+    h2ServerRejectFieldNameUppercaseBoundary,
+    h2ServerRejectFieldNameDel,
+    h2ServerRejectFieldNameObsTextLow,
+    h2ServerRejectFieldNameObsTextHigh,
+    h2ServerRejectFieldNameColon,
+    h2ServerRejectFieldValueLeadingSpace,
+    h2ServerRejectFieldValueTrailingSpace,
+    h2ServerRejectFieldValueLeadingTab,
+    h2ServerRejectFieldValueTrailingTab,
+    h2ServerValidateFieldEmptyName,
+    h2ServerValidateFieldSeparatorName,
+    h2ServerFieldValueInteriorTabAndObsText,
+    h2ServerFieldValueEmpty,
+    h2ServerContentLengthMatching,
+    h2ServerContentLengthPaddedData,
+    h2ServerRejectContentLengthUnderflow,
+    h2ServerRejectContentLengthOverflow,
+    h2ServerMessageTrailers,
+    h2ServerMessageEmptyTrailers,
+    h2ServerMessageFragmentedTrailers,
+    h2ServerRejectTrailersWithoutEndStream,
+    h2ServerRejectTrailerPseudoHeader,
+    h2ServerRejectTrailerUppercaseName,
+    h2ServerRejectTrailerProhibitedField,
+    h2ServerRejectUndefinedPseudoHeader,
+    h2ServerRejectPseudoHeaderAfterRegularField,
+    h2ServerRejectHeadersStreamZero,
+    h2ServerRejectHeadersPaddingEqualsPayload,
+    h2ServerRejectHeadersPaddingExceedsPayload,
+    h2ServerRejectHeadersMissingPadLength,
+    h2ServerRejectHeadersShortPriority,
+    h2ServerRejectOrphanContinuation,
+    h2ServerRejectContinuationStreamZero,
+    h2ServerRejectContinuationDifferentStream,
+    h2ServerRejectHeadersInterruptedByPing,
+    h2ServerRejectContinuationInterruptedBySettings,
+    h2ClientRejectFieldNameNul,
+    h2ClientRejectFieldNameTab,
+    h2ClientRejectFieldNameSpace,
+    h2ClientRejectFieldNameControlBoundary,
+    h2ClientRejectFieldNameUppercaseBoundary,
+    h2ClientRejectFieldNameDel,
+    h2ClientRejectFieldNameObsTextLow,
+    h2ClientRejectFieldNameObsTextHigh,
+    h2ClientRejectFieldNameColon,
+    h2ClientRejectFieldValueLeadingSpace,
+    h2ClientRejectFieldValueTrailingSpace,
+    h2ClientRejectFieldValueLeadingTab,
+    h2ClientRejectFieldValueTrailingTab,
+    h2ClientValidateFieldEmptyName,
+    h2ClientValidateFieldSeparatorName,
+    h2ClientFieldValueInteriorTabAndObsText,
+    h2ClientFieldValueEmpty,
+    h2ClientContentLengthMatching,
+    h2ClientContentLengthPaddedData,
+    h2ClientRejectContentLengthUnderflow,
+    h2ClientRejectContentLengthOverflow,
+    h2ClientMessageTrailers,
+    h2ClientMessageEmptyTrailers,
+    h2ClientMessageFragmentedTrailers,
+    h2ClientRejectTrailersWithoutEndStream,
+    h2ClientRejectTrailerPseudoHeader,
+    h2ClientRejectTrailerUppercaseName,
+    h2ClientRejectTrailerProhibitedField,
+    h2ClientRejectUndefinedPseudoHeader,
+    h2ClientRejectPseudoHeaderAfterRegularField,
+    h2ClientRejectHeadersStreamZero,
+    h2ClientRejectHeadersPaddingEqualsPayload,
+    h2ClientRejectHeadersPaddingExceedsPayload,
+    h2ClientRejectHeadersMissingPadLength,
+    h2ClientRejectHeadersShortPriority,
+    h2ClientRejectOrphanContinuation,
+    h2ClientRejectContinuationStreamZero,
+    h2ClientRejectContinuationDifferentStream,
+    h2ClientRejectHeadersInterruptedByPing,
+    h2ClientRejectContinuationInterruptedBySettings,
+    h2ServerRejectMissingMethod,
+    h2ServerRejectMissingScheme,
+    h2ServerRejectMissingPath,
+    h2ServerRejectRepeatedMethod,
+    h2ServerRejectRepeatedScheme,
+    h2ServerRejectRepeatedAuthority,
+    h2ServerRejectRepeatedPath,
+    h2ServerRejectResponsePseudoHeader,
+    h2ServerRejectEmptyMethod,
+    h2ServerRejectInvalidMethodToken,
+    h2ServerRejectEmptyScheme,
+    h2ServerRejectInvalidScheme,
+    h2ServerRejectEmptyPath,
+    h2ServerRejectRelativePath,
+    h2ServerRejectPathFragment,
+    h2ServerRejectPathSpace,
+    h2ServerRejectAuthorityUserinfo,
+    h2ServerRequestPathAndQuery,
+    h2ServerRequestOptionsAsterisk,
+    h2ServerRequestHostWithoutAuthority,
+    h2ServerRequestTeTrailers,
+    h2ServerRejectTeGzip,
+    h2ServerRejectTeMixed,
+    h2ServerRequestSplitCookie,
+    h2ClientRejectResponseTe,
+    h2ClientRejectMissingStatus,
+    h2ClientRejectRequestMethodPseudoHeader,
+    h2ClientRejectRequestSchemePseudoHeader,
+    h2ClientRejectRequestAuthorityPseudoHeader,
+    h2ClientRejectRequestPathPseudoHeader,
+    h2ClientRejectRepeatedStatusIdentical,
+    h2ClientRejectRepeatedStatusDifferent,
+    h2ClientRejectStatusShort,
+    h2ClientRejectStatusLong,
+    h2ClientRejectStatusNonDigit,
+    h2ClientRejectInformationalEndStream,
+    h2ClientRejectSwitchingProtocols,
+    h2ClientHeadResponseContentLength,
+    h2ClientNotModifiedContentLength,
+    h2ClientNoContentResponse,
+    h2ServerRejectConnectScheme,
+    h2ServerRejectConnectPath,
+    h2ServerRejectConnectMissingAuthority,
+    h2ServerRejectConnectMissingPort,
+    h2ServerRejectClientPushPromise,
+    h2ClientRequestPseudoHeaderMapping,
+    h2ClientRequestLowercaseFieldNames,
+    h2ServerResponseLowercaseFieldNames,
+    h2ClientRejectPushStreamZero,
+    h2ClientRejectPushOddPromisedStream,
+    h2ClientRejectPushUnsafeMethod,
+    h2ClientRejectPushRequestContent,
+    h2ClientRejectPushMissingMethod,
+    h2ClientRejectPushInvalidField,
+    h2ClientRejectPushUnauthoritativeOrigin,
+    h2ClientInformationalThenFinal,
+    h2ClientMultipleInformationalThenFinal,
+    h2ClientHeadersNonzeroPaddingChoice,
+  )
 
-          } yield ()
-        }
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerMessageEmpty: WireCase = WireCase(
+    "h2.server.message-empty",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1",
+      "A complete valid request field section is decoded and delivered to the application.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.message-empty",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A valid complete response is consumed without rejecting the field section.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientMessageEmpty: WireCase = WireCase(
+    "h2.client.message-empty",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A valid complete response is consumed without rejecting the field section.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerMessageBinaryData: WireCase = WireCase(
+    "h2.server.message-binary-data",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1",
+      "Consecutive DATA frames carry the exact binary message content through END_STREAM.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body.take(2), endStream = false),
+            Http2Wire.data(1, Body.drop(2)),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, Body)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerHeadersFragmentedEndStream: WireCase = WireCase(
+    "h2.server.headers-fragmented-end-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "HEADERS with END_STREAM may be completed by multiple same-stream CONTINUATION frames.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-fragment" -> "several fragments")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              1,
+              Http2Wire.literalFields(fields).take(3),
+            ),
+            Http2Wire
+              .Frame(Http2Wire.Continuation, 0, 1, Http2Wire.literalFields(fields).slice(3, 7)),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              1,
+              Http2Wire.literalFields(fields).drop(7),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ServerHeadersEmptyFinalContinuation: WireCase = WireCase(
+    "h2.server.headers-empty-final-continuation",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.10",
+      "An empty CONTINUATION with END_HEADERS may terminate a field block.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire
+              .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerHeadersZeroPadding: WireCase = WireCase(
+    "h2.server.headers-zero-padding",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "The PADDED flag permits a zero pad length and the pad length octet is not field-block data.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              1,
+              ByteVector(0) ++ Http2Wire.literalFields(fields),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerHeadersPadding: WireCase = WireCase(
+    "h2.server.headers-padding",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "6.2", "HEADERS padding is excluded from the compressed field section.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              1,
+              ByteVector(3) ++ Http2Wire.literalFields(fields) ++ ByteVector(0, 0, 0),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerHeadersPriorityFields: WireCase = WireCase(
+    "h2.server.headers-priority-fields",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "When PRIORITY is set the five priority octets precede the field block fragment.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
+              1,
+              Http2Wire.uint32(0L) ++ ByteVector(15) ++ Http2Wire.literalFields(fields),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerHeadersPaddingAndPriority: WireCase = WireCase(
+    "h2.server.headers-padding-and-priority",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "HEADERS with PADDED and PRIORITY place pad length before priority fields and exclude both from the field block.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded | 0x20,
+              1,
+              ByteVector(2) ++ Http2Wire.uint32(0L) ++ ByteVector(0) ++ Http2Wire
+                .literalFields(fields) ++ ByteVector(0, 0),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientMessageBinaryData: WireCase = WireCase(
+    "h2.client.message-binary-data",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "Consecutive DATA frames carry the exact binary message content through END_STREAM.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Body)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body.take(2), endStream = false),
+            Http2Wire.data(streamId, Body.drop(2)),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientHeadersFragmentedEndStream: WireCase = WireCase(
+    "h2.client.headers-fragmented-end-stream",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "HEADERS with END_STREAM may be completed by multiple same-stream CONTINUATION frames.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-fragment" -> "several fragments")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(fields).take(3),
+            ),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              0,
+              streamId,
+              Http2Wire.literalFields(fields).slice(3, 7),
+            ),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              Http2Wire.literalFields(fields).drop(7),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ClientHeadersEmptyFinalContinuation: WireCase = WireCase(
+    "h2.client.headers-empty-final-continuation",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.10",
+      "An empty CONTINUATION with END_HEADERS may terminate a field block.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(fields),
+            ),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              ByteVector.empty,
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientHeadersZeroPadding: WireCase = WireCase(
+    "h2.client.headers-zero-padding",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "The PADDED flag permits a zero pad length and the pad length octet is not field-block data.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              streamId,
+              ByteVector(0) ++ Http2Wire.literalFields(fields),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientHeadersPadding: WireCase = WireCase(
+    "h2.client.headers-padding",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "6.2", "HEADERS padding is excluded from the compressed field section.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              streamId,
+              ByteVector(3) ++ Http2Wire.literalFields(fields) ++ ByteVector(0, 0, 0),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientHeadersPriorityFields: WireCase = WireCase(
+    "h2.client.headers-priority-fields",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "When PRIORITY is set the five priority octets precede the field block fragment.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
+              streamId,
+              Http2Wire.uint32(0L) ++ ByteVector(15) ++ Http2Wire.literalFields(fields),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientHeadersPaddingAndPriority: WireCase = WireCase(
+    "h2.client.headers-padding-and-priority",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "HEADERS with PADDED and PRIORITY place pad length before priority fields and exclude both from the field block.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded | 0x20,
+              streamId,
+              ByteVector(2) ++ Http2Wire.uint32(0L) ++ ByteVector(0) ++ Http2Wire.literalFields(
+                fields
+              ) ++ ByteVector(0, 0),
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectUppercaseFieldName: WireCase = WireCase(
+    "h2.server.reject-uppercase-field-name",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited request field makes the message malformed and requires a stream error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("X-Upper" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueNul: WireCase = WireCase(
+    "h2.server.reject-field-value-nul",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited request field makes the message malformed and requires a stream error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "a\u0000b")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueCr: WireCase = WireCase(
+    "h2.server.reject-field-value-cr",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited request field makes the message malformed and requires a stream error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "a\rb")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueLf: WireCase = WireCase(
+    "h2.server.reject-field-value-lf",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited request field makes the message malformed and requires a stream error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "a\nb")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectConnectionField: WireCase = WireCase(
+    "h2.server.reject-connection-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("connection" -> "test")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectProxyConnectionField: WireCase = WireCase(
+    "h2.server.reject-proxy-connection-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("proxy-connection" -> "test")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectKeepAliveField: WireCase = WireCase(
+    "h2.server.reject-keep-alive-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("keep-alive" -> "test")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectTransferEncodingField: WireCase = WireCase(
+    "h2.server.reject-transfer-encoding-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("transfer-encoding" -> "chunked")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectUpgradeField: WireCase = WireCase(
+    "h2.server.reject-upgrade-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("upgrade" -> "test")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectUppercaseFieldName: WireCase = WireCase(
+    "h2.client.reject-uppercase-field-name",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited response field makes the message malformed and must not be accepted.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
           driver
             .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("X-Upper" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.message-binary-data",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1",
-        "Consecutive DATA frames carry the exact binary message content through END_STREAM.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body.take(2), endStream = false),
-              Http2Wire.data(1, Body.drop(2)),
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueNul: WireCase = WireCase(
+    "h2.client.reject-field-value-nul",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited response field makes the message malformed and must not be accepted.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\u0000b")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueCr: WireCase = WireCase(
+    "h2.client.reject-field-value-cr",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited response field makes the message malformed and must not be accepted.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\rb")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueLf: WireCase = WireCase(
+    "h2.client.reject-field-value-lf",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "A prohibited response field makes the message malformed and must not be accepted.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\nb")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectConnectionField: WireCase = WireCase(
+    "h2.client.reject-connection-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("connection" -> "test")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectProxyConnectionField: WireCase = WireCase(
+    "h2.client.reject-proxy-connection-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("proxy-connection" -> "test")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectKeepAliveField: WireCase = WireCase(
+    "h2.client.reject-keep-alive-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("keep-alive" -> "test")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectTransferEncodingField: WireCase = WireCase(
+    "h2.client.reject-transfer-encoding-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("transfer-encoding" -> "chunked")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectUpgradeField: WireCase = WireCase(
+    "h2.client.reject-upgrade-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "Connection-specific header fields must not occur in HTTP/2 messages.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("upgrade" -> "test")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameNul: WireCase = WireCase(
+    "h2.server.reject-field-name-nul",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x\u0000bad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameTab: WireCase = WireCase(
+    "h2.server.reject-field-name-tab",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x\tbad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameSpace: WireCase = WireCase(
+    "h2.server.reject-field-name-space",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x bad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameControlBoundary: WireCase = WireCase(
+    "h2.server.reject-field-name-control-boundary",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x\u001fbad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameUppercaseBoundary: WireCase = WireCase(
+    "h2.server.reject-field-name-uppercase-boundary",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("xZbad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameDel: WireCase = WireCase(
+    "h2.server.reject-field-name-del",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x\u007fbad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameObsTextLow: WireCase = WireCase(
+    "h2.server.reject-field-name-obs-text-low",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x\u0080bad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameObsTextHigh: WireCase = WireCase(
+    "h2.server.reject-field-name-obs-text-high",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x\u00ffbad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldNameColon: WireCase = WireCase(
+    "h2.server.reject-field-name-colon",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x:bad" -> "ok")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueLeadingSpace: WireCase = WireCase(
+    "h2.server.reject-field-value-leading-space",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> " value")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueTrailingSpace: WireCase = WireCase(
+    "h2.server.reject-field-value-trailing-space",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "value ")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueLeadingTab: WireCase = WireCase(
+    "h2.server.reject-field-value-leading-tab",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "\tvalue")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectFieldValueTrailingTab: WireCase = WireCase(
+    "h2.server.reject-field-value-trailing-tab",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "value\t")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerValidateFieldEmptyName: WireCase = WireCase(
+    "h2.server.validate-field-empty-name",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
+      "SHOULD",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("" -> "value")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerValidateFieldSeparatorName: WireCase = WireCase(
+    "h2.server.validate-field-separator-name",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
+      "SHOULD",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x/bad" -> "value")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // Syntax: RFC 9113 8.2.1; opaque preservation: RFC 9110 5.5 SHOULD.
+  // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
+  lazy val h2ServerFieldValueInteriorTabAndObsText: WireCase = WireCase(
+    "h2.server.field-value-interior-tab-and-obs-text",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9110,
+      "5.5",
+      "Recipients should treat the permitted obs-text field-value octets as opaque data.",
+      "SHOULD",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-value" -> "a\tb\u0080\u00ff")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+          _ <- Check(
+            received.headers.exists { case (name, value) =>
+              name.equalsIgnoreCase("x-value") && value == "a\tb\u0080\u00ff"
+            },
+            "valid field octets were not preserved",
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerFieldValueEmpty: WireCase = WireCase(
+    "h2.server.field-value-empty",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.2.1", "An empty field value is syntactically permitted.", "syntax"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("x-empty" -> "")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ServerContentLengthMatching: WireCase = WireCase(
+    "h2.server.content-length-matching",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.1.1", "A content-length equal to the content octet count is valid.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("content-length" -> "5")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, Body)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ServerContentLengthPaddedData: WireCase = WireCase(
+    "h2.server.content-length-padded-data",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1.1",
+      "Content-length counts content octets and excludes the DATA pad length field and padding.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(9L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("content-length" -> "5")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.Frame(
+              Http2Wire.Data,
+              Http2Wire.EndStream | Http2Wire.Padded,
+              1,
+              ByteVector(3) ++ Body ++ ByteVector(0, 0, 0),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, Body)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ServerRejectContentLengthUnderflow: WireCase = WireCase(
+    "h2.server.reject-content-length-underflow",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1.1",
+      "A complete message whose content-length differs from its DATA content length is malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("content-length" -> "6")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // Section 8.1.1 permits progressive processing before a DATA-length fault.
+          _ <- readRejection(
+            peer,
+            1,
+            connection = false,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ServerRejectContentLengthOverflow: WireCase = WireCase(
+    "h2.server.reject-content-length-overflow",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1.1",
+      "A complete message whose content-length differs from its DATA content length is malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("content-length" -> "4")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // Section 8.1.1 permits progressive processing before a DATA-length fault.
+          _ <- readRejection(
+            peer,
+            1,
+            connection = false,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerMessageTrailers: WireCase = WireCase(
+    "h2.server.message-trailers",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1",
+      "A final trailer field section follows DATA and terminates the stream.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.headers(1, Vector("x-checksum" -> "five")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, Body)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerMessageEmptyTrailers: WireCase = WireCase(
+    "h2.server.message-empty-trailers",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.1", "An empty final trailer section can terminate a message after DATA.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.headers(1, Vector.empty),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, Body)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerMessageFragmentedTrailers: WireCase = WireCase(
+    "h2.server.message-fragmented-trailers",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1",
+      "A trailer HEADERS with END_STREAM can be followed by CONTINUATION to complete that trailer field block.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              1,
+              Http2Wire.literalFields(Vector("x-checksum" -> "five")).take(5),
+            ),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              1,
+              Http2Wire.literalFields(Vector("x-checksum" -> "five")).drop(5),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, Body)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ServerRejectTrailersWithoutEndStream: WireCase = WireCase(
+    "h2.server.reject-trailers-without-end-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.1",
+      "A second field section after request headers or a final response must carry END_STREAM.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.headers(1, Vector("x-trailer" -> "value"), endStream = false),
+            Http2Wire.data(1, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            1,
+            connection = false,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectTrailerPseudoHeader: WireCase = WireCase(
+    "h2.server.reject-trailer-pseudo-header",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.3", "Pseudo-header fields are prohibited in trailer sections.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.headers(1, Vector(":path" -> "/mapping")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            1,
+            connection = false,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ServerRejectTrailerUppercaseName: WireCase = WireCase(
+    "h2.server.reject-trailer-uppercase-name",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.1",
+      "Mandatory field validation applies to trailers as well as initial header sections.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.headers(1, Vector("X-Trailer" -> "value")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            1,
+            connection = false,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectTrailerProhibitedField: WireCase = WireCase(
+    "h2.server.reject-trailer-prohibited-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "A connection-specific field in a trailer section makes the message malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.headers(1, fields, endStream = false),
+            Http2Wire.data(1, Body, endStream = false),
+            Http2Wire.headers(1, Vector("connection" -> "close")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            1,
+            connection = false,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectUndefinedPseudoHeader: WireCase = WireCase(
+    "h2.server.reject-undefined-pseudo-header",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3",
+      "Unnegotiated undefined pseudo-header fields make the message malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(":undefined" -> "value")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectPseudoHeaderAfterRegularField: WireCase = WireCase(
+    "h2.server.reject-pseudo-header-after-regular-field",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.3", "Every pseudo-header field must precede every regular field line.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = Vector("x-first" -> "value") ++ RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerRejectHeadersStreamZero: WireCase = WireCase(
+    "h2.server.reject-headers-stream-zero",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(0, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerRejectHeadersPaddingEqualsPayload: WireCase = WireCase(
+    "h2.server.reject-headers-padding-equals-payload",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          // Only the documented field or frame property differs from a complete valid request.
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          _ <- Http2PeerSettings
+            .writeFrames(peer, Vector(Http2Wire.headers(1, RequestFields, endStream = false)))
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              1,
+              ByteVector(1),
             )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, Body)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.headers-fragmented-end-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "HEADERS with END_STREAM may be completed by multiple same-stream CONTINUATION frames.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-fragment" -> "several fragments")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                1,
-                Http2Wire.literalFields(fields).take(3),
-              ),
-              Http2Wire
-                .Frame(Http2Wire.Continuation, 0, 1, Http2Wire.literalFields(fields).slice(3, 7)),
-              Http2Wire.Frame(
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerRejectHeadersPaddingExceedsPayload: WireCase = WireCase(
+    "h2.server.reject-headers-padding-exceeds-payload",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          // Only the documented field or frame property differs from a complete valid request.
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          _ <- Http2PeerSettings
+            .writeFrames(peer, Vector(Http2Wire.headers(1, RequestFields, endStream = false)))
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              1,
+              ByteVector(2),
+            )
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerRejectHeadersMissingPadLength: WireCase = WireCase(
+    "h2.server.reject-headers-missing-pad-length",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          // Only the documented field or frame property differs from a complete valid request.
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          _ <- Http2PeerSettings
+            .writeFrames(peer, Vector(Http2Wire.headers(1, RequestFields, endStream = false)))
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              1,
+              ByteVector.empty,
+            )
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 6L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerRejectHeadersShortPriority: WireCase = WireCase(
+    "h2.server.reject-headers-short-priority",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          // Only the documented field or frame property differs from a complete valid request.
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          frames = Vector(
+            Http2Wire.headers(1, RequestFields, endStream = false),
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
+              1,
+              ByteVector(0, 0, 0, 0),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 6L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ServerRejectOrphanContinuation: WireCase = WireCase(
+    "h2.server.reject-orphan-continuation",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty)
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ServerRejectContinuationStreamZero: WireCase = WireCase(
+    "h2.server.reject-continuation-stream-zero",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire
+              .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 0, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ServerRejectContinuationDifferentStream: WireCase = WireCase(
+    "h2.server.reject-continuation-different-stream",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire
+              .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
+            Http2Wire
+              .Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1 + 2, ByteVector.empty),
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ServerRejectHeadersInterruptedByPing: WireCase = WireCase(
+    "h2.server.reject-headers-interrupted-by-ping",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire
+              .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
+            Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(0, 1, 2, 3, 4, 5, 6, 7)),
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ServerRejectContinuationInterruptedBySettings: WireCase = WireCase(
+    "h2.server.reject-continuation-interrupted-by-settings",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(
+            Http2Wire
+              .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
+            Http2Wire.Frame(Http2Wire.Continuation, 0, 1, ByteVector.empty),
+            Http2Wire.settings(),
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameNul: WireCase = WireCase(
+    "h2.client.reject-field-name-nul",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x\u0000bad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameTab: WireCase = WireCase(
+    "h2.client.reject-field-name-tab",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x\tbad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameSpace: WireCase = WireCase(
+    "h2.client.reject-field-name-space",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x bad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameControlBoundary: WireCase = WireCase(
+    "h2.client.reject-field-name-control-boundary",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x\u001fbad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameUppercaseBoundary: WireCase = WireCase(
+    "h2.client.reject-field-name-uppercase-boundary",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("xZbad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameDel: WireCase = WireCase(
+    "h2.client.reject-field-name-del",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x\u007fbad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameObsTextLow: WireCase = WireCase(
+    "h2.client.reject-field-name-obs-text-low",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x\u0080bad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameObsTextHigh: WireCase = WireCase(
+    "h2.client.reject-field-name-obs-text-high",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x\u00ffbad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldNameColon: WireCase = WireCase(
+    "h2.client.reject-field-name-colon",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "The mandatory field-name character restrictions apply after HPACK decompression.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x:bad" -> "ok")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueLeadingSpace: WireCase = WireCase(
+    "h2.client.reject-field-value-leading-space",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> " value")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueTrailingSpace: WireCase = WireCase(
+    "h2.client.reject-field-value-trailing-space",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "value ")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueLeadingTab: WireCase = WireCase(
+    "h2.client.reject-field-value-leading-tab",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "\tvalue")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectFieldValueTrailingTab: WireCase = WireCase(
+    "h2.client.reject-field-value-trailing-tab",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "value\t")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientValidateFieldEmptyName: WireCase = WireCase(
+    "h2.client.validate-field-empty-name",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
+      "SHOULD",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("" -> "value")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientValidateFieldSeparatorName: WireCase = WireCase(
+    "h2.client.validate-field-separator-name",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
+      "SHOULD",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x/bad" -> "value")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // Syntax: RFC 9113 8.2.1; opaque preservation: RFC 9110 5.5 SHOULD.
+  // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
+  lazy val h2ClientFieldValueInteriorTabAndObsText: WireCase = WireCase(
+    "h2.client.field-value-interior-tab-and-obs-text",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9110,
+      "5.5",
+      "Recipients should treat the permitted obs-text field-value octets as opaque data.",
+      "SHOULD",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+              _ <- Check(
+                response.headers.exists { case (name, value) =>
+                  name.equalsIgnoreCase("x-value") && value == "a\tb\u0080\u00ff"
+                },
+                "valid field octets were not preserved",
+              )
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\tb\u0080\u00ff")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientFieldValueEmpty: WireCase = WireCase(
+    "h2.client.field-value-empty",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.2.1", "An empty field value is syntactically permitted.", "syntax"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("x-empty" -> "")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientContentLengthMatching: WireCase = WireCase(
+    "h2.client.content-length-matching",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.1.1", "A content-length equal to the content octet count is valid.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Body)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("content-length" -> "5")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientContentLengthPaddedData: WireCase = WireCase(
+    "h2.client.content-length-padded-data",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1.1",
+      "Content-length counts content octets and excludes the DATA pad length field and padding.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(9L)
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Body)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("content-length" -> "5")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.Frame(
+              Http2Wire.Data,
+              Http2Wire.EndStream | Http2Wire.Padded,
+              streamId,
+              ByteVector(3) ++ Body ++ ByteVector(0, 0, 0),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientRejectContentLengthUnderflow: WireCase = WireCase(
+    "h2.client.reject-content-length-underflow",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1.1",
+      "A complete message whose content-length differs from its DATA content length is malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("content-length" -> "6")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientRejectContentLengthOverflow: WireCase = WireCase(
+    "h2.client.reject-content-length-overflow",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1.1",
+      "A complete message whose content-length differs from its DATA content length is malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector("content-length" -> "4")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientMessageTrailers: WireCase = WireCase(
+    "h2.client.message-trailers",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A final trailer field section follows DATA and terminates the stream.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Body)
+              // RFC 9110 sections 6.5.1 and 10.1.4: without TE: trailers,
+              // successful message completion does not promise API trailer retention.
+              _ <- response.trailers.void
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.headers(streamId, Vector("x-checksum" -> "five")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientMessageEmptyTrailers: WireCase = WireCase(
+    "h2.client.message-empty-trailers",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.1", "An empty final trailer section can terminate a message after DATA.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Body)
+
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.headers(streamId, Vector.empty),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientMessageFragmentedTrailers: WireCase = WireCase(
+    "h2.client.message-fragmented-trailers",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A trailer HEADERS with END_STREAM can be followed by CONTINUATION to complete that trailer field block.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, Body)
+              // RFC 9110 sections 6.5.1 and 10.1.4: without TE: trailers,
+              // successful message completion does not promise API trailer retention.
+              _ <- response.trailers.void
+            } yield ()
+          }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(Vector("x-checksum" -> "five")).take(5),
+            ),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              Http2Wire.literalFields(Vector("x-checksum" -> "five")).drop(5),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientRejectTrailersWithoutEndStream: WireCase = WireCase(
+    "h2.client.reject-trailers-without-end-stream",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A second field section after request headers or a final response must carry END_STREAM.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.headers(streamId, Vector("x-trailer" -> "value"), endStream = false),
+            Http2Wire.data(streamId, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectTrailerPseudoHeader: WireCase = WireCase(
+    "h2.client.reject-trailer-pseudo-header",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "Pseudo-header fields are prohibited in trailer sections.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.headers(streamId, Vector(":status" -> "200")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
+  lazy val h2ClientRejectTrailerUppercaseName: WireCase = WireCase(
+    "h2.client.reject-trailer-uppercase-name",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.1",
+      "Mandatory field validation applies to trailers as well as initial header sections.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.headers(streamId, Vector("X-Trailer" -> "value")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectTrailerProhibitedField: WireCase = WireCase(
+    "h2.client.reject-trailer-prohibited-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "A connection-specific field in a trailer section makes the message malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.data(streamId, Body, endStream = false),
+            Http2Wire.headers(streamId, Vector("connection" -> "close")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectUndefinedPseudoHeader: WireCase = WireCase(
+    "h2.client.reject-undefined-pseudo-header",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.3",
+      "Unnegotiated undefined pseudo-header fields make the message malformed.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200") ++ Vector(":undefined" -> "value")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectPseudoHeaderAfterRegularField: WireCase = WireCase(
+    "h2.client.reject-pseudo-header-after-regular-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "Every pseudo-header field must precede every regular field line.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector("x-first" -> "value") ++ Vector(":status" -> "200")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientRejectHeadersStreamZero: WireCase = WireCase(
+    "h2.client.reject-headers-stream-zero",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(Http2Wire.headers(0, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientRejectHeadersPaddingEqualsPayload: WireCase = WireCase(
+    "h2.client.reject-headers-padding-equals-payload",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          _ <- Http2PeerSettings.writeFrames(
+            peer,
+            Vector(Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false)),
+          )
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              streamId,
+              ByteVector(1),
+            )
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientRejectHeadersPaddingExceedsPayload: WireCase = WireCase(
+    "h2.client.reject-headers-padding-exceeds-payload",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          _ <- Http2PeerSettings.writeFrames(
+            peer,
+            Vector(Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false)),
+          )
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              streamId,
+              ByteVector(2),
+            )
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientRejectHeadersMissingPadLength: WireCase = WireCase(
+    "h2.client.reject-headers-missing-pad-length",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          _ <- Http2PeerSettings.writeFrames(
+            peer,
+            Vector(Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false)),
+          )
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+              streamId,
+              ByteVector.empty,
+            )
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 6L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientRejectHeadersShortPriority: WireCase = WireCase(
+    "h2.client.reject-headers-short-priority",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          // Start a valid message; the faulty frame contains only an empty trailer
+          // block, so missing request/status pseudo-fields cannot satisfy rejection.
+          frames = Vector(
+            Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false),
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
+              streamId,
+              ByteVector(0, 0, 0, 0),
+            ),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 6L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ClientRejectOrphanContinuation: WireCase = WireCase(
+    "h2.client.reject-orphan-continuation",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              ByteVector.empty,
+            )
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ClientRejectContinuationStreamZero: WireCase = WireCase(
+    "h2.client.reject-continuation-stream-zero",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(fields),
+            ),
+            Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 0, ByteVector.empty),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ClientRejectContinuationDifferentStream: WireCase = WireCase(
+    "h2.client.reject-continuation-different-stream",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(fields),
+            ),
+            Http2Wire
+              .Frame(
                 Http2Wire.Continuation,
                 Http2Wire.EndHeaders,
-                1,
-                Http2Wire.literalFields(fields).drop(7),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.server.headers-empty-final-continuation",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.10",
-        "An empty CONTINUATION with END_HEADERS may terminate a field block.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire
-                .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.headers-zero-padding",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "The PADDED flag permits a zero pad length and the pad length octet is not field-block data.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                1,
-                ByteVector(0) ++ Http2Wire.literalFields(fields),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.headers-padding",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "6.2", "HEADERS padding is excluded from the compressed field section.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                1,
-                ByteVector(3) ++ Http2Wire.literalFields(fields) ++ ByteVector(0, 0, 0),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.headers-priority-fields",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "When PRIORITY is set the five priority octets precede the field block fragment.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
-                1,
-                Http2Wire.uint32(0L) ++ ByteVector(15) ++ Http2Wire.literalFields(fields),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.headers-padding-and-priority",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "HEADERS with PADDED and PRIORITY place pad length before priority fields and exclude both from the field block.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded | 0x20,
-                1,
-                ByteVector(2) ++ Http2Wire.uint32(0L) ++ ByteVector(0) ++ Http2Wire
-                  .literalFields(fields) ++ ByteVector(0, 0),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.message-binary-data",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "Consecutive DATA frames carry the exact binary message content through END_STREAM.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, Body)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body.take(2), endStream = false),
-              Http2Wire.data(streamId, Body.drop(2)),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.headers-fragmented-end-stream",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "HEADERS with END_STREAM may be completed by multiple same-stream CONTINUATION frames.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-fragment" -> "several fragments")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(fields).take(3),
-              ),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                0,
-                streamId,
-                Http2Wire.literalFields(fields).slice(3, 7),
-              ),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
-                Http2Wire.literalFields(fields).drop(7),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.client.headers-empty-final-continuation",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.10",
-        "An empty CONTINUATION with END_HEADERS may terminate a field block.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(fields),
-              ),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
+                streamId + 2,
                 ByteVector.empty,
               ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              ByteVector.empty,
+            ),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.headers-zero-padding",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "The PADDED flag permits a zero pad length and the pad length octet is not field-block data.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientRejectHeadersInterruptedByPing: WireCase = WireCase(
+    "h2.client.reject-headers-interrupted-by-ping",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
           driver
             .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                streamId,
-                ByteVector(0) ++ Http2Wire.literalFields(fields),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(fields),
+            ),
+            Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(0, 1, 2, 3, 4, 5, 6, 7)),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              ByteVector.empty,
+            ),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.headers-padding",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "6.2", "HEADERS padding is excluded from the compressed field section.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
+  lazy val h2ClientRejectContinuationInterruptedBySettings: WireCase = WireCase(
+    "h2.client.reject-continuation-interrupted-by-settings",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.10",
+      "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
           driver
             .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                streamId,
-                ByteVector(3) ++ Http2Wire.literalFields(fields) ++ ByteVector(0, 0, 0),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200")
+          frames = Vector(
+            Http2Wire.Frame(
+              Http2Wire.Headers,
+              Http2Wire.EndStream,
+              streamId,
+              Http2Wire.literalFields(fields),
+            ),
+            Http2Wire.Frame(Http2Wire.Continuation, 0, streamId, ByteVector.empty),
+            Http2Wire.settings(),
+            Http2Wire.Frame(
+              Http2Wire.Continuation,
+              Http2Wire.EndHeaders,
+              streamId,
+              ByteVector.empty,
+            ),
+          )
+          _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = true,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.headers-priority-fields",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "When PRIORITY is set the five priority octets precede the field block fragment.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectMissingMethod: WireCase = WireCase(
+    "h2.server.reject-missing-method",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A non-CONNECT request must contain exactly one valid :method, :scheme, and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.filterNot(_._1 == ":method")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectMissingScheme: WireCase = WireCase(
+    "h2.server.reject-missing-scheme",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A non-CONNECT request must contain exactly one valid :method, :scheme, and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.filterNot(_._1 == ":scheme")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectMissingPath: WireCase = WireCase(
+    "h2.server.reject-missing-path",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A non-CONNECT request must contain exactly one valid :method, :scheme, and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.filterNot(_._1 == ":path")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectRepeatedMethod: WireCase = WireCase(
+    "h2.server.reject-repeated-method",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3",
+      "The same pseudo-header field name must not occur more than once, even with identical values.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(":method" -> "GET")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectRepeatedScheme: WireCase = WireCase(
+    "h2.server.reject-repeated-scheme",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3",
+      "The same pseudo-header field name must not occur more than once, even with identical values.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(":scheme" -> "http")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectRepeatedAuthority: WireCase = WireCase(
+    "h2.server.reject-repeated-authority",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3",
+      "The same pseudo-header field name must not occur more than once, even with identical values.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(":authority" -> "wire.test")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectRepeatedPath: WireCase = WireCase(
+    "h2.server.reject-repeated-path",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3",
+      "The same pseudo-header field name must not occur more than once, even with identical values.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(":path" -> "/mapping")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ServerRejectResponsePseudoHeader: WireCase = WireCase(
+    "h2.server.reject-response-pseudo-header",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.3", "A response-only pseudo-header field is invalid in a request.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(":status" -> "200")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectEmptyMethod: WireCase = WireCase(
+    "h2.server.reject-empty-method",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":method") name -> "" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectInvalidMethodToken: WireCase = WireCase(
+    "h2.server.reject-invalid-method-token",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":method") name -> "G ET" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectEmptyScheme: WireCase = WireCase(
+    "h2.server.reject-empty-scheme",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":scheme") name -> "" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectInvalidScheme: WireCase = WireCase(
+    "h2.server.reject-invalid-scheme",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":scheme") name -> "ht tp" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectEmptyPath: WireCase = WireCase(
+    "h2.server.reject-empty-path",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":path") name -> "" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectRelativePath: WireCase = WireCase(
+    "h2.server.reject-relative-path",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":path") name -> "relative" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectPathFragment: WireCase = WireCase(
+    "h2.server.reject-path-fragment",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":path") name -> "/path#fragment" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectPathSpace: WireCase = WireCase(
+    "h2.server.reject-path-space",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":path") name -> "/a b" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRejectAuthorityUserinfo: WireCase = WireCase(
+    "h2.server.reject-authority-userinfo",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            if (name == ":authority") name -> "user@wire.test" else name -> value
+          }
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRequestPathAndQuery: WireCase = WireCase(
+    "h2.server.request-path-and-query",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "The :path field carries the absolute path and optional query without discarding escaped octets.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.filterNot(_._1 == ":path") :+ (":path" -> "/a%2Fb?x=%20&x=two")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(normalizeEscapeCase(received.path), "/a%2Fb?x=%20&x=two")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRequestOptionsAsterisk: WireCase = WireCase(
+    "h2.server.request-options-asterisk",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "An asterisk-form OPTIONS request is represented by :path equal to an asterisk.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.map { case (name, value) =>
+            name -> (if (name == ":method") "OPTIONS" else if (name == ":path") "*" else value)
+          }
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "OPTIONS")
+          _ <- Check.equal(received.path, "*")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ServerRequestHostWithoutAuthority: WireCase = WireCase(
+    "h2.server.request-host-without-authority",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A received translated request can convey authority with Host while retaining all mandatory request pseudo-header fields.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields.filterNot(_._1 == ":authority") ++ Vector("host" -> "wire.test")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRequestTeTrailers: WireCase = WireCase(
+    "h2.server.request-te-trailers",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(9113, "8.2.2", "TE is permitted in requests when its only value is trailers.", "MAY"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("te" -> "trailers")
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectTeGzip: WireCase = WireCase(
+    "h2.server.reject-te-gzip",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "A request TE field must not contain any value other than trailers.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("te" -> "gzip")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ServerRejectTeMixed: WireCase = WireCase(
+    "h2.server.reject-te-mixed",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.2",
+      "A request TE field must not contain any value other than trailers.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector("te" -> "trailers, gzip")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.3
+  lazy val h2ServerRequestSplitCookie: WireCase = WireCase(
+    "h2.server.request-split-cookie",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2.3",
+      "A valid HTTP/2 request may contain split Cookie field lines.",
+      "syntax",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = RequestFields ++ Vector(
+            "cookie" -> "a=b",
+            "cookie" -> "c=d",
+            "cookie" -> "e=f",
+          )
+          // The complete stream is sent, so EchoBody observes content through END_STREAM.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          response <- readResponse(peer, 1)
+          _ <- Check.equal(response.status, 200)
+          _ <- Check.equal(response.body, ByteVector.empty)
+          received <- server.received
+          _ <- Check.equal(received.method, "GET")
+          _ <- Check.equal(received.path, "/mapping")
+          // The ordered-field adapter contract does not establish a generic non-HTTP/2
+          // application boundary. Section 8.2.3 joining at that boundary is an inventory gap.
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
+  lazy val h2ClientRejectResponseTe: WireCase = WireCase(
+    "h2.client.reject-response-te",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2.2",
+      "The TE exception is for requests; a response must not contain this connection-specific field.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
           driver
             .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
-                streamId,
-                Http2Wire.uint32(0L) ++ ByteVector(15) ++ Http2Wire.literalFields(fields),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", "te" -> "trailers")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.headers-padding-and-priority",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "HEADERS with PADDED and PRIORITY place pad length before priority fields and exclude both from the field block.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
+  lazy val h2ClientRejectMissingStatus: WireCase = WireCase(
+    "h2.client.reject-missing-status",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.3.2",
+      "Every response, including interim responses, must include :status.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
           driver
             .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector("x-field" -> "value")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
 
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded | 0x20,
-                streamId,
-                ByteVector(2) ++ Http2Wire.uint32(0L) ++ ByteVector(0) ++ Http2Wire.literalFields(
-                  fields
-                ) ++ ByteVector(0, 0),
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectRequestMethodPseudoHeader: WireCase = WireCase(
+    "h2.client.reject-request-method-pseudo-header",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", ":method" -> "GET")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-uppercase-field-name",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited request field makes the message malformed and requires a stream error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("X-Upper" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectRequestSchemePseudoHeader: WireCase = WireCase(
+    "h2.client.reject-request-scheme-pseudo-header",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", ":scheme" -> "http")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-nul",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited request field makes the message malformed and requires a stream error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "a\u0000b")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectRequestAuthorityPseudoHeader: WireCase = WireCase(
+    "h2.client.reject-request-authority-pseudo-header",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", ":authority" -> "wire.test")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-cr",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited request field makes the message malformed and requires a stream error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "a\rb")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectRequestPathPseudoHeader: WireCase = WireCase(
+    "h2.client.reject-request-path-pseudo-header",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", ":path" -> "/mapping")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-lf",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited request field makes the message malformed and requires a stream error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "a\nb")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectRepeatedStatusIdentical: WireCase = WireCase(
+    "h2.client.reject-repeated-status-identical",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "A response must not repeat the :status pseudo-header field.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", ":status" -> "200")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-connection-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("connection" -> "test")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
+  lazy val h2ClientRejectRepeatedStatusDifferent: WireCase = WireCase(
+    "h2.client.reject-repeated-status-different",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.3", "A response must not repeat the :status pseudo-header field.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", ":status" -> "404")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-proxy-connection-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("proxy-connection" -> "test")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
+  lazy val h2ClientRejectStatusShort: WireCase = WireCase(
+    "h2.client.reject-status-short",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.3.2",
+      "The :status value must obey the three-digit HTTP status-code grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "20")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-keep-alive-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("keep-alive" -> "test")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
+  lazy val h2ClientRejectStatusLong: WireCase = WireCase(
+    "h2.client.reject-status-long",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.3.2",
+      "The :status value must obey the three-digit HTTP status-code grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "2000")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-transfer-encoding-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("transfer-encoding" -> "chunked")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
+  lazy val h2ClientRejectStatusNonDigit: WireCase = WireCase(
+    "h2.client.reject-status-non-digit",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.3.2",
+      "The :status value must obey the three-digit HTTP status-code grammar.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "2x0")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-upgrade-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("upgrade" -> "test")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientRejectInformationalEndStream: WireCase = WireCase(
+    "h2.client.reject-informational-end-stream",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.1", "An informational HEADERS block with END_STREAM is malformed.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
         }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "103")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-uppercase-field-name",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited response field makes the message malformed and must not be accepted.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.6
+  lazy val h2ClientRejectSwitchingProtocols: WireCase = WireCase(
+    "h2.client.reject-switching-protocols",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.6", "HTTP/2 does not support status 101 Switching Protocols.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      clientUntilObserved(context) { (driver, observed) =>
+        // Attempt only the target operation. Script and frame-oracle errors remain failures.
+        ClientObservation(
+          driver
+            .exchange(EmptyRequest)
+        ) { response =>
+          response.body.compile.drain *> response.trailers.void
+        } { result =>
+          result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
+            expectTargetRejection(result) *> observed
+        }
+      } { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "101")
+          frames = Vector(
+            Http2Wire.headers(streamId, fields, endStream = false),
+            Http2Wire.headers(streamId, Vector(":status" -> "200")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- readRejection(
+            peer,
+            streamId,
+            connection = false,
+            code = 1L,
+            fromServer = false,
+            allowMessageFrames = false,
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientHeadResponseContentLength: WireCase = WireCase(
+    "h2.client.head-response-content-length",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1.1",
+      "A response to HEAD can carry nonzero content-length while including no DATA content.",
+      "MAY",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest.copy(method = "HEAD"))
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 200)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
           }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("X-Upper" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "200", "content-length" -> "123")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-nul",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited response field makes the message malformed and must not be accepted.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientNotModifiedContentLength: WireCase = WireCase(
+    "h2.client.not-modified-content-length",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1.1",
+      "A 304 response can carry nonzero content-length while including no DATA content.",
+      "MAY",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 304)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
           }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\u0000b")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "304", "content-length" -> "123")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-cr",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited response field makes the message malformed and must not be accepted.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
+  lazy val h2ClientNoContentResponse: WireCase = WireCase(
+    "h2.client.no-content-response",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "8.1.1", "A 204 response has no message content.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use { response =>
+            for {
+              body <- response.body.compile.to(Chunk)
+              _ <- Check.equal(response.status, 204)
+              _ <- Check.equal(body.toByteVector, ByteVector.empty)
+
+            } yield ()
           }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\rb")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          fields = Vector(":status" -> "204")
+          frames = Vector(Http2Wire.headers(streamId, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          // CaseContext retains the socket until the operation completes; no implicit EOF.
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-lf",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "A prohibited response field makes the message malformed and must not be accepted.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\nb")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
+  lazy val h2ServerRejectConnectScheme: WireCase = WireCase(
+    "h2.server.reject-connect-scheme",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.5",
+      "CONNECT requires host and port in :authority and forbids :scheme and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = Vector(
+            ":method" -> "CONNECT",
+            ":authority" -> "wire.test:443",
+            ":scheme" -> "http",
+          )
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-connection-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("connection" -> "test")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
+  lazy val h2ServerRejectConnectPath: WireCase = WireCase(
+    "h2.server.reject-connect-path",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.5",
+      "CONNECT requires host and port in :authority and forbids :scheme and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = Vector(":method" -> "CONNECT", ":authority" -> "wire.test:443", ":path" -> "/")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-proxy-connection-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("proxy-connection" -> "test")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
+  lazy val h2ServerRejectConnectMissingAuthority: WireCase = WireCase(
+    "h2.server.reject-connect-missing-authority",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.5",
+      "CONNECT requires host and port in :authority and forbids :scheme and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = Vector(":method" -> "CONNECT")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-keep-alive-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("keep-alive" -> "test")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
+  lazy val h2ServerRejectConnectMissingPort: WireCase = WireCase(
+    "h2.server.reject-connect-missing-port",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.5",
+      "CONNECT requires host and port in :authority and forbids :scheme and :path.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          fields = Vector(":method" -> "CONNECT", ":authority" -> "wire.test")
+          // Only the documented field or frame property differs from a complete valid request.
+          frames = Vector(Http2Wire.headers(1, fields))
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+          _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-transfer-encoding-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("transfer-encoding" -> "chunked")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
+  lazy val h2ServerRejectClientPushPromise: WireCase = WireCase(
+    "h2.server.reject-client-push-promise",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.4",
+      "A client cannot push; servers must treat PUSH_PROMISE as a connection error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+        for {
+          _ <- clientHandshakeWithoutPush(peer)
+          // Stream 1 is open and stream 3 is a fresh client-owned ID: the invalid property
+          // is that the client sent PUSH_PROMISE at all, not an idle associated stream.
+          _ <- Http2Wire.writeFrame(peer, Http2Wire.headers(1, RequestFields, endStream = false))
+          _ <- Http2Wire.writeFrame(
+            peer,
+            Http2Wire.Frame(
+              Http2Wire.PushPromise,
+              Http2Wire.EndHeaders,
+              1,
+              Http2Wire.uint32(3L) ++ Http2Wire.literalFields(RequestFields),
+            ),
+          )
+          // Complete the legitimate request even if the target illegally ignores the push.
+          _ <- Http2Wire.writeFrame(peer, Http2Wire.data(1, ByteVector.empty))
+          _ <- readRejection(
+            peer,
+            1,
+            connection = true,
+            code = 1L,
+            fromServer = true,
+            allowMessageFrames = true,
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-upgrade-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "Connection-specific header fields must not occur in HTTP/2 messages.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("upgrade" -> "test")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
+  lazy val h2ClientRequestPseudoHeaderMapping: WireCase = WireCase(
+    "h2.client.request-pseudo-header-mapping",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.3.1",
+      "A generated request emits its method, scheme, authority, and path as ordered pseudo-header fields.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(EmptyRequest)
+          .use(_.body.compile.drain)
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          _ <- Check.equal(
+            request.fields.collect { case (":method", value) => value },
+            Vector("GET"),
+          )
+          _ <- Check.equal(
+            request.fields.collect { case (":scheme", value) => value },
+            Vector("http"),
+          )
+          _ <- Check.equal(
+            request.fields.collect { case (":path", value) => value },
+            Vector("/mapping"),
+          )
+          authority = request.fields.collect { case (":authority", value) => value }
+          _ <- Check(
+            authority.size == 1 && authority.head.nonEmpty,
+            "a direct request must convey its authority",
+          )
+          _ <- checkGeneratedFields(
+            request.fields,
+            Set(":method", ":scheme", ":authority", ":path"),
+          )
+          _ <- Http2Wire.writeFrame(
+            peer,
+            Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+          )
+        } yield ()
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-nul",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2
+  lazy val h2ClientRequestLowercaseFieldNames: WireCase = WireCase(
+    "h2.client.request-lowercase-field-names",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.2",
+      "An endpoint converts regular field names to lowercase when constructing an HTTP/2 message.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        driver
+          .exchange(
+            EmptyRequest.copy(headers = Vector("Content-Length" -> "0", "X-MiXeD" -> "value"))
+          )
+          .use(_.body.compile.drain)
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          _ <- Check(
+            request.fields.contains("x-mixed" -> "value"),
+            "the field name was not emitted in lowercase",
+          )
+          _ <- checkGeneratedFields(
+            request.fields,
+            Set(":method", ":scheme", ":authority", ":path"),
+          )
+          _ <- Http2Wire.writeFrame(
+            peer,
+            Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+          )
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2
+  lazy val h2ServerResponseLowercaseFieldNames: WireCase = WireCase(
+    "h2.server.response-lowercase-field-names",
+    Protocol.Http2,
+    Role.Server,
+    Rfc(
+      9113,
+      "8.2",
+      "An endpoint converts regular field names to lowercase when constructing an HTTP/2 message.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
+      context
+        .server(Protocol.Http2, ServerScenario.Reply(headers = Vector("X-MiXeD" -> "value")))
+        .use { case (peer, _) =>
           for {
             _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x\u0000bad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-tab",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x\tbad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-space",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x bad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-control-boundary",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x\u001fbad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-uppercase-boundary",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("xZbad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-del",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x\u007fbad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-obs-text-low",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x\u0080bad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-obs-text-high",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x\u00ffbad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-name-colon",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x:bad" -> "ok")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-leading-space",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> " value")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-trailing-space",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "value ")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-leading-tab",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "\tvalue")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-field-value-trailing-tab",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "value\t")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.validate-field-empty-name",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
-        "SHOULD",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("" -> "value")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.validate-field-separator-name",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
-        "SHOULD",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x/bad" -> "value")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // Syntax: RFC 9113 8.2.1; opaque preservation: RFC 9110 5.5 SHOULD.
-    // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
-    WireCase(
-      "h2.server.field-value-interior-tab-and-obs-text",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9110,
-        "5.5",
-        "Recipients should treat the permitted obs-text field-value octets as opaque data.",
-        "SHOULD",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-value" -> "a\tb\u0080\u00ff")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
+            _ <- Http2Wire.writeFrame(peer, Http2Wire.headers(1, RequestFields))
             response <- readResponse(peer, 1)
             _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
             _ <- Check(
-              received.headers.exists { case (name, value) =>
-                name.equalsIgnoreCase("x-value") && value == "a\tb\u0080\u00ff"
-              },
-              "valid field octets were not preserved",
+              response.fields.contains("x-mixed" -> "value"),
+              "the field name was not emitted in lowercase",
             )
+            _ <- checkGeneratedFields(response.fields, Set(":status"))
           } yield ()
         }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.field-value-empty",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.2.1", "An empty field value is syntactically permitted.", "syntax"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("x-empty" -> "")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
+    }
+  }
 
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.server.content-length-matching",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.1.1", "A content-length equal to the content octet count is valid.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("content-length" -> "5")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, Body)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.server.content-length-padded-data",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1.1",
-        "Content-length counts content octets and excludes the DATA pad length field and padding.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(9L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("content-length" -> "5")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.Frame(
-                Http2Wire.Data,
-                Http2Wire.EndStream | Http2Wire.Padded,
-                1,
-                ByteVector(3) ++ Body ++ ByteVector(0, 0, 0),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, Body)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.server.reject-content-length-underflow",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1.1",
-        "A complete message whose content-length differs from its DATA content length is malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("content-length" -> "6")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // Section 8.1.1 permits progressive processing before a DATA-length fault.
-            _ <- readRejection(
-              peer,
-              1,
-              connection = false,
-              code = 1L,
-              fromServer = true,
-              allowMessageFrames = true,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.server.reject-content-length-overflow",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1.1",
-        "A complete message whose content-length differs from its DATA content length is malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("content-length" -> "4")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // Section 8.1.1 permits progressive processing before a DATA-length fault.
-            _ <- readRejection(
-              peer,
-              1,
-              connection = false,
-              code = 1L,
-              fromServer = true,
-              allowMessageFrames = true,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.message-trailers",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1",
-        "A final trailer field section follows DATA and terminates the stream.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.headers(1, Vector("x-checksum" -> "five")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, Body)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.message-empty-trailers",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.1", "An empty final trailer section can terminate a message after DATA.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.headers(1, Vector.empty),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, Body)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.message-fragmented-trailers",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1",
-        "A trailer HEADERS with END_STREAM can be followed by CONTINUATION to complete that trailer field block.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                1,
-                Http2Wire.literalFields(Vector("x-checksum" -> "five")).take(5),
-              ),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                1,
-                Http2Wire.literalFields(Vector("x-checksum" -> "five")).drop(5),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, Body)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.server.reject-trailers-without-end-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.1",
-        "A second field section after request headers or a final response must carry END_STREAM.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.headers(1, Vector("x-trailer" -> "value"), endStream = false),
-              Http2Wire.data(1, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              1,
-              connection = false,
-              code = 1L,
-              fromServer = true,
-              allowMessageFrames = true,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-trailer-pseudo-header",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.3", "Pseudo-header fields are prohibited in trailer sections.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.headers(1, Vector(":path" -> "/mapping")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              1,
-              connection = false,
-              code = 1L,
-              fromServer = true,
-              allowMessageFrames = true,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.server.reject-trailer-uppercase-name",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.1",
-        "Mandatory field validation applies to trailers as well as initial header sections.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.headers(1, Vector("X-Trailer" -> "value")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              1,
-              connection = false,
-              code = 1L,
-              fromServer = true,
-              allowMessageFrames = true,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-trailer-prohibited-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "A connection-specific field in a trailer section makes the message malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.headers(1, fields, endStream = false),
-              Http2Wire.data(1, Body, endStream = false),
-              Http2Wire.headers(1, Vector("connection" -> "close")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              1,
-              connection = false,
-              code = 1L,
-              fromServer = true,
-              allowMessageFrames = true,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-undefined-pseudo-header",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3",
-        "Unnegotiated undefined pseudo-header fields make the message malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(":undefined" -> "value")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-pseudo-header-after-regular-field",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.3", "Every pseudo-header field must precede every regular field line.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = Vector("x-first" -> "value") ++ RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.reject-headers-stream-zero",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(0, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.reject-headers-padding-equals-payload",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            // Only the documented field or frame property differs from a complete valid request.
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            _ <- Http2PeerSettings
-              .writeFrames(peer, Vector(Http2Wire.headers(1, RequestFields, endStream = false)))
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                1,
-                ByteVector(1),
-              )
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.reject-headers-padding-exceeds-payload",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            // Only the documented field or frame property differs from a complete valid request.
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            _ <- Http2PeerSettings
-              .writeFrames(peer, Vector(Http2Wire.headers(1, RequestFields, endStream = false)))
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                1,
-                ByteVector(2),
-              )
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.reject-headers-missing-pad-length",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            // Only the documented field or frame property differs from a complete valid request.
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            _ <- Http2PeerSettings
-              .writeFrames(peer, Vector(Http2Wire.headers(1, RequestFields, endStream = false)))
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                1,
-                ByteVector.empty,
-              )
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 6L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.reject-headers-short-priority",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            // Only the documented field or frame property differs from a complete valid request.
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            frames = Vector(
-              Http2Wire.headers(1, RequestFields, endStream = false),
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
-                1,
-                ByteVector(0, 0, 0, 0),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 6L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.server.reject-orphan-continuation",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty)
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.server.reject-continuation-stream-zero",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire
-                .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 0, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.server.reject-continuation-different-stream",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire
-                .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
-              Http2Wire
-                .Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1 + 2, ByteVector.empty),
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.server.reject-headers-interrupted-by-ping",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire
-                .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
-              Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(0, 1, 2, 3, 4, 5, 6, 7)),
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.server.reject-continuation-interrupted-by-settings",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(
-              Http2Wire
-                .Frame(Http2Wire.Headers, Http2Wire.EndStream, 1, Http2Wire.literalFields(fields)),
-              Http2Wire.Frame(Http2Wire.Continuation, 0, 1, ByteVector.empty),
-              Http2Wire.settings(),
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 1, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- expectServerRejection(peer, 1, connection = true, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-nul",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x\u0000bad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-tab",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x\tbad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-space",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x bad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-control-boundary",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x\u001fbad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-uppercase-boundary",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("xZbad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-del",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x\u007fbad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-obs-text-low",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x\u0080bad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-obs-text-high",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x\u00ffbad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-name-colon",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "The mandatory field-name character restrictions apply after HPACK decompression.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x:bad" -> "ok")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-leading-space",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> " value")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-trailing-space",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "value ")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-leading-tab",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "\tvalue")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-field-value-trailing-tab",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.2.1", "Field values must not begin or end with SP or HTAB.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "value\t")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.validate-field-empty-name",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
-        "SHOULD",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("" -> "value")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.validate-field-separator-name",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "Full HTTP field-name token validation is recommended beyond the mandatory minimum character restrictions.",
-        "SHOULD",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x/bad" -> "value")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // Syntax: RFC 9113 8.2.1; opaque preservation: RFC 9110 5.5 SHOULD.
-    // https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
-    WireCase(
-      "h2.client.field-value-interior-tab-and-obs-text",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9110,
-        "5.5",
-        "Recipients should treat the permitted obs-text field-value octets as opaque data.",
-        "SHOULD",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.6
+  lazy val h2ClientRejectPushStreamZero: WireCase = WireCase(
+    "h2.client.reject-push-stream-zero",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(9113, "6.6", "PUSH_PROMISE must be associated with a nonzero stream.", "MUST"),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
         context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-                _ <- Check(
-                  response.headers.exists { case (name, value) =>
-                    name.equalsIgnoreCase("x-value") && value == "a\tb\u0080\u00ff"
-                  },
-                  "valid field octets were not preserved",
-                )
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
+          }
         ) { peer =>
           for {
             request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-value" -> "a\tb\u0080\u00ff")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.field-value-empty",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.2.1", "An empty field value is syntactically permitted.", "syntax"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("x-empty" -> "")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.content-length-matching",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.1.1", "A content-length equal to the content octet count is valid.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, Body)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("content-length" -> "5")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.content-length-padded-data",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1.1",
-        "Content-length counts content octets and excludes the DATA pad length field and padding.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(9L)
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, Body)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("content-length" -> "5")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.Frame(
-                Http2Wire.Data,
-                Http2Wire.EndStream | Http2Wire.Padded,
-                streamId,
-                ByteVector(3) ++ Body ++ ByteVector(0, 0, 0),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.reject-content-length-underflow",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1.1",
-        "A complete message whose content-length differs from its DATA content length is malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("content-length" -> "6")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.reject-content-length-overflow",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1.1",
-        "A complete message whose content-length differs from its DATA content length is malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector("content-length" -> "4")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.message-trailers",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A final trailer field section follows DATA and terminates the stream.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, Body)
-                // RFC 9110 sections 6.5.1 and 10.1.4: without TE: trailers,
-                // successful message completion does not promise API trailer retention.
-                _ <- response.trailers.void
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.headers(streamId, Vector("x-checksum" -> "five")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.message-empty-trailers",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.1", "An empty final trailer section can terminate a message after DATA.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, Body)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.headers(streamId, Vector.empty),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.message-fragmented-trailers",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A trailer HEADERS with END_STREAM can be followed by CONTINUATION to complete that trailer field block.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, Body)
-                // RFC 9110 sections 6.5.1 and 10.1.4: without TE: trailers,
-                // successful message completion does not promise API trailer retention.
-                _ <- response.trailers.void
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(Vector("x-checksum" -> "five")).take(5),
-              ),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
-                Http2Wire.literalFields(Vector("x-checksum" -> "five")).drop(5),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.reject-trailers-without-end-stream",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A second field section after request headers or a final response must carry END_STREAM.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.headers(streamId, Vector("x-trailer" -> "value"), endStream = false),
-              Http2Wire.data(streamId, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-trailer-pseudo-header",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "Pseudo-header fields are prohibited in trailer sections.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.headers(streamId, Vector(":status" -> "200")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.1
-    WireCase(
-      "h2.client.reject-trailer-uppercase-name",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.1",
-        "Mandatory field validation applies to trailers as well as initial header sections.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.headers(streamId, Vector("X-Trailer" -> "value")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-trailer-prohibited-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "A connection-specific field in a trailer section makes the message malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        implicit val dataBudget: Http2Wire.DataBudget = Http2Wire.DataBudget(5L)
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.data(streamId, Body, endStream = false),
-              Http2Wire.headers(streamId, Vector("connection" -> "close")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-undefined-pseudo-header",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.3",
-        "Unnegotiated undefined pseudo-header fields make the message malformed.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200") ++ Vector(":undefined" -> "value")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-pseudo-header-after-regular-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "Every pseudo-header field must precede every regular field line.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector("x-first" -> "value") ++ Vector(":status" -> "200")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.reject-headers-stream-zero",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(Http2Wire.headers(0, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.reject-headers-padding-equals-payload",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            _ <- Http2PeerSettings.writeFrames(
-              peer,
-              Vector(Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false)),
-            )
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                streamId,
-                ByteVector(1),
-              )
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.reject-headers-padding-exceeds-payload",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            _ <- Http2PeerSettings.writeFrames(
-              peer,
-              Vector(Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false)),
-            )
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                streamId,
-                ByteVector(2),
-              )
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.reject-headers-missing-pad-length",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            _ <- Http2PeerSettings.writeFrames(
-              peer,
-              Vector(Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false)),
-            )
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                streamId,
-                ByteVector.empty,
-              )
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, Vector.empty)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 6L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.reject-headers-short-priority",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            // Start a valid message; the faulty frame contains only an empty trailer
-            // block, so missing request/status pseudo-fields cannot satisfy rejection.
-            frames = Vector(
-              Http2Wire.headers(streamId, Vector(":status" -> "200"), endStream = false),
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndHeaders | Http2Wire.EndStream | 0x20,
-                streamId,
-                ByteVector(0, 0, 0, 0),
-              ),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 6L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.client.reject-orphan-continuation",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
-                ByteVector.empty,
-              )
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.client.reject-continuation-stream-zero",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(fields),
-              ),
-              Http2Wire.Frame(Http2Wire.Continuation, Http2Wire.EndHeaders, 0, ByteVector.empty),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.client.reject-continuation-different-stream",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(fields),
-              ),
-              Http2Wire
-                .Frame(
-                  Http2Wire.Continuation,
-                  Http2Wire.EndHeaders,
-                  streamId + 2,
-                  ByteVector.empty,
-                ),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
-                ByteVector.empty,
-              ),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.reject-headers-interrupted-by-ping",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(fields),
-              ),
-              Http2Wire.Frame(Http2Wire.Ping, 0, 0, ByteVector(0, 1, 2, 3, 4, 5, 6, 7)),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
-                ByteVector.empty,
-              ),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.10
-    WireCase(
-      "h2.client.reject-continuation-interrupted-by-settings",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.10",
-        "Invalid field-block framing requires a connection error; a stream reset alone does not satisfy this requirement.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200")
-            frames = Vector(
-              Http2Wire.Frame(
-                Http2Wire.Headers,
-                Http2Wire.EndStream,
-                streamId,
-                Http2Wire.literalFields(fields),
-              ),
-              Http2Wire.Frame(Http2Wire.Continuation, 0, streamId, ByteVector.empty),
-              Http2Wire.settings(),
-              Http2Wire.Frame(
-                Http2Wire.Continuation,
-                Http2Wire.EndHeaders,
-                streamId,
-                ByteVector.empty,
-              ),
-            )
-            _ <- Http2PeerSettings.writeFramingFault(peer, frames, fields)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = true,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-missing-method",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A non-CONNECT request must contain exactly one valid :method, :scheme, and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.filterNot(_._1 == ":method")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-missing-scheme",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A non-CONNECT request must contain exactly one valid :method, :scheme, and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.filterNot(_._1 == ":scheme")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-missing-path",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A non-CONNECT request must contain exactly one valid :method, :scheme, and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.filterNot(_._1 == ":path")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-repeated-method",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3",
-        "The same pseudo-header field name must not occur more than once, even with identical values.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(":method" -> "GET")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-repeated-scheme",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3",
-        "The same pseudo-header field name must not occur more than once, even with identical values.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(":scheme" -> "http")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-repeated-authority",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3",
-        "The same pseudo-header field name must not occur more than once, even with identical values.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(":authority" -> "wire.test")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-repeated-path",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3",
-        "The same pseudo-header field name must not occur more than once, even with identical values.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(":path" -> "/mapping")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.server.reject-response-pseudo-header",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.3", "A response-only pseudo-header field is invalid in a request.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(":status" -> "200")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-empty-method",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":method") name -> "" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-invalid-method-token",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":method") name -> "G ET" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-empty-scheme",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":scheme") name -> "" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-invalid-scheme",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":scheme") name -> "ht tp" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-empty-path",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":path") name -> "" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-relative-path",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":path") name -> "relative" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-path-fragment",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":path") name -> "/path#fragment" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-path-space",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":path") name -> "/a b" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.reject-authority-userinfo",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A request pseudo-header value must obey its referenced method, URI, or path grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              if (name == ":authority") name -> "user@wire.test" else name -> value
-            }
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.request-path-and-query",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "The :path field carries the absolute path and optional query without discarding escaped octets.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.filterNot(_._1 == ":path") :+ (":path" -> "/a%2Fb?x=%20&x=two")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(normalizeEscapeCase(received.path), "/a%2Fb?x=%20&x=two")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.request-options-asterisk",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "An asterisk-form OPTIONS request is represented by :path equal to an asterisk.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.map { case (name, value) =>
-              name -> (if (name == ":method") "OPTIONS" else if (name == ":path") "*" else value)
-            }
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "OPTIONS")
-            _ <- Check.equal(received.path, "*")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.server.request-host-without-authority",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A received translated request can convey authority with Host while retaining all mandatory request pseudo-header fields.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields.filterNot(_._1 == ":authority") ++ Vector("host" -> "wire.test")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.request-te-trailers",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(9113, "8.2.2", "TE is permitted in requests when its only value is trailers.", "MAY"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("te" -> "trailers")
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-te-gzip",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "A request TE field must not contain any value other than trailers.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("te" -> "gzip")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.server.reject-te-mixed",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.2",
-        "A request TE field must not contain any value other than trailers.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector("te" -> "trailers, gzip")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.3
-    WireCase(
-      "h2.server.request-split-cookie",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2.3",
-        "A valid HTTP/2 request may contain split Cookie field lines.",
-        "syntax",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, server) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = RequestFields ++ Vector(
-              "cookie" -> "a=b",
-              "cookie" -> "c=d",
-              "cookie" -> "e=f",
-            )
-            // The complete stream is sent, so EchoBody observes content through END_STREAM.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            response <- readResponse(peer, 1)
-            _ <- Check.equal(response.status, 200)
-            _ <- Check.equal(response.body, ByteVector.empty)
-            received <- server.received
-            _ <- Check.equal(received.method, "GET")
-            _ <- Check.equal(received.path, "/mapping")
-            // The ordered-field adapter contract does not establish a generic non-HTTP/2
-            // application boundary. Section 8.2.3 joining at that boundary is an inventory gap.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2
-    WireCase(
-      "h2.client.reject-response-te",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2.2",
-        "The TE exception is for requests; a response must not contain this connection-specific field.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", "te" -> "trailers")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
-    WireCase(
-      "h2.client.reject-missing-status",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.3.2",
-        "Every response, including interim responses, must include :status.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector("x-field" -> "value")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-request-method-pseudo-header",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", ":method" -> "GET")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-request-scheme-pseudo-header",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", ":scheme" -> "http")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-request-authority-pseudo-header",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", ":authority" -> "wire.test")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-request-path-pseudo-header",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "Request-only pseudo-header fields must not occur in responses.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", ":path" -> "/mapping")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-repeated-status-identical",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "A response must not repeat the :status pseudo-header field.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", ":status" -> "200")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3
-    WireCase(
-      "h2.client.reject-repeated-status-different",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.3", "A response must not repeat the :status pseudo-header field.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", ":status" -> "404")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
-    WireCase(
-      "h2.client.reject-status-short",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.3.2",
-        "The :status value must obey the three-digit HTTP status-code grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "20")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
-    WireCase(
-      "h2.client.reject-status-long",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.3.2",
-        "The :status value must obey the three-digit HTTP status-code grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "2000")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.2
-    WireCase(
-      "h2.client.reject-status-non-digit",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.3.2",
-        "The :status value must obey the three-digit HTTP status-code grammar.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "2x0")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.reject-informational-end-stream",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.1", "An informational HEADERS block with END_STREAM is malformed.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "103")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.6
-    WireCase(
-      "h2.client.reject-switching-protocols",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.6", "HTTP/2 does not support status 101 Switching Protocols.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        clientUntilObserved(context) { (driver, observed) =>
-          // Attempt only the target operation. Script and frame-oracle errors remain failures.
-          ClientObservation(
-            driver
-              .exchange(EmptyRequest)
-          ) { response =>
-            response.body.compile.drain *> response.trailers.void
-          } { result =>
-            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *>
-              expectTargetRejection(result) *> observed
-          }
-        } { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "101")
-            frames = Vector(
-              Http2Wire.headers(streamId, fields, endStream = false),
-              Http2Wire.headers(streamId, Vector(":status" -> "200")),
-            )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- readRejection(
-              peer,
-              streamId,
-              connection = false,
-              code = 1L,
-              fromServer = false,
-              allowMessageFrames = false,
-            )
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.head-response-content-length",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1.1",
-        "A response to HEAD can carry nonzero content-length while including no DATA content.",
-        "MAY",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest.copy(method = "HEAD"))
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 200)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "200", "content-length" -> "123")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.not-modified-content-length",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1.1",
-        "A 304 response can carry nonzero content-length while including no DATA content.",
-        "MAY",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 304)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "304", "content-length" -> "123")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1.1
-    WireCase(
-      "h2.client.no-content-response",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "8.1.1", "A 204 response has no message content.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use { response =>
-              for {
-                body <- response.body.compile.to(Chunk)
-                _ <- Check.equal(response.status, 204)
-                _ <- Check.equal(body.toByteVector, ByteVector.empty)
-
-              } yield ()
-            }
-            .handleErrorWith(unexpectedTargetRejection)
-        ) { peer =>
-          for {
-            request <- readClientRequest(peer)
-            streamId = request.streamId
-            fields = Vector(":status" -> "204")
-            frames = Vector(Http2Wire.headers(streamId, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            // CaseContext retains the socket until the operation completes; no implicit EOF.
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
-    WireCase(
-      "h2.server.reject-connect-scheme",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.5",
-        "CONNECT requires host and port in :authority and forbids :scheme and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = Vector(
-              ":method" -> "CONNECT",
-              ":authority" -> "wire.test:443",
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
               ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
             )
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
-    WireCase(
-      "h2.server.reject-connect-path",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.5",
-        "CONNECT requires host and port in :authority and forbids :scheme and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = Vector(":method" -> "CONNECT", ":authority" -> "wire.test:443", ":path" -> "/")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
-    WireCase(
-      "h2.server.reject-connect-missing-authority",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.5",
-        "CONNECT requires host and port in :authority and forbids :scheme and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = Vector(":method" -> "CONNECT")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.5
-    WireCase(
-      "h2.server.reject-connect-missing-port",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.5",
-        "CONNECT requires host and port in :authority and forbids :scheme and :path.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            fields = Vector(":method" -> "CONNECT", ":authority" -> "wire.test")
-            // Only the documented field or frame property differs from a complete valid request.
-            frames = Vector(Http2Wire.headers(1, fields))
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
-            _ <- expectServerRejection(peer, 1, connection = false, code = 1L)
-          } yield ()
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
-    WireCase(
-      "h2.server.reject-client-push-promise",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.4",
-        "A client cannot push; servers must treat PUSH_PROMISE as a connection error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context.server(Protocol.Http2, ServerScenario.EchoBody).use { case (peer, _) =>
-          for {
-            _ <- clientHandshakeWithoutPush(peer)
-            // Stream 1 is open and stream 3 is a fresh client-owned ID: the invalid property
-            // is that the client sent PUSH_PROMISE at all, not an idle associated stream.
-            _ <- Http2Wire.writeFrame(peer, Http2Wire.headers(1, RequestFields, endStream = false))
+            fields = promisedFields
             _ <- Http2Wire.writeFrame(
               peer,
               Http2Wire.Frame(
                 Http2Wire.PushPromise,
                 Http2Wire.EndHeaders,
-                1,
-                Http2Wire.uint32(3L) ++ Http2Wire.literalFields(RequestFields),
+                0,
+                Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
               ),
             )
-            // Complete the legitimate request even if the target illegally ignores the push.
-            _ <- Http2Wire.writeFrame(peer, Http2Wire.data(1, ByteVector.empty))
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+            )
             _ <- readRejection(
               peer,
-              1,
+              2L.toInt,
               connection = true,
               code = 1L,
-              fromServer = true,
+              fromServer = false,
               allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+              incidentalPromisedStreams = Set(2),
             )
+            _ <- rejected.complete(()).void
           } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1
-    WireCase(
-      "h2.client.request-pseudo-header-mapping",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.3.1",
-        "A generated request emits its method, scheme, authority, and path as ordered pseudo-header fields.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.6
+  lazy val h2ClientRejectPushOddPromisedStream: WireCase = WireCase(
+    "h2.client.reject-push-odd-promised-stream",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.6",
+      "A promised server-initiated stream must use a fresh even stream identifier.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
         context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .handleErrorWith(unexpectedTargetRejection)
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
+          }
         ) { peer =>
           for {
             request <- readClientRequest(peer)
-            _ <- Check.equal(
-              request.fields.collect { case (":method", value) => value },
-              Vector("GET"),
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
+              ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
             )
-            _ <- Check.equal(
-              request.fields.collect { case (":scheme", value) => value },
-              Vector("http"),
-            )
-            _ <- Check.equal(
-              request.fields.collect { case (":path", value) => value },
-              Vector("/mapping"),
-            )
-            authority = request.fields.collect { case (":authority", value) => value }
-            _ <- Check(
-              authority.size == 1 && authority.head.nonEmpty,
-              "a direct request must convey its authority",
-            )
-            _ <- checkGeneratedFields(
-              request.fields,
-              Set(":method", ":scheme", ":authority", ":path"),
+            fields = promisedFields
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.PushPromise,
+                Http2Wire.EndHeaders,
+                request.streamId,
+                Http2Wire.uint32(3L) ++ Http2Wire.literalFields(fields),
+              ),
             )
             _ <- Http2Wire.writeFrame(
               peer,
               Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
             )
+            _ <- readRejection(
+              peer,
+              3L.toInt,
+              connection = true,
+              code = 1L,
+              fromServer = false,
+              allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+            )
+            _ <- rejected.complete(()).void
           } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2
-    WireCase(
-      "h2.client.request-lowercase-field-names",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.2",
-        "An endpoint converts regular field names to lowercase when constructing an HTTP/2 message.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
+  lazy val h2ClientRejectPushUnsafeMethod: WireCase = WireCase(
+    "h2.client.reject-push-unsafe-method",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.4",
+      "An unsafe promised request requires rejection of the promised stream; acknowledged push disablement instead requires a connection error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
         context.client(Protocol.Http2)(driver =>
-          driver
-            .exchange(
-              EmptyRequest.copy(headers = Vector("Content-Length" -> "0", "X-MiXeD" -> "value"))
-            )
-            .use(_.body.compile.drain)
-            .handleErrorWith(unexpectedTargetRejection)
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
+          }
         ) { peer =>
           for {
             request <- readClientRequest(peer)
-            _ <- Check(
-              request.fields.contains("x-mixed" -> "value"),
-              "the field name was not emitted in lowercase",
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
+              ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
             )
-            _ <- checkGeneratedFields(
-              request.fields,
-              Set(":method", ":scheme", ":authority", ":path"),
+            fields = promisedFields.map { case (name, value) =>
+              name -> (if (name == ":method") "POST" else value)
+            }
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.PushPromise,
+                Http2Wire.EndHeaders,
+                request.streamId,
+                Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
+              ),
             )
             _ <- Http2Wire.writeFrame(
               peer,
               Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
             )
+            _ <- readRejection(
+              peer,
+              2L.toInt,
+              connection = request.pushDisabled,
+              code = 1L,
+              fromServer = false,
+              allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+              incidentalPromisedStreams = Set(2),
+            )
+            _ <- rejected.complete(()).void
           } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2
-    WireCase(
-      "h2.server.response-lowercase-field-names",
-      Protocol.Http2,
-      Role.Server,
-      Rfc(
-        9113,
-        "8.2",
-        "An endpoint converts regular field names to lowercase when constructing an HTTP/2 message.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = true) { implicit peerSettings =>
-        context
-          .server(Protocol.Http2, ServerScenario.Reply(headers = Vector("X-MiXeD" -> "value")))
-          .use { case (peer, _) =>
-            for {
-              _ <- clientHandshakeWithoutPush(peer)
-              _ <- Http2Wire.writeFrame(peer, Http2Wire.headers(1, RequestFields))
-              response <- readResponse(peer, 1)
-              _ <- Check.equal(response.status, 200)
-              _ <- Check(
-                response.fields.contains("x-mixed" -> "value"),
-                "the field name was not emitted in lowercase",
-              )
-              _ <- checkGeneratedFields(response.fields, Set(":status"))
-            } yield ()
-          }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.6
-    WireCase(
-      "h2.client.reject-push-stream-zero",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(9113, "6.6", "PUSH_PROMISE must be associated with a nonzero stream.", "MUST"),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  0,
-                  Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                2L.toInt,
-                connection = true,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-                incidentalPromisedStreams = Set(2),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.6
-    WireCase(
-      "h2.client.reject-push-odd-promised-stream",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.6",
-        "A promised server-initiated stream must use a fresh even stream identifier.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  request.streamId,
-                  Http2Wire.uint32(3L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                3L.toInt,
-                connection = true,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
-    WireCase(
-      "h2.client.reject-push-unsafe-method",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.4",
-        "An unsafe promised request requires rejection of the promised stream; acknowledged push disablement instead requires a connection error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields.map { case (name, value) =>
-                name -> (if (name == ":method") "POST" else value)
-              }
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  request.streamId,
-                  Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                2L.toInt,
-                connection = request.pushDisabled,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-                incidentalPromisedStreams = Set(2),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
-    WireCase(
-      "h2.client.reject-push-request-content",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.4",
-        "A promise indicating request content must be rejected; acknowledged push disablement instead requires a connection error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields ++ Vector("content-length" -> "1")
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  request.streamId,
-                  Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                2L.toInt,
-                connection = request.pushDisabled,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-                incidentalPromisedStreams = Set(2),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4.1
-    WireCase(
-      "h2.client.reject-push-missing-method",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.4.1",
-        "A promise must contain a complete request field section; acknowledged push disablement instead requires a connection error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields.filterNot(_._1 == ":method")
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  request.streamId,
-                  Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                2L.toInt,
-                connection = request.pushDisabled,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-                incidentalPromisedStreams = Set(2),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4.1
-    WireCase(
-      "h2.client.reject-push-invalid-field",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.4.1",
-        "A promise must contain a valid request field section; acknowledged push disablement instead requires a connection error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields ++ Vector("X-Push" -> "value")
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  request.streamId,
-                  Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                2L.toInt,
-                connection = request.pushDisabled,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-                incidentalPromisedStreams = Set(2),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
-    WireCase(
-      "h2.client.reject-push-unauthoritative-origin",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.4",
-        "A promise for an origin for which the peer is not authoritative must be rejected; acknowledged push disablement instead requires a connection error.",
-        "MUST",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Unit].flatMap { rejected =>
-          context.client(Protocol.Http2)(driver =>
-            ClientObservation(driver.exchange(EmptyRequest)) { response =>
-              response.body.compile.drain *> Check.equal(response.status, 200)
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                // A stream error may be escalated to connection termination. Keep the client
-                // resource alive after either outcome until the peer observes that rejection.
-                case _ => rejected.get
-              })
-            }
-          ) { peer =>
-            for {
-              request <- readClientRequest(peer)
-              authority = request.fields
-                .collectFirst { case (":authority", value) => value }
-                .getOrElse("")
-              _ <- Check(authority.nonEmpty, "the client omitted request authority")
-              promisedFields = Vector(
-                ":method" -> "GET",
-                ":scheme" -> "http",
-                ":authority" -> authority,
-                ":path" -> "/pushed",
-              )
-              fields = promisedFields.map { case (name, value) =>
-                name -> (if (name == ":authority") "unrelated.invalid:81" else value)
-              }
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.PushPromise,
-                  Http2Wire.EndHeaders,
-                  request.streamId,
-                  Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
-                ),
-              )
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
-              )
-              _ <- readRejection(
-                peer,
-                2L.toInt,
-                connection = request.pushDisabled,
-                code = 1L,
-                fromServer = false,
-                allowMessageFrames = true,
-                originalRequestStream = Some(request.streamId),
-                incidentalPromisedStreams = Set(2),
-              )
-              _ <- rejected.complete(()).void
-            } yield ()
-          }
-        }
-      }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.informational-then-final",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A server may send interim field sections before the final response; this valid sequence must not cause a parsing failure.",
-        "MAY",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
+  lazy val h2ClientRejectPushRequestContent: WireCase = WireCase(
+    "h2.client.reject-push-request-content",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.4",
+      "A promise indicating request content must be rejected; acknowledged push disablement instead requires a connection error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
         context.client(Protocol.Http2)(driver =>
-          // The frozen driver exposes one ResponseData. This case asserts non-rejection;
-          // it deliberately does not require a particular interim-response exposure API.
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .handleErrorWith(unexpectedTargetRejection)
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
+          }
         ) { peer =>
           for {
             request <- readClientRequest(peer)
-            streamId = request.streamId
-            frames = Vector(
-              Http2Wire.headers(streamId, Vector(":status" -> "100"), endStream = false),
-              Http2Wire.headers(streamId, Vector(":status" -> "200")),
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
+              ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
             )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
+            fields = promisedFields ++ Vector("content-length" -> "1")
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.PushPromise,
+                Http2Wire.EndHeaders,
+                request.streamId,
+                Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
+              ),
+            )
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+            )
+            _ <- readRejection(
+              peer,
+              2L.toInt,
+              connection = request.pushDisabled,
+              code = 1L,
+              fromServer = false,
+              allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+              incidentalPromisedStreams = Set(2),
+            )
+            _ <- rejected.complete(()).void
           } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
-    WireCase(
-      "h2.client.multiple-informational-then-final",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "8.1",
-        "A server may send interim field sections before the final response; this valid sequence must not cause a parsing failure.",
-        "MAY",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4.1
+  lazy val h2ClientRejectPushMissingMethod: WireCase = WireCase(
+    "h2.client.reject-push-missing-method",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.4.1",
+      "A promise must contain a complete request field section; acknowledged push disablement instead requires a connection error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
         context.client(Protocol.Http2)(driver =>
-          // The frozen driver exposes one ResponseData. This case asserts non-rejection;
-          // it deliberately does not require a particular interim-response exposure API.
-          driver
-            .exchange(EmptyRequest)
-            .use(_.body.compile.drain)
-            .handleErrorWith(unexpectedTargetRejection)
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
+          }
         ) { peer =>
           for {
             request <- readClientRequest(peer)
-            streamId = request.streamId
-            frames = Vector(
-              Http2Wire
-                .headers(streamId, Vector(":status" -> "103", "link" -> "</a>"), endStream = false),
-              Http2Wire.headers(streamId, Vector(":status" -> "100"), endStream = false),
-              Http2Wire.headers(streamId, Vector(":status" -> "200")),
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
+              ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
             )
-            _ <- Http2PeerSettings.writeFrames(peer, frames)
+            fields = promisedFields.filterNot(_._1 == ":method")
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.PushPromise,
+                Http2Wire.EndHeaders,
+                request.streamId,
+                Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
+              ),
+            )
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+            )
+            _ <- readRejection(
+              peer,
+              2L.toInt,
+              connection = request.pushDisabled,
+              code = 1L,
+              fromServer = false,
+              allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+              incidentalPromisedStreams = Set(2),
+            )
+            _ <- rejected.complete(()).void
           } yield ()
         }
       }
-    },
-    // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
-    WireCase(
-      "h2.client.headers-nonzero-padding-choice",
-      Protocol.Http2,
-      Role.Client,
-      Rfc(
-        9113,
-        "6.2",
-        "A receiver may ignore nonzero HEADERS padding or terminate the connection with PROTOCOL_ERROR.",
-        "MAY",
-      ),
-    ) { context =>
-      Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
-        Deferred[IO, Boolean].flatMap { accepted =>
-          clientUntilObserved(context) { (driver, observed) =>
-            ClientObservation(
-              driver
-                .exchange(EmptyRequest)
-            ) { response =>
-              response.body.compile.to(Chunk).flatMap { body =>
-                Check.equal(response.status, 200) *> Check
-                  .equal(body.toByteVector, ByteVector.empty)
-              }
-            } { result =>
-              result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
-                case Left(error)
-                    if error.isInstanceOf[ProtocolFailure] || error
-                      .isInstanceOf[WireDecodingFailure] || error
-                      .isInstanceOf[WireObservationLimit] =>
-                  IO.raiseError(error)
-                case Left(_) => accepted.complete(false).void
-                case Right(_) => accepted.complete(true).void
-              }) *> observed
-            }
-          } { peer =>
-            for {
-              request <- readClientRequest(peer)
-              fields = Vector(":status" -> "200")
-              _ <- Http2Wire.writeFrame(
-                peer,
-                Http2Wire.Frame(
-                  Http2Wire.Headers,
-                  Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
-                  request.streamId,
-                  ByteVector(1) ++ Http2Wire.literalFields(fields) ++ ByteVector(127),
-                ),
-              )
-              consumed <- accepted.get
-              _ <-
-                if (consumed) IO.unit
-                else
-                  readRejection(
-                    peer,
-                    request.streamId,
-                    connection = true,
-                    code = 1L,
-                    fromServer = false,
-                    allowMessageFrames = false,
-                  )
-            } yield ()
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4.1
+  lazy val h2ClientRejectPushInvalidField: WireCase = WireCase(
+    "h2.client.reject-push-invalid-field",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.4.1",
+      "A promise must contain a valid request field section; acknowledged push disablement instead requires a connection error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
+        context.client(Protocol.Http2)(driver =>
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
           }
+        ) { peer =>
+          for {
+            request <- readClientRequest(peer)
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
+              ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
+            )
+            fields = promisedFields ++ Vector("X-Push" -> "value")
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.PushPromise,
+                Http2Wire.EndHeaders,
+                request.streamId,
+                Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
+              ),
+            )
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+            )
+            _ <- readRejection(
+              peer,
+              2L.toInt,
+              connection = request.pushDisabled,
+              code = 1L,
+              fromServer = false,
+              allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+              incidentalPromisedStreams = Set(2),
+            )
+            _ <- rejected.complete(()).void
+          } yield ()
         }
       }
-    },
-  )
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.4
+  lazy val h2ClientRejectPushUnauthoritativeOrigin: WireCase = WireCase(
+    "h2.client.reject-push-unauthoritative-origin",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.4",
+      "A promise for an origin for which the peer is not authoritative must be rejected; acknowledged push disablement instead requires a connection error.",
+      "MUST",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Unit].flatMap { rejected =>
+        context.client(Protocol.Http2)(driver =>
+          ClientObservation(driver.exchange(EmptyRequest)) { response =>
+            response.body.compile.drain *> Check.equal(response.status, 200)
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              // A stream error may be escalated to connection termination. Keep the client
+              // resource alive after either outcome until the peer observes that rejection.
+              case _ => rejected.get
+            })
+          }
+        ) { peer =>
+          for {
+            request <- readClientRequest(peer)
+            authority = request.fields
+              .collectFirst { case (":authority", value) => value }
+              .getOrElse("")
+            _ <- Check(authority.nonEmpty, "the client omitted request authority")
+            promisedFields = Vector(
+              ":method" -> "GET",
+              ":scheme" -> "http",
+              ":authority" -> authority,
+              ":path" -> "/pushed",
+            )
+            fields = promisedFields.map { case (name, value) =>
+              name -> (if (name == ":authority") "unrelated.invalid:81" else value)
+            }
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.PushPromise,
+                Http2Wire.EndHeaders,
+                request.streamId,
+                Http2Wire.uint32(2L) ++ Http2Wire.literalFields(fields),
+              ),
+            )
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.headers(request.streamId, Vector(":status" -> "200")),
+            )
+            _ <- readRejection(
+              peer,
+              2L.toInt,
+              connection = request.pushDisabled,
+              code = 1L,
+              fromServer = false,
+              allowMessageFrames = true,
+              originalRequestStream = Some(request.streamId),
+              incidentalPromisedStreams = Set(2),
+            )
+            _ <- rejected.complete(()).void
+          } yield ()
+        }
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientInformationalThenFinal: WireCase = WireCase(
+    "h2.client.informational-then-final",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A server may send interim field sections before the final response; this valid sequence must not cause a parsing failure.",
+      "MAY",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        // The frozen driver exposes one ResponseData. This case asserts non-rejection;
+        // it deliberately does not require a particular interim-response exposure API.
+        driver
+          .exchange(EmptyRequest)
+          .use(_.body.compile.drain)
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          frames = Vector(
+            Http2Wire.headers(streamId, Vector(":status" -> "100"), endStream = false),
+            Http2Wire.headers(streamId, Vector(":status" -> "200")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-8.1
+  lazy val h2ClientMultipleInformationalThenFinal: WireCase = WireCase(
+    "h2.client.multiple-informational-then-final",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "8.1",
+      "A server may send interim field sections before the final response; this valid sequence must not cause a parsing failure.",
+      "MAY",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      context.client(Protocol.Http2)(driver =>
+        // The frozen driver exposes one ResponseData. This case asserts non-rejection;
+        // it deliberately does not require a particular interim-response exposure API.
+        driver
+          .exchange(EmptyRequest)
+          .use(_.body.compile.drain)
+          .handleErrorWith(unexpectedTargetRejection)
+      ) { peer =>
+        for {
+          request <- readClientRequest(peer)
+          streamId = request.streamId
+          frames = Vector(
+            Http2Wire
+              .headers(streamId, Vector(":status" -> "103", "link" -> "</a>"), endStream = false),
+            Http2Wire.headers(streamId, Vector(":status" -> "100"), endStream = false),
+            Http2Wire.headers(streamId, Vector(":status" -> "200")),
+          )
+          _ <- Http2PeerSettings.writeFrames(peer, frames)
+        } yield ()
+      }
+    }
+  }
+
+  // https://www.rfc-editor.org/rfc/rfc9113.html#section-6.2
+  lazy val h2ClientHeadersNonzeroPaddingChoice: WireCase = WireCase(
+    "h2.client.headers-nonzero-padding-choice",
+    Protocol.Http2,
+    Role.Client,
+    Rfc(
+      9113,
+      "6.2",
+      "A receiver may ignore nonzero HEADERS padding or terminate the connection with PROTOCOL_ERROR.",
+      "MAY",
+    ),
+  ) { context =>
+    Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
+      Deferred[IO, Boolean].flatMap { accepted =>
+        clientUntilObserved(context) { (driver, observed) =>
+          ClientObservation(
+            driver
+              .exchange(EmptyRequest)
+          ) { response =>
+            response.body.compile.to(Chunk).flatMap { body =>
+              Check.equal(response.status, 200) *> Check
+                .equal(body.toByteVector, ByteVector.empty)
+            }
+          } { result =>
+            result.left.toOption.traverse_(RawPeer.raiseAdapterOrTimeout[IO]) *> (result match {
+              case Left(error)
+                  if error.isInstanceOf[ProtocolFailure] || error
+                    .isInstanceOf[WireDecodingFailure] || error
+                    .isInstanceOf[WireObservationLimit] =>
+                IO.raiseError(error)
+              case Left(_) => accepted.complete(false).void
+              case Right(_) => accepted.complete(true).void
+            }) *> observed
+          }
+        } { peer =>
+          for {
+            request <- readClientRequest(peer)
+            fields = Vector(":status" -> "200")
+            _ <- Http2Wire.writeFrame(
+              peer,
+              Http2Wire.Frame(
+                Http2Wire.Headers,
+                Http2Wire.EndHeaders | Http2Wire.EndStream | Http2Wire.Padded,
+                request.streamId,
+                ByteVector(1) ++ Http2Wire.literalFields(fields) ++ ByteVector(127),
+              ),
+            )
+            consumed <- accepted.get
+            _ <-
+              if (consumed) IO.unit
+              else
+                readRejection(
+                  peer,
+                  request.streamId,
+                  connection = true,
+                  code = 1L,
+                  fromServer = false,
+                  allowMessageFrames = false,
+                )
+          } yield ()
+        }
+      }
+    }
+  }
 
   private final case class CapturedRequest(
       streamId: Int,
