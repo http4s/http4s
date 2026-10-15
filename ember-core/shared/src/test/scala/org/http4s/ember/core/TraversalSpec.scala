@@ -17,6 +17,8 @@
 package org.http4s.ember.core
 
 import org.http4s.syntax.literals._
+
+import java.nio.charset.StandardCharsets
 class TraversalSpecItsNotYouItsMe
 
 import org.scalacheck.effect.PropF
@@ -36,6 +38,20 @@ class TraversalSpec extends Http4sSuite {
         _ <- stream.chunks.map(Some(_)).foreach(q.offer(_)).compile.drain
         _ <- q.offer(None)
       } yield q.take
+
+    def assertBodyRoundTrip(req: Request[IO], input: String): IO[Unit] = {
+      // val logger = TestingLogger.impl[IO]()
+      val parsedBody = for {
+        read <- taking[IO, Byte](Encoder.reqToBytes[IO](req))
+        end <- Parser.Request
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
+        body <- end._1.body.compile.toVector
+      } yield body
+
+      val expected = input.getBytes(StandardCharsets.UTF_8).toVector
+
+      parsedBody.assertEquals(expected)
+    }
   }
 
   test("Request Encoder/Parser should preserve existing headers".ignore) {
@@ -81,20 +97,18 @@ class TraversalSpec extends Http4sSuite {
 
   test("Request Encoder/Parser should preserve body with a known uri") {
     PropF.forAllF { (req: Request[IO], s: String) =>
-      // val logger = TestingLogger.impl[IO]()
       val newReq = req
         .withUri(uri"http://www.google.com")
         .withEntity(s)
 
-      val res = for {
-        read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](newReq))
-        end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
-        b <- end._1.body.through(fs2.text.utf8.decode).compile.foldMonoid
-      } yield b
-
-      res.assertEquals(s)
+      Helpers.assertBodyRoundTrip(newReq, s)
     }
+  }
+
+  test("Request Encoder/Parser should preserve a UTF-8 BOM body") {
+    val s = "\uFEFF"
+    val req = Request[IO](Method.POST, uri"http://www.google.com").withEntity(s)
+    Helpers.assertBodyRoundTrip(req, s)
   }
 
 }
