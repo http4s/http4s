@@ -5301,6 +5301,8 @@ object HpackCases {
       peerTableMinimum: Ref[F, Long],
       sentBlock: Ref[F, Boolean],
       acknowledgments: Ref[F, Int],
+      receivedRequestEnds: Ref[F, Set[Int]],
+      completedExchanges: Ref[F, Set[Int]],
   )
 
   private final case class Head(streamId: Int, fields: Vector[(String, String)], block: ByteVector)
@@ -5344,8 +5346,10 @@ object HpackCases {
       Ref.of[F, Long](4096L),
       Ref.of[F, Boolean](false),
       Ref.of[F, Int](0),
+      Ref.of[F, Set[Int]](Set.empty),
+      Ref.of[F, Set[Int]](Set.empty),
     )
-      .mapN(Session(peer, fromServer, _, _, _, _, _))
+      .mapN(Session(peer, fromServer, _, _, _, _, _, _, _))
 
   /** Raw client connecting to a target server. Each direction owns a separate compression table. */
   private def connect[F[_]: Async](peer: RawPeer[F], decoderLimit: Int = 4096)(implicit
@@ -5454,6 +5458,10 @@ object HpackCases {
           ).as(true)
       case Http2Wire.Priority =>
         verify(frame.streamId != 0 && frame.payload.size == 5L, "invalid target PRIORITY").as(true)
+      case Http2Wire.RstStream =>
+        session.completedExchanges.get.flatMap(completed =>
+          verify(completed(frame.streamId), s"target reset an incomplete exchange: $frame").as(true)
+        )
       case kind if kind > Http2Wire.Continuation => true.pure[F]
       case _ => verify(false, s"unexpected target frame: $frame").as(true)
     }
@@ -5461,17 +5469,19 @@ object HpackCases {
   private def next[F[_]: Async](
       session: Session[F]
   )(implicit peerSettings: Http2PeerSettings[F]): F[Http2Wire.Frame] =
-    Http2FrameReader.readUntil(
-      Http2Wire.readFrame(session.peer),
-      1024,
-      "too many control frames before HPACK traffic",
-    )(
-      frame => peerSettings.positive(session.peer).flatMap(_.observe(frame, session.fromServer)),
-      frame =>
-        frame.frameType == Http2Wire.Headers || frame.frameType == Http2Wire.Data ||
-          frame.frameType == Http2Wire.RstStream,
-      frame => control(session, frame),
-    )
+    session.completedExchanges.get.flatMap { completed =>
+      Http2FrameReader.readUntil(
+        Http2Wire.readFrame(session.peer),
+        1024,
+        "too many control frames before HPACK traffic",
+      )(
+        frame => peerSettings.positive(session.peer).flatMap(_.observe(frame, session.fromServer)),
+        frame =>
+          frame.frameType == Http2Wire.Headers || frame.frameType == Http2Wire.Data ||
+            (frame.frameType == Http2Wire.RstStream && !completed(frame.streamId)),
+        frame => control(session, frame),
+      )
+    }
 
   private def awaitAcknowledgments[F[_]: Async](session: Session[F], count: Int)(implicit
       peerSettings: Http2PeerSettings[F]
@@ -5565,7 +5575,14 @@ object HpackCases {
               )
             ),
             requireFieldAcceptance = !compressionNegative,
-          ) *> session.peerTableMinimum.set(limit) *> session.sentBlock.set(true)
+          ) *> session.peerTableMinimum.set(limit) *> session.sentBlock.set(true) *>
+          // A late reset may cross the final response. Retire only when both directions ended.
+          (if (session.fromServer || compressionNegative) Async[F].unit
+           else
+             session.receivedRequestEnds.get.flatMap { ended =>
+               if (ended(streamId)) session.completedExchanges.update(_ + streamId)
+               else Async[F].unit
+             })
       }
 
   private def readHead[F[_]: Async](session: Session[F], first: Http2Wire.Frame)(implicit
@@ -5667,6 +5684,7 @@ object HpackCases {
       _ <- verify(first.streamId > 0 && (first.streamId & 1) == 1, "invalid target request stream")
       head <- readHead(session, first)
       _ <- readBody(session, first)
+      _ <- session.receivedRequestEnds.update(_ + first.streamId)
     } yield head).handleErrorWith(incompleteTarget[F, Head])
 
   private def readResponse[F[_]: Async](session: Session[F], streamId: Int)(implicit

@@ -623,11 +623,32 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
     } yield ()
   }
 
+  for (
+    (label, frame, valid) <- Vector(
+      ("completed", Http2Wire.Frame(Http2Wire.RstStream, 0, 1, Http2Wire.uint32(8)), true),
+      ("idle", Http2Wire.Frame(Http2Wire.RstStream, 0, 3, Http2Wire.uint32(8)), false),
+      ("zero", Http2Wire.Frame(Http2Wire.RstStream, 0, 0, Http2Wire.uint32(8)), false),
+      ("short", Http2Wire.Frame(Http2Wire.RstStream, 0, 1, ByteVector(0, 0, 8)), false),
+    )
+  ) test(s"HPACK stream reuse after reset: $label".tag(new munit.Tag("hpack-retired-reset"))) {
+    for {
+      observed <- Ref.of[IO, Vector[(Int, HpackFields)]](Vector.empty)
+      trace <- Transcript.create[IO]()
+      target = hpackPresentationTarget(identity, observed, afterResponse = Some(frame))
+      result <- selected("h2.client.hpack-dynamic-stream-reuse")
+        .run(CaseContext(target, trace))
+        .attempt
+    } yield
+      if (valid) assertEquals(result, Right(()))
+      else assert(result.swap.exists(_.isInstanceOf[ProtocolFailure]), result.toString)
+  }
+
   private def hpackPresentationTarget(
       present: HpackFields => HpackFields,
       observed: Ref[IO, Vector[(Int, HpackFields)]],
       wrongIndex: Boolean = false,
       rejectMode: String = "plain",
+      afterResponse: Option[Http2Wire.Frame] = None,
   ): WireTarget[IO] = new WireTarget[IO] {
     def withFailureObserver(observe: AdapterFailure => IO[Unit]): WireTarget[IO] = this
 
@@ -736,7 +757,8 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
             case f if f.frameType == Headers =>
               decode(peer, f, decoder).attempt.flatMap {
                 case Right(fields) =>
-                  responses.offer(
+                  (if (f.streamId == 1) afterResponse.traverse_(frame => peer.write(encode(frame)))
+                   else IO.unit) *> responses.offer(
                     Right(
                       ResponseData[IO](
                         fields.collectFirst { case (":status", value) => value.toInt }.get,
