@@ -182,7 +182,7 @@ class Http2ClosedWriteSuite extends RuntimeDiagnostics.Suite {
 
   for (verdict <- Vector("none", "stream-reset", "goaway"))
     test(s"actual case preserves subsequent read failure instead of inferring closure: $verdict") {
-      val readError = nativeWriteReset
+      val readError = new java.io.IOException("unrelated read failure")
       val bytes = verdict match {
         case "none" => ByteVector.empty
         case "stream-reset" => encode(Frame(RstStream, 0, 1, uint32(1)))
@@ -196,6 +196,20 @@ class Http2ClosedWriteSuite extends RuntimeDiagnostics.Suite {
         assert(result.swap.exists(_ eq readError), result.toString)
         assert(reads > 0)
       }
+    }
+
+  for (verdict <- Vector("none", "stream-reset", "goaway"))
+    test(s"actual case accepts independently observed NIO read reset after write reset: $verdict") {
+      val bytes = verdict match {
+        case "none" => ByteVector.empty
+        case "stream-reset" => encode(Frame(RstStream, 0, 1, uint32(1)))
+        case _ => errorGoAway
+      }
+      for {
+        fixture <- observation(bytes, IO.raiseError(nativeWriteReset))
+        _ <- fixture.run
+        reads <- fixture.readsAfterFailure
+      } yield assert(reads > 0)
     }
 
   for (verdict <- Vector("none", "stream-reset", "goaway"))
