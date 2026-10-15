@@ -53,7 +53,7 @@ private[wire] object H2ControlInventory {
       "HTTP/2 over TLS uses ALPN protocol negotiation.",
       "excluded",
       Vector(),
-      "TLS and ALPN are outside the frozen plaintext baseline.",
+      "TLS and ALPN are outside the plaintext baseline.",
     ),
     Entry(
       "9113-control-client-historical-support",
@@ -565,7 +565,7 @@ private[wire] object H2ControlInventory {
       "The frame-header reserved bit remains zero when sending.",
       "gap",
       Vector(),
-      "Http2Wire.readFrame masks the bit, so the frozen helper cannot observe sender violations; raw-header capture would be needed.",
+      "Http2Wire.readFrame masks the bit, so the helper cannot observe sender violations; raw-header capture would be needed.",
     ),
     Entry(
       "9113-control-server-sent-reserved-header-bit",
@@ -576,7 +576,7 @@ private[wire] object H2ControlInventory {
       "The frame-header reserved bit remains zero when sending.",
       "gap",
       Vector(),
-      "Http2Wire.readFrame masks the bit, so the frozen helper cannot observe sender violations; raw-header capture would be needed.",
+      "Http2Wire.readFrame masks the bit, so the helper cannot observe sender violations; raw-header capture would be needed.",
     ),
     Entry(
       "9113-control-client-connection-stream-zero",
@@ -822,7 +822,7 @@ private[wire] object H2ControlInventory {
       "Use application context to prioritize requests when explicit signals are absent.",
       "gap",
       Vector(),
-      "The frozen application scenarios expose neither scheduling policy nor comparative service guarantees.",
+      "The application scenarios expose neither scheduling policy nor comparative service guarantees.",
     ),
     Entry(
       "9113-control-server-priority-absence-inference",
@@ -1292,7 +1292,7 @@ private[wire] object H2ControlInventory {
       "Protocol extensions affect only the current connection and use the frame, setting and error-code extension points.",
       "excluded",
       Vector(),
-      "Actual extension implementation and cross-connection negotiation are outside the frozen base-RFC scope.",
+      "Actual extension implementation and cross-connection negotiation are outside the base-RFC scope.",
     ),
     Entry(
       "9113-control-server-extension-scope",
@@ -1303,7 +1303,7 @@ private[wire] object H2ControlInventory {
       "Protocol extensions affect only the current connection and use the frame, setting and error-code extension points.",
       "excluded",
       Vector(),
-      "Actual extension implementation and cross-connection negotiation are outside the frozen base-RFC scope.",
+      "Actual extension implementation and cross-connection negotiation are outside the base-RFC scope.",
     ),
     Entry(
       "9113-control-client-extension-ignore",
@@ -2089,7 +2089,7 @@ private[wire] object H2ControlInventory {
       "The initial ENABLE_PUSH value is one but on a server is equivalent to zero and has no effect.",
       "gap",
       Vector(),
-      "The frozen server scenario cannot initiate PUSH_PROMISE, so initial push permission is not observed.",
+      "The server scenario cannot initiate PUSH_PROMISE, so initial push permission is not observed.",
     ),
     Entry(
       "9113-control-server-disable-push-effect",
@@ -2100,7 +2100,7 @@ private[wire] object H2ControlInventory {
       "Do not send PUSH_PROMISE after receiving ENABLE_PUSH zero.",
       "gap",
       Vector(),
-      "No frozen scenario exposes server-initiated push; mapping/push coverage records the same observation boundary.",
+      "No scenario exposes server-initiated push; mapping/push coverage records the same observation boundary.",
     ),
     Entry(
       "9113-control-client-disable-push-ack-effect",
@@ -2859,7 +2859,7 @@ private[wire] object H2ControlInventory {
       "After receiving GOAWAY, create no additional peer-facing streams on the connection.",
       "gap",
       Vector(),
-      "Server-initiated push is not exposed by the frozen scenarios.",
+      "Server-initiated push is not exposed by the scenarios.",
     ),
     Entry(
       "9113-control-client-goaway-high-streams-unprocessed",
@@ -2870,7 +2870,7 @@ private[wire] object H2ControlInventory {
       "Treat streams above received Last-Stream-ID as never processed and retry them on a new connection.",
       "gap",
       Vector(),
-      "Retry behavior and second TCP connections are outside the frozen one-socket client observation.",
+      "Retry behavior and second TCP connections are outside the one-socket client observation.",
     ),
     Entry(
       "9113-control-server-goaway-high-streams-unprocessed",
@@ -2881,7 +2881,7 @@ private[wire] object H2ControlInventory {
       "Treat streams above received Last-Stream-ID as never processed and retry them on a new connection.",
       "gap",
       Vector(),
-      "Retry behavior and second TCP connections are outside the frozen one-socket client observation.",
+      "Retry behavior and second TCP connections are outside the one-socket client observation.",
     ),
     Entry(
       "9113-control-client-goaway-before-close",

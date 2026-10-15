@@ -1390,7 +1390,7 @@ private[wire] object HpackInventory {
       "A received never-indexed field remains never-indexed when forwarded or re-encoded by an intermediary.",
       "excluded",
       Vector(),
-      "The frozen targets are HTTP endpoints, not forwarding intermediaries; the contract does not expose sensitivity metadata.",
+      "The targets are HTTP endpoints, not forwarding intermediaries; the contract does not expose sensitivity metadata.",
     ),
     Entry(
       "7541-hpack-table-update-five-bit-boundary",
@@ -1450,7 +1450,7 @@ private[wire] object HpackInventory {
       "Intermediaries must not change a never-indexed field to a representation that indexes it.",
       "excluded",
       Vector(),
-      "Forwarding and intermediary re-encoding are excluded by the frozen baseline.",
+      "Forwarding and intermediary re-encoding are excluded by the baseline.",
     ),
     Entry(
       "7541-hpack-security-huffman",
@@ -1488,7 +1488,7 @@ private[wire] object HpackInventory {
       "Sequential processing can limit temporary header-list storage without retaining an entire list.",
       "excluded",
       Vector(),
-      "Internal memory layout and streaming delivery APIs are not observable through this frozen endpoint contract.",
+      "Internal memory layout and streaming delivery APIs are not observable through this endpoint contract.",
     ),
     Entry(
       "7541-hpack-implementation-string-limits",
@@ -1559,7 +1559,7 @@ private[wire] object HpackInventory {
       "Static index 1 maps to field name :authority.",
       "gap",
       Vector(),
-      "The literal case sends an indexed reference to this name, but observes only method, path, body and x; substituting host for :authority passes the actual oracle. Exact static entry 1 name mapping is not observed through the frozen endpoint contract.",
+      "The literal case sends an indexed reference to this name, but observes only method, path, body and x; substituting host for :authority passes the actual oracle. Exact static entry 1 name mapping is not observed through the endpoint contract.",
     ),
     Entry(
       "7541-hpack-static-1-value",
@@ -3100,7 +3100,7 @@ private[wire] object HpackInventory {
       "Complete-value guessing attacks remain possible when mutually distrustful entities can insert and probe fields through one HTTP/2 compression context; value entropy affects recovery feasibility.",
       "excluded",
       Vector(),
-      "Intermediary connection sharing, browser origin trust, and secret-recovery experiments are outside the frozen endpoint wire baseline; no claim of side-channel resistance is inferred from codec conformance.",
+      "Intermediary connection sharing, browser origin trust, and secret-recovery experiments are outside the endpoint wire baseline; no claim of side-channel resistance is inferred from codec conformance.",
     ),
     Entry(
       "7541-hpack-security-mitigation-entropy",
@@ -3122,7 +3122,7 @@ private[wire] object HpackInventory {
       "An encoder can segregate dynamic-table access by the entity constructing fields and can designate some entries as public.",
       "excluded",
       Vector(),
-      "Entity provenance, trust partitions, and public-entry policy are not exposed by the frozen endpoint contract, and the RFC does not require one particular partitioning implementation.",
+      "Entity provenance, trust partitions, and public-entry policy are not exposed by the endpoint contract, and the RFC does not require one particular partitioning implementation.",
     ),
     Entry(
       "7541-hpack-security-mitigation-probing-penalties",

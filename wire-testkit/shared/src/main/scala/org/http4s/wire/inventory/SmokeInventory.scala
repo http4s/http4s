@@ -18,7 +18,7 @@ package org.http4s.wire
 
 import SpecInventory.Entry
 
-private[wire] object Phase1Inventory {
+private[wire] object SmokeInventory {
   val all: Vector[Entry] = part0
 
   private def part0: Vector[Entry] = Vector(

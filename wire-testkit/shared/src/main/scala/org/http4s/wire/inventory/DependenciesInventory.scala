@@ -57,7 +57,7 @@ private[wire] object DependenciesInventory {
       "Informational responses contain no content.",
       "gap",
       Vector(),
-      "Existing interim-response cases need independent API-versus-wire audit; server interim emission is unavailable in the frozen scenario contract.",
+      "Existing interim-response cases need independent API-versus-wire audit; server interim emission is unavailable in the scenario contract.",
     ),
     Entry(
       "9110-dependency-204-body",
@@ -169,7 +169,7 @@ private[wire] object DependenciesInventory {
       "CONNECT uses host and port separated by a colon.",
       "gap",
       Vector(),
-      "Frozen request URI API requires an authority-form fidelity audit before claiming sender coverage.",
+      "The request URI API requires an authority-form fidelity audit before claiming sender coverage.",
     ),
     Entry(
       "9110-dependency-target-options-form",
@@ -224,7 +224,7 @@ private[wire] object DependenciesInventory {
       "Connection options are case-insensitive.",
       "gap",
       Vector(),
-      "Lifecycle cases exercise case variations; generic extension options have no observable behavior in the frozen target contract.",
+      "Lifecycle cases exercise case variations; generic extension options have no observable behavior in the target contract.",
     ),
     Entry(
       "9110-dependency-connection-control-field",

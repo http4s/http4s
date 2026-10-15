@@ -535,7 +535,7 @@ private[wire] object H2StatesInventory {
       "A client that has ended its request can still receive response HEADERS and DATA",
       "covered",
       Vector(SmokeCases.h2ClientHeadersAndData),
-      "Phase-1 response sequence case is the representative half-closed-local receive path.",
+      "The response sequence smoke case is the representative half-closed-local receive path.",
     ),
     Entry(
       "9113-state-half-local-server-accept-request",
@@ -590,7 +590,7 @@ private[wire] object H2StatesInventory {
       "Receiving END_STREAM or either endpoint sending RST_STREAM closes a half-closed-local stream",
       "gap",
       Vector(),
-      "Requires an early server response with later request completion or reset; the frozen scenarios do not expose that state deterministically.",
+      "Requires an early server response with later request completion or reset; the scenarios do not expose that state deterministically.",
     ),
     Entry(
       "9113-state-half-local-client-end-close",
@@ -634,7 +634,7 @@ private[wire] object H2StatesInventory {
       "Additional response DATA or HEADERS in half-closed-remote state requires STREAM_CLOSED",
       "gap",
       Vector(),
-      "A response can complete before upload completion, but client policy may cancel the upload. A stable held-open local side is not guaranteed by the frozen exchange API.",
+      "A response can complete before upload completion, but client policy may cancel the upload. A stable held-open local side is not guaranteed by the exchange API.",
     ),
     Entry(
       "9113-state-half-remote-window",
@@ -998,7 +998,7 @@ private[wire] object H2StatesInventory {
       "A client must not create requests beyond the server advertised concurrent-stream limit",
       "gap",
       Vector(),
-      "The frozen driver exposes no pending-operation barrier or connection selection control; a PING alone cannot prove a second exchange has reached admission logic.",
+      "The driver exposes no pending-operation barrier or connection selection control; a PING alone cannot prove a second exchange has reached admission logic.",
     ),
     Entry(
       "9113-state-concurrency-server-admission",
@@ -1075,7 +1075,7 @@ private[wire] object H2StatesInventory {
       "Per-stream credit is independent and cannot be spent by another stream",
       "gap",
       Vector(),
-      "A two-stream test requires an advertised concurrency limit of at least two. The frozen target cannot ensure this legal precondition; no silent successful skip is used.",
+      "A two-stream test requires an advertised concurrency limit of at least two. The target cannot ensure this legal precondition; no silent successful skip is used.",
     ),
     Entry(
       "9113-state-flow-hop",
@@ -1802,7 +1802,7 @@ private[wire] object H2StatesInventory {
       "Adjust every active stream window by the INITIAL_WINDOW_SIZE delta",
       "gap",
       Vector(),
-      "Only a single active stream is held in current cases; multi-stream coverage requires an admission-limit precondition not guaranteed by the frozen fixture.",
+      "Only a single active stream is held in current cases; multi-stream coverage requires an admission-limit precondition not guaranteed by the fixture.",
     ),
     Entry(
       "9113-state-window-negative-retain-client",
@@ -1954,7 +1954,7 @@ private[wire] object H2StatesInventory {
       "A request above GOAWAY last-stream-id is safe to retry even for a non-idempotent method",
       "gap",
       Vector(),
-      "No forced retry requirement is inferred. Multi-connection replay and body replayability are outside the frozen driver controls.",
+      "No forced retry requirement is inferred. Multi-connection replay and body replayability are outside the driver controls.",
     ),
     Entry(
       "9113-state-reliable-non-idempotent-uncertain",

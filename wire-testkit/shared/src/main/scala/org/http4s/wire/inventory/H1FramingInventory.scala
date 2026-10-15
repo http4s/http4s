@@ -1467,7 +1467,7 @@ private[wire] object H1FramingInventory {
       "Successful CONNECT responses must not carry Transfer-Encoding",
       "gap",
       Vector(),
-      "The frozen origin-server contract has no tunnel operation; CONNECT support is optional for origin servers.",
+      "The origin-server contract has no tunnel operation; CONNECT support is optional for origin servers.",
     ),
     Entry(
       "9112-client-version-knowledge",
@@ -1661,7 +1661,7 @@ private[wire] object H1FramingInventory {
       "Extra bytes after the last complete final response must not be treated as another response",
       "gap",
       Vector(),
-      "The frozen one-accepted-connection client fixture cannot safely probe pooled follow-up requests or distinguish discard from pool replacement; lifecycle inventory may refine this.",
+      "The one-accepted-connection client fixture cannot safely probe pooled follow-up requests or distinguish discard from pool replacement.",
     ),
     Entry(
       "9112-coding-name-registration",
@@ -1887,7 +1887,7 @@ private[wire] object H1FramingInventory {
       "Future transfer coding registrations avoid parameters named q",
       "excluded",
       Vector(),
-      "Future extension registration is outside the frozen baseline. Original scoped role: specification.",
+      "Future extension registration is outside the baseline. Original scoped role: specification.",
     ),
     Entry(
       "9112-registry-ietf-review",
@@ -2096,7 +2096,7 @@ private[wire] object H1FramingInventory {
       "If304 sends Content-Length it equals the corresponding hypothetical200 representation length",
       "gap",
       Vector(),
-      "The frozen scenario lacks conditional request semantics and representation state to establish the hypothetical200 length.",
+      "The scenario lacks conditional request semantics and representation state to establish the hypothetical200 length.",
     ),
     Entry(
       "9110-informational-content-length-forbidden",
@@ -2195,7 +2195,7 @@ private[wire] object H1FramingInventory {
       "Observe every informational boundary and the final response after an exposed informational ResponseData",
       "gap",
       Vector(),
-      "The frozen API has no final-response continuation handle. The visible-response probes cannot establish this obligation when they expose a 1xx; the separate next-request interaction checks association only.",
+      "The API has no final-response continuation handle. The visible-response probes cannot establish this obligation when they expose a 1xx; the separate next-request interaction checks association only.",
     ),
   )
 

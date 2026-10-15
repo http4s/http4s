@@ -473,7 +473,7 @@ object InteractionCases {
           for {
             _ <- driver.exchange(RequestData(path = "/first")).use { response =>
               response.body.compile.to(Chunk).flatMap { body =>
-                // The frozen API may expose a 1xx. It need not expose the final response here.
+                // The API may expose a 1xx. It need not expose the final response here.
                 if (response.status == 100 || response.status == 103)
                   IO.unit
                 else Check.equal(response.status, 200) *> Check.equal(body.toByteVector, Binary)

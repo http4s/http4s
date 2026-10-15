@@ -51,7 +51,7 @@ object SpecInventory {
       H2StatesInventory.all ++
       HpackInventory.all ++
       InteractionsInventory.all ++
-      Phase1Inventory.all ++
+      SmokeInventory.all ++
       ScopeBoundariesInventory.all ++
       SectionGapsInventory.all
 

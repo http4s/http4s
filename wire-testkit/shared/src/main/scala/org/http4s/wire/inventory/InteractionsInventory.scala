@@ -330,7 +330,7 @@ private[wire] object InteractionsInventory {
       "A trailer HEADERS section ends only its own message stream",
       "covered",
       Vector(InteractionCases.h2ServerInteractionTrailersBetweenOtherStreamData),
-      "Stream 1 trailers are written between stream 3 DATA frames. Both complete body observations are checked; the frozen server contract does not expose received request trailers. Literal-only field blocks explicitly select zero HPACK capacity, including under reduced peer maxima. Positive DATA sent after peer SETTINGS requires sufficient advertised stream credit; unavailable credit or a later constrained setting is a typed observation limit before incompatible writes, not a conformance failure. Both reference-client initial SETTINGS paths advertise ENABLE_PUSH=0. Server SETTINGS permit omission/0 and reject ENABLE_PUSH=1 initially, before ACK, and during later control reads; client value 1 remains valid. Response observation rejects HTTP/2 status 101 while retaining 100/103 and multiple legal informational responses.",
+      "Stream 1 trailers are written between stream 3 DATA frames. Both complete body observations are checked; the server contract does not expose received request trailers. Literal-only field blocks explicitly select zero HPACK capacity, including under reduced peer maxima. Positive DATA sent after peer SETTINGS requires sufficient advertised stream credit; unavailable credit or a later constrained setting is a typed observation limit before incompatible writes, not a conformance failure. Both reference-client initial SETTINGS paths advertise ENABLE_PUSH=0. Server SETTINGS permit omission/0 and reject ENABLE_PUSH=1 initially, before ACK, and during later control reads; client value 1 remains valid. Response observation rejects HTTP/2 status 101 while retaining 100/103 and multiple legal informational responses.",
     ),
     Entry(
       "interaction-h2-reset-one-upload",
@@ -425,7 +425,7 @@ private[wire] object InteractionsInventory {
       "When multiple requests are outstanding each response belongs to the first request that has not received a final response",
       "gap",
       Vector(),
-      "The authored association case uses sequential driver operations. The frozen ClientDriver cannot require pipelining two outstanding requests on a particular HTTP/1 connection; concurrent operations may legitimately use separate connections.",
+      "The authored association case uses sequential driver operations. The ClientDriver cannot require pipelining two outstanding requests on a particular HTTP/1 connection; concurrent operations may legitimately use separate connections.",
     ),
     Entry(
       "interaction-h1-unsolicited-response-data",
@@ -447,7 +447,7 @@ private[wire] object InteractionsInventory {
       "Extra data after the completed final response to the last outstanding request is not processed as a separate response",
       "gap",
       Vector(),
-      "Response-shaped content inside valid framing is covered, but unsolicited bytes outside that framing require distinguishing discard, close, and later reconnect paths. The frozen one-connection client fixture does not observe all legal outcomes.",
+      "Response-shaped content inside valid framing is covered, but unsolicited bytes outside that framing require distinguishing discard, close, and later reconnect paths. The one-connection client fixture does not observe all legal outcomes.",
     ),
     Entry(
       "interaction-h1-close-after-interim",
@@ -458,7 +458,7 @@ private[wire] object InteractionsInventory {
       "A request close option causes connection closure after the final response rather than after an interim response",
       "gap",
       Vector(),
-      "The frozen exchange can expose an interim ResponseData and has no continuation handle for the final response. Testing resource release alone would conflate client API lifetime with HTTP response association.",
+      "The exchange can expose an interim ResponseData and has no continuation handle for the final response. Testing resource release alone would conflate client API lifetime with HTTP response association.",
     ),
     Entry(
       "interaction-h1-malformed-response-then-next-request",
@@ -505,7 +505,7 @@ private[wire] object InteractionsInventory {
       "Generated response field values cannot insert a second response through line delimiters",
       "gap",
       Vector(),
-      "The authored response-shaped-body cases test recipient delimitation. Injection through untrusted application-generated header values needs a separately specified policy for pre-wire rejection versus field sanitization in the frozen Reply scenario.",
+      "The authored response-shaped-body cases test recipient delimitation. Injection through untrusted application-generated header values needs a separately specified policy for pre-wire rejection versus field sanitization in the Reply scenario.",
     ),
     Entry(
       "interaction-h2-late-headers-after-local-reset",
@@ -516,7 +516,7 @@ private[wire] object InteractionsInventory {
       "An endpoint that locally resets an open stream minimally processes in-flight HEADERS to update compression state",
       "gap",
       Vector(),
-      "The peer-CANCEL retention case covers an entry decoded before reset. The frozen contract cannot command the target to emit a specific local RST_STREAM while proving a later field block was already in flight; cancellation/discard policy must not be assumed.",
+      "The peer-CANCEL retention case covers an entry decoded before reset. The contract cannot command the target to emit a specific local RST_STREAM while proving a later field block was already in flight; cancellation/discard policy must not be assumed.",
     ),
     Entry(
       "interaction-h2-malformed-message-compression-context",
@@ -582,7 +582,7 @@ private[wire] object InteractionsInventory {
       "Request smuggling can arise when multiple recipients disagree on message framing",
       "excluded",
       Vector(),
-      "This frozen baseline has one target endpoint and one scripted peer, without proxy forwarding or chained independent parsers. The covered suffix cases exercise endpoint framing consequences rather than claim end-to-end smuggling coverage.",
+      "This baseline has one target endpoint and one scripted peer, without proxy forwarding or chained independent parsers. The covered suffix cases exercise endpoint framing consequences rather than claim end-to-end smuggling coverage.",
     ),
     Entry(
       "interaction-h2-connect-tunnel-data",
@@ -593,7 +593,7 @@ private[wire] object InteractionsInventory {
       "A successful CONNECT stream transitions to tunnel DATA semantics",
       "excluded",
       Vector(),
-      "The baseline includes CONNECT pseudo-header and framing dependencies but no tunnel application or bidirectional tunnel handle. Cross-stream tunneling and general application semantics are outside the frozen target contract.",
+      "The baseline includes CONNECT pseudo-header and framing dependencies but no tunnel application or bidirectional tunnel handle. Cross-stream tunneling and general application semantics are outside the target contract.",
     ),
     Entry(
       "interaction-h2-peer-settings-prerequisites",

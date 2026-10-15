@@ -288,7 +288,7 @@ private[wire] object H2MessagesInventory {
       "A sender sets every HEADERS padding octet to zero.",
       "gap",
       Vector(),
-      "The frozen application API cannot force target padding; current output checks do not claim the sender exercises this branch.",
+      "The application API cannot force target padding; current output checks do not claim the sender exercises this branch.",
     ),
     Entry(
       "9113-message-headers-padding-receiver-choice",
@@ -310,7 +310,7 @@ private[wire] object H2MessagesInventory {
       "A server may ignore nonzero HEADERS padding or reject it with a connection PROTOCOL_ERROR.",
       "gap",
       Vector(),
-      "Only the client receiver has the explicit permitted-alternative oracle in this phase.",
+      "Only the client receiver has the explicit permitted-alternative oracle.",
     ),
     Entry(
       "9113-message-headers-continuation-required",
@@ -450,7 +450,7 @@ private[wire] object H2MessagesInventory {
       "The sender sets PUSH_PROMISE padding octets to zero.",
       "gap",
       Vector(),
-      "The frozen server scenario API has no push-generation operation.",
+      "The server scenario API has no push-generation operation.",
     ),
     Entry(
       "9113-message-push-nonzero-padding-choice",
@@ -483,7 +483,7 @@ private[wire] object H2MessagesInventory {
       "Promised streams may be used in a different order from their reservation order.",
       "gap",
       Vector(),
-      "No pushed-response delivery API in the frozen contract; must not require the client to consume optional pushed content.",
+      "No pushed-response delivery API in the contract; must not require the client to consume optional pushed content.",
     ),
     Entry(
       "9113-message-push-disabled-sender",
@@ -1217,7 +1217,7 @@ private[wire] object H2MessagesInventory {
       "Concatenate decompressed Cookie occurrences using exactly semicolon and space before passing them to a generic non-HTTP/2 context.",
       "gap",
       Vector(),
-      "Requires an independently witnessed non-HTTP/2 conversion boundary; the frozen ordered-field contract does not establish one. Historical comparison cells retain their previous assertion and revision.",
+      "Requires an independently witnessed non-HTTP/2 conversion boundary; the ordered-field contract does not establish one. Historical comparison cells retain their previous assertion and revision.",
     ),
     Entry(
       "9113-message-cookie-receiver-split-acceptance",
@@ -1785,7 +1785,7 @@ private[wire] object H2MessagesInventory {
       "A pushed response uses the promised server stream and the ordinary response frame sequence from HEADERS through END_STREAM.",
       "gap",
       Vector(),
-      "The frozen driver returns only the response to its explicit request and has no pushed-response observation.",
+      "The driver returns only the response to its explicit request and has no pushed-response observation.",
     ),
     Entry(
       "9113-message-push-no-duplicate-fetch",
@@ -1901,7 +1901,7 @@ private[wire] object H2MessagesInventory {
       "After successful CONNECT only DATA and stream-management frames may be sent on the tunnel stream; other frame types are stream errors.",
       "gap",
       Vector(),
-      "The server scenarios are origin application handlers without a proxy tunnel; successful-CONNECT tunnel lifecycle is not represented in the frozen driver.",
+      "The server scenarios are origin application handlers without a proxy tunnel; successful-CONNECT tunnel lifecycle is not represented in the driver.",
     ),
     Entry(
       "9113-message-connect-tcp-establishment",

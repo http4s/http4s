@@ -6706,7 +6706,7 @@ object Http2MessageCases {
   ) { context =>
     Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
       context.client(Protocol.Http2)(driver =>
-        // The frozen driver exposes one ResponseData. This case asserts non-rejection;
+        // The driver exposes one ResponseData. This case asserts non-rejection;
         // it deliberately does not require a particular interim-response exposure API.
         driver
           .exchange(EmptyRequest)
@@ -6740,7 +6740,7 @@ object Http2MessageCases {
   ) { context =>
     Http2PeerSettings.scoped[IO, Unit](initiatesRequests = false) { implicit peerSettings =>
       context.client(Protocol.Http2)(driver =>
-        // The frozen driver exposes one ResponseData. This case asserts non-rejection;
+        // The driver exposes one ResponseData. This case asserts non-rejection;
         // it deliberately does not require a particular interim-response exposure API.
         driver
           .exchange(EmptyRequest)

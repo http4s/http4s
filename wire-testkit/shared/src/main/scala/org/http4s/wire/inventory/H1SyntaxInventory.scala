@@ -273,7 +273,7 @@ private[wire] object H1SyntaxInventory {
       "HTTP-version grammar permits one digit in each major and minor position",
       "gap",
       Vector(),
-      "The frozen target contract does not expose a configurable message version; cross-version recipient behavior is not inferred from a syntax-only mismatch.",
+      "The target contract does not expose a configurable message version; cross-version recipient behavior is not inferred from a syntax-only mismatch.",
     ),
     Entry(
       "h1-syntax-version-legacy-compatibility",
@@ -306,7 +306,7 @@ private[wire] object H1SyntaxInventory {
       "An origin may send 1.0 to a known or suspected broken 1.1 client",
       "gap",
       Vector(),
-      "Known-broken client attributes and configured compatibility policy are not represented by the frozen scenario contract.",
+      "Known-broken client attributes and configured compatibility policy are not represented by the scenario contract.",
     ),
     Entry(
       "h1-syntax-version-no-untriggered-downgrade",
@@ -317,7 +317,7 @@ private[wire] object H1SyntaxInventory {
       "Do not downgrade a 1.1 response unless specific client attributes trigger it",
       "gap",
       Vector(),
-      "The frozen target contract does not expose configured compatibility policy, so a syntactically valid HTTP/1.0 downgrade does not fail the status-line grammar test.",
+      "The target contract does not expose configured compatibility policy, so a syntactically valid HTTP/1.0 downgrade does not fail the status-line grammar test.",
     ),
     Entry(
       "h1-syntax-request-line-components",
@@ -364,7 +364,7 @@ private[wire] object H1SyntaxInventory {
       "A request-target longer than the server wishes to parse must receive 414",
       "gap",
       Vector(),
-      "No configurable target limit exists in the frozen fixture; an arbitrary large stimulus cannot identify the exact advertised capacity.",
+      "No configurable target limit exists in the fixture; an arbitrary large stimulus cannot identify the exact advertised capacity.",
     ),
     Entry(
       "h1-syntax-request-line-minimum",
@@ -514,7 +514,7 @@ private[wire] object H1SyntaxInventory {
       "Respond 400 to any HTTP/1.1 request lacking Host",
       "covered",
       Vector(BaselineCases.h1ServerMissingHost),
-      "The phase-1 case covers origin-form; absolute-form without Host remains a missing concrete variant.",
+      "The missing-Host case covers origin-form; absolute-form without Host remains a missing concrete variant.",
     ),
     Entry(
       "h1-syntax-server-host-duplicate-identical",
@@ -754,7 +754,7 @@ private[wire] object H1SyntaxInventory {
       "Absolute-form URIs without an authority can arrive with an empty Host value",
       "gap",
       Vector(),
-      "Non-http schemes and an empty Host interact with routing configuration unavailable in the frozen adapter.",
+      "Non-http schemes and an empty Host interact with routing configuration unavailable in the adapter.",
     ),
     Entry(
       "h1-syntax-authority-target",
@@ -1121,7 +1121,7 @@ private[wire] object H1SyntaxInventory {
       "Respond 400 to SP between a field name and colon",
       "covered",
       Vector(SmokeCases.h1ServerRejectFieldNameWhitespace),
-      "Uses the phase-1 smoke case; the ID is not duplicated.",
+      "Uses the existing smoke case without duplicating its ID.",
     ),
     Entry(
       "h1-syntax-colon-tab-forbidden",
@@ -1299,7 +1299,7 @@ private[wire] object H1SyntaxInventory {
       "A sender must not generate malformed elements even when application input is invalid",
       "gap",
       Vector(),
-      "The frozen client scenario waits for a socket before it can complete; rejection during request construction can occur without any accepted socket. A separate pre-connect rejection observation is needed.",
+      "The client scenario waits for a socket before it can complete; rejection during request construction can occur without any accepted socket. A separate pre-connect rejection observation is needed.",
     ),
     Entry(
       "h1-syntax-roles-other-participants",
@@ -1651,7 +1651,7 @@ private[wire] object H1SyntaxInventory {
       "Set-Cookie is a well-known exception that cannot be safely comma-combined",
       "excluded",
       Vector(),
-      "Cookie grammar and semantics are outside the frozen RFC set; this exception is explicitly retained in the inventory rather than generalized to other fields. Inventory category: exception.",
+      "Cookie grammar and semantics are outside the RFC set; this exception is explicitly retained in the inventory rather than generalized to other fields. Inventory category: exception.",
     ),
     Entry(
       "h1-syntax-field-different-name-order",
@@ -1977,7 +1977,7 @@ private[wire] object H1SyntaxInventory {
       "A recipient processing quoted-string replaces each quoted-pair by its following octet",
       "gap",
       Vector(),
-      "The frozen response/request observation exposes raw values and does not expose a general parsed parameter value; mere preservation of a backslash is not evidence of processing.",
+      "The response/request observation exposes raw values and does not expose a general parsed parameter value; mere preservation of a backslash is not evidence of processing.",
     ),
     Entry(
       "h1-syntax-quoted-pair-sender-style",

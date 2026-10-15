@@ -59,7 +59,7 @@ private[wire] object H1LifecycleInventory {
       "If a recipient times out before Content-Length octets arrive it treats the message as incomplete and closes",
       "gap",
       Vector(),
-      "The frozen target does not expose an application timeout trigger or a configurable short receive deadline. The test deadline is inconclusive and cannot substitute for a protocol timeout.",
+      "The target does not expose an application timeout trigger or a configurable short receive deadline. The test deadline is inconclusive and cannot substitute for a protocol timeout.",
     ),
     Entry(
       "h1-lifecycle-cl-timeout-server",
@@ -70,7 +70,7 @@ private[wire] object H1LifecycleInventory {
       "A request-body receive timeout before Content-Length octets arrive marks the request incomplete and closes",
       "gap",
       Vector(),
-      "The frozen target does not expose request-body timeout configuration. Intentionally leaving EchoBody uploads unfinished would also risk fixture-release hangs; no absence interval is treated as rejection.",
+      "The target does not expose request-body timeout configuration. Intentionally leaving EchoBody uploads unfinished would also risk fixture-release hangs; no absence interval is treated as rejection.",
     ),
     Entry(
       "h1-lifecycle-cl-exact-eof",
@@ -451,7 +451,7 @@ private[wire] object H1LifecycleInventory {
       "Data arriving without an outstanding request must not be considered a valid response",
       "gap",
       Vector(),
-      "The frozen single-accepted-socket fixture cannot complete a subsequent valid exchange if the target correctly closes and reconnects. A bounded reconnection-aware fixture and a no-outstanding-request barrier are needed.",
+      "The single-accepted-socket fixture cannot complete a subsequent valid exchange if the target correctly closes and reconnects. A bounded reconnection-aware fixture and a no-outstanding-request barrier are needed.",
     ),
     Entry(
       "h1-lifecycle-unsolicited-response-close",
@@ -564,7 +564,7 @@ private[wire] object H1LifecycleInventory {
       "A client must not continue using a connection after an HTTP/1.0 response without keep-alive",
       "gap",
       Vector(),
-      "The positive HTTP/1.0 EOF case proves body completion only. No-reuse across a subsequent exchange requires a reconnection-aware fixture, which the frozen CaseContext.client does not provide.",
+      "The positive HTTP/1.0 EOF case proves body completion only. No-reuse across a subsequent exchange requires a reconnection-aware fixture, which the CaseContext.client does not provide.",
     ),
     Entry(
       "h1-lifecycle-nonpersistent-client-close-option",
@@ -575,7 +575,7 @@ private[wire] object H1LifecycleInventory {
       "A client that does not support persistence sends close on every request",
       "gap",
       Vector(),
-      "No frozen target configuration disables persistent support. Supplying Connection: close on one application request does not prove automatic marking of all requests by a nonpersistent client.",
+      "No target configuration disables persistent support. Supplying Connection: close on one application request does not prove automatic marking of all requests by a nonpersistent client.",
     ),
     Entry(
       "h1-lifecycle-nonpersistent-server-close-option",
@@ -586,7 +586,7 @@ private[wire] object H1LifecycleInventory {
       "A server without persistence sends close on every non-informational response",
       "gap",
       Vector(),
-      "No frozen target configuration disables persistent support; the obligation is conditional and cannot be inferred from a single explicitly configured close response.",
+      "No target configuration disables persistent support; the obligation is conditional and cannot be inferred from a single explicitly configured close response.",
     ),
     Entry(
       "h1-lifecycle-additional-request-permission",
@@ -717,7 +717,7 @@ private[wire] object H1LifecycleInventory {
       "A client supporting persistence may pipeline requests before receiving corresponding responses",
       "gap",
       Vector(),
-      "The frozen client driver does not promise pipelining, and the RFC does not require it. No test requires this optional feature merely to achieve coverage.",
+      "The client driver does not promise pipelining, and the RFC does not require it. No test requires this optional feature merely to achieve coverage.",
     ),
     Entry(
       "h1-lifecycle-server-safe-parallel-processing",
@@ -754,7 +754,7 @@ private[wire] object H1LifecycleInventory {
       "A client that pipelines retries unanswered requests when closure prevents receipt of their responses",
       "gap",
       Vector(),
-      "Client pipelining and reconnection cannot be required through the frozen fixture; no retry is inferred from a timeout.",
+      "Client pipelining and reconnection cannot be required through the fixture; no retry is inferred from a timeout.",
     ),
     Entry(
       "h1-lifecycle-client-retry-pipeline-serialization",
@@ -798,7 +798,7 @@ private[wire] object H1LifecycleInventory {
       "An intermediary with unsafe unanswered requests forwards received responses and closes outbound connections",
       "excluded",
       Vector(),
-      "No intermediary topology exists in the frozen target contract; origin wire cases do not cover this rule.",
+      "No intermediary topology exists in the target contract; origin wire cases do not cover this rule.",
     ),
     Entry(
       "h1-lifecycle-connection-concurrency-policy",
@@ -867,7 +867,7 @@ private[wire] object H1LifecycleInventory {
       "Servers sustain persistent connections when possible and use transport flow control for temporary overload",
       "gap",
       Vector(),
-      "No deterministic overload or backpressure control exists for server application scheduling in the frozen scenario API. Basic persistence support is covered separately.",
+      "No deterministic overload or backpressure control exists for server application scheduling in the scenario API. Basic persistence support is covered separately.",
     ),
     Entry(
       "h1-lifecycle-monitor-error-during-upload",

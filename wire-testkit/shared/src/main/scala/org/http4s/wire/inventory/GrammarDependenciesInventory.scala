@@ -2350,7 +2350,7 @@ private[wire] object GrammarDependenciesInventory {
       "A client should not automatically replay a non-idempotent request unless it knows the semantics are idempotent or can detect that the original request was not applied.",
       "gap",
       Vector(),
-      "Imported only by RFC9113 8.7/5.4.3 reliable-delivery rules; the frozen one-connection fixture cannot observe later replay. REFUSED_STREAM and GOAWAY unprocessed guarantees remain permitted retry alternatives, not mandatory retry behavior.",
+      "Imported only by RFC9113 8.7/5.4.3 reliable-delivery rules; the one-connection fixture cannot observe later replay. REFUSED_STREAM and GOAWAY unprocessed guarantees remain permitted retry alternatives, not mandatory retry behavior.",
     ),
     Entry(
       "grammar.dep.h2-push-method-cacheability",
