@@ -286,9 +286,6 @@ class H2ConnectionSuite extends H2Suite {
   private def encode(frames: H2Frame*): ByteVector =
     frames.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
 
-  private def windowUpdates(id: Int, frames: Vector[H2Frame]): Vector[Int] =
-    frames.collect { case H2Frame.WindowUpdate(`id`, increment) => increment }
-
   private def written(h2: H2Connection[IO], writes: Ref[IO, ByteVector]): IO[Vector[H2Frame]] =
     h2.writeLoop.compile.drain.background.surround(IO.sleep(1.second)) >>
       writes.get.map(decodeFrames)
@@ -361,12 +358,6 @@ class H2ConnectionSuite extends H2Suite {
       }
     }
   }
-
-  private def goAways(frames: Vector[H2Frame]): Vector[Int] =
-    frames.collect { case g: H2Frame.GoAway => g.errorCode.toInt }
-
-  private def resets(id: Int, frames: Vector[H2Frame]): Vector[Int] =
-    frames.collect { case H2Frame.RstStream(`id`, code) => code.toInt }
 
   test("window update and rst stream for a closed stream are ignored") {
     for {

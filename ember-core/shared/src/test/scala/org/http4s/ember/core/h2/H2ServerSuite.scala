@@ -116,12 +116,8 @@ class H2ServerSuite extends H2Suite {
         val reset = frames.indexOf(H2Error.NoError.toRst(1))
         assert(reset > frames.indexWhere(ends(1)), clue(frames))
         assert(!frames.drop(reset + 1).exists(on(1)), clue(frames))
-        assertEquals(
-          frames.collect { case H2Frame.WindowUpdate(0, increment) => increment },
-          Vector(32768),
-          clue(frames),
-        )
-        assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
+        assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+        assertEquals(goAways(frames), Vector.empty, clue(frames))
       }
   }
 
@@ -140,16 +136,12 @@ class H2ServerSuite extends H2Suite {
       )
       .map { frames =>
         assertEquals(
-          frames.collect { case H2Frame.RstStream(1, code) => code.toInt },
+          resets(1, frames),
           Vector(H2Error.NoError, H2Error.StreamClosed, H2Error.StreamClosed).map(_.value),
           clue(frames),
         )
-        assertEquals(
-          frames.collect { case H2Frame.WindowUpdate(0, increment) => increment },
-          Vector(32768),
-          clue(frames),
-        )
-        assert(!frames.exists(_.isInstanceOf[H2Frame.GoAway]), clue(frames))
+        assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+        assertEquals(goAways(frames), Vector.empty, clue(frames))
         assert(frames.exists(ends(3)), clue(frames))
       }
   }
