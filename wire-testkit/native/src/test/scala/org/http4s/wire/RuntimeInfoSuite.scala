@@ -16,8 +16,8 @@
 
 package org.http4s.wire
 
-import cats.effect.IO
 import cats.effect.Deferred
+import cats.effect.IO
 import cats.effect.Ref
 import cats.effect.Resource
 import cats.syntax.all._

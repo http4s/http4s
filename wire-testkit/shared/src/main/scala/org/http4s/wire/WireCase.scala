@@ -17,8 +17,8 @@
 package org.http4s.wire
 
 import cats.ApplicativeThrow
-import cats.effect.IO
 import cats.effect.Deferred
+import cats.effect.IO
 import cats.effect.Outcome
 import cats.effect.Ref
 import cats.effect.Resource

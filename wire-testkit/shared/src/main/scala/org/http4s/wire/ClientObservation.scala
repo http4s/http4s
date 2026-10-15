@@ -16,8 +16,8 @@
 
 package org.http4s.wire
 
-import cats.effect.kernel.MonadCancelThrow
 import cats.effect.Resource
+import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 
 /** Observe the consumed result before an acquired response can manufacture a wire verdict by closing. */

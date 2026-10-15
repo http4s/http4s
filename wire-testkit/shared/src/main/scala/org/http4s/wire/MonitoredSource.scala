@@ -18,13 +18,13 @@ package org.http4s.wire
 
 import cats.effect.Async
 import cats.effect.Concurrent
-import cats.effect.Fiber
-import cats.effect.kernel.Poll
-import cats.effect.kernel.Unique
 import cats.effect.Deferred
+import cats.effect.Fiber
 import cats.effect.Outcome
 import cats.effect.Ref
 import cats.effect.Resource
+import cats.effect.kernel.Poll
+import cats.effect.kernel.Unique
 import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Chunk

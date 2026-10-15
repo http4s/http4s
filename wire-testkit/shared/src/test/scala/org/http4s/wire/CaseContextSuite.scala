@@ -26,6 +26,7 @@ import fs2.Chunk
 import fs2.Stream
 import fs2.io.net.Network
 import fs2.io.net.Socket
+
 import scala.concurrent.duration._
 
 class CaseContextSuite extends RuntimeDiagnostics.Suite {

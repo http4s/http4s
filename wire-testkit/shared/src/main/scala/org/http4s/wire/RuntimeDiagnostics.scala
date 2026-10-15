@@ -20,7 +20,6 @@ import cats.effect.IO
 import munit.CatsEffectSuite
 
 import java.util.concurrent.atomic.AtomicReference
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 

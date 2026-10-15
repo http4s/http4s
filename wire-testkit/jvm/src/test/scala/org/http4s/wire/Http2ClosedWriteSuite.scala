@@ -25,6 +25,7 @@ import fs2.Chunk
 import scodec.bits.ByteVector
 
 class Http2ClosedWriteSuite extends RuntimeDiagnostics.Suite {
+  import Http2ClosedWriteSuite.Observation
   import Http2Wire._
 
   private def nativeWriteReset: java.io.IOException =
@@ -77,8 +78,6 @@ class Http2ClosedWriteSuite extends RuntimeDiagnostics.Suite {
       }
     }
   }
-
-  private final case class Observation(run: IO[Unit], readsAfterFailure: IO[Int], writes: IO[Int])
 
   private def observation(
       verdict: ByteVector,
@@ -219,4 +218,8 @@ class Http2ClosedWriteSuite extends RuntimeDiagnostics.Suite {
         }
       } yield ()
     }
+}
+
+object Http2ClosedWriteSuite {
+  private final case class Observation(run: IO[Unit], readsAfterFailure: IO[Int], writes: IO[Int])
 }

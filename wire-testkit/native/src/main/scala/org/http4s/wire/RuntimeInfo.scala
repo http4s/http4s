@@ -18,7 +18,6 @@ package org.http4s.wire
 
 import java.io.IOException
 import java.net.SocketException
-
 import scala.scalanative.meta.LinktimeInfo
 
 object RuntimeInfo {

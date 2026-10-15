@@ -28,6 +28,7 @@ import fs2.io.net.Network
 import scodec.bits.ByteVector
 
 class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
+  import Http2CaseOracleSuite.Variant
   private val validResponseFramingVariants = Set(
     "valid",
     "fragmented",
@@ -5697,12 +5698,6 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
   // malformed stimulus, then emit independently constructed target control traffic.
   private object SmokeRejectionVariants {
     import Http2Wire._
-    final case class Variant(
-        name: String,
-        bytes: ByteVector,
-        close: Boolean = true,
-        expected: String = "pass",
-    )
     def frame(f: Frame) = encode(f)
     def go(code: Long, last: Long = 0) = frame(Frame(GoAway, 0, 0, uint32(last) ++ uint32(code)))
     def rst(code: Long = 1, stream: Int = 1) = frame(Frame(RstStream, 0, stream, uint32(code)))
@@ -5800,9 +5795,9 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
 
   // RFC 9113 Sections 6.3, 6.5.2, 6.8, and 6.9: boundary values, role-specific
   // SETTINGS, undefined flags, and the independently observable GOAWAY sequence.
-  private def smokeRejectionBoundaries(role: String): Vector[SmokeRejectionVariants.Variant] = {
+  private def smokeRejectionBoundaries(role: String): Vector[Variant] = {
     import Http2Wire._
-    import SmokeRejectionVariants.{Variant, frame, go, rst}
+    import SmokeRejectionVariants.{frame, go, rst}
     val validError = go(if (role == "server") 6L else 1L)
     val controls = Vector(
       ("enable-push-zero", settings(Vector(2 -> 0L)), true),
@@ -5892,7 +5887,7 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
 
   private def smokeWireRejectionProbe(
       role: String,
-      variant: SmokeRejectionVariants.Variant,
+      variant: Variant,
   ): IO[Unit] = {
     import Http2Wire._
     import scala.concurrent.duration._
@@ -7338,4 +7333,13 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
       ScriptedClient.ignoringUpload[IO](_ => Resource.eval(script(peer)))
     )
   }
+}
+
+object Http2CaseOracleSuite {
+  private final case class Variant(
+      name: String,
+      bytes: ByteVector,
+      close: Boolean = true,
+      expected: String = "pass",
+  )
 }

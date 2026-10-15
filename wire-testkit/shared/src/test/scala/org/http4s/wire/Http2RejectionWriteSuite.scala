@@ -16,8 +16,8 @@
 
 package org.http4s.wire
 
-import cats.effect.IO
 import cats.effect.Deferred
+import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
