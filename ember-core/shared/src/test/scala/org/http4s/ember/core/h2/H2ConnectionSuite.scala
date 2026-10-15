@@ -103,6 +103,8 @@ class H2ConnectionSuite extends H2Suite {
       input: ByteVector,
       idleTimeout: Duration,
       writes: Ref[IO, ByteVector],
+      remoteSettings: H2Frame.Settings.ConnectionSettings =
+        H2Frame.Settings.ConnectionSettings.default,
       connectionType: H2Connection.ConnectionType = H2Connection.ConnectionType.Server,
       initialConnectionWindowSize: Int =
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize.windowSize,
@@ -111,7 +113,7 @@ class H2ConnectionSuite extends H2Suite {
       socket <- stubSocket(input, writes)
       mapRef <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       stateRef <- H2Connection.initState[IO](
-        H2Frame.Settings.ConnectionSettings.default,
+        remoteSettings,
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[IO, Int](0)
@@ -271,6 +273,156 @@ class H2ConnectionSuite extends H2Suite {
       Some(H2Error.ProtocolError.value),
       clue(frames),
     )
+  }
+
+  private def data(id: Int, size: Int, padding: Option[Int] = None): H2Frame.Data =
+    H2Frame.Data(
+      id,
+      ByteVector.fill(size.toLong)(0),
+      padding.map(p => ByteVector.fill(p.toLong)(0)),
+      endStream = false,
+    )
+
+  private def encode(frames: H2Frame*): ByteVector =
+    frames.foldLeft(ByteVector.empty)(_ ++ H2Frame.toByteVector(_))
+
+  private def written(h2: H2Connection[IO], writes: Ref[IO, ByteVector]): IO[Vector[H2Frame]] =
+    h2.writeLoop.compile.drain.background.surround(IO.sleep(1.second)) >>
+      writes.get.map(decodeFrames)
+
+  test("data for a forgotten stream is reset and counts toward the connection window") {
+    TestControl.executeEmbed {
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          encode(data(1, 16384), data(1, 16384)),
+          Duration.Inf,
+          writes,
+        )
+        _ <- h2.initiateRemoteStreamById(1)
+        _ <- h2.mapRef.set(Map.empty)
+        _ <- h2.readLoop
+        frames <- written(h2, writes)
+      } yield {
+        assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+        assertEquals(resets(1, frames), Vector.fill(2)(H2Error.StreamClosed.value), clue(frames))
+        assertEquals(goAways(frames), Vector.empty, clue(frames))
+      }
+    }
+  }
+
+  test("connection window refills return exactly the bytes consumed") {
+    val remoteSettings =
+      H2Frame.Settings.ConnectionSettings.default.copy(
+        initialWindowSize = H2Frame.Settings.SettingsInitialWindowSize(1 << 20)
+      )
+
+    TestControl.executeEmbed {
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          encode(data(1, 16384), data(1, 16384)),
+          Duration.Inf,
+          writes,
+          remoteSettings,
+        )
+        stream <- h2.initiateRemoteStreamById(1)
+        _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+        _ <- h2.readLoop
+        _ <- stream.readBody.take(32768).compile.drain
+        frames <- written(h2, writes)
+      } yield assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+    }
+  }
+
+  test("padding counts toward the connection and stream flow-control windows") {
+    TestControl.executeEmbed {
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          encode(data(1, 16000, padding = Some(383)), data(1, 16000, padding = Some(383))),
+          Duration.Inf,
+          writes,
+        )
+        stream <- h2.initiateRemoteStreamById(1)
+        _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+        _ <- h2.readLoop
+        _ <- stream.readBody.take(32000).compile.drain
+        frames <- written(h2, writes)
+      } yield {
+        assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+        assertEquals(windowUpdates(1, frames), Vector(32768), clue(frames))
+      }
+    }
+  }
+
+  test("frames for a stream the client has released are ignored") {
+    TestControl.executeEmbed {
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          encode(
+            data(1, 16384),
+            data(1, 16384),
+            H2Error.NoError.toRst(1),
+            H2Frame.WindowUpdate(1, 100),
+          ),
+          Duration.Inf,
+          writes,
+          connectionType = H2Connection.ConnectionType.Client,
+        )
+        stream <- h2.initiateLocalStream
+        _ = assertEquals(stream.id, 1)
+        _ <- h2.mapRef.set(Map.empty)
+        _ <- h2.readLoop
+        frames <- written(h2, writes)
+      } yield {
+        assertEquals(goAways(frames), Vector.empty, clue(frames))
+        assertEquals(resets(1, frames), Vector.empty, clue(frames))
+        assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
+      }
+    }
+  }
+
+  test("window update for an idle stream is a connection error") {
+    for {
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.WindowUpdate(2, 1)),
+        writes,
+      )
+      _ <- h2.initiateRemoteStreamById(3)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
+  }
+
+  List[(String, H2Frame)](
+    "data" -> data(0, 10),
+    "rst stream" -> H2Error.Cancel.toRst(0),
+  ).foreach { case (name, frame) =>
+    List(H2Connection.ConnectionType.Server, H2Connection.ConnectionType.Client).foreach {
+      connectionType =>
+        test(s"$name on stream 0 is a connection error ($connectionType)") {
+          for {
+            writes <- Ref[IO].of(ByteVector.empty)
+            h2 <- mkConnection(
+              H2Frame.Settings.ConnectionSettings.default,
+              encode(frame),
+              Duration.Inf,
+              writes,
+              connectionType = connectionType,
+            )
+            _ <- h2.readLoop
+            frames <- drainOutgoing(h2, writes)
+          } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
+        }
+    }
   }
 
   test("continunation frames within maxHeaderListSize accumulate without GoAway") {

@@ -48,6 +48,15 @@ trait H2Suite extends Http4sSuite {
     go(bv, Vector.empty)
   }
 
+  protected def goAways(frames: Vector[H2Frame]): Vector[Int] =
+    frames.collect { case g: H2Frame.GoAway => g.errorCode.toInt }
+
+  protected def resets(id: Int, frames: Vector[H2Frame]): Vector[Int] =
+    frames.collect { case H2Frame.RstStream(`id`, code) => code.toInt }
+
+  protected def windowUpdates(id: Int, frames: Vector[H2Frame]): Vector[Int] =
+    frames.collect { case H2Frame.WindowUpdate(`id`, increment) => increment }
+
   protected def increaseWindowSize(h2: H2Connection[IO], size: Int): IO[Unit] =
     h2.writeWindow.add(size).void
 }
