@@ -33,7 +33,7 @@ import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 
-class H2ServerSuite extends Http4sSuite {
+class H2ServerSuite extends H2Suite {
   private def stubSocket(input: Queue[IO, Chunk[Byte]], recorded: Ref[IO, ByteVector]): Socket[IO] =
     new Socket[IO] {
       def read(maxBytes: Int): IO[Option[Chunk[Byte]]] = input.take.map(Some(_))
@@ -52,21 +52,6 @@ class H2ServerSuite extends Http4sSuite {
       def setOption[A](key: SocketOption.Key[A], value: A): IO[Unit] = ???
       def supportedOptions: IO[Set[SocketOption.Key[_]]] = ???
     }
-
-  private def decodeFrames(bv: ByteVector): Vector[H2Frame] = {
-    @annotation.tailrec
-    def go(rest: ByteVector, acc: Vector[H2Frame]): Vector[H2Frame] =
-      H2Frame.RawFrame.fromByteVector(rest) match {
-        case Some((raw, tail)) =>
-          H2Frame.fromRaw(raw) match {
-            case Right(frame) => go(tail, acc :+ frame)
-            case Left(_) => acc
-          }
-        case None => acc
-      }
-
-    go(bv, Vector.empty)
-  }
 
   private final class Client(input: Queue[IO, Chunk[Byte]], hpack: Hpack[IO]) {
     def send(frame: H2Frame): IO[Unit] =
