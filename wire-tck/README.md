@@ -7,7 +7,7 @@ implementation's codecs. The [specification baseline](baseline.md) defines the
 scope; passing the catalog establishes only the behavior exercised by its cases.
 
 Ordinary Ember runs skip the cases in
-[IgnoreRegistry.scala](../../wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala).
+[IgnoreRegistry.scala](../wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala).
 Each entry references a case and records its affected platforms and observed
 failure. Comparison runs execute every case, including those normally ignored.
 
@@ -38,7 +38,7 @@ protocol rejection. Reports and wire transcripts are written under
 
 Case definitions, ignores and specification metadata live in the Scala testkit
 sources. Requirements in
-[SpecInventory](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
+[SpecInventory](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
 reference named cases directly and record coverage gaps and exclusions.
 See the [authoring guide](authoring.md) for case structure, protocol assertions
 and resource ownership.

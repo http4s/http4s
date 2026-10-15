@@ -16,7 +16,7 @@
 
 package org.http4s.wire
 
-/** RFC Editor snapshot from 2026-10-10. See docs/wire-tck/baseline.md for provenance. */
+/** RFC Editor snapshot from 2026-10-10. See wire-tck/baseline.md for scope. */
 object SpecErrata {
   final case class Erratum(
       rfc: String,

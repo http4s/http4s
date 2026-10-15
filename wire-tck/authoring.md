@@ -20,16 +20,16 @@ produce `ProtocolFailure`; unexpected fixture errors remain infrastructure
 failures. A timeout is inconclusive, and cancellation is not successful rejection.
 
 Add the requirement to
-[SpecInventory](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
+[SpecInventory](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
 using direct references to the named cases. Mark missing observations as `gap`
 and scope boundaries as `excluded`, with an explanation. Derive the inventory
 from the RFC independently of the cases that happen to exist.
-[SpecSections](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecSections.scala)
-and [SpecErrata](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecErrata.scala)
+[SpecSections](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecSections.scala)
+and [SpecErrata](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecErrata.scala)
 record section classifications and errata decisions.
 
 Register implementation failures in
-[IgnoreRegistry](../../wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala),
+[IgnoreRegistry](../wire-testkit/shared/src/main/scala/org/http4s/wire/IgnoreRegistry.scala),
 with the affected platforms and observed behavior. Local suppression tags bypass
 that registry and are forbidden. Repair test defects in the case itself.
 

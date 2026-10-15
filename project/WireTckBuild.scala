@@ -11,7 +11,7 @@ object WireTckBuild {
     val sources = Vector("wire-testkit", "wire-tck", "wire-tck-compare")
       .flatMap(module => (root / module ** "*.scala").get)
       .filterNot(_.getPath.contains("/target/"))
-    val specification = Vector(root / "docs/wire-tck/baseline.md")
+    val specification = Vector(root / "wire-tck/baseline.md")
     (sources ++ specification :+ (root / "build.sbt") :+ (root / "project" / "WireTckBuild.scala") :+
       (root / "project" / "Http4sPlugin.scala"))
       .sortBy(_.getPath)

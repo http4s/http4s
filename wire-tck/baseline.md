@@ -14,13 +14,13 @@ request-target validation. This does not extend coverage to general method polic
 redirect handling, caching, or application retry behavior. TLS/ALPN, HTTP/3, proxy
 forwarding and optional protocol extensions are also outside the baseline.
 
-[SpecSections](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecSections.scala)
+[SpecSections](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecSections.scala)
 classifies the RFC sections, while
-[SpecInventory](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
+[SpecInventory](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecInventory.scala)
 records the individual requirements, their executable cases, and explicit gaps
 or exclusions. Those definitions determine the detailed scope; including an RFC
 section does not imply that every requirement in it has a test.
 
-[SpecErrata](../../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecErrata.scala)
+[SpecErrata](../wire-testkit/shared/src/main/scala/org/http4s/wire/SpecErrata.scala)
 records which RFC corrections are incorporated and which are excluded or pending.
 Only corrections explicitly marked as incorporated modify this baseline.

@@ -32,7 +32,3 @@ project/.gnupg
 !project/.gnupg/secret.tar.enc
 out
 .vscode/
-
-# Generated HTTP wire TCK audit and validation artifacts
-/docs/wire-tck/audit/
-/docs/wire-tck/validation/
