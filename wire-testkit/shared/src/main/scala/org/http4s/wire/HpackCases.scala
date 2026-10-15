@@ -5719,12 +5719,16 @@ object HpackCases {
       if (
         (name == "x" || name == "y") && values.size > 1 &&
         values.forall(value => value == "a" || value == "b" || value == "c")
-      )
-        Check.equal(
-          observed.map(normalizeSeparatorOws).mkString(","),
-          values.mkString(","),
+      ) {
+        val actualValue = observed.map(normalizeSeparatorOws).mkString(",")
+        val expectedValue = values.mkString(",")
+        // Bound diagnostics, not comparison: Scala.js stack parsing backtracks over
+        // long whitespace runs in exception messages when effects attach traces.
+        Check(
+          actualValue == expectedValue,
+          s"expected: $expectedValue\nobserved (${actualValue.length} characters): ${actualValue.take(256)}",
         )
-      else Check.equal(observed, values)
+      } else Check.equal(observed, values)
     }
 
   private def normalizeSeparatorOws(value: String): String = {

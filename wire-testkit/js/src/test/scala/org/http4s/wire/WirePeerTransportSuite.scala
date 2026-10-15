@@ -648,7 +648,9 @@ class WirePeerTransportSuite extends RuntimeDiagnostics.Suite {
               serverHandshake(remotePeer) *>
                 readUntil(remotePeer, fromServer = false)(_.frameType == Headers).void *>
                 remote.write(Chunk.byteVector(controls ++ suffix)) *>
-                awaitBuffered(local, 9 + (controls ++ suffix).size.toInt) *>
+                // Initial SETTINGS and the later ENABLE_PUSH=0 each produce an ACK.
+                // Wait for both ACKs plus the entire test tail before resetting.
+                awaitBuffered(local, 18 + (controls ++ suffix).size.toInt) *>
                 resetAfterBuffering(local, remote) *> reset.complete(()).void
           }
           wireCase = Http2MessageCases.all.find(_.id == "h2.server.reject-uppercase-field-name").get

@@ -35,6 +35,11 @@ object RuntimeInfo {
               if socket.getMessage == "Connection reset" ||
                 socket.getMessage == "Connection reset by peer" =>
             true
+          // Linux NIO reports ECONNRESET as a plain IOException, not SocketException.
+          case io: java.io.IOException
+              if io.getClass == classOf[java.io.IOException] &&
+                io.getMessage == "Connection reset by peer" =>
+            true
           case _ => loop(current.getCause, remaining - 1)
         }
     loop(error, 16)

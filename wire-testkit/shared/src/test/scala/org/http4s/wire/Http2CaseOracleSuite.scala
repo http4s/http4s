@@ -2712,30 +2712,35 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
           val size = math.max(0L, math.min(remaining, math.min(stream, connection)))
           if (size == 0L) IO.unit else send(size)
         }
-        def loop: IO[Unit] = readFrame(peer).flatMap { frame =>
-          frame.frameType match {
-            case Settings if !frame.hasFlag(Ack) =>
-              IO(assertEquals(frame, settings(Vector(4 -> 0L)))) *>
+        def loop: IO[Unit] = readFrameOrClose(peer).flatMap {
+          case None =>
+            budget.get.flatMap { case (_, _, remaining) =>
+              IO(assertEquals(remaining, 0L, "sender closed before completing its body"))
+            }
+          case Some(frame) =>
+            frame.frameType match {
+              case Settings if !frame.hasFlag(Ack) =>
+                IO(assertEquals(frame, settings(Vector(4 -> 0L)))) *>
+                  budget.update { case (stream, connection, remaining) =>
+                    val reduced = stream - 65535L
+                    (
+                      if (schedule == "clamped-negative") math.max(0L, reduced) else reduced,
+                      connection,
+                      remaining,
+                    )
+                  } *> writeFrame(peer, settings(ack = true)) *> loop
+              case WindowUpdate =>
+                val increment = readUint32(frame.payload) & 0x7fffffffL
                 budget.update { case (stream, connection, remaining) =>
-                  val reduced = stream - 65535L
-                  (
-                    if (schedule == "clamped-negative") math.max(0L, reduced) else reduced,
-                    connection,
-                    remaining,
-                  )
-                } *> writeFrame(peer, settings(ack = true)) *> loop
-            case WindowUpdate =>
-              val increment = readUint32(frame.payload) & 0x7fffffffL
-              budget.update { case (stream, connection, remaining) =>
-                if (frame.streamId == 0) (stream, connection + increment, remaining)
-                else (stream + increment, connection, remaining)
-              } *> flush *> loop
-            case Ping if !frame.hasFlag(Ack) =>
-              flush *> writeFrame(peer, frame.copy(flags = Ack)) *> loop
-            case Headers if role == "client" => IO.unit
-            case Settings if frame.hasFlag(Ack) => loop
-            case _ => IO.raiseError(new AssertionError(s"unexpected sender input $frame"))
-          }
+                  if (frame.streamId == 0) (stream, connection + increment, remaining)
+                  else (stream + increment, connection, remaining)
+                } *> flush *> loop
+              case Ping if !frame.hasFlag(Ack) =>
+                flush *> writeFrame(peer, frame.copy(flags = Ack)) *> loop
+              case Headers if role == "client" => IO.unit
+              case Settings if frame.hasFlag(Ack) => loop
+              case _ => IO.raiseError(new AssertionError(s"unexpected sender input $frame"))
+            }
         }
         val fields =
           if (role == "server") Vector(":status" -> "200")
@@ -2901,47 +2906,50 @@ class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
           else if (mode == "second" && stream == 1) 0L
           else 65535L,
       )
-      def loop(s: Sender): IO[Unit] = readFrame(peer).flatMap { frame =>
-        frame.frameType match {
-          case Settings if !frame.hasFlag(Ack) =>
-            writeFrame(peer, settings(ack = true)) *> loop(settingsState(s, frame))
-          case Settings => loop(s)
-          case Headers if role == "server" =>
-            writeFrame(
-              peer,
-              headers(frame.streamId, Vector(":status" -> "200"), endStream = false),
-            ) *>
-              produce(open(s, frame.streamId)).flatMap(loop)
-          case Headers => IO.unit
-          case WindowUpdate =>
-            val increment = readUint32(frame.payload) & 0x7fffffffL
-            val next =
-              if (frame.streamId == 0) s.copy(connectionCredit = s.connectionCredit + increment)
-              else if (frame.streamId == s.stream && !s.ended)
-                s.copy(streamCredit = s.streamCredit + increment)
-              else s
-            val observed = if (frame.streamId == 0) connectionGrant(increment) else IO.unit
-            // A maximum-stream test must not receive a second overflowing grant.
-            observed *> IO(
-              assert(
-                increment > 0L && next.streamCredit <= Int.MaxValue &&
-                  next.connectionCredit <= Int.MaxValue
-              )
-            ) *>
-              produce(
-                if (
-                  negative && next.reduced && !next.latePadding &&
-                  ((mode != "final" && next.streamCredit == 1L) ||
-                    (mode == "final" && next.streamCredit > 1L))
+      def loop(s: Sender): IO[Unit] = readFrameOrClose(peer).flatMap {
+        case None => IO(assert(s.ended, "sender closed before completing its body"))
+        case Some(frame) =>
+          frame.frameType match {
+            case Settings if !frame.hasFlag(Ack) =>
+              writeFrame(peer, settings(ack = true)) *> loop(settingsState(s, frame))
+            case Settings => loop(s)
+            case Headers if role == "server" =>
+              writeFrame(
+                peer,
+                headers(frame.streamId, Vector(":status" -> "200"), endStream = false),
+              ) *>
+                produce(open(s, frame.streamId)).flatMap(loop)
+            case Headers => IO.unit
+            case WindowUpdate =>
+              val increment = readUint32(frame.payload) & 0x7fffffffL
+              val next =
+                if (frame.streamId == 0) s.copy(connectionCredit = s.connectionCredit + increment)
+                else if (frame.streamId == s.stream && !s.ended)
+                  s.copy(streamCredit = s.streamCredit + increment)
+                else s
+              val observed = if (frame.streamId == 0) connectionGrant(increment) else IO.unit
+              // A maximum-stream test must not receive a second overflowing grant.
+              observed *> IO(
+                assert(
+                  increment > 0L && next.streamCredit <= Int.MaxValue &&
+                    next.connectionCredit <= Int.MaxValue
                 )
-                  next.copy(padding = 1L, latePadding = true)
-                else next
-              ).flatMap(loop)
-          case Ping if !frame.hasFlag(Ack) =>
-            writeFrame(peer, frame.copy(flags = Ack)) *> loop(s)
-          case RstStream => loop(s.copy(body = ByteVector.empty, padding = 0L, ended = true))
-          case _ => IO.raiseError(new AssertionError(s"unexpected completion sender input $frame"))
-        }
+              ) *>
+                produce(
+                  if (
+                    negative && next.reduced && !next.latePadding &&
+                    ((mode != "final" && next.streamCredit == 1L) ||
+                      (mode == "final" && next.streamCredit > 1L))
+                  )
+                    next.copy(padding = 1L, latePadding = true)
+                  else next
+                ).flatMap(loop)
+            case Ping if !frame.hasFlag(Ack) =>
+              writeFrame(peer, frame.copy(flags = Ack)) *> loop(s)
+            case RstStream => loop(s.copy(body = ByteVector.empty, padding = 0L, ended = true))
+            case _ =>
+              IO.raiseError(new AssertionError(s"unexpected completion sender input $frame"))
+          }
       }
       if (role == "server") for {
         preface <- peer.readExact(clientPreface.size.toInt)

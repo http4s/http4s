@@ -32,8 +32,9 @@ object WireTckBuild {
     // Protocol bytes and stable IDs can legitimately contain words such as ".ignore".
     // This source check screens ordinary annotations; runtime event reconciliation also
     // rejects every suppressed comparison case, including indirect suppression.
+    // Possessive repetition keeps long protocol literals from exhausting the JVM stack.
     val literalsAndComments =
-      "(?s)\"\"\".*?\"\"\"|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])'|//[^\\r\\n]*|/\\*.*?\\*/".r
+      "(?s)\"\"\".*?\"\"\"|\"(?:\\\\.|[^\"\\\\])*+\"|'(?:\\\\.|[^'\\\\])'|//[^\\r\\n]*|/\\*.*?\\*/".r
     val violations = files.filter { file =>
       val code = literalsAndComments.replaceAllIn(IO.read(file), " ")
       forbidden.findFirstIn(code).nonEmpty
