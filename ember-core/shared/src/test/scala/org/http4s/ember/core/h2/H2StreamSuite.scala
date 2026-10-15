@@ -55,16 +55,14 @@ class H2StreamSuite extends Http4sSuite {
       config: H2Frame.Settings.ConnectionSettings,
       creditConnection: Int => IO[Unit] = _ => IO.unit,
       outgoingQueue: IO[Queue[IO, H2Frame]] = Queue.unbounded[IO, H2Frame],
-      readBufferCapacity: Option[Int] = None,
+      readBufferCapacity: Int = Int.MaxValue,
   ): IO[(H2Stream[IO], Queue[IO, H2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
       resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
       trailers <- Deferred[IO, Either[Throwable, Headers]]
-      readBuffer <- readBufferCapacity.fold(
-        Channel.unbounded[IO, Either[Throwable, ByteVector]]
-      )(Channel.bounded[IO, Either[Throwable, ByteVector]](_))
+      readBuffer <- Channel.bounded[IO, Either[Throwable, ByteVector]](readBufferCapacity)
       bodyDone <- Deferred[IO, Either[Throwable, Unit]]
       readBufferLock <- Semaphore[IO](1)
 
@@ -718,7 +716,7 @@ class H2StreamSuite extends Http4sSuite {
   test("finish releases a DATA frame waiting on a full read buffer") {
     TestControl.executeEmbed {
       for {
-        sq <- streamAndQueue(defaultSettings, readBufferCapacity = Some(1))
+        sq <- streamAndQueue(defaultSettings, readBufferCapacity = 1)
         (stream, queue) = sq
         _ <- stream.receiveData(data(16384))
         waiting <- stream.receiveData(data(16384)).start
@@ -754,7 +752,7 @@ class H2StreamSuite extends Http4sSuite {
   test("rstStream doesn't wait for room in a full read buffer") {
     TestControl.executeEmbed {
       for {
-        sq <- streamAndQueue(defaultSettings, readBufferCapacity = Some(1))
+        sq <- streamAndQueue(defaultSettings, readBufferCapacity = 1)
         (stream, queue) = sq
         _ <- stream.receiveData(data(10))
         _ <- stream.rstStream(H2Error.RefusedStream)
