@@ -46,13 +46,14 @@ object RuntimeInfo {
         }
     loop(error, 16)
   }
-  // Observed native write failures; this does not change read-side reset handling.
+  // Native write failures on macOS and Linux; this does not change read-side reset handling.
   private[wire] def isClosedWrite(error: Throwable): Boolean =
     error.getCause == null && error.getSuppressed.isEmpty && (error match {
       case io: IOException =>
         io.getMessage == "errno(32) Broken pipe" ||
         (io.getClass == classOf[IOException] &&
-          io.getMessage == "errno(54) Connection reset by peer")
+          (io.getMessage == "errno(54) Connection reset by peer" ||
+            io.getMessage == "errno(104) Connection reset by peer"))
       case _ => false
     })
 

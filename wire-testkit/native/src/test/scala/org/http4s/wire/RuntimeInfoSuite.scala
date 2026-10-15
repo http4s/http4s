@@ -178,7 +178,7 @@ class RuntimeInfoSuite extends CatsEffectSuite {
   )
     test(s"Native incidental write classification requires independent rejection: $shape") {
       val error = closedWrite(shape)
-      val recognized = shape == "errno32" || shape == "errno54"
+      val recognized = shape == "errno32" || shape == "errno54" || shape == "errno104"
       assertEquals(RuntimeInfo.isClosedWrite(error), recognized)
       for {
         p <- rejectionPeer(error, goAway)
@@ -202,7 +202,8 @@ class RuntimeInfoSuite extends CatsEffectSuite {
       }
     }
 
-  for (
+  for {
+    shape <- Vector("errno54", "errno104")
     tail <- Vector(
       "eof",
       "goaway",
@@ -213,8 +214,8 @@ class RuntimeInfoSuite extends CatsEffectSuite {
       "timeout",
       "adapter",
     )
-  )
-    test(s"Native errno54 reply failure still checks the independent drain: $tail") {
+  }
+    test(s"Native $shape reply failure still checks the independent drain: $tail") {
       val readError = tail match {
         case "timeout" => new java.net.SocketTimeoutException("read deadline")
         case "adapter" => new AdapterFailure("fixture read", new IOException("fixture"))
@@ -234,7 +235,7 @@ class RuntimeInfoSuite extends CatsEffectSuite {
         case _ => goAway
       }
       for {
-        p <- rejectionPeer(closedWrite("errno54"), bytes, ending)
+        p <- rejectionPeer(closedWrite(shape), bytes, ending)
         result <- WireCodecsSuite
           .runH2ServerCase("h2.server.reject-priority-length-4", Resource.pure(p._1))
           .attempt
@@ -252,38 +253,39 @@ class RuntimeInfoSuite extends CatsEffectSuite {
       }
     }
 
-  test(
-    "Native errno54 write failure cannot complete a held-open peer and cancellation releases it"
-  ) {
-    for {
-      draining <- Deferred[IO, Unit]
-      released <- Ref.of[IO, Boolean](false)
-      completed <- Deferred[IO, Either[Throwable, Unit]]
-      p <- rejectionPeer(closedWrite("errno54"), goAway, draining.complete(()).void *> IO.never)
-      result <- WireCodecsSuite
-        .runH2ServerCase(
-          "h2.server.reject-priority-length-4",
-          Resource.make(IO.pure(p._1))(_ => released.set(true)),
-        )
-        .attempt
-        .flatMap(completed.complete)
-        .start
-        .bracket { fiber =>
-          for {
-            _ <- draining.get
-            completion <- completed.tryGet
-            before <- released.get
-            _ <- IO { assertEquals(completion, None); assertEquals(before, false) }
-            _ <- fiber.cancel
-            outcome <- fiber.join
-          } yield outcome
-        }(_.cancel)
-      after <- released.get
-      unread <- p._2
-    } yield {
-      assert(result.isCanceled)
-      assertEquals(after, true)
-      assertEquals(unread, ByteVector.empty)
+  for (shape <- Vector("errno54", "errno104"))
+    test(
+      s"Native $shape write failure cannot complete a held-open peer and cancellation releases it"
+    ) {
+      for {
+        draining <- Deferred[IO, Unit]
+        released <- Ref.of[IO, Boolean](false)
+        completed <- Deferred[IO, Either[Throwable, Unit]]
+        p <- rejectionPeer(closedWrite(shape), goAway, draining.complete(()).void *> IO.never)
+        result <- WireCodecsSuite
+          .runH2ServerCase(
+            "h2.server.reject-priority-length-4",
+            Resource.make(IO.pure(p._1))(_ => released.set(true)),
+          )
+          .attempt
+          .flatMap(completed.complete)
+          .start
+          .bracket { fiber =>
+            for {
+              _ <- draining.get
+              completion <- completed.tryGet
+              before <- released.get
+              _ <- IO { assertEquals(completion, None); assertEquals(before, false) }
+              _ <- fiber.cancel
+              outcome <- fiber.join
+            } yield outcome
+          }(_.cancel)
+        after <- released.get
+        unread <- p._2
+      } yield {
+        assert(result.isCanceled)
+        assertEquals(after, true)
+        assertEquals(unread, ByteVector.empty)
+      }
     }
-  }
 }
