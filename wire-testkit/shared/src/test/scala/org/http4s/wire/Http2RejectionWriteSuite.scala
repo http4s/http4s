@@ -22,9 +22,8 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.io.net.Network
-import munit.CatsEffectSuite
 
-class Http2RejectionWriteSuite extends CatsEffectSuite {
+class Http2RejectionWriteSuite extends RuntimeDiagnostics.Suite {
   for (fullClose <- Vector(false, true))
     test(s"transport write after peer closure: full=$fullClose") {
       for {

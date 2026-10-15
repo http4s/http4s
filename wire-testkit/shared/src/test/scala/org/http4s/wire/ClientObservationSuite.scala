@@ -21,9 +21,8 @@ import cats.effect.IO
 import cats.effect.Outcome
 import cats.effect.Ref
 import cats.effect.Resource
-import munit.CatsEffectSuite
 
-class ClientObservationSuite extends CatsEffectSuite {
+class ClientObservationSuite extends RuntimeDiagnostics.Suite {
   for (failed <- Vector(false, true))
     test(s"consumption result is observed before release: failed=$failed") {
       val failure = new RuntimeException("body")

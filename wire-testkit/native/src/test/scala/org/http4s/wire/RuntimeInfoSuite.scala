@@ -22,13 +22,12 @@ import cats.effect.Ref
 import cats.effect.Resource
 import cats.syntax.all._
 import fs2.Chunk
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 import java.io.IOException
 import java.net.SocketException
 
-class RuntimeInfoSuite extends CatsEffectSuite {
+class RuntimeInfoSuite extends RuntimeDiagnostics.Suite {
   // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]

@@ -26,10 +26,9 @@ import fs2.Chunk
 import fs2.Stream
 import fs2.io.net.Network
 import fs2.io.net.Socket
-import munit.CatsEffectSuite
 import scala.concurrent.duration._
 
-class CaseContextSuite extends CatsEffectSuite {
+class CaseContextSuite extends RuntimeDiagnostics.Suite {
   private val driver = new ClientDriver[IO] {
     def exchange(request: RequestData): Resource[IO, ResponseData[IO]] =
       Resource.eval(IO.raiseError(new UnsupportedOperationException))

@@ -23,12 +23,11 @@ import cats.effect.Resource
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Stream
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 
-class NettyTargetSuite extends CatsEffectSuite {
+class NettyTargetSuite extends RuntimeDiagnostics.Suite {
   // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]

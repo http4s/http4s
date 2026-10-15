@@ -22,10 +22,9 @@ import cats.effect.Ref
 import cats.effect.Resource
 import com.comcast.ip4s._
 import fs2.Chunk
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class Http2BufferedCompletionSuite extends CatsEffectSuite {
+class Http2BufferedCompletionSuite extends RuntimeDiagnostics.Suite {
   private sealed abstract class Closure(label: String) {
     override def toString: String = label
   }

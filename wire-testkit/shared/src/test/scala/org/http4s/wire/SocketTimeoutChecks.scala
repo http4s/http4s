@@ -22,13 +22,12 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net.Network
-import munit.CatsEffectSuite
 
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeoutException
 
-abstract class SocketTimeoutChecks extends CatsEffectSuite {
+abstract class SocketTimeoutChecks extends RuntimeDiagnostics.Suite {
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]
 

@@ -24,11 +24,10 @@ import cats.effect.Resource
 import cats.syntax.all._
 import fs2.CompositeFailure
 import fs2.Stream
-import munit.CatsEffectSuite
 
 import scala.concurrent.duration._
 
-class MonitoredSourceSuite extends CatsEffectSuite {
+class MonitoredSourceSuite extends RuntimeDiagnostics.Suite {
   override val munitIOTimeout: Duration = 20.seconds
 
   test("source ownership preserves demand and successful truncation exit cases") {

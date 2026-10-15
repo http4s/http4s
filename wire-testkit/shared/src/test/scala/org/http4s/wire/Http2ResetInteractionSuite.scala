@@ -17,10 +17,9 @@
 package org.http4s.wire
 
 import cats.effect.IO
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class Http2ResetInteractionSuite extends CatsEffectSuite {
+class Http2ResetInteractionSuite extends RuntimeDiagnostics.Suite {
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]
 

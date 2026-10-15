@@ -25,10 +25,9 @@ import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Stream
 import fs2.io.net.Network
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class Http2CaseOracleSuite extends CatsEffectSuite {
+class Http2CaseOracleSuite extends RuntimeDiagnostics.Suite {
   private val validResponseFramingVariants = Set(
     "valid",
     "fragmented",

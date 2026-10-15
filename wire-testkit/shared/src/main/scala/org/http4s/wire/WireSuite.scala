@@ -19,7 +19,6 @@ package org.http4s.wire
 import cats.effect.IO
 import cats.effect.Resource
 import cats.syntax.all._
-import munit.CatsEffectSuite
 import munit.Location
 import munit.TestOptions
 
@@ -31,7 +30,7 @@ abstract class WireSuite(
     protocol: Protocol,
     role: Role,
     comparison: Boolean,
-) extends CatsEffectSuite {
+) extends RuntimeDiagnostics.Suite {
   override final def munitFlakyOK: Boolean = false
   override final def munitIOTimeout: Duration = 15.seconds
 

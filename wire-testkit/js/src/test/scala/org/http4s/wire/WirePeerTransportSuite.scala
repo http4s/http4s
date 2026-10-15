@@ -23,13 +23,12 @@ import cats.effect.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 import scala.scalajs.js
 
-class WirePeerTransportSuite extends CatsEffectSuite {
+class WirePeerTransportSuite extends RuntimeDiagnostics.Suite {
 
   import WirePeerTransport._
 

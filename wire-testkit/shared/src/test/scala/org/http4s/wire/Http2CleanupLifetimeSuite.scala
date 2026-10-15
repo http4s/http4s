@@ -17,9 +17,8 @@
 package org.http4s.wire
 
 import cats.effect.testkit.TestControl
-import munit.CatsEffectSuite
 
-class Http2CleanupLifetimeSuite extends CatsEffectSuite {
+class Http2CleanupLifetimeSuite extends RuntimeDiagnostics.Suite {
   import Http2CleanupFixture._
 
   // All 109 acquired-response callers: cleanup EOF is not a protocol rejection.

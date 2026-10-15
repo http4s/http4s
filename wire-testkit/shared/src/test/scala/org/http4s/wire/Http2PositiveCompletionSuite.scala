@@ -24,7 +24,6 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Stream
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 private object Http2PositiveCompletionFixture {
@@ -58,7 +57,7 @@ private object Http2PositiveCompletionFixture {
   )
 }
 
-class Http2PositiveCompletionSuite extends CatsEffectSuite {
+class Http2PositiveCompletionSuite extends RuntimeDiagnostics.Suite {
 
   import Http2PositiveCompletionFixture._
 

@@ -21,12 +21,11 @@ import cats.effect.IO
 import cats.effect.Outcome
 import cats.effect.Resource
 import com.comcast.ip4s._
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 
-class OracleChallengeSuite extends CatsEffectSuite {
+class OracleChallengeSuite extends RuntimeDiagnostics.Suite {
   // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]

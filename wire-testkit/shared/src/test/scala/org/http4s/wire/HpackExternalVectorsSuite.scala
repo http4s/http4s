@@ -18,7 +18,6 @@ package org.http4s.wire
 
 import cats.effect.IO
 import cats.syntax.all._
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
 /** External decoder vectors, independent of this implementation and the RFC example sequences.
@@ -31,7 +30,7 @@ import scodec.bits.ByteVector
   * The corpus includes historical HTTP fields: these tests validate HPACK octets, not HTTP semantics.
   * Fixtures are embedded so the identical data runs on JVM, JavaScript, and Native.
   */
-class HpackExternalVectorsSuite extends CatsEffectSuite {
+class HpackExternalVectorsSuite extends RuntimeDiagnostics.Suite {
   private def verify(fixtures: Vector[(String, Vector[(String, String)])]): IO[Unit] =
     HpackWire.decoder[IO]().flatMap { decoder =>
       fixtures.zipWithIndex.traverse_ { case ((wire, expected), index) =>

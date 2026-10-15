@@ -22,10 +22,9 @@ import cats.effect.Ref
 import cats.effect.Resource
 import com.comcast.ip4s._
 import fs2.Chunk
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class Http2ClosedWriteSuite extends CatsEffectSuite {
+class Http2ClosedWriteSuite extends RuntimeDiagnostics.Suite {
   import Http2Wire._
 
   private def nativeWriteReset: java.io.IOException =

@@ -24,10 +24,9 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Stream
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class Http2PositiveObservationSuite extends CatsEffectSuite {
+class Http2PositiveObservationSuite extends RuntimeDiagnostics.Suite {
   // Scripted peers intentionally emit invalid traffic; conformance cases supply their own scope.
   implicit private def codecSettings[F[_]: cats.ApplicativeThrow]: Http2PeerSettings[F] =
     Http2PeerSettings.untracked[F]

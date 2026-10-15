@@ -18,10 +18,9 @@ package org.http4s.wire
 
 import cats.effect.IO
 import cats.syntax.all._
-import munit.CatsEffectSuite
 import scodec.bits.ByteVector
 
-class HpackWireSuite extends CatsEffectSuite {
+class HpackWireSuite extends RuntimeDiagnostics.Suite {
   private def hex(value: String): ByteVector = ByteVector.fromValidHex(value)
 
   test("RFC 7541 C.1 integer encodings") {
