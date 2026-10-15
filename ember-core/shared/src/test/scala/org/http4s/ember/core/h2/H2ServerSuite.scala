@@ -146,7 +146,7 @@ class H2ServerSuite extends H2Suite {
       }
   }
 
-  test("a slow response that ignores a full request buffer keeps the connection usable") {
+  test("a slow response that ignores the request body does not stall the connection") {
     TestControl
       .executeEmbed(
         for {
