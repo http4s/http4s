@@ -272,7 +272,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
           case Some((chunk, next)) =>
             ApplicativeThrow[Pull[F, WebSocketFrame, *]]
               .catchNonFatal { // `bufferToFrame` might throw
-                val size = filled + chunk.size
+                val size = Math.addExact(filled, chunk.size)
                 val buffer =
                   if (size <= acc.length) acc
                   else {
