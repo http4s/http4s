@@ -28,6 +28,7 @@ import fs2.Stream
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.io.net.SocketOption
+import org.typelevel.ci._
 import org.typelevel.log4cats.noop.NoOpFactory
 import scodec.bits.ByteVector
 
@@ -386,6 +387,38 @@ class H2ConnectionSuite extends H2Suite {
         assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
       }
     }
+  }
+
+  test("headers for a stream the client has released are decoded and ignored") {
+    val response = NonEmptyList.of((":status", "200", false), ("x-late", "value", false))
+    for {
+      encoder <- Hpack.create[IO](4096)
+      late <- encoder.encodeHeaders(response)
+      continued <- encoder.encodeHeaders(response)
+      live <- encoder.encodeHeaders(response)
+      (first, rest) = continued.splitAt(1)
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(
+          H2Frame.Headers(1, None, endStream = false, endHeaders = true, late, None),
+          H2Frame.Headers(1, None, endStream = false, endHeaders = false, first, None),
+          H2Frame.Continuation(1, endHeaders = true, rest),
+          H2Frame.Headers(3, None, endStream = true, endHeaders = true, live, None),
+        ),
+        Duration.Inf,
+        writes,
+        connectionType = H2Connection.ConnectionType.Client,
+      )
+      released <- h2.initiateLocalStream
+      _ = assertEquals(released.id, 1)
+      stream <- h2.initiateLocalStream
+      _ <- h2.mapRef.update(_ - released.id)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+      _ = assertEquals(frames.collect { case g: H2Frame.GoAway => g }, Vector.empty, clue(frames))
+      resp <- stream.getResponse.timeout(1.second)
+    } yield assertEquals(resp.headers.get(ci"x-late").map(_.head.value), Some("value"))
   }
 
   test("window update for an idle stream is a connection error") {
