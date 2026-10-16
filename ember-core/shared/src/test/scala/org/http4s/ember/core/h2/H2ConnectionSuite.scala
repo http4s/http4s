@@ -404,6 +404,7 @@ class H2ConnectionSuite extends H2Suite {
           H2Frame.Headers(1, None, endStream = false, endHeaders = true, late, None),
           H2Frame.Headers(1, None, endStream = false, endHeaders = false, first, None),
           H2Frame.Continuation(1, endHeaders = true, rest),
+          H2Frame.Headers(1, None, endStream = true, endHeaders = true, ByteVector.empty, None),
           H2Frame.Headers(3, None, endStream = true, endHeaders = true, live, None),
         ),
         Duration.Inf,

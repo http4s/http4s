@@ -99,9 +99,7 @@ private[h2] class H2Connection[F[_]](
     connectionType match {
       case H2Connection.ConnectionType.Client =>
         logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
-          hpack.decodeHeaders(block).void.onError { case e =>
-            logger.debug(e)("Issue in headers") >> goAway(H2Error.CompressionError)
-          }
+          H2Stream.discardHeaders(hpack, block, goAway, logger)
       case H2Connection.ConnectionType.Server =>
         logger.debug(
           s"$addrStr Received Headers for Closed Stream $id - Closing Connection"

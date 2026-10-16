@@ -102,7 +102,7 @@ class H2ReviewSuite extends Http4sSuite {
         client.expect[String](req).race(client.expect[String](req)),
         client.expect[String](req),
       ).parTupled.void
-      Stream.repeatEval(program).take(10).compile.drain
+      Stream.repeatEval(program).take(10).compile.drain.timeout(8.seconds)
     }
   }
 }
