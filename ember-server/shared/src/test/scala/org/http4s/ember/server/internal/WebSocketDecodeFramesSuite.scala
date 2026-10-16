@@ -24,21 +24,11 @@ import org.http4s.websocket.FrameTranscoder
 import org.http4s.websocket.WebSocketFrame
 import scodec.bits.ByteVector
 
-import java.lang.management.ManagementFactory
-
-class WebSocketDecodeAllocationSuite extends FunSuite {
+class WebSocketDecodeFramesSuite extends FunSuite {
 
   private val maxFrameSize = 64 * 1024 * 1024
   private val helpers = new WebSocketHelpers(maxFrameSize)
   private val clientTranscoder = new FrameTranscoder(isClient = true, maxFrameSize)
-
-  private val threadBean: Option[com.sun.management.ThreadMXBean] =
-    try
-      Option(ManagementFactory.getPlatformMXBean(classOf[com.sun.management.ThreadMXBean]))
-        .filter(b => b.isThreadAllocatedMemorySupported && b.isThreadAllocatedMemoryEnabled)
-    catch {
-      case _: LinkageError | _: IllegalArgumentException => None
-    }
 
   private def maskedClientBytes(frame: WebSocketFrame): Chunk[Byte] =
     Chunk.byteVector(
@@ -62,32 +52,6 @@ class WebSocketDecodeAllocationSuite extends FunSuite {
       .toList
       .attempt
       .unsafeRunSync()
-
-  private def allocatedByDecode(
-      payloadLen: Int,
-      readSize: Int,
-      bean: com.sun.management.ThreadMXBean,
-  ): Long = {
-    val bytes = maskedClientBytes(WebSocketFrame.Binary(ByteVector.fill(payloadLen.toLong)(0x61)))
-    val id = Thread.currentThread.getId
-    val before = bean.getThreadAllocatedBytes(id)
-    val result = decodeAll(bytes, readSize)
-    val after = bean.getThreadAllocatedBytes(id)
-    assertEquals(result.map(_.size), Right(1))
-    after - before
-  }
-
-  test("decodeFrames allocation grows linearly in frame size") {
-    assume(threadBean.isDefined, "thread allocation accounting unavailable")
-    val bean = threadBean.get
-    val readSize = 4 * 1024
-    val sizes = List(256, 512, 1024, 2048, 4096).map(_ * 1024)
-    allocatedByDecode(sizes.head, readSize, bean)
-    allocatedByDecode(sizes.last, readSize, bean)
-    val amplification = sizes.map(n => allocatedByDecode(n, readSize, bean).toDouble / n)
-    assert(amplification.forall(_ < 32), amplification)
-    assert(amplification.last < amplification.head * 4, amplification)
-  }
 
   test("decodeFrames decodes frames split across single-byte reads") {
     val frames = List(

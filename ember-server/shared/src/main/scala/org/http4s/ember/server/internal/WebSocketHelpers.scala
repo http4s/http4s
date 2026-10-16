@@ -112,6 +112,8 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
     }
   }
 
+  // Max frame size plus the largest header (2 + 8 extended length + 4 mask key),
+  // capped below Int.MaxValue since JVMs reserve a few header words for arrays.
   private[this] val maxFrameLength = math.min(maxFrameSize.toLong + 14, Int.MaxValue - 8L)
 
   private[this] val nonClientTranscoder =
@@ -273,11 +275,13 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
                 val size = filled + chunk.size
                 val buffer =
                   if (size <= acc.length) acc
-                  else
-                    java.util.Arrays.copyOf(
-                      acc,
-                      math.max(size.toLong, math.min(acc.length * 2L, maxFrameLength)).toInt,
-                    )
+                  else {
+                    // Double the buffer for amortized linear copying, capped at the
+                    // largest possible frame, but never smaller than what we need now.
+                    val newCapacity =
+                      math.max(size.toLong, math.min(acc.length * 2L, maxFrameLength)).toInt
+                    java.util.Arrays.copyOf(acc, newCapacity)
+                  }
                 chunk.copyToArray(buffer, filled)
                 // A single chunk might contain multiple frames
                 // but `bufferToFrame` decodes at most one, so we
