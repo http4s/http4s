@@ -96,16 +96,8 @@ private[h2] class H2Connection[F[_]](
   }
 
   private[this] def receiveHeadersForClosedStream(id: Int, block: ByteVector): F[Unit] =
-    connectionType match {
-      case H2Connection.ConnectionType.Client =>
-        logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
-          H2Stream.discardHeaders(hpack, block, goAway, logger)
-      case H2Connection.ConnectionType.Server =>
-        logger.debug(
-          s"$addrStr Received Headers for Closed Stream $id - Closing Connection"
-        ) >>
-          goAway(H2Error.ProtocolError)
-    }
+    logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
+      H2Stream.discardHeaders(hpack, block, goAway, logger)
 
   // An unauthenticated peer can open streams without limit.  The 4x
   // gives us slack to reap the closed streams in a graceful fashion,

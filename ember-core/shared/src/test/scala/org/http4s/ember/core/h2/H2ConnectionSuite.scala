@@ -422,6 +422,25 @@ class H2ConnectionSuite extends H2Suite {
     } yield assertEquals(resp.headers.get(ci"x-late").map(_.head.value), Some("value"))
   }
 
+  test("headers for a stream the server has released are decoded and ignored") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      trailers <- encoder.encodeHeaders(NonEmptyList.of(("x-trailer", "value", false)))
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        H2Frame.toByteVector(
+          H2Frame.Headers(1, None, endStream = true, endHeaders = true, trailers, None)
+        ),
+        writes,
+      )
+      _ <- h2.initiateRemoteStreamById(1)
+      _ <- h2.mapRef.set(Map.empty)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(frames.collect { case g: H2Frame.GoAway => g }, Vector.empty, clue(frames))
+  }
+
   test("window update for an idle stream is a connection error") {
     for {
       writes <- Ref[IO].of(ByteVector.empty)
