@@ -92,8 +92,7 @@ private[internal] final class PerMessageDeflate(
 
   private def inflate(frame: WebSocketFrame): WebSocketFrame = {
     inflating = !frame.last
-    val data = if (frame.last) frame.data ++ Tail else frame.data
-    val out = codec.inflate(data, maxMessageSize - inflatedBytes)
+    val out = codec.inflate(frame.data, frame.last, maxMessageSize - inflatedBytes)
     inflatedBytes += out.length.toInt
     if (frame.last && params.clientNoContextTakeover) codec.resetInflater()
     withData(frame, out)
@@ -117,8 +116,11 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
     /** Frees the compressor, so the next message starts with an empty window. */
     def endDeflater(): Unit
 
-    /** Decompresses `data`, failing if the output exceeds `maxSize` bytes. */
-    def inflate(data: ByteVector, maxSize: Int): ByteVector
+    /** Decompresses one frame of a message, failing if the output exceeds `maxSize` bytes.
+      * `last` ends the message with the flush tail of RFC 7692 section 7.2.2. A message may hold
+      * at most 8 final DEFLATE blocks.
+      */
+    def inflate(data: ByteVector, last: Boolean, maxSize: Int): ByteVector
 
     /** Empties the decompressor's window, keeping it allocated. */
     def resetInflater(): Unit
@@ -150,7 +152,7 @@ private[internal] object PerMessageDeflate extends PerMessageDeflatePlatform {
   private val ClientMaxWindowBits = "client_max_window_bits"
 
   private val Rsv1 = 0x40
-  private val Tail = ByteVector(0x00, 0x00, 0xff, 0xff)
+  private[internal] val Tail = ByteVector(0x00, 0x00, 0xff, 0xff)
   private val EmptyBlock = ByteVector(0x00)
 
   def rsv1(buffer: ByteBuffer): Boolean = (buffer.get(0) & Rsv1) != 0

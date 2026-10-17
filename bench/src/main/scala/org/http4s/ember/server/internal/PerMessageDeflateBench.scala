@@ -21,11 +21,11 @@ import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
-import io.netty.handler.codec.http.websocketx.{WebSocketFrame => NettyFrame}
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketExtension
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketExtensionData
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtension
 import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker
+import io.netty.handler.codec.http.websocketx.{WebSocketFrame => NettyFrame}
 import org.http4s.websocket.FrameTranscoder
 import org.http4s.websocket.WebSocketFrame
 import org.openjdk.jmh.annotations._

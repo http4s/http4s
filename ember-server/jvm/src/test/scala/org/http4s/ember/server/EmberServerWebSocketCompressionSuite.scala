@@ -19,8 +19,8 @@ package org.http4s.ember.server
 import cats.effect.IO
 import cats.effect.Resource
 import com.comcast.ip4s._
-import org.http4s.HttpRoutes
 import org.http4s.Http4sSuite
+import org.http4s.HttpRoutes
 import org.http4s.server.Server
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
