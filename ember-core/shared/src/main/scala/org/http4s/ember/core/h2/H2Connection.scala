@@ -95,6 +95,10 @@ private[h2] class H2Connection[F[_]](
     id > 0 && (if (remoteParity) id <= st.remoteHighestStream else id <= st.highestStream)
   }
 
+  private[this] def receiveHeadersForClosedStream(id: Int, block: ByteVector): F[Unit] =
+    logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
+      H2Stream.discardHeaders(hpack, block, goAway, logger)
+
   // An unauthenticated peer can open streams without limit.  The 4x
   // gives us slack to reap the closed streams in a graceful fashion,
   // while giving a hard upper bound to protect the server or client
@@ -437,10 +441,7 @@ private[h2] class H2Connection[F[_]](
                   case Some(s) =>
                     s.receiveHeaders(headers)
                   case None if isClosedStream(id, s) =>
-                    logger.debug(
-                      s"$addrStr Received Headers for Closed Stream $id - Closing Connection"
-                    ) >>
-                      goAway(H2Error.ProtocolError)
+                    receiveHeadersForClosedStream(id, headers.headerBlock)
                   case None =>
                     streamCreateAndHeaders.use(_ =>
                       for {
@@ -535,10 +536,7 @@ private[h2] class H2Connection[F[_]](
             case Some(s) =>
               s.receiveHeaders(h)
             case None if isClosedStream(i, s) =>
-              logger.debug(
-                s"$addrStr Received Headers for Closed Stream $i - Closing Connection"
-              ) >>
-                goAway(H2Error.ProtocolError)
+              receiveHeadersForClosedStream(i, h.headerBlock)
             case None =>
               val isValidToCreate = connectionType match {
                 case H2Connection.ConnectionType.Server => i % 2 != 0

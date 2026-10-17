@@ -82,4 +82,27 @@ class H2ReviewSuite extends Http4sSuite {
       exchange(app, Stream.emits(Array.fill[Byte](size)(0)), size.toString, 500.millis)
     }
   }
+
+  test("cancelling a request does not fail concurrent requests on the connection") {
+    val app = HttpApp[IO](_ => Response[IO](Status.Ok).pure[IO])
+    val server = EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"127.0.0.1")
+      .withPort(port"0")
+      .withHttp2
+      .withHttpApp(app)
+      .build
+    val client = EmberClientBuilder.default[IO].withHttp2.build
+    (server, client).tupled.use { case (server, client) =>
+      val uri = Uri.unsafeFromString(s"http://127.0.0.1:${server.addressIp4s.port.value}/")
+      val req = Request[IO](Method.POST, uri)
+        .withEntity("Somebody")
+        .withAttribute(Http2PriorKnowledge, ())
+      val program = (
+        client.expect[String](req).race(client.expect[String](req)),
+        client.expect[String](req),
+      ).parTupled.void
+      Stream.repeatEval(program).take(10).compile.drain.timeout(8.seconds)
+    }
+  }
 }
