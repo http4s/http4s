@@ -159,6 +159,42 @@ class H2ConnectionSuite extends H2Suite {
     H2Frame.Settings.ConnectionSettings.default
       .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderListSize)))
 
+  test("initial window SETTINGS waits for an in-flight stream creation") {
+    TestControl.executeEmbed(
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          H2Frame.toByteVector(
+            H2Frame.Settings.ConnectionSettings.toSettings(
+              H2Frame.Settings.ConnectionSettings.default.copy(
+                initialWindowSize = H2Frame.Settings.SettingsInitialWindowSize(0)
+              )
+            )
+          ),
+          Duration.Inf,
+          writes,
+          connectionType = H2Connection.ConnectionType.Client,
+        )
+        started <- Deferred[IO, Unit]
+        stream <- (started.get >> h2.readLoop).background.use { _ =>
+          h2.streamCreateAndHeaders
+            .use { _ =>
+              for {
+                _ <- started.complete(())
+                _ <- IO.sleep(1.second)
+                ack <- h2.settingsAck.tryGet
+                _ <- IO(assertEquals(ack, None))
+                stream <- h2.initiateLocalStream
+              } yield stream
+            }
+            .flatTap(_ => h2.settingsAck.get)
+        }
+        state <- stream.state.get
+      } yield assertEquals(state.writeWindow, 0)
+    )
+  }
+
   test("unread DATA does not block a subsequent connection WINDOW_UPDATE") {
     val data = H2Frame.toByteVector(H2Frame.Data(1, ByteVector(1.toByte), None, endStream = false))
     val input = ByteVector.concat(List.fill(200)(data)) ++
@@ -498,6 +534,53 @@ class H2ConnectionSuite extends H2Suite {
         clue(frames),
       )
     } yield ()
+  }
+
+  test("connection window update accepts the maximum and wakes blocked writes") {
+    val settings = H2Frame.Settings.ConnectionSettings.default
+    for {
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        settings,
+        H2Frame.toByteVector(H2Frame.WindowUpdate(0, Int.MaxValue)),
+        Duration.Inf,
+        writes,
+        initialConnectionWindowSize = 0,
+      )
+      taken <- h2.writeWindow.take(Int.MaxValue).background.use { waiting =>
+        IO.cede >> h2.readLoop >> waiting.flatMap(_.embedNever)
+      }
+      available <- h2.writeWindow.available
+      frames <- drainOutgoing(h2, writes)
+    } yield {
+      assertEquals(taken, Int.MaxValue)
+      assertEquals(available, 0)
+      assertEquals(frames, Vector.empty)
+    }
+  }
+
+  test("connection window overflow does not stall queued DATA before GOAWAY") {
+    TestControl.executeEmbed(
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          H2Frame.toByteVector(H2Frame.WindowUpdate(0, Int.MaxValue)),
+          1.second,
+          writes,
+          connectionType = H2Connection.ConnectionType.Client,
+        )
+        // Queue empty final DATA ahead of the GOAWAY rejecting the overflow.
+        _ <- h2.offerFrame(H2Frame.Data(1, ByteVector.empty, None, endStream = true))
+        _ <- h2.readLoop
+        _ <- h2.writeLoop.compile.drain.background.use(_ => IO.sleep(100.millis))
+        frames <- writes.get.map(decodeFrames)
+      } yield assertEquals(
+        frames.collect { case g: H2Frame.GoAway => g.errorCode.toInt },
+        Vector(H2Error.FlowControlError.value),
+        clue(frames),
+      )
+    )
   }
 
   test("connection write stall past idleTimeout emits GoAway and closes") {
