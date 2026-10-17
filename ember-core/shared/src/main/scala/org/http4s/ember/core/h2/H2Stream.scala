@@ -462,7 +462,7 @@ private[h2] class H2Stream[F[_]: Temporal](
       else
         (
           s.copy(state = StreamState.Closed, remoteReset = s.remoteReset || remoteReset),
-          Temporal[F].guarantee(cancelBody(s, message), onClosed).as(true),
+          cancelBody(s, message) *> onClosed.as(true),
         )
     }
 
