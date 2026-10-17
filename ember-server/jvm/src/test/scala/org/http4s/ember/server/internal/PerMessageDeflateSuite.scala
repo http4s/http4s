@@ -26,6 +26,8 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scodec.bits._
 
+import java.util.zip.Deflater
+
 class PerMessageDeflateSuite extends Http4sSuite {
   import PerMessageDeflate.Params
 
@@ -61,6 +63,19 @@ class PerMessageDeflateSuite extends Http4sSuite {
     withDeflate() { deflate =>
       frames.map { case (frame, rsv1) => deflate.decode(frame, rsv1).data }.reduce(_ ++ _)
     }
+
+  private def rawDeflate(data: String, dictionary: String, finish: Boolean): ByteVector = {
+    val deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
+    try {
+      if (dictionary.nonEmpty) deflater.setDictionary(dictionary.getBytes)
+      deflater.setInput(data.getBytes)
+      if (finish) deflater.finish()
+      val buffer = new Array[Byte](1024)
+      val flush = if (finish) Deflater.NO_FLUSH else Deflater.SYNC_FLUSH
+      val n = deflater.deflate(buffer, 0, buffer.length, flush)
+      ByteVector(buffer, 0, n)
+    } finally deflater.end()
+  }
 
   test("accept the offer browsers send") {
     assertEquals(
@@ -173,11 +188,30 @@ class PerMessageDeflateSuite extends Http4sSuite {
     }
   }
 
-  test("reject frames with too many final blocks") {
+  test("keep the window across final blocks, within and across messages") {
+    val first = rawDeflate("Hello", "", finish = true)
+    val reference = rawDeflate("Hello", "Hello", finish = false).dropRight(4)
     withDeflate() { deflate =>
-      val finalBlocks = ByteVector.concat(List.fill(100)(hex"0300"))
-      intercept[ProtocolException](deflate.decode(Binary(finalBlocks), rsv1 = true))
+      assertEquals(deflate.decode(Text(first ++ reference, true), rsv1 = true), Text("HelloHello"))
+      assertEquals(deflate.decode(Text(reference, true), rsv1 = true), Text("Hello"))
     }
+  }
+
+  test("skip only the flush tail appended at the end of a message") {
+    val data = ByteVector.fill(0xff00)(1)
+    val head = rawDeflate("He", "", finish = true) ++ hex"0000ffff"
+    val rest = hex"00" ++ data ++ hex"00"
+    val expected = ByteVector("He".getBytes) ++ data
+    assertEquals(decode(Binary(head ++ rest) -> true), expected)
+    assertEquals(decode(Binary(head, false) -> true, Continuation(rest, true) -> false), expected)
+  }
+
+  test("limit final blocks per message, regardless of fragmentation") {
+    def finalBlocks(n: Int) = ByteVector.concat(List.fill(n)(hex"0300"))
+    assertEquals(decode(Binary(finalBlocks(8)) -> true), ByteVector.empty)
+    intercept[ProtocolException](
+      decode(Binary(finalBlocks(5), false) -> true, Continuation(finalBlocks(4), true) -> false)
+    )
   }
 
   test("reject invalid compressed data") {
