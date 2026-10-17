@@ -455,33 +455,30 @@ private[h2] class H2Stream[F[_]: Temporal](
       state.get.flatMap(s => bodyDone.complete(Either.unit) >> discardBody(s))
     } >> rstStream(error)
 
-  private def closeOnce(
-      remoteReset: Boolean
-  )(onClose: (Poll[F], H2Stream.State[F]) => F[Unit]): F[Unit] =
-    state.flatModifyFull { case (poll, s) =>
+  private def closeOnce(message: String, remoteReset: Boolean): F[Boolean] =
+    state.flatModify { s =>
       if (s.state == StreamState.Closed)
-        (if (remoteReset) s.copy(remoteReset = true) else s, Applicative[F].unit)
+        (if (remoteReset) s.copy(remoteReset = true) else s, false.pure[F])
       else
         (
           s.copy(state = StreamState.Closed, remoteReset = s.remoteReset || remoteReset),
-          Temporal[F].guarantee(onClose(poll, s), onClosed),
+          Temporal[F].guarantee(cancelBody(s, message), onClosed).as(true),
         )
     }
 
   def rstStream(error: H2Error): F[Unit] = {
     val rst = error.toRst(id)
-    closeOnce(remoteReset = false) { (poll, s) =>
-      cancelBody(s, s"Sending RstStream, cancelling: $rst") >> poll(enqueue(rst))
-    }
+    closeOnce(s"Sending RstStream, cancelling: $rst", remoteReset = false)
+      .ifM(enqueue(rst), Applicative[F].unit)
   }
 
   // Broadcast Frame
   // Will eventually allow us to know we can retry if we are above the processed window declared
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] =
-    closeOnce(remoteReset = false)((_, s) => cancelBody(s, s"Received GoAway, cancelling: $goAway"))
+    closeOnce(s"Received GoAway, cancelling: $goAway", remoteReset = false).void
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] =
-    closeOnce(remoteReset = true)((_, s) => cancelBody(s, s"Received RstStream, cancelling: $rst"))
+    closeOnce(s"Received RstStream, cancelling: $rst", remoteReset = true).void
 
   // Important for telling folks we can send more data
   def receiveWindowUpdate(window: H2Frame.WindowUpdate): F[Unit] = for {
