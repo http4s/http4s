@@ -37,6 +37,7 @@ import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.SelfAwareLogger
@@ -78,6 +79,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       maxWebSocketFrameSize: Int,
+      webSocketCompression: Boolean,
   )(implicit F: Async[F], F2: Network[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -111,7 +113,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
-      new WebSocketHelpers(maxWebSocketFrameSize),
+      new WebSocketHelpers(maxWebSocketFrameSize, webSocketCompression),
     )
   }
 
@@ -139,6 +141,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       maxWebSocketFrameSize: Int,
+      webSocketCompression: Boolean,
   ): Stream[F, Nothing] = {
     val server =
       Stream
@@ -180,7 +183,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
-      new WebSocketHelpers(maxWebSocketFrameSize),
+      new WebSocketHelpers(maxWebSocketFrameSize, webSocketCompression),
     )
   }
 
@@ -518,6 +521,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         socket,
                         req,
                         ctx,
+                        resp.attributes.lookup(WebSocketBuilder2.CompressionDisabled).isEmpty,
                         buffer,
                         receiveBufferSize,
                         idleTimeout,
