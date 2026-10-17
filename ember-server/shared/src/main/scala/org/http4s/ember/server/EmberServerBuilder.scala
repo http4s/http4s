@@ -253,6 +253,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   /** Enables the `permessage-deflate` WebSocket extension (RFC 7692) on the JVM,
     * when the client offers it. Decompressed messages are limited by `maxWebSocketMessageSize`.
+    * A route can decline it with `WebSocketBuilder2.withCompression(false)`.
     */
   def withWebSocketCompression: EmberServerBuilder[F] = copy(webSocketCompression = true)
   def withoutWebSocketCompression: EmberServerBuilder[F] = copy(webSocketCompression = false)

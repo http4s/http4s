@@ -53,6 +53,9 @@ import scala.concurrent.duration.FiniteDuration
   * @param heartbeat If `Some`, send a `Ping` frame at the given interval and close the connection
   *                  when the client does not answer it with a `Pong` in time.
   *                  default: None
+  * @param compression If `false`, this route declines WebSocket compression even when the server
+  *                    enables it. Currently only Ember compresses.
+  *                    default: true
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
