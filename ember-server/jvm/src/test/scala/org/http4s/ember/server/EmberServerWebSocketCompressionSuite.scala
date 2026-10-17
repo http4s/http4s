@@ -20,6 +20,7 @@ import cats.effect.IO
 import cats.effect.Resource
 import com.comcast.ip4s._
 import org.http4s.HttpRoutes
+import org.http4s.dsl.io._
 import org.http4s.Http4sSuite
 import org.http4s.server.Server
 import org.java_websocket.client.WebSocketClient
@@ -38,16 +39,27 @@ class EmberServerWebSocketCompressionSuite extends Http4sSuite {
     val builder = EmberServerBuilder
       .default[IO]
       .withPort(port"0")
-      .withHttpWebSocketApp(ws => HttpRoutes.of[IO] { case _ => ws.build(identity) }.orNotFound)
+      .withHttpWebSocketApp { ws =>
+        HttpRoutes
+          .of[IO] {
+            case GET -> Root / "uncompressed" => ws.withCompression(false).build(identity)
+            case _ => ws.build(identity)
+          }
+          .orNotFound
+      }
     (if (compression) builder.withWebSocketCompression else builder).build
   }
 
-  private def echo(server: Server, messages: List[String]): IO[(String, List[String])] =
+  private def echo(
+      server: Server,
+      messages: List[String],
+      path: String = "",
+  ): IO[(String, List[String])] =
     IO.blocking {
       val extensions = new AtomicReference[String]
       val received = new LinkedBlockingQueue[String]
       val client = new WebSocketClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}"),
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/$path"),
         new Draft_6455(new PerMessageDeflateExtension),
       ) {
         def onOpen(handshake: ServerHandshake): Unit =
@@ -79,6 +91,14 @@ class EmberServerWebSocketCompressionSuite extends Http4sSuite {
     echoServer(compression = false).use(echo(_, messages)).map { case (extensions, replies) =>
       assertEquals(extensions, "")
       assertEquals(replies, messages)
+    }
+  }
+
+  test("leave messages uncompressed on a route that opts out") {
+    echoServer(compression = true).use(echo(_, messages, "uncompressed")).map {
+      case (extensions, replies) =>
+        assertEquals(extensions, "")
+        assertEquals(replies, messages)
     }
   }
 }

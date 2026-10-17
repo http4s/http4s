@@ -73,6 +73,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int, compression: Boolean
       socket: Socket[F],
       req: Request[F],
       ctx: WebSocketContext[F],
+      routeCompression: Boolean,
       buffer: Array[Byte],
       receiveBufferSize: Int,
       idleTimeout: Duration,
@@ -81,7 +82,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int, compression: Boolean
       logger: Logger[F],
   )(implicit F: Async[F]): F[Unit] = {
     val deflateParams =
-      if (compression && ctx.headers.get(PerMessageDeflate.HeaderName).isEmpty)
+      if (compression && routeCompression && ctx.headers.get(PerMessageDeflate.HeaderName).isEmpty)
         PerMessageDeflate.negotiate(req.headers)
       else None
 

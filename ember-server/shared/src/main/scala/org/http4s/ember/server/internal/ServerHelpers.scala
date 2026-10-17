@@ -37,6 +37,7 @@ import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.SelfAwareLogger
@@ -520,6 +521,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         socket,
                         req,
                         ctx,
+                        resp.attributes.lookup(WebSocketBuilder2.CompressionDisabled).isEmpty,
                         buffer,
                         receiveBufferSize,
                         idleTimeout,
