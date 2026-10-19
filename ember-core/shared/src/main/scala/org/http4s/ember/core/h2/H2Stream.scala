@@ -26,6 +26,7 @@ import fs2.concurrent.Channel
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.Message
+import org.http4s.Status
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -250,6 +251,11 @@ private[h2] class H2Stream[F[_]: Temporal](
                 s.response.tryGet.flatMap {
                   case x if x.isEmpty =>
                     PseudoHeaders.headersToResponseNoBody(headers.headers) match {
+                      case Some(resp) if resp.status.responseClass == Status.Informational =>
+                        if (resp.status == Status.SwitchingProtocols || headers.endStream)
+                          logger.debug(s"Malformed informational response ${resp.status}") >>
+                            rstStream(H2Error.ProtocolError)
+                        else Applicative[F].unit
                       case Some(resp) =>
                         setState(
                           s.response.complete(Either.right(attribute(resp))) >>

@@ -941,4 +941,51 @@ class H2StreamSuite extends Http4sSuite {
       codes <- rstCodes(outgoing)
     } yield assertEquals(codes, List(H2Error.ProtocolError.value))
   }
+
+  private def receiveResponseHeaders(
+      stream: H2Stream[IO],
+      endStream: Boolean,
+      headers: (String, String)*
+  ): IO[Unit] =
+    stream.receiveHeaders(
+      DecodedH2Frame.Headers(1, None, endStream, true, headers.toList)
+    )
+
+  List(
+    ("a non-numeric :status", "abc", false),
+    ("a :status with a sign", "+200", false),
+    ("a 101 response", "101", false),
+    ("an informational response with END_STREAM", "103", true),
+  ).foreach { case (name, status, endStream) =>
+    test(s"client resets $name") {
+      for {
+        outgoing <- Queue.unbounded[IO, EncodableH2Frame]
+        stream <- clientStream(
+          defaultSettings,
+          H2Stream.StreamState.HalfClosedLocal,
+          enqueue = outgoing.offer,
+        )
+        _ <- receiveResponseHeaders(stream, endStream, ":status" -> status).attempt
+        _ <- assertIO(rstCodes(outgoing), List(H2Error.ProtocolError.value))
+        _ <- assertIOBoolean(stream.getResponse.attempt.map(_.isLeft))
+      } yield ()
+    }
+  }
+
+  test("client skips informational responses until the final one") {
+    for {
+      stream <- clientStream(defaultSettings, H2Stream.StreamState.HalfClosedLocal)
+      _ <- receiveResponseHeaders(stream, false, ":status" -> "100")
+      _ <- receiveResponseHeaders(stream, false, ":status" -> "103", "link" -> "</a.css>")
+      _ <- receiveResponseHeaders(stream, false, ":status" -> "200", "x-final" -> "1")
+      _ <- stream.receiveData(H2Frame.Data(1, ByteVector.fill(2)(0), None, endStream = true))
+      resp <- stream.getResponse
+      trailers <- stream.state.get.flatMap(_.trailers.get)
+    } yield {
+      assertEquals(resp.status, Status.Ok)
+      assertEquals(resp.headers.headers.map(_.name.toString), List("x-final"))
+      assertEquals(trailers, Right(Headers.empty))
+    }
+  }
+
 }

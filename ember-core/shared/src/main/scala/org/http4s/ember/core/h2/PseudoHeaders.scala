@@ -136,9 +136,12 @@ private[h2] object PseudoHeaders {
   ): Option[Response[fs2.Pure]] = {
     // TODO Duplicate Check
     val statusO =
-      findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS)
-        .map(_._2)
-        .flatMap(Status.fromString(_).toOption)
+      findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS).map(_._2).flatMap {
+        value =>
+          if (value.length == 3 && value.forall(c => c >= '0' && c <= '9'))
+            Status.fromInt(value.toInt).toOption
+          else None
+      }
     val h = Headers(
       headers
         .filterNot(t => t._1 == PseudoHeaders.STATUS)
