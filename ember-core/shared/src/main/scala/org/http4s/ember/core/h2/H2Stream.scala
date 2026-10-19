@@ -500,6 +500,9 @@ private[h2] class H2Stream[F[_]: Temporal](
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] =
     closeOnce(s"Received GoAway, cancelling: $goAway", remoteReset = false)(Applicative[F].unit)
 
+  def connectionClosed: F[Unit] =
+    closeOnce("Connection closed, cancelling", remoteReset = false).void
+
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] =
     closeOnce(s"Received RstStream, cancelling: $rst", remoteReset = true)(Applicative[F].unit)
 

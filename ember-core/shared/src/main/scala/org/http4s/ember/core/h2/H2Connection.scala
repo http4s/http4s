@@ -686,11 +686,10 @@ private[h2] class H2Connection[F[_]](
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
+        val graceful = g.errorCode.toInt == H2Error.NoError.value
         mapRef.get.flatMap { m =>
           m.values.toList
-            .filter(stream =>
-              g.errorCode.toInt != H2Error.NoError.value || unprocessed(stream.id, g)
-            )
+            .filter(stream => !graceful || unprocessed(stream.id, g))
             .traverse_(_.receiveGoAway(g))
         } >> offerFrame(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
@@ -780,6 +779,14 @@ private[h2] class H2Connection[F[_]](
         case None => F.unit
       }
 
+    def readLoopEnded: F[Unit] =
+      state.update(s => s.copy(closed = true)) >>
+        (connectionType match {
+          case H2Connection.ConnectionType.Client =>
+            mapRef.get.flatMap(_.values.toList.traverse_(_.connectionClosed))
+          case H2Connection.ConnectionType.Server => F.unit
+        })
+
     readLoopAux(acc)
       .recoverWith { case H2Connection.KillWithoutMessage() =>
         logger.debug(s"ReadLoop has received that is should kill")
@@ -788,9 +795,9 @@ private[h2] class H2Connection[F[_]](
         case Outcome.Errored(e) =>
           logger.error(e)(s"ReadLoop has errored") >>
             goAway(H2Error.InternalError).attempt.void >>
-            state.update(s => s.copy(closed = true))
+            readLoopEnded
         case _ =>
-          state.update(s => s.copy(closed = true))
+          readLoopEnded
       }
   }
 
