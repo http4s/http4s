@@ -166,10 +166,13 @@ object /: {
     }
 }
 
-protected class PathVar[A](cast: String => Try[A]) {
+protected class PathVar[A](cast: String => Option[A]) {
+  def this(cast: String => Try[A])(implicit ev: DummyImplicit) =
+    this((str: String) => cast(str).toOption)
+
   def unapply(str: String): Option[A] =
-    if (!str.isEmpty)
-      cast(str).toOption
+    if (str.nonEmpty)
+      cast(str)
     else
       None
 }
@@ -180,7 +183,14 @@ protected class PathVar[A](cast: String => Try[A]) {
   *      case Root / "user" / IntVar(userId) => ...
   * }}}
   */
-object IntVar extends PathVar(str => Try(str.toInt))
+object IntVar
+    extends PathVar((str: String) =>
+      try
+        Some(str.toInt)
+      catch {
+        case t if scala.util.control.NonFatal(t) => None
+      }
+    )
 
 /** Long extractor of a path variable:
   * {{{
@@ -188,7 +198,14 @@ object IntVar extends PathVar(str => Try(str.toInt))
   *      case Root / "user" / LongVar(userId) => ...
   * }}}
   */
-object LongVar extends PathVar(str => Try(str.toLong))
+object LongVar
+    extends PathVar((str: String) =>
+      try
+        Some(str.toLong)
+      catch {
+        case t if scala.util.control.NonFatal(t) => None
+      }
+    )
 
 /** UUID extractor of a path variable:
   * {{{
@@ -196,7 +213,14 @@ object LongVar extends PathVar(str => Try(str.toLong))
   *      case Root / "user" / UUIDVar(userId) => ...
   * }}}
   */
-object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
+object UUIDVar
+    extends PathVar((str: String) =>
+      try
+        Some(java.util.UUID.fromString(str))
+      catch {
+        case t if scala.util.control.NonFatal(t) => None
+      }
+    )
 
 /** Matrix path variable extractor
   * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
