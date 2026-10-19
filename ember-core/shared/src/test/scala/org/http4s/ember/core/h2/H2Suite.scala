@@ -28,11 +28,17 @@ trait H2Suite extends Http4sSuite {
   protected def drainOutgoing(
       h2: H2Connection[IO],
       writes: Ref[IO, ByteVector],
-  ): IO[Vector[H2Frame]] =
-    h2.writeLoop
-      .interruptWhen(Stream.awakeEvery[IO](50.millis).evalMap(_ => h2.state.get.map(_.closed)))
-      .compile
-      .drain >> writes.get.map(decodeFrames)
+  ): IO[Vector[H2Frame]] = {
+    val marker = H2Frame.Ping(0, ack = false, ByteVector.fill(8)(0xff))
+    val frames = writes.get.map(decodeFrames)
+    h2.offerFrame(marker) >>
+      h2.writeLoop
+        .interruptWhen(
+          Stream.awakeEvery[IO](10.millis).evalMap(_ => frames.map(_.contains(marker)))
+        )
+        .compile
+        .drain >> frames.map(_.filterNot(_ == marker))
+  }
 
   protected def decodeFrames(bv: ByteVector): Vector[H2Frame] = {
     @annotation.tailrec
