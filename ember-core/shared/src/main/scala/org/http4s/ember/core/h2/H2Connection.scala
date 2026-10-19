@@ -267,7 +267,7 @@ private[h2] class H2Connection[F[_]](
         closeWithGoAway(g)
     } >> H2Connection.KillWithoutMessage().raiseError
 
-  /** A graceful GOAWAY lets the peer finish streams up to `lastStreamId`. */
+  /** Local streams above `lastStreamId` were not processed by the peer. */
   private def unprocessed(id: Int, goAway: H2Frame.GoAway): Boolean = {
     val local = connectionType match {
       case H2Connection.ConnectionType.Server => id % 2 == 0
@@ -779,13 +779,13 @@ private[h2] class H2Connection[F[_]](
         case None => F.unit
       }
 
-    def readLoopEnded: F[Unit] =
-      state.update(s => s.copy(closed = true)) >>
-        (connectionType match {
-          case H2Connection.ConnectionType.Client =>
-            mapRef.get.flatMap(_.values.toList.traverse_(_.connectionClosed))
-          case H2Connection.ConnectionType.Server => F.unit
-        })
+    def cancelClientStreams: F[Unit] = connectionType match {
+      case H2Connection.ConnectionType.Client =>
+        mapRef.get.flatMap(_.values.toList.traverse_(_.connectionClosed))
+      case H2Connection.ConnectionType.Server => F.unit
+    }
+
+    val markClosed = state.update(s => s.copy(closed = true))
 
     readLoopAux(acc)
       .recoverWith { case H2Connection.KillWithoutMessage() =>
@@ -794,10 +794,11 @@ private[h2] class H2Connection[F[_]](
       .guaranteeCase {
         case Outcome.Errored(e) =>
           logger.error(e)(s"ReadLoop has errored") >>
+            cancelClientStreams >>
             goAway(H2Error.InternalError).attempt.void >>
-            readLoopEnded
+            markClosed
         case _ =>
-          readLoopEnded
+          markClosed >> cancelClientStreams
       }
   }
 

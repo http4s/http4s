@@ -526,7 +526,7 @@ class H2ConnectionSuite extends H2Suite {
       _ <- h2.readLoop
       response <- stream.getResponse.timeout(1.second).attempt
     } yield assert(
-      response.left.exists(_.isInstanceOf[java.util.concurrent.CancellationException]),
+      response.left.exists(_.getMessage == "Connection closed, cancelling"),
       clue(response),
     )
   }
