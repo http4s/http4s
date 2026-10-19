@@ -268,11 +268,12 @@ private[ember] class H2Client[F[_]](
 
     for {
       h2 <- Resource.eval(createH2Connection)
+      // Queue the connection preface before the reader can enqueue a SETTINGS acknowledgment.
+      _ <- Resource.eval(processSettings(h2))
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <- clearClosed(h2).background
       _ <- pullCreatedStreams(h2).background
-      _ <- Resource.eval(processSettings(h2))
     } yield h2
   }
 
