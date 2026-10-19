@@ -925,7 +925,7 @@ class H2StreamSuite extends Http4sSuite {
     )
   }
 
-  test("onClosed runs when cleanup fails during close") {
+  test("onClosed runs and the reset is sent when cleanup fails during close") {
     for {
       closed <- Ref[IO].of(0)
       sq <- streamAndQueue(
@@ -933,13 +933,15 @@ class H2StreamSuite extends Http4sSuite {
         creditConnection = _ => IO.raiseError(new RuntimeException("boom")),
         onClosed = closed.update(_ + 1),
       )
-      (stream, _) = sq
+      (stream, outgoing) = sq
       _ <- stream.receiveData(data(10))
       result <- stream.rstStream(H2Error.Cancel).attempt
       count <- closed.get
+      codes <- rstCodes(outgoing)
     } yield {
       assert(result.isLeft, clue(result))
       assertEquals(count, 1)
+      assertEquals(codes, List(H2Error.Cancel.value))
     }
   }
 
