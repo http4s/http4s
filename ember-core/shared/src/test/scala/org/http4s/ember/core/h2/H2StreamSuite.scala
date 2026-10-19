@@ -59,6 +59,7 @@ class H2StreamSuite extends Http4sSuite {
       readBufferCapacity: Int = Int.MaxValue,
       onClosed: IO[Unit] = IO.unit,
       afterFirstGet: Option[Ref[IO, IO[Unit]]] = None,
+      streamState: H2Stream.StreamState = H2Stream.StreamState.Open,
   ): IO[(H2Stream[IO], Queue[IO, EncodableH2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
@@ -71,7 +72,7 @@ class H2StreamSuite extends Http4sSuite {
 
       initial <- Ref[IO].of(
         H2Stream.State[IO](
-          state = H2Stream.StreamState.Open,
+          state = streamState,
           writeWindow = defaultSettings.initialWindowSize.windowSize,
           writeBlock = writeBlock,
           readWindow = config.initialWindowSize.windowSize,
@@ -869,7 +870,8 @@ class H2StreamSuite extends Http4sSuite {
   }
 
   private def resetAfterFirstGet(
-      receive: H2Stream[IO] => IO[Unit]
+      receive: H2Stream[IO] => IO[Unit],
+      streamState: H2Stream.StreamState = H2Stream.StreamState.Open,
   ): IO[(Int, H2Stream.StreamState)] =
     for {
       closed <- Ref[IO].of(0)
@@ -878,6 +880,7 @@ class H2StreamSuite extends Http4sSuite {
         defaultSettings,
         onClosed = closed.update(_ + 1),
         afterFirstGet = Some(hook),
+        streamState = streamState,
       )
       (stream, _) = sq
       _ <- hook.set(stream.rstStream(H2Error.Cancel))
@@ -911,5 +914,95 @@ class H2StreamSuite extends Http4sSuite {
       )),
       (1, H2Stream.StreamState.Closed),
     )
+  }
+  test("sendPushPromise doesn't reopen a stream reset concurrently") {
+    assertIO(
+      resetAfterFirstGet(
+        _.sendPushPromise(3, NonEmptyList.of((":method", "GET", false))),
+        H2Stream.StreamState.Idle,
+      ),
+      (1, H2Stream.StreamState.Closed),
+    )
+  }
+
+  test("onClosed runs when cleanup fails during close") {
+    for {
+      closed <- Ref[IO].of(0)
+      sq <- streamAndQueue(
+        defaultSettings,
+        creditConnection = _ => IO.raiseError(new RuntimeException("boom")),
+        onClosed = closed.update(_ + 1),
+      )
+      (stream, _) = sq
+      _ <- stream.receiveData(data(10))
+      result <- stream.rstStream(H2Error.Cancel).attempt
+      count <- closed.get
+    } yield {
+      assert(result.isLeft, clue(result))
+      assertEquals(count, 1)
+    }
+  }
+
+  private def closeNormally(
+      streamState: H2Stream.StreamState,
+      responseReceived: Boolean,
+  )(receive: H2Stream[IO] => IO[Unit]): IO[Vector[Boolean]] =
+    for {
+      trailedAtClose <- Ref[IO].of(Vector.empty[Boolean])
+      self <- Deferred[IO, H2Stream[IO]]
+      stream <- clientStream(
+        defaultSettings,
+        streamState,
+        self.get
+          .flatMap(_.state.get)
+          .flatMap(_.trailers.tryGet)
+          .flatMap(t => trailedAtClose.update(_ :+ t.isDefined)),
+      )
+      _ <- self.complete(stream)
+      _ <- stream.state.get
+        .flatMap(_.response.complete(Right(Response[fs2.Pure]())))
+        .whenA(responseReceived)
+      _ <- receive(stream)
+      seen <- trailedAtClose.get
+    } yield seen
+
+  test("END_STREAM DATA runs onClosed once, after the body ends") {
+    assertIO(
+      closeNormally(H2Stream.StreamState.HalfClosedLocal, responseReceived = true)(
+        _.receiveData(H2Frame.Data(1, ByteVector.fill(5)(0), None, endStream = true))
+      ),
+      Vector(true),
+    )
+  }
+
+  test("END_STREAM trailers run onClosed once, after they are delivered") {
+    assertIO(
+      closeNormally(H2Stream.StreamState.HalfClosedLocal, responseReceived = true)(
+        _.receiveHeaders(
+          DecodedH2Frame.Headers(1, None, true, true, List(("grpc-status", "0")))
+        )
+      ),
+      Vector(true),
+    )
+  }
+
+  test("END_STREAM response headers run onClosed once, after the response ends") {
+    assertIO(
+      closeNormally(H2Stream.StreamState.HalfClosedLocal, responseReceived = false)(
+        _.receiveHeaders(DecodedH2Frame.Headers(1, None, true, true, List((":status", "204"))))
+      ),
+      Vector(true),
+    )
+  }
+
+  test("END_STREAM content-length check uses the current state") {
+    for {
+      hook <- Ref[IO].of(IO.unit)
+      sq <- streamAndQueue(defaultSettings, afterFirstGet = Some(hook))
+      (stream, outgoing) = sq
+      _ <- hook.set(stream.state.update(_.copy(contentLengthCheck = Some((3L, 0L)))))
+      _ <- stream.receiveData(H2Frame.Data(1, ByteVector.fill(5)(0), None, endStream = true))
+      codes <- rstCodes(outgoing)
+    } yield assertEquals(codes, List(H2Error.ProtocolError.value))
   }
 }
