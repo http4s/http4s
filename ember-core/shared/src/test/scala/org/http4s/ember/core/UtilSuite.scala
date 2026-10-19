@@ -51,4 +51,16 @@ class UtilSuite extends FunSuite {
   test("isKeepAlive: http/1.1, default") {
     assertEquals(Util.isKeepAlive(http11, Headers.empty), true)
   }
+
+  test("connectionFor: shutting down, http/1.1, connection=keep-alive") {
+    assertEquals(Util.connectionFor(http11, Headers(keepAlive), shuttingDown = true).hasClose, true)
+  }
+
+  test("connectionFor: not shutting down, http/1.1, default") {
+    assertEquals(Util.connectionFor(http11, Headers.empty, shuttingDown = false).hasKeepAlive, true)
+  }
+
+  test("connectionFor: not shutting down, http/1.1, connection=close") {
+    assertEquals(Util.connectionFor(http11, Headers(close), shuttingDown = false).hasClose, true)
+  }
 }
