@@ -17,6 +17,7 @@
 package org.http4s.ember.core.h2
 
 import cats.data.NonEmptyList
+import cats.data.{State => CState}
 import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Outcome
@@ -57,6 +58,7 @@ class H2StreamSuite extends Http4sSuite {
       outgoingQueue: IO[Queue[IO, EncodableH2Frame]] = Queue.unbounded[IO, EncodableH2Frame],
       readBufferCapacity: Int = Int.MaxValue,
       onClosed: IO[Unit] = IO.unit,
+      afterFirstGet: Option[Ref[IO, IO[Unit]]] = None,
   ): IO[(H2Stream[IO], Queue[IO, EncodableH2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
@@ -67,7 +69,7 @@ class H2StreamSuite extends Http4sSuite {
       bodyDone <- Deferred[IO, Either[Throwable, Unit]]
       readBufferLock <- Semaphore[IO](1)
 
-      state <- Ref[IO].of(
+      initial <- Ref[IO].of(
         H2Stream.State[IO](
           state = H2Stream.StreamState.Open,
           writeWindow = defaultSettings.initialWindowSize.windowSize,
@@ -84,6 +86,7 @@ class H2StreamSuite extends Http4sSuite {
           remoteReset = false,
         )
       )
+      state = afterFirstGet.fold(initial)(hooked(initial, _))
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
       outgoing <- outgoingQueue
       stream = new H2Stream[IO](
@@ -102,6 +105,19 @@ class H2StreamSuite extends Http4sSuite {
         logger,
       )
     } yield (stream, outgoing)
+
+  private def hooked[A](ref: Ref[IO, A], hook: Ref[IO, IO[Unit]]): Ref[IO, A] =
+    new Ref[IO, A] {
+      def get: IO[A] = ref.get <* hook.getAndSet(IO.unit).flatten
+      def set(a: A): IO[Unit] = ref.set(a)
+      def access: IO[(A, A => IO[Boolean])] = ref.access
+      def tryUpdate(f: A => A): IO[Boolean] = ref.tryUpdate(f)
+      def tryModify[B](f: A => (A, B)): IO[Option[B]] = ref.tryModify(f)
+      def update(f: A => A): IO[Unit] = ref.update(f)
+      def modify[B](f: A => (A, B)): IO[B] = ref.modify(f)
+      def tryModifyState[B](st: CState[A, B]): IO[Option[B]] = ref.tryModifyState(st)
+      def modifyState[B](st: CState[A, B]): IO[B] = ref.modifyState(st)
+    }
 
   private def clientStream(
       config: H2Frame.Settings.ConnectionSettings,
@@ -815,5 +831,85 @@ class H2StreamSuite extends Http4sSuite {
       _ <- stream.rstStream(H2Error.Cancel).replicateA_(2)
       frames <- sent(outgoing)
     } yield assertEquals(frames, Vector.empty)
+  }
+  private def resetWhileSending(
+      streamState: H2Stream.StreamState
+  )(send: H2Stream[IO] => IO[Unit]): IO[(Int, H2Stream.StreamState)] =
+    for {
+      closed <- Ref[IO].of(0)
+      self <- Deferred[IO, H2Stream[IO]]
+      stream <- clientStream(
+        defaultSettings,
+        streamState,
+        closed.update(_ + 1),
+        _ => self.get.flatMap(_.receiveRstStream(H2Error.Cancel.toRst(1))),
+      )
+      _ <- self.complete(stream)
+      _ <- send(stream)
+      count <- closed.get
+      st <- stream.state.get
+    } yield (count, st.state)
+
+  test("sendData END_STREAM racing a peer reset runs onClosed once") {
+    assertIO(
+      resetWhileSending(H2Stream.StreamState.HalfClosedRemote)(
+        _.sendData(ByteVector.empty, endStream = true)
+      ),
+      (1, H2Stream.StreamState.Closed),
+    )
+  }
+
+  test("sendHeaders END_STREAM racing a peer reset runs onClosed once") {
+    assertIO(
+      resetWhileSending(H2Stream.StreamState.HalfClosedRemote)(
+        _.sendHeaders(NonEmptyList.of((":status", "200", false)), endStream = true)
+      ),
+      (1, H2Stream.StreamState.Closed),
+    )
+  }
+
+  private def resetAfterFirstGet(
+      receive: H2Stream[IO] => IO[Unit]
+  ): IO[(Int, H2Stream.StreamState)] =
+    for {
+      closed <- Ref[IO].of(0)
+      hook <- Ref[IO].of(IO.unit)
+      sq <- streamAndQueue(
+        defaultSettings,
+        onClosed = closed.update(_ + 1),
+        afterFirstGet = Some(hook),
+      )
+      (stream, _) = sq
+      _ <- hook.set(stream.rstStream(H2Error.Cancel))
+      _ <- receive(stream)
+      count <- closed.get
+      st <- stream.state.get
+    } yield (count, st.state)
+
+  test("receiveData doesn't reopen a stream reset concurrently") {
+    assertIO(
+      resetAfterFirstGet(_.receiveData(emptyData(endStream = true))),
+      (1, H2Stream.StreamState.Closed),
+    )
+  }
+
+  test("receiveHeaders doesn't reopen a stream reset concurrently") {
+    assertIO(
+      resetAfterFirstGet(_.receiveHeaders(
+        DecodedH2Frame.Headers(
+          1,
+          None,
+          true,
+          true,
+          List(
+            (":method", "GET"),
+            (":scheme", "https"),
+            (":path", "/"),
+            (":authority", "localhost"),
+          ),
+        )
+      )),
+      (1, H2Stream.StreamState.Closed),
+    )
   }
 }
