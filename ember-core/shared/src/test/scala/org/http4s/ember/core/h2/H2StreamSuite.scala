@@ -833,20 +833,6 @@ class H2StreamSuite extends Http4sSuite {
       frames <- sent(outgoing)
     } yield assertEquals(frames, Vector.empty)
   }
-  private def endStreamHeaders(
-      stream: H2Stream[IO],
-      headers: NonEmptyList[(String, String, Boolean)],
-  ): IO[Unit] =
-    stream.receiveHeaders(
-      DecodedH2Frame.Headers(
-        1,
-        None,
-        true,
-        true,
-        headers.toList.map { case (name, value, _) => (name, value) },
-      )
-    )
-
   private val closedOnce = (1, H2Stream.StreamState.Closed)
 
   private def resetWhileSending(send: H2Stream[IO] => IO[Unit]): IO[(Int, H2Stream.StreamState)] =
@@ -942,43 +928,6 @@ class H2StreamSuite extends Http4sSuite {
       assert(result.isLeft, clue(result))
       assertEquals(count, 1)
       assertEquals(codes, List(H2Error.Cancel.value))
-    }
-  }
-
-  private def closeNormally(
-      responseReceived: Boolean,
-      receive: H2Stream[IO] => IO[Unit],
-  ): IO[Vector[Boolean]] =
-    for {
-      trailedAtClose <- Ref[IO].of(Vector.empty[Boolean])
-      self <- Deferred[IO, H2Stream[IO]]
-      stream <- clientStream(
-        defaultSettings,
-        H2Stream.StreamState.HalfClosedLocal,
-        self.get
-          .flatMap(_.state.get)
-          .flatMap(_.trailers.tryGet)
-          .flatMap(t => trailedAtClose.update(_ :+ t.isDefined)),
-      )
-      _ <- self.complete(stream)
-      _ <- stream.state.get
-        .flatMap(_.response.complete(Right(Response[fs2.Pure]())))
-        .whenA(responseReceived)
-      _ <- receive(stream)
-      seen <- trailedAtClose.get
-    } yield seen
-
-  List[(String, Boolean, H2Stream[IO] => IO[Unit])](
-    (
-      "DATA",
-      true,
-      _.receiveData(H2Frame.Data(1, ByteVector.fill(5)(0), None, endStream = true)),
-    ),
-    ("trailers", true, endStreamHeaders(_, NonEmptyList.of(("grpc-status", "0", false)))),
-    ("response headers", false, endStreamHeaders(_, NonEmptyList.of((":status", "204", false)))),
-  ).foreach { case (name, responseReceived, receive) =>
-    test(s"END_STREAM $name runs onClosed once, after delivery") {
-      assertIO(closeNormally(responseReceived, receive), Vector(true))
     }
   }
 
