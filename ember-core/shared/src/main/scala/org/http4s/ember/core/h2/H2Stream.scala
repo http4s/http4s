@@ -339,8 +339,23 @@ private[h2] class H2Stream[F[_]: Temporal](
   }
 
   def receiveData(data: H2Frame.Data): F[Unit] = state.get.flatMap { s =>
+    val awaitingResponse = connectionType match {
+      case H2Connection.ConnectionType.Client => s.response.tryGet.map(_.isEmpty)
+      case H2Connection.ConnectionType.Server => false.pure[F]
+    }
+    awaitingResponse.flatMap(receiveData(data, s, _))
+  }
+
+  private def receiveData(
+      data: H2Frame.Data,
+      s: H2Stream.State[F],
+      awaitingResponse: Boolean,
+  ): F[Unit] = {
     val size = data.flowControlSize
     s.state match {
+      case StreamState.Open | StreamState.HalfClosedLocal if awaitingResponse =>
+        logger.debug(s"Received Data before response headers on stream $id") >>
+          creditConnection(size) >> rstStream(H2Error.ProtocolError)
       case StreamState.Open | StreamState.HalfClosedLocal =>
         val bytes = data.data.size.toInt
         transitionState { s =>

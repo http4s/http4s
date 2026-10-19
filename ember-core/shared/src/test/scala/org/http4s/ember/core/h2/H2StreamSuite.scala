@@ -972,6 +972,23 @@ class H2StreamSuite extends Http4sSuite {
     }
   }
 
+  List(true, false).foreach { endStream =>
+    test(s"client resets DATA after an informational response (endStream = $endStream)") {
+      for {
+        outgoing <- Queue.unbounded[IO, H2Frame]
+        stream <- clientStream(
+          defaultSettings,
+          H2Stream.StreamState.HalfClosedLocal,
+          enqueue = outgoing.offer,
+        )
+        _ <- receiveResponseHeaders(stream, false, ":status" -> "103")
+        _ <- stream.receiveData(H2Frame.Data(1, ByteVector.fill(2)(0), None, endStream))
+        _ <- assertIO(rstCodes(outgoing), List(H2Error.ProtocolError.value))
+        _ <- assertIOBoolean(stream.getResponse.attempt.map(_.isLeft))
+      } yield ()
+    }
+  }
+
   test("client skips informational responses until the final one") {
     for {
       stream <- clientStream(defaultSettings, H2Stream.StreamState.HalfClosedLocal)
