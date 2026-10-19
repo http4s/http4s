@@ -267,6 +267,15 @@ private[h2] class H2Connection[F[_]](
         closeWithGoAway(g)
     } >> H2Connection.KillWithoutMessage().raiseError
 
+  /** A graceful GOAWAY lets the peer finish streams up to `lastStreamId`. */
+  private def unprocessed(id: Int, goAway: H2Frame.GoAway): Boolean = {
+    val local = connectionType match {
+      case H2Connection.ConnectionType.Server => id % 2 == 0
+      case H2Connection.ConnectionType.Client => id % 2 != 0
+    }
+    local && id > goAway.lastStreamId
+  }
+
   private def closeWithGoAway(goAway: H2Frame.GoAway) =
     mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(goAway))) >>
       state.update(s => s.copy(closed = true))
@@ -678,7 +687,11 @@ private[h2] class H2Connection[F[_]](
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
         mapRef.get.flatMap { m =>
-          m.values.toList.traverse_(connection => connection.receiveGoAway(g))
+          m.values.toList
+            .filter(stream =>
+              g.errorCode.toInt != H2Error.NoError.value || unprocessed(stream.id, g)
+            )
+            .traverse_(_.receiveGoAway(g))
         } >> offerFrame(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)

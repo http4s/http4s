@@ -21,6 +21,7 @@ import cats.effect._
 import cats.effect.std.Queue
 import cats.effect.std.Semaphore
 import cats.effect.testkit.TestControl
+import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pipe
@@ -475,6 +476,30 @@ class H2ConnectionSuite extends H2Suite {
       _ <- h2.readLoop
       frames <- drainOutgoing(h2, writes)
     } yield assertEquals(frames.collect { case g: H2Frame.GoAway => g }, Vector.empty, clue(frames))
+  }
+
+  List(
+    (H2Error.NoError, List(false, true)),
+    (H2Error.ProtocolError, List(true, true)),
+  ).foreach { case (error, expected) =>
+    test(s"GOAWAY $error with lastStreamId 1 closes the expected client streams") {
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          H2Frame.toByteVector(error.toGoAway(1)),
+          Duration.Inf,
+          writes,
+          connectionType = H2Connection.ConnectionType.Client,
+        )
+        streams <- h2.initiateLocalStream.replicateA(2)
+        _ <- h2.readLoop
+        closed <- streams.traverse(_.state.get.map(_.state == H2Stream.StreamState.Closed))
+      } yield {
+        assertEquals(streams.map(_.id), List(1, 3))
+        assertEquals(closed, expected)
+      }
+    }
   }
 
   test("window update for an idle stream is a connection error") {
