@@ -833,15 +833,29 @@ class H2StreamSuite extends Http4sSuite {
       frames <- sent(outgoing)
     } yield assertEquals(frames, Vector.empty)
   }
-  private def resetWhileSending(
-      streamState: H2Stream.StreamState
-  )(send: H2Stream[IO] => IO[Unit]): IO[(Int, H2Stream.StreamState)] =
+  private def endStreamHeaders(
+      stream: H2Stream[IO],
+      headers: NonEmptyList[(String, String, Boolean)],
+  ): IO[Unit] =
+    stream.receiveHeaders(
+      DecodedH2Frame.Headers(
+        1,
+        None,
+        true,
+        true,
+        headers.toList.map { case (name, value, _) => (name, value) },
+      )
+    )
+
+  private val closedOnce = (1, H2Stream.StreamState.Closed)
+
+  private def resetWhileSending(send: H2Stream[IO] => IO[Unit]): IO[(Int, H2Stream.StreamState)] =
     for {
       closed <- Ref[IO].of(0)
       self <- Deferred[IO, H2Stream[IO]]
       stream <- clientStream(
         defaultSettings,
-        streamState,
+        H2Stream.StreamState.HalfClosedRemote,
         closed.update(_ + 1),
         _ => self.get.flatMap(_.receiveRstStream(H2Error.Cancel.toRst(1))),
       )
@@ -851,27 +865,18 @@ class H2StreamSuite extends Http4sSuite {
       st <- stream.state.get
     } yield (count, st.state)
 
-  test("sendData END_STREAM racing a peer reset runs onClosed once") {
-    assertIO(
-      resetWhileSending(H2Stream.StreamState.HalfClosedRemote)(
-        _.sendData(ByteVector.empty, endStream = true)
-      ),
-      (1, H2Stream.StreamState.Closed),
-    )
-  }
-
-  test("sendHeaders END_STREAM racing a peer reset runs onClosed once") {
-    assertIO(
-      resetWhileSending(H2Stream.StreamState.HalfClosedRemote)(
-        _.sendHeaders(NonEmptyList.of((":status", "200", false)), endStream = true)
-      ),
-      (1, H2Stream.StreamState.Closed),
-    )
+  List[(String, H2Stream[IO] => IO[Unit])](
+    "sendData" -> (_.sendData(ByteVector.empty, endStream = true)),
+    "sendHeaders" -> (_.sendHeaders(NonEmptyList.of((":status", "200", false)), endStream = true)),
+  ).foreach { case (name, send) =>
+    test(s"$name END_STREAM racing a peer reset runs onClosed once") {
+      assertIO(resetWhileSending(send), closedOnce)
+    }
   }
 
   private def resetAfterFirstGet(
+      streamState: H2Stream.StreamState,
       receive: H2Stream[IO] => IO[Unit],
-      streamState: H2Stream.StreamState = H2Stream.StreamState.Open,
   ): IO[(Int, H2Stream.StreamState)] =
     for {
       closed <- Ref[IO].of(0)
@@ -889,16 +894,12 @@ class H2StreamSuite extends Http4sSuite {
       st <- stream.state.get
     } yield (count, st.state)
 
-  test("receiveData doesn't reopen a stream reset concurrently") {
-    assertIO(
-      resetAfterFirstGet(_.receiveData(emptyData(endStream = true))),
-      (1, H2Stream.StreamState.Closed),
-    )
-  }
-
-  test("receiveHeaders doesn't reopen a stream reset concurrently") {
-    assertIO(
-      resetAfterFirstGet(_.receiveHeaders(
+  List[(String, H2Stream.StreamState, H2Stream[IO] => IO[Unit])](
+    ("receiveData", H2Stream.StreamState.Open, _.receiveData(emptyData(endStream = true))),
+    (
+      "receiveHeaders",
+      H2Stream.StreamState.Open,
+      _.receiveHeaders(
         DecodedH2Frame.Headers(
           1,
           None,
@@ -911,18 +912,17 @@ class H2StreamSuite extends Http4sSuite {
             (":authority", "localhost"),
           ),
         )
-      )),
-      (1, H2Stream.StreamState.Closed),
-    )
-  }
-  test("sendPushPromise doesn't reopen a stream reset concurrently") {
-    assertIO(
-      resetAfterFirstGet(
-        _.sendPushPromise(3, NonEmptyList.of((":method", "GET", false))),
-        H2Stream.StreamState.Idle,
       ),
-      (1, H2Stream.StreamState.Closed),
-    )
+    ),
+    (
+      "sendPushPromise",
+      H2Stream.StreamState.Idle,
+      _.sendPushPromise(3, NonEmptyList.of((":method", "GET", false))),
+    ),
+  ).foreach { case (name, streamState, act) =>
+    test(s"$name doesn't reopen a stream reset concurrently") {
+      assertIO(resetAfterFirstGet(streamState, act), closedOnce)
+    }
   }
 
   test("onClosed runs and the reset is sent when cleanup fails during close") {
@@ -946,15 +946,15 @@ class H2StreamSuite extends Http4sSuite {
   }
 
   private def closeNormally(
-      streamState: H2Stream.StreamState,
       responseReceived: Boolean,
-  )(receive: H2Stream[IO] => IO[Unit]): IO[Vector[Boolean]] =
+      receive: H2Stream[IO] => IO[Unit],
+  ): IO[Vector[Boolean]] =
     for {
       trailedAtClose <- Ref[IO].of(Vector.empty[Boolean])
       self <- Deferred[IO, H2Stream[IO]]
       stream <- clientStream(
         defaultSettings,
-        streamState,
+        H2Stream.StreamState.HalfClosedLocal,
         self.get
           .flatMap(_.state.get)
           .flatMap(_.trailers.tryGet)
@@ -968,33 +968,18 @@ class H2StreamSuite extends Http4sSuite {
       seen <- trailedAtClose.get
     } yield seen
 
-  test("END_STREAM DATA runs onClosed once, after the body ends") {
-    assertIO(
-      closeNormally(H2Stream.StreamState.HalfClosedLocal, responseReceived = true)(
-        _.receiveData(H2Frame.Data(1, ByteVector.fill(5)(0), None, endStream = true))
-      ),
-      Vector(true),
-    )
-  }
-
-  test("END_STREAM trailers run onClosed once, after they are delivered") {
-    assertIO(
-      closeNormally(H2Stream.StreamState.HalfClosedLocal, responseReceived = true)(
-        _.receiveHeaders(
-          DecodedH2Frame.Headers(1, None, true, true, List(("grpc-status", "0")))
-        )
-      ),
-      Vector(true),
-    )
-  }
-
-  test("END_STREAM response headers run onClosed once, after the response ends") {
-    assertIO(
-      closeNormally(H2Stream.StreamState.HalfClosedLocal, responseReceived = false)(
-        _.receiveHeaders(DecodedH2Frame.Headers(1, None, true, true, List((":status", "204"))))
-      ),
-      Vector(true),
-    )
+  List[(String, Boolean, H2Stream[IO] => IO[Unit])](
+    (
+      "DATA",
+      true,
+      _.receiveData(H2Frame.Data(1, ByteVector.fill(5)(0), None, endStream = true)),
+    ),
+    ("trailers", true, endStreamHeaders(_, NonEmptyList.of(("grpc-status", "0", false)))),
+    ("response headers", false, endStreamHeaders(_, NonEmptyList.of((":status", "204", false)))),
+  ).foreach { case (name, responseReceived, receive) =>
+    test(s"END_STREAM $name runs onClosed once, after delivery") {
+      assertIO(closeNormally(responseReceived, receive), Vector(true))
+    }
   }
 
   test("END_STREAM content-length check uses the current state") {
