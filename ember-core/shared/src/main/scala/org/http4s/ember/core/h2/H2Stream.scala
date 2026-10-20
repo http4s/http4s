@@ -251,6 +251,8 @@ private[h2] class H2Stream[F[_]: Temporal](
                 s.response.tryGet.flatMap {
                   case x if x.isEmpty =>
                     PseudoHeaders.headersToResponseNoBody(headers.headers) match {
+                      // RFC 9113 8.1: skip 1xx until the final response, 1xx with END_STREAM is malformed
+                      // RFC 9113 8.6: 101 is not supported in HTTP/2
                       case Some(resp) if resp.status.responseClass == Status.Informational =>
                         if (resp.status == Status.SwitchingProtocols || headers.endStream)
                           logger.debug(s"Malformed informational response ${resp.status}") >>
@@ -353,6 +355,7 @@ private[h2] class H2Stream[F[_]: Temporal](
   ): F[Unit] = {
     val size = data.flowControlSize
     s.state match {
+      // RFC 9113 8.1, 8.1.1: DATA before the final response HEADERS is malformed
       case StreamState.Open | StreamState.HalfClosedLocal if awaitingResponse =>
         logger.debug(s"Received Data before response headers on stream $id") >>
           creditConnection(size) >> rstStream(H2Error.ProtocolError)
