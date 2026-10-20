@@ -142,14 +142,7 @@ private[ember] object H2Server {
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.closedStreams)
-        .map(i =>
-          Stream.eval(
-            // Max Time After Close We Will Still Accept Messages
-            (Temporal[F].sleep(1.seconds) >>
-              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
-          )
-        )
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .evalMap(i => h2.mapRef.update(m => m - i))
         .compile
         .drain
 
