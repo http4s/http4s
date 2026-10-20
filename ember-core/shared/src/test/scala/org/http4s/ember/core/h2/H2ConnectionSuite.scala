@@ -49,7 +49,7 @@ class H2ConnectionSuite extends H2Suite {
   private def stubSocket(
       bytes: ByteVector,
       recorded: Ref[IO, ByteVector],
-      eof: Boolean = true,
+      eof: Boolean,
   ): IO[Socket[IO]] =
     Ref[IO].of(bytes).map { ref =>
       new Socket[IO] {
