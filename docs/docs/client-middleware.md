@@ -191,16 +191,23 @@ credentials to the redirect target.
 val safeOrdering = BasicAuth(credentials)(FollowRedirect(3)(client))
 ```
 
-Alternatively, scope the credentials to the authority they belong to. They are then never sent anywhere else, whichever
-way the middlewares are stacked:
+Alternatively, scope the credentials to the origin (scheme, host and port) they belong to. They are then never sent
+anywhere else, whichever way the middlewares are stacked, including over plain `http` when a request to an `https`
+origin is downgraded by a redirect. A missing port stands for the default port of the scheme:
 
 ```scala mdoc:silent
 val scopedClient = FollowRedirect(3)(
-  BasicAuth.forAuthority[IO](Uri.Authority(host = Uri.RegName("example.com")), credentials)(client)
+  BasicAuth.forOrigin[IO](
+    Uri.Scheme.https,
+    Uri.Authority(host = Uri.RegName("example.com")),
+    credentials,
+  )(client)
 )
 ```
 
-`BasicAuth.when` takes an arbitrary predicate on the request if the authority is not the right granularity.
+Basic credentials are only base64-encoded, so they should only be sent over `https`.
+
+`BasicAuth.when` takes an arbitrary predicate on the request if the origin is not the right granularity.
 
 ## GZip
 

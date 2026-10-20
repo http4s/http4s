@@ -74,6 +74,8 @@ class BasicAuthSuite extends Http4sSuite {
       .of[IO] {
         case _ -> Root / "redirect" =>
           TemporaryRedirect(Location(uri"http://www.example.com/echo"))
+        case _ -> Root / "downgrade" =>
+          TemporaryRedirect(Location(uri"http://localhost/echo"))
         case request @ _ -> Root / "echo" =>
           Ok(request.headers.get[Authorization].fold("")(_.value))
       }
@@ -87,23 +89,67 @@ class BasicAuthSuite extends Http4sSuite {
       .assertEquals(perRequestAuth.value)
   }
 
-  test("Client scoped to an authority should send the credentials to that authority") {
-    BasicAuth
-      .forAuthority[IO](localhost, validCredentials)(echoClient)
-      .expect[String](Request[IO](uri = uri"http://localhost/echo"))
-      .assertEquals(Authorization(validCredentials).value)
+  private def originClient =
+    BasicAuth.forOrigin[IO](Uri.Scheme.https, localhost, validCredentials)(echoClient)
+
+  private def echoedAuthorization(client: Client[IO], uri: Uri) =
+    client.expect[String](Request[IO](uri = uri))
+
+  private val expectedAuthorization = Authorization(validCredentials).value
+
+  test("Client scoped to an origin should send the credentials to that origin") {
+    echoedAuthorization(originClient, uri"https://localhost/echo")
+      .assertEquals(expectedAuthorization)
   }
 
-  test("Client scoped to an authority should not send the credentials to another authority") {
-    BasicAuth
-      .forAuthority[IO](localhost, validCredentials)(echoClient)
-      .expect[String](Request[IO](uri = uri"http://www.example.com/echo"))
+  test("Client scoped to an origin should match the default port of the scheme") {
+    echoedAuthorization(originClient, uri"https://localhost:443/echo")
+      .assertEquals(expectedAuthorization)
+  }
+
+  test("Client scoped to an origin with an explicit default port should match an implicit one") {
+    val client = BasicAuth.forOrigin[IO](
+      Uri.Scheme.https,
+      localhost.copy(port = Some(443)),
+      validCredentials,
+    )(echoClient)
+    echoedAuthorization(client, uri"https://localhost/echo")
+      .assertEquals(expectedAuthorization)
+  }
+
+  test("Client scoped to an origin should ignore the user info of the request") {
+    echoedAuthorization(originClient, uri"https://user@localhost/echo")
+      .assertEquals(expectedAuthorization)
+  }
+
+  test("Client scoped to an origin should not send the credentials to another host") {
+    echoedAuthorization(originClient, uri"https://www.example.com/echo")
       .assertEquals("")
   }
 
-  test("Client scoped to an authority should not leak the credentials through a redirect") {
-    FollowRedirect(3)(BasicAuth.forAuthority[IO](localhost, validCredentials)(echoClient))
-      .expect[String](Request[IO](uri = uri"http://localhost/redirect"))
+  test("Client scoped to an origin should not send the credentials to another port") {
+    echoedAuthorization(originClient, uri"https://localhost:8443/echo")
+      .assertEquals("")
+  }
+
+  test("Client scoped to an origin should not send the credentials to another scheme") {
+    echoedAuthorization(originClient, uri"http://localhost/echo")
+      .assertEquals("")
+  }
+
+  test("Client scoped to an origin should not send the credentials to a relative uri") {
+    echoedAuthorization(originClient, uri"/echo")
+      .assertEquals("")
+  }
+
+  test("Client scoped to an origin should not leak the credentials through a redirect") {
+    val client = BasicAuth.forOrigin[IO](Uri.Scheme.http, localhost, validCredentials)(echoClient)
+    echoedAuthorization(FollowRedirect(3)(client), uri"http://localhost/redirect")
+      .assertEquals("")
+  }
+
+  test("Client scoped to an origin should not leak the credentials through a downgrade redirect") {
+    echoedAuthorization(FollowRedirect(3)(originClient), uri"https://localhost/downgrade")
       .assertEquals("")
   }
 

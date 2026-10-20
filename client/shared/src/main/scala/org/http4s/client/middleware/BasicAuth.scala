@@ -37,7 +37,7 @@ object BasicAuth {
     *   `BasicAuth(credentials)(FollowRedirect(3)(client))`. `FollowRedirect`
     *   drops the `Authorization` header when redirected to a different
     *   authority, and an inner `BasicAuth` would put it back, leaking the
-    *   credentials to the redirect target. Use [[forAuthority]] or [[when]] to
+    *   credentials to the redirect target. Use [[forOrigin]] or [[when]] to
     *   scope the credentials instead.
     */
   def apply[F[_]: MonadCancelThrow](credentials: BasicCredentials)(client: Client[F]): Client[F] =
@@ -56,14 +56,38 @@ object BasicAuth {
   ): Client[F] =
     credentials.fold(client)(c => when[F](_ => true, c)(client))
 
-  /** Sends `credentials` only with requests addressed to `authority`, so that
-    * they are never leaked to another host, notably when combined with
-    * [[FollowRedirect]].
+  /** Sends `credentials` only with requests addressed to the origin made of
+    * `scheme` and `authority`, so that they are never leaked to another host,
+    * notably when combined with [[FollowRedirect]].
+    *
+    * The scheme, host and port must all match. A missing port stands for the
+    * default port of the scheme, so `https://example.com` and
+    * `https://example.com:443` are the same origin. Matching on the scheme
+    * means the credentials are not sent if a request to an `https` origin is
+    * downgraded to `http`, for instance by a redirect.
     */
-  def forAuthority[F[_]: MonadCancelThrow](authority: Uri.Authority, credentials: BasicCredentials)(
-      client: Client[F]
-  ): Client[F] =
-    when[F](_.uri.authority.contains(authority), credentials)(client)
+  def forOrigin[F[_]: MonadCancelThrow](
+      scheme: Uri.Scheme,
+      authority: Uri.Authority,
+      credentials: BasicCredentials,
+  )(client: Client[F]): Client[F] = {
+    val port = effectivePort(scheme, authority)
+    when[F](
+      request =>
+        request.uri.scheme.contains(scheme) &&
+          request.uri.authority.exists(a =>
+            a.host == authority.host && effectivePort(scheme, a) == port
+          ),
+      credentials,
+    )(client)
+  }
+
+  private def effectivePort(scheme: Uri.Scheme, authority: Uri.Authority): Option[Int] =
+    authority.port.orElse(
+      if (scheme == Uri.Scheme.https) Some(443)
+      else if (scheme == Uri.Scheme.http) Some(80)
+      else None
+    )
 
   /** Sends `credentials` only with the requests matching `predicate`. */
   def when[F[_]: MonadCancelThrow](predicate: Request[F] => Boolean, credentials: BasicCredentials)(
