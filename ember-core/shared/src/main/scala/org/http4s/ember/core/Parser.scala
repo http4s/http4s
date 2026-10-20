@@ -579,7 +579,8 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                Util.parseStatus(codeS) match {
+                val codeInt = codeS.toInt
+                Status.fromInt(codeInt) match {
                   case Left(e) =>
                     if (NonFatal(e)) {
                       throwable = e

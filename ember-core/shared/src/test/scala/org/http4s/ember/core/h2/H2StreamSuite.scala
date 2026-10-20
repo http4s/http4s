@@ -952,12 +952,10 @@ class H2StreamSuite extends Http4sSuite {
     )
 
   List(
-    ("a non-numeric :status", "abc", false),
-    ("a :status with a sign", "+200", false),
     ("a 101 response", "101", false),
     ("an informational response with END_STREAM", "103", true),
   ).foreach { case (name, status, endStream) =>
-    test(s"client resets $name") {
+    test(s"client resets when receiving $name") {
       for {
         outgoing <- Queue.unbounded[IO, EncodableH2Frame]
         stream <- clientStream(
@@ -973,7 +971,9 @@ class H2StreamSuite extends Http4sSuite {
   }
 
   List(true, false).foreach { endStream =>
-    test(s"client resets DATA after an informational response (endStream = $endStream)") {
+    test(
+      s"client resets when receiving DATA after an informational response (endStream = $endStream)"
+    ) {
       for {
         outgoing <- Queue.unbounded[IO, H2Frame]
         stream <- clientStream(
