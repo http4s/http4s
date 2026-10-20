@@ -58,6 +58,12 @@ object BracketRequestResponse {
       Response[F],
     ]
 
+  /** An [[HttpApp]] middleware which uses both a [[ContextRequest]] and
+    * [[ContextResponse]].
+    */
+  type FullContextAppMiddleware[F[_], A, B] =
+    Kleisli[F, ContextRequest[F, A], ContextResponse[F, B]] => HttpApp[F]
+
   /** Bracket on the start of a request and the completion of processing the
     * response ''body Stream''.
     *
@@ -167,6 +173,40 @@ object BracketRequestResponse {
         acquire.map(a => ContextRequest(a, req))
       ) { case (a, _, oc) => release(a, oc) }(F)(
         contextRoutes.map(resp => ContextResponse[F, Unit]((), resp))
+      )
+
+  /** As [[bracketRequestResponseCaseRoutes_]] but defined for [[HttpApp]], rather than
+    * [[HttpRoutes]].
+    *
+    * @note $releaseWarning
+    */
+  def bracketRequestResponseCaseApp_[F[_], A, B](
+      acquire: Request[F] => F[ContextRequest[F, A]]
+  )(release: (A, Option[B], Outcome[F, Throwable, Unit]) => F[Unit])(implicit
+      F: MonadCancelThrow[F]
+  ): FullContextAppMiddleware[F, A, B] =
+    contextApp =>
+      Kleisli(request =>
+        F.uncancelable { poll =>
+          acquire(request).flatMap(contextRequest =>
+            poll {
+              contextApp
+                .run(contextRequest)
+                .map(contextResponse =>
+                  contextResponse.response.pipeBodyThrough(
+                    _.onFinalizeCaseWeak(ec =>
+                      release(contextRequest.context, Some(contextResponse.context), ec.toOutcome)
+                    )
+                  )
+                )
+            }.guaranteeCase {
+              case Outcome.Succeeded(_) =>
+                F.unit
+              case otherwise =>
+                release(contextRequest.context, None, otherwise.void)
+            }
+          )
+        }
       )
 
   /** As [[bracketRequestResponseCaseRoutes]] but defined for [[HttpApp]],
