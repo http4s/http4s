@@ -576,6 +576,16 @@ class ParserSuite extends Http4sSuite {
       }
   }
 
+  List("abc", "+20", "2000", "099").foreach { code =>
+    test(s"Response Prelude should reject status code $code") {
+      val bv = Helpers.httpifyString(s"HTTP/1.1 $code OK\n").getBytes()
+      Parser.Response.RespPrelude
+        .parse[IO](bv, 4096, Parser.Response.RespPrelude.ParserState.initial)
+        .intercept[Parser.Response.RespPrelude.RespPreludeError]
+        .void
+    }
+  }
+
   test("Parser.Response.parser should parse two responses in a row") {
     val defaultMaxHeaderLength = 4096
     val respS =
