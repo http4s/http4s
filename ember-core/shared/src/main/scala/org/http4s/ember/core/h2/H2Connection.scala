@@ -687,10 +687,12 @@ private[h2] class H2Connection[F[_]](
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
         val graceful = g.errorCode.toInt == H2Error.NoError.value
-        mapRef.get.flatMap { m =>
-          m.values.toList
-            .filter(stream => !graceful || unprocessed(stream.id, g))
-            .traverse_(_.receiveGoAway(g))
+        streamCreateAndHeaders.use { _ =>
+          mapRef.get.flatMap { m =>
+            m.values.toList
+              .filter(stream => !graceful || unprocessed(stream.id, g))
+              .traverse_(_.receiveGoAway(g))
+          }
         } >> offerFrame(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
@@ -794,9 +796,9 @@ private[h2] class H2Connection[F[_]](
       .guaranteeCase {
         case Outcome.Errored(e) =>
           logger.error(e)(s"ReadLoop has errored") >>
+            markClosed >>
             cancelClientStreams >>
-            goAway(H2Error.InternalError).attempt.void >>
-            markClosed
+            goAway(H2Error.InternalError).attempt.void
         case _ =>
           markClosed >> cancelClientStreams
       }
