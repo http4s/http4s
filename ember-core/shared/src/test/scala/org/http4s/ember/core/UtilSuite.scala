@@ -53,14 +53,20 @@ class UtilSuite extends FunSuite {
   }
 
   test("connectionFor: shutting down, http/1.1, connection=keep-alive") {
-    assertEquals(Util.connectionFor(http11, Headers(keepAlive), shuttingDown = true).hasClose, true)
+    val connection = Util.connectionFor(http11, Headers(keepAlive), shuttingDown = true)
+    assertEquals(connection.hasClose, true)
+    assertEquals(connection.hasKeepAlive, false)
   }
 
   test("connectionFor: not shutting down, http/1.1, default") {
-    assertEquals(Util.connectionFor(http11, Headers.empty, shuttingDown = false).hasKeepAlive, true)
+    val connection = Util.connectionFor(http11, Headers.empty, shuttingDown = false)
+    assertEquals(connection.hasKeepAlive, true)
+    assertEquals(connection.hasClose, false)
   }
 
   test("connectionFor: not shutting down, http/1.1, connection=close") {
-    assertEquals(Util.connectionFor(http11, Headers(close), shuttingDown = false).hasClose, true)
+    val connection = Util.connectionFor(http11, Headers(close), shuttingDown = false)
+    assertEquals(connection.hasClose, true)
+    assertEquals(connection.hasKeepAlive, false)
   }
 }
