@@ -27,6 +27,7 @@ import scala.concurrent.duration.FiniteDuration
 private[server] abstract class Shutdown[F[_]] {
   def await: F[Unit]
   def signal: F[Unit]
+  def isShuttingDown: F[Boolean]
   def newConnection: F[Unit]
   def removeConnection: F[Unit]
 
@@ -73,6 +74,9 @@ private[server] object Shutdown {
       override val signal: F[Unit] =
         unblockStart.get
 
+      override def isShuttingDown: F[Boolean] =
+        unblockStart.tryGet.map(_.isDefined)
+
       override val newConnection: F[Unit] =
         state.update { s =>
           s.copy(active = s.active + 1)
@@ -98,6 +102,7 @@ private[server] object Shutdown {
       new Shutdown[F] {
         override val await: F[Unit] = unblock.complete(()).void
         override val signal: F[Unit] = unblock.get
+        override val isShuttingDown: F[Boolean] = unblock.tryGet.map(_.isDefined)
         override val newConnection: F[Unit] = F.unit
         override val removeConnection: F[Unit] = F.unit
         override val trackConnection: Stream[F, Unit] = Stream.emit(())
