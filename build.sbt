@@ -759,7 +759,14 @@ lazy val emberServer = libraryCrossProject("ember-server")
       log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
-    )
+    ),
+    Test / testOptions ++= {
+      val autobahnJob =
+        scalaBinaryVersion.value == "2.13" && sys.props("java.specification.version") == "17"
+      if (sys.env.contains("CI") && !autobahnJob)
+        Seq(Tests.Argument(TestFrameworks.MUnit, "--exclude-tags=Autobahn"))
+      else Nil
+    },
   )
   .jsSettings(
     libraryDependencies ++= Seq(
