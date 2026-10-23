@@ -20,22 +20,23 @@ import cats.effect._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pipe
-import fs2.io.file.Files
-import fs2.io.file.Path
-import fs2.io.process.ProcessBuilder
 import org.http4s._
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketFrame
+import org.testcontainers.Testcontainers
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.images.builder.Transferable
+import org.testcontainers.utility.DockerImageName
 
-import java.nio.file.Paths
-import java.util.UUID
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
+import scala.io.Source
 
-/** Runs the Autobahn fuzzing client against an ember WebSocket echo server.
-  * Opt-in: skipped unless `AUTOBAHN` is set. Uses `wstest` from `WSTEST` or
-  * the PATH, otherwise the `crossbario/autobahn-testsuite` docker image, which
-  * needs a local rootful Linux daemon and amd64 or emulation.
+/** Runs the Autobahn fuzzing client against an ember WebSocket echo server,
+  * using the `crossbario/autobahn-testsuite` image through testcontainers.
+  * Opt-in: skipped unless `AUTOBAHN` is set.
   */
 class AutobahnSuite extends Http4sSuite {
   private val amd64 = Set("amd64", "x86_64").contains(sys.props("os.arch"))
@@ -157,131 +158,16 @@ class AutobahnSuite extends Http4sSuite {
     "7.9.9",
   )
 
-  private def onPath(name: String): Option[String] =
-    sys.env
-      .getOrElse("PATH", "")
-      .split(java.io.File.pathSeparator)
-      .map(Paths.get(_, name))
-      .find(java.nio.file.Files.isExecutable)
-      .map(_.toString)
+  private final class AutobahnContainer
+      extends GenericContainer[AutobahnContainer](DockerImageName.parse(image))
 
-  private def output(
-      cmd: String,
-      args: List[String],
-      limit: FiniteDuration,
-      onFailure: IO[Unit] = IO.unit,
-  ): IO[(String, String, Int)] =
-    (Ref[IO].of(Vector.empty[String]), Ref[IO].of(Vector.empty[String])).flatMapN { (out, err) =>
-      def collect(s: fs2.Stream[IO, Byte], to: Ref[IO, Vector[String]]) =
-        s.through(fs2.text.utf8.decode).foreach(chunk => to.update(_ :+ chunk)).compile.drain
-      val logs = (out.get, err.get).mapN((o, e) => (o.mkString, e.mkString))
-      ProcessBuilder(cmd, args)
-        .spawn[IO]
-        .flatTap { _ =>
-          Resource.onFinalizeCase[IO] {
-            case Resource.ExitCase.Succeeded => IO.unit
-            case _ => onFailure
-          }
-        }
-        .use { p =>
-          (collect(p.stdout, out), collect(p.stderr, err)).parTupled *> p.exitValue
-        }
-        .timeoutTo(
-          limit,
-          logs.flatMap { case (o, e) =>
-            IO.raiseError(
-              new AssertionError(s"$cmd timed out after $limit\nstdout:\n$o\nstderr:\n$e")
-            )
-          },
-        )
-        .flatMap(exit => logs.map { case (o, e) => (o, e, exit) })
-    }
-
-  private sealed trait Runner {
-    def base(dir: Path): String
-    def fuzz(dir: Path, specFile: String): IO[(String, String, Int)]
-  }
-
-  private final class Wstest(bin: String) extends Runner {
-    def base(dir: Path): String = dir.toString
-    def fuzz(dir: Path, specFile: String): IO[(String, String, Int)] =
-      output(bin, List("-m", "fuzzingclient", "-s", specFile), runLimit)
-  }
-
-  private final class Docker(bin: String) extends Runner {
-    def base(dir: Path): String = "/autobahn"
-    def fuzz(dir: Path, specFile: String): IO[(String, String, Int)] = {
-      val name = s"http4s-autobahn-${UUID.randomUUID()}"
-      IO.blocking {
-        val nio = dir.toNioPath
-        (
-          java.nio.file.Files.getAttribute(nio, "unix:uid"),
-          java.nio.file.Files.getAttribute(nio, "unix:gid"),
-        )
-      }.flatMap { case (uid, gid) =>
-        output(
-          bin,
-          List(
-            "run",
-            "--rm",
-            "--init",
-            "--name",
-            name,
-            "--network",
-            "host",
-            "--platform",
-            "linux/amd64",
-            "--user",
-            s"$uid:$gid",
-            "-v",
-            s"$dir:/autobahn:z",
-            image,
-            "wstest",
-            "-m",
-            "fuzzingclient",
-            "-s",
-            specFile,
-          ),
-          runLimit,
-          output(bin, List("rm", "-f", name), 1.minute).void,
-        )
-      }
-    }
-  }
-
-  private def dockerRunner(bin: String): IO[Either[String, Runner]] = {
-    def succeeds(limit: FiniteDuration, args: String*): IO[Option[String]] =
-      output(bin, args.toList, limit)
-        .map { case (out, _, exit) => if (exit == 0) Some(out) else None }
-        .handleError(_ => None)
-    val localDaemon = sys.env.get("DOCKER_HOST").forall(_.startsWith("unix://"))
-    val checks: List[(IO[Boolean], String)] = List(
-      IO.pure(sys.props("os.name") == "Linux") -> "docker mode needs Linux for --network host",
-      IO.pure(localDaemon) -> "docker mode needs a local daemon, DOCKER_HOST points elsewhere",
-      succeeds(1.minute, "info", "--format", "{{.OperatingSystem}} {{json .SecurityOptions}}")
-        .map(_.exists(info => !info.contains("rootless") && !info.contains("Docker Desktop"))) ->
-        "docker mode needs a rootful daemon on this host, not rootless or Docker Desktop",
-      succeeds(10.minutes, "pull", "-q", "--platform", "linux/amd64", image)
-        .map(_.isDefined) -> s"could not pull $image",
-      (if (amd64) IO.pure(true)
-       else
-         succeeds(5.minutes, "run", "--rm", "--platform", "linux/amd64", image, "true")
-           .map(_.isDefined)) -> "docker cannot run linux/amd64 images, set up emulation",
-    )
-    checks.foldRight(IO.pure[Either[String, Runner]](Right(new Docker(bin)))) {
-      case ((check, reason), next) => check.ifM(next, IO.pure(Left(reason)))
-    }
-  }
-
-  private val runner: IO[Either[String, Runner]] =
-    sys.env.get("WSTEST").orElse(onPath("wstest")) match {
-      case Some(bin) => IO.pure(Right(new Wstest(bin)))
-      case None =>
-        onPath("docker") match {
-          case Some(bin) => dockerRunner(bin)
-          case None => IO.pure(Left("neither wstest nor docker found on PATH"))
-        }
-    }
+  private def container(port: Int): Resource[IO, AutobahnContainer] =
+    Resource.make(IO.blocking {
+      Testcontainers.exposeHostPorts(port)
+      val c = new AutobahnContainer().withCommand("sleep", "infinity")
+      c.start()
+      c
+    })(c => IO.blocking(c.stop()))
 
   private val echo: Pipe[IO, WebSocketFrame, WebSocketFrame] = _.collect {
     case f: WebSocketFrame.Text => f
@@ -317,91 +203,107 @@ class AutobahnSuite extends Http4sSuite {
       }
       .toMap
 
-  private def json(s: String): String =
-    "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
-
-  private def spec(port: Int, outdir: String, cases: List[String]): String =
+  private def spec(port: Int, run: String, cases: List[String]): String =
     s"""{
-       |  "outdir": ${json(outdir)},
-       |  "servers": [{ "agent": "ember", "url": "ws://127.0.0.1:$port" }],
-       |  "cases": [${cases.map(json).mkString(", ")}],
+       |  "outdir": "/autobahn/$run",
+       |  "servers": [{ "agent": "ember", "url": "ws://host.testcontainers.internal:$port" }],
+       |  "cases": [${cases.map(c => s""""$c"""").mkString(", ")}],
        |  "exclude-cases": ["12.*", "13.*"],
        |  "exclude-agent-cases": {}
        |}""".stripMargin
 
+  private def read(c: AutobahnContainer, path: String): IO[Option[String]] =
+    IO.blocking(
+      c.copyFileFromContainer[String](
+        path,
+        (in: InputStream) => Source.fromInputStream(in, "UTF-8").mkString,
+      )
+    ).map(_.some)
+      .handleError(_ => None)
+
   private def fuzz(
-      runner: Runner,
-      dir: Path,
+      c: AutobahnContainer,
       port: Int,
       run: String,
       cases: List[String],
       expected: Int,
   ): IO[(Map[String, Boolean], String)] = {
-    val base = runner.base(dir)
+    val log = read(c, s"/autobahn/$run.log").map(_.getOrElse(""))
     for {
-      _ <- fs2.Stream
-        .emit(spec(port, s"$base/$run", cases))
-        .through(Files[IO].writeUtf8(dir / s"$run.json"))
-        .compile
-        .drain
-      result <- runner.fuzz(dir, s"$base/$run.json")
-      (stdout, stderr, exit) = result
-      log = s"$run: exit code $exit\nstdout:\n$stdout\nstderr:\n$stderr"
-      _ <- IO(assert(exit == 0, s"wstest failed\n\n$log"))
-      index <- Files[IO]
-        .readUtf8(dir / run / "index.json")
-        .compile
-        .string
-        .adaptError { case e => new AssertionError(s"no Autobahn report\n\n$log", e) }
+      _ <- IO.blocking(
+        c.copyFileToContainer(
+          Transferable.of(spec(port, run, cases).getBytes(StandardCharsets.UTF_8)),
+          s"/autobahn/$run.json",
+        )
+      )
+      exit <- IO
+        .interruptible(
+          c.execInContainer(
+            "sh",
+            "-c",
+            s"wstest -m fuzzingclient -s /autobahn/$run.json > /autobahn/$run.log 2>&1",
+          ).getExitCode
+            .intValue
+        )
+        .timeoutTo(
+          runLimit,
+          log.flatMap(l =>
+            IO.raiseError(new AssertionError(s"wstest timed out after $runLimit\n\n$l"))
+          ),
+        )
+      output <- log.map(l => s"$run: exit code $exit\n$l")
+      _ <- IO(assert(exit == 0, s"wstest failed\n\n$output"))
+      index <- read(c, s"/autobahn/$run/index.json")
+        .flatMap(IO.fromOption(_)(new AssertionError(s"no Autobahn report\n\n$output")))
       parsed = verdicts(index)
       _ <- IO(
-        assertEquals(parsed.size, expected, s"unexpected number of Autobahn cases:\n$index\n\n$log")
+        assertEquals(
+          parsed.size,
+          expected,
+          s"unexpected number of Autobahn cases:\n$index\n\n$output",
+        )
       )
-    } yield (parsed, log)
+    } yield (parsed, output)
   }
 
   test("autobahn fuzzingclient") {
     assume(sys.env.contains("AUTOBAHN"), "set AUTOBAHN=1 to run the Autobahn testsuite")
-    runner.flatMap {
-      case Left(reason) => IO(fail(reason))
-      case Right(runner) =>
-        (server, Files[IO].tempDirectory).tupled.use { case (server, dir) =>
-          val port = server.addressIp4s.port.value
-          for {
-            first <- fuzz(runner, dir, port, "all", List("*"), expectedCases)
-            (results, log) = first
-            missing = (knownFailures -- results.keySet).toList.sorted
-            _ <- IO(
-              assert(
-                missing.isEmpty,
-                missing.mkString("Known Autobahn failures missing from the report:\n", "\n", ""),
-              )
-            )
-            suspicious = results
-              .collect {
-                case (id, failed) if failed != knownFailures(id) => id
-              }
-              .toList
-              .sorted
-            second <-
-              if (suspicious.isEmpty) IO.pure((Map.empty[String, Boolean], ""))
-              else fuzz(runner, dir, port, "retry", suspicious, suspicious.size)
-            (retried, retryLog) = second
-          } yield {
-            val confirmed = suspicious.filter(id => retried(id) != knownFailures(id))
-            val unexpected = confirmed.filterNot(knownFailures)
-            val fixed = confirmed.filter(knownFailures)
-            val logs = s"$log\n$retryLog"
-            assert(
-              unexpected.isEmpty,
-              unexpected.mkString("Unexpected Autobahn failures:\n", "\n", s"\n\n$logs"),
-            )
-            assert(
-              fixed.isEmpty,
-              fixed.mkString("Known Autobahn failures now pass, remove them:\n", "\n", s"\n\n$logs"),
-            )
+    server.mproduct(s => container(s.addressIp4s.port.value)).use { case (server, c) =>
+      val port = server.addressIp4s.port.value
+      for {
+        first <- fuzz(c, port, "all", List("*"), expectedCases)
+        (results, log) = first
+        missing = (knownFailures -- results.keySet).toList.sorted
+        _ <- IO(
+          assert(
+            missing.isEmpty,
+            missing.mkString("Known Autobahn failures missing from the report:\n", "\n", ""),
+          )
+        )
+        suspicious = results
+          .collect {
+            case (id, failed) if failed != knownFailures(id) => id
           }
-        }
+          .toList
+          .sorted
+        second <-
+          if (suspicious.isEmpty) IO.pure((Map.empty[String, Boolean], ""))
+          else fuzz(c, port, "retry", suspicious, suspicious.size)
+        (retried, retryLog) = second
+      } yield {
+        val confirmed = suspicious.filter(id => retried(id) != knownFailures(id))
+        val unexpected = confirmed.filterNot(knownFailures)
+        val fixed = confirmed.filter(knownFailures)
+        val logs = s"$log\n$retryLog"
+        assert(
+          unexpected.isEmpty,
+          unexpected.mkString("Unexpected Autobahn failures:\n", "\n", s"\n\n$logs"),
+        )
+        assert(
+          fixed.isEmpty,
+          fixed.mkString("Known Autobahn failures now pass, remove them:\n", "\n", s"\n\n$logs"),
+        )
+      }
     }
   }
 }
