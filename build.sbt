@@ -30,6 +30,15 @@ ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt
 
 ThisBuild / githubWorkflowArtifactUpload := false
 
+ThisBuild / githubWorkflowBuild += WorkflowStep.Sbt(
+  List("ember-server/testOnly org.http4s.ember.server.AutobahnSuite"),
+  name = Some("Run Autobahn testsuite"),
+  cond = Some(
+    s"matrix.project == 'rootJVM' && matrix.scala == '${CrossVersion.binaryScalaVersion(scala_213)}' && matrix.java == '${githubWorkflowJavaVersions.value.last.render}'"
+  ),
+  env = Map("AUTOBAHN" -> "1"),
+)
+
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
   new NodeJSEnv(
@@ -759,6 +768,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
       log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
+      testcontainers % Test,
     )
   )
   .jsSettings(
