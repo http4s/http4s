@@ -757,7 +757,8 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .jvmSettings(
     libraryDependencies ++= Seq(
       log4catsSlf4j,
-      javaWebSocket % Test,
+      // Exclude a mismatching slf4j version so logs are printed in tests
+      (javaWebSocket % Test).exclude("org.slf4j", "slf4j-api"),
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
   )

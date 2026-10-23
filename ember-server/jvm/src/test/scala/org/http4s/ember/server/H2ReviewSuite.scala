@@ -24,6 +24,7 @@ import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 /** Exercises real HTTP/2 client/server exchanges for the unread-body deadlock.
@@ -104,5 +105,61 @@ class H2ReviewSuite extends Http4sSuite {
       ).parTupled.void
       Stream.repeatEval(program).take(10).compile.drain.timeout(8.seconds)
     }
+  }
+
+  test("terminating the server when the client's write queue is full does not cause a deadlock") {
+    val shutdownServerDelay = 1.second
+    val app = HttpApp[IO](_ => Response[IO](Status.Ok).pure[IO])
+    val server = EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"127.0.0.1")
+      .withPort(port"0")
+      .withHttp2
+      // Drop the connection as soon as we stop the server. This causes a Broken Pipe exception to be raised in the client's write loop.
+      .withShutdownTimeout(0.seconds)
+      .withHttpApp(app)
+      .build
+    val client = EmberClientBuilder
+      .default[IO]
+      .withHttp2
+      .build
+
+    val simulateDeadlock = Deferred[IO, Port]
+      .flatMap { port =>
+        // Start the server, then stop it after a second.
+        val startAndShutdownServer = server.use { server =>
+          port.complete(server.addressIp4s.port) >> IO.sleep(shutdownServerDelay)
+        }
+
+        val runClient = client.use { client =>
+          // Wait for the server to start
+          port.get.flatMap { port =>
+            val uri = Uri.unsafeFromString(s"http://127.0.0.1:${port.value}/")
+            val req = Request[IO](Method.POST, uri)
+              .withEntity("Somebody")
+              .withAttribute(Http2PriorKnowledge, ())
+            // Make a request to open the connection
+            val makeFirstReq = client.expect[String](req)
+            val waitForServerToShutdown = IO.sleep(shutdownServerDelay)
+            // Before the connection is reaped, make enough requests to fill up the write queue
+            val makeManyConcurrentRequests = Stream[IO, Request[IO]](req)
+              .repeatN(60)
+              .parEvalMapUnbounded(client.expect[String])
+              .compile
+              .drain
+            makeFirstReq >> waitForServerToShutdown >> makeManyConcurrentRequests
+          }
+        }
+        (startAndShutdownServer, runClient).parTupled.void
+      }
+      // Resource finalizers should not be blocked on the write queue.
+      // Ensure that the test completes if a timeout is applied.
+      .timeout(3.seconds)
+    simulateDeadlock.attempt
+      .map {
+        case Left(_: TimeoutException) | Right(_) => true
+        case _ => false
+      }
+      .assertEquals(true)
   }
 }
