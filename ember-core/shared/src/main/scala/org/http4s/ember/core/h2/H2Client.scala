@@ -267,7 +267,13 @@ private[ember] class H2Client[F[_]](
     }
 
     for {
-      h2 <- Resource.eval(createH2Connection)
+      h2 <- Resource.make(createH2Connection)(h2 =>
+        h2.mapRef.get.flatMap(streamMap =>
+          streamMap.toList.traverse_ { case (id, stream) =>
+            stream.finish(H2Error.Cancel).void >> h2.mapRef.update(_ - id)
+          }
+        )
+      )
       // Queue the connection preface before the reader can enqueue a SETTINGS acknowledgment.
       _ <- Resource.eval(processSettings(h2))
       _ <- h2.readLoop.background
