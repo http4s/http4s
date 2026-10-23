@@ -26,7 +26,23 @@ import scodec.bits._
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 
+/** HPACK wrapper that enforces locking and max header list size. The underlying
+  * encoder and decoder are not thread safe, so we need to ensure only one
+  * decoding and one encoding operation is in progress at a time. Additionally,
+  * the HPACK decoder does not enforce the max header list size, so we need to
+  * do that ourselves.
+  */
 private[h2] trait Hpack[F[_]] {
+
+  /** Encode headers, returning a resource representing the duration of the
+    * encoding lock. Calls need to use the encoded headers within the resource
+    * to ensure correct sequencing of send headers.
+    */
+  def encodedHeaders(headers: NonEmptyList[(String, String, Boolean)]): Resource[F, ByteVector]
+
+  /** Encode headers, releasing the lock immediately. Kept to preserve binary
+    * compatibility and for testing convenience only.
+    */
   def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector]
   def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]]
   def discardHeaders(bv: ByteVector): F[Unit]
@@ -47,8 +63,10 @@ private[h2] object Hpack extends HpackPlatform {
       tDecoder: Decoder,
       maxHeaderListSize: Long,
   ) extends Hpack[F] {
+    def encodedHeaders(headers: NonEmptyList[(String, String, Boolean)]): Resource[F, ByteVector] =
+      encodeLock.lock.flatMap(_ => Resource.eval(Hpack.encodeHeaders[F](tEncoder, headers.toList)))
     def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] =
-      encodeLock.lock.surround(Hpack.encodeHeaders[F](tEncoder, headers.toList))
+      encodedHeaders(headers).use(Async[F].pure)
     def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
       decodeLock.lock.surround(Hpack.decodeHeaders[F](tDecoder, bv, maxHeaderListSize))
     def discardHeaders(bv: ByteVector): F[Unit] =

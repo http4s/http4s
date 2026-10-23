@@ -18,13 +18,17 @@ package org.http4s
 package ember.core.h2
 
 import cats.data.NonEmptyList
+import cats.effect.Deferred
 import cats.effect.IO
+import cats.effect.testkit.TestControl
 import org.http4s.ember.core.EmberException
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF.forAllF
 import org.typelevel.ci.CIString
+
+import scala.concurrent.duration._
 
 class HpackSuite extends Http4sSuite {
 
@@ -43,7 +47,9 @@ class HpackSuite extends Http4sSuite {
     forAllF { (headers: NonEmptyList[Header.Raw]) =>
       for {
         hpack <- Hpack.create[IO](65635)
-        bv <- hpack.encodeHeaders(headers.map { case Header.Raw(n, v) => (n.toString, v, false) })
+        bv <- hpack
+          .encodedHeaders(headers.map { case Header.Raw(n, v) => (n.toString, v, false) })
+          .use(IO.pure)
         decoded <- hpack.decodeHeaders(bv)
       } yield assertEquals(decoded, headers.map { case Header.Raw(n, v) => (n.toString, v) })
     }
@@ -53,9 +59,30 @@ class HpackSuite extends Http4sSuite {
     interceptIO[EmberException.MessageTooLong] {
       for {
         hpack <- Hpack.create[IO](4)
-        bv <- hpack.encodeHeaders(NonEmptyList.one(("key", "value", false)))
+        bv <- hpack.encodedHeaders(NonEmptyList.one(("key", "value", false))).use(IO.pure)
         _ <- hpack.decodeHeaders(bv)
       } yield ()
+    }
+  }
+
+  test("concurrent encodings wait until the previous encoding resource is released") {
+    TestControl.executeEmbed {
+      val headers = NonEmptyList.one(("x-test", "value", false))
+
+      for {
+        hpack <- Hpack.create[IO](4096)
+        firstAllocated <- hpack.encodedHeaders(headers).allocated
+        (_, releaseFirst) = firstAllocated
+        secondStarted <- Deferred[IO, Unit]
+        secondFiber <-
+          (secondStarted.complete(()) >> hpack.encodedHeaders(headers).use(IO.pure)).start
+        _ <- secondStarted.get
+        completedWhileFirstHeld <- secondFiber.join
+          .race(IO.sleep(1.second))
+          .map(_.isLeft)
+          .guarantee(releaseFirst)
+        _ <- secondFiber.joinWithNever
+      } yield assertEquals(completedWhileFirstHeld, false)
     }
   }
 

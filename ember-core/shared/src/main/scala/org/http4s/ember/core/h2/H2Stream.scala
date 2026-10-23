@@ -20,6 +20,7 @@ import cats._
 import cats.data._
 import cats.effect._
 import cats.effect.std.Semaphore
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
 import fs2.concurrent.Channel
@@ -64,12 +65,13 @@ private[h2] class H2Stream[F[_]: Temporal](
         state.get.flatMap { s =>
           s.state match {
             case StreamState.Idle =>
-              for {
-                h <- hpack.encodeHeaders(headers)
-                frame = H2Frame.PushPromise(originating, endHeaders = true, id, h, None)
-                _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
-                _ <- enqueue(frame)
-              } yield ()
+              hpack
+                .encodedHeaders(headers)
+                .use { headers =>
+                  state.update(s => s.copy(state = StreamState.ReservedLocal)) >>
+                    enqueue(H2Frame.PushPromise(originating, endHeaders = true, id, headers, None))
+                }
+                .uncancelable
             case _ =>
               new IllegalStateException(
                 "Push Promises are only allowed on an idle Stream"
@@ -119,10 +121,12 @@ private[h2] class H2Stream[F[_]: Temporal](
       s.state match {
         case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
             StreamState.ReservedLocal =>
-          hpack.encodeHeaders(headers).flatMap { bv =>
-            val f = H2Frame.Headers(id, None, endStream, endHeaders = true, bv, None)
-            enqueue(f)
-          } <*
+          hpack
+            .encodedHeaders(headers)
+            .use(headers =>
+              enqueue(H2Frame.Headers(id, None, endStream, endHeaders = true, headers, None))
+            )
+            .uncancelable <*
             state
               .modify { b =>
                 val newState: StreamState = (b.state, endStream) match {
