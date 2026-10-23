@@ -29,22 +29,27 @@ import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
 
-/** The operations the server needs from the HTTP/2 implementation. */
+/** The operations the server needs from the HTTP/2 implementation.
+  *
+  * Keeps `H2Server` behind this trait so whole-program optimizers
+  * (Scala.js, Scala Native) can eliminate the HTTP/2 implementation
+  * as dead code when it isn't used.
+  */
 private[ember] trait Http2Support[F[_]] {
 
   /** Adds h2 to the ALPN protocols of the TLS parameters. */
-  def transformTls(params: TLSParameters): TLSParameters
+  def transform(params: TLSParameters): TLSParameters
 
   /** Reads the connection preface. `Left` carries the bytes read if it is not the preface. */
-  def checkPreface(socket: Socket[F], timeout: Duration)(implicit
+  def checkConnectionPreface(socket: Socket[F], timeout: Duration)(implicit
       F: Async[F]
   ): F[Either[ByteVector, Unit]]
 
-  /** Like [[checkPreface]], but fails if the preface is not there. */
-  def requirePreface(socket: Socket[F], timeout: Duration)(implicit F: Async[F]): F[Unit]
+  /** Like [[checkConnectionPreface]], but fails if the preface is not there. */
+  def requireConnectionPreface(socket: Socket[F], timeout: Duration)(implicit F: Async[F]): F[Unit]
 
   /** Serves the socket as HTTP/2, after the connection preface. */
-  def serve(
+  def fromSocket(
       socket: Socket[F],
       httpApp: HttpApp[F],
       requestHeaderReceiveTimeout: Duration,
@@ -60,18 +65,18 @@ private[ember] object Http2Support {
   def default[F[_]]: Http2Support[F] = new Default[F]
 
   private final class Default[F[_]] extends Http2Support[F] {
-    def transformTls(params: TLSParameters): TLSParameters =
+    def transform(params: TLSParameters): TLSParameters =
       H2TLS.transform(params)
 
-    def checkPreface(socket: Socket[F], timeout: Duration)(implicit
+    def checkConnectionPreface(socket: Socket[F], timeout: Duration)(implicit
         F: Async[F]
     ): F[Either[ByteVector, Unit]] =
       H2Server.checkConnectionPreface(socket, timeout)
 
-    def requirePreface(socket: Socket[F], timeout: Duration)(implicit F: Async[F]): F[Unit] =
+    def requireConnectionPreface(socket: Socket[F], timeout: Duration)(implicit F: Async[F]): F[Unit] =
       H2Server.requireConnectionPreface(socket, timeout)
 
-    def serve(
+    def fromSocket(
         socket: Socket[F],
         httpApp: HttpApp[F],
         requestHeaderReceiveTimeout: Duration,

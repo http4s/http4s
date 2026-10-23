@@ -219,10 +219,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             .flatMap { case (socket, alpn) =>
               (alpn, http2) match {
                 case (Some("h2"), Some(h2)) =>
-                  Stream.exec(h2.requirePreface(socket, idleTimeout)) ++
+                  Stream.exec(h2.requireConnectionPreface(socket, idleTimeout)) ++
                     Stream
                       .resource(
-                        h2.serve(
+                        h2.fromSocket(
                           socket,
                           httpApp,
                           requestHeaderReceiveTimeout,
@@ -256,7 +256,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 case (None, Some(h2)) => // Cleartext Protocol
                   // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
                   // Otherwise this is now http1
-                  Stream.eval(h2.checkPreface(socket, idleTimeout)).flatMap {
+                  Stream.eval(h2.checkConnectionPreface(socket, idleTimeout)).flatMap {
                     case Left(bv) =>
                       runConnection(
                         socket,
@@ -278,7 +278,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                     case Right(_) =>
                       Stream
                         .resource(
-                          h2.serve(
+                          h2.fromSocket(
                             socket,
                             httpApp,
                             requestHeaderReceiveTimeout,
@@ -351,7 +351,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       case (context, params) =>
         // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
         // As this is the only JVM specific code
-        val newParams = http2.fold(params)(_.transformTls(params))
+        val newParams = http2.fold(params)(_.transform(params))
 
         Resource
           .eval {
