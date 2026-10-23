@@ -73,7 +73,9 @@ private[ember] object Http2Support {
     ): F[Either[ByteVector, Unit]] =
       H2Server.checkConnectionPreface(socket, timeout)
 
-    def requireConnectionPreface(socket: Socket[F], timeout: Duration)(implicit F: Async[F]): F[Unit] =
+    def requireConnectionPreface(socket: Socket[F], timeout: Duration)(implicit
+        F: Async[F]
+    ): F[Unit] =
       H2Server.requireConnectionPreface(socket, timeout)
 
     def fromSocket(
