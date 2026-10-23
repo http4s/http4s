@@ -848,11 +848,11 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     startYear := Some(2015),
-    libraryDependencies += circeParser,
+    libraryDependencies ++= Seq(circeParser, nettyBuffer, nettyCodecHttp),
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
   )
-  .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
+  .dependsOn(core.jvm, circe.jvm, emberCore.jvm, emberServer.jvm)
 
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
