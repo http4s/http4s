@@ -212,14 +212,20 @@ class AutobahnSuite extends Http4sSuite {
        |  "exclude-agent-cases": {}
        |}""".stripMargin
 
+  private def exec(c: AutobahnContainer, command: String*): IO[Int] =
+    IO.interruptible(c.execInContainer(command: _*).getExitCode.intValue)
+
   private def read(c: AutobahnContainer, path: String): IO[Option[String]] =
-    IO.blocking(
-      c.copyFileFromContainer[String](
-        path,
-        (in: InputStream) => Source.fromInputStream(in, "UTF-8").mkString,
-      )
-    ).map(_.some)
-      .handleError(_ => None)
+    exec(c, "test", "-f", path).flatMap {
+      case 0 =>
+        IO.blocking(
+          c.copyFileFromContainer[String](
+            path,
+            (in: InputStream) => Source.fromInputStream(in, "UTF-8").mkString,
+          )
+        ).map(_.some)
+      case _ => IO.pure(None)
+    }
 
   private def fuzz(
       c: AutobahnContainer,
@@ -236,21 +242,17 @@ class AutobahnSuite extends Http4sSuite {
           s"/autobahn/$run.json",
         )
       )
-      exit <- IO
-        .interruptible(
-          c.execInContainer(
-            "sh",
-            "-c",
-            s"wstest -m fuzzingclient -s /autobahn/$run.json > /autobahn/$run.log 2>&1",
-          ).getExitCode
-            .intValue
-        )
-        .timeoutTo(
-          runLimit,
-          log.flatMap(l =>
-            IO.raiseError(new AssertionError(s"wstest timed out after $runLimit\n\n$l"))
-          ),
-        )
+      exit <- exec(
+        c,
+        "sh",
+        "-c",
+        s"wstest -m fuzzingclient -s /autobahn/$run.json > /autobahn/$run.log 2>&1",
+      ).timeoutTo(
+        runLimit,
+        exec(c, "pkill", "-f", "wstest") *> log.flatMap(l =>
+          IO.raiseError(new AssertionError(s"wstest timed out after $runLimit\n\n$l"))
+        ),
+      )
       output <- log.map(l => s"$run: exit code $exit\n$l")
       _ <- IO(assert(exit == 0, s"wstest failed\n\n$output"))
       index <- read(c, s"/autobahn/$run/index.json")
@@ -268,42 +270,49 @@ class AutobahnSuite extends Http4sSuite {
 
   test("autobahn fuzzingclient") {
     assume(sys.env.contains("AUTOBAHN"), "set AUTOBAHN=1 to run the Autobahn testsuite")
-    server.mproduct(s => container(s.addressIp4s.port.value)).use { case (server, c) =>
-      val port = server.addressIp4s.port.value
-      for {
-        first <- fuzz(c, port, "all", List("*"), expectedCases)
-        (results, log) = first
-        missing = (knownFailures -- results.keySet).toList.sorted
-        _ <- IO(
-          assert(
-            missing.isEmpty,
-            missing.mkString("Known Autobahn failures missing from the report:\n", "\n", ""),
-          )
-        )
-        suspicious = results
-          .collect {
-            case (id, failed) if failed != knownFailures(id) => id
-          }
-          .toList
-          .sorted
-        second <-
-          if (suspicious.isEmpty) IO.pure((Map.empty[String, Boolean], ""))
-          else fuzz(c, port, "retry", suspicious, suspicious.size)
-        (retried, retryLog) = second
-      } yield {
-        val confirmed = suspicious.filter(id => retried(id) != knownFailures(id))
-        val unexpected = confirmed.filterNot(knownFailures)
-        val fixed = confirmed.filter(knownFailures)
-        val logs = s"$log\n$retryLog"
-        assert(
-          unexpected.isEmpty,
-          unexpected.mkString("Unexpected Autobahn failures:\n", "\n", s"\n\n$logs"),
-        )
-        assert(
-          fixed.isEmpty,
-          fixed.mkString("Known Autobahn failures now pass, remove them:\n", "\n", s"\n\n$logs"),
-        )
+    server
+      .flatMap { s =>
+        val port = s.addressIp4s.port.value
+        container(port).map(port -> _)
       }
-    }
+      .use { case (port, c) =>
+        for {
+          first <- fuzz(c, port, "all", List("*"), expectedCases)
+          (results, log) = first
+          missing = (knownFailures -- results.keySet).toList.sorted
+          _ <- IO(
+            assert(
+              missing.isEmpty,
+              missing.mkString("Known Autobahn failures missing from the report:\n", "\n", ""),
+            )
+          )
+          suspicious = results
+            .collect {
+              case (id, failed) if failed != knownFailures(id) => id
+            }
+            .toList
+            .sorted
+          second <-
+            if (suspicious.isEmpty) IO.pure((Map.empty[String, Boolean], ""))
+            else fuzz(c, port, "retry", suspicious, suspicious.size)
+          (retried, retryLog) = second
+          (confirmed, flaky) = suspicious.partition(id => retried(id) != knownFailures(id))
+          _ <- flaky.traverse_(id =>
+            IO.println(s"WARNING: Autobahn case $id changed verdict on retry, it may be flaky")
+          )
+        } yield {
+          val unexpected = confirmed.filterNot(knownFailures)
+          val fixed = confirmed.filter(knownFailures)
+          val logs = s"$log\n$retryLog"
+          assert(
+            unexpected.isEmpty,
+            unexpected.mkString("Unexpected Autobahn failures:\n", "\n", s"\n\n$logs"),
+          )
+          assert(
+            fixed.isEmpty,
+            fixed.mkString("Known Autobahn failures now pass, remove them:\n", "\n", s"\n\n$logs"),
+          )
+        }
+      }
   }
 }
