@@ -713,10 +713,7 @@ private[h2] class H2Connection[F[_]](
                     logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
                   // We forget a stream a second after closing it, beyond any round trip
                   case H2Connection.ConnectionType.Server =>
-                    logger.debug(
-                      s"$addrStr Received Data Frame for Closed Stream $i - Resetting"
-                    ) >>
-                      outgoingQueue.tryOffer(H2Error.StreamClosed.toRst(i)).void
+                    logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
                 })
               case None =>
                 logger.warn(
