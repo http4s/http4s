@@ -362,7 +362,7 @@ private[h2] class H2Connection[F[_]](
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminated[F, EncodableH2Frame](outgoingQueue, 16)
-      .evalMap(_.toH2Frame(hpack))
+      .evalMapChunk(_.toH2Frame(hpack))
       .chunks
       .prefetch
       .foreach(writeChunk)
