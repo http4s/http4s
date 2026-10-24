@@ -32,7 +32,7 @@ private[h2] object DecodedH2Frame {
       identifier: Int,
       endHeaders: Boolean,
       promisedStreamId: Int,
-      headers: NonEmptyList[(String, String)],
+      headers: List[(String, String)],
   )
 
   final case class Headers(
@@ -40,7 +40,7 @@ private[h2] object DecodedH2Frame {
       dependency: Option[H2Frame.Headers.StreamDependency],
       endStream: Boolean,
       endHeaders: Boolean,
-      headers: NonEmptyList[(String, String)],
+      headers: List[(String, String)],
   )
 }
 

@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets
   */
 private[h2] trait Hpack[F[_]] {
   def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector]
-  def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]]
+  def decodeHeaders(bv: ByteVector): F[List[(String, String)]]
   def discardHeaders(bv: ByteVector): F[Unit]
 }
 
@@ -47,7 +47,7 @@ private[h2] object Hpack extends HpackPlatform {
   ) extends Hpack[F] {
     def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] =
       Hpack.encodeHeaders[F](tEncoder, headers.toList)
-    def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
+    def decodeHeaders(bv: ByteVector): F[List[(String, String)]] =
       Hpack.decodeHeaders[F](tDecoder, bv, maxHeaderListSize)
     def discardHeaders(bv: ByteVector): F[Unit] =
       Hpack.discardHeaders[F](tDecoder, bv, maxHeaderListSize)
@@ -58,7 +58,7 @@ private[h2] object Hpack extends HpackPlatform {
       tDecoder: Decoder,
       bv: ByteVector,
       maxHeaderListSize: Long,
-  ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
+  ): F[List[(String, String)]] = Sync[F].delay {
     val buffer = List.newBuilder[(String, String)]
     decode(tDecoder, bv, maxHeaderListSize) { (name, value) =>
       buffer.+=(
@@ -69,7 +69,7 @@ private[h2] object Hpack extends HpackPlatform {
       )
       ()
     }
-    NonEmptyList.fromListUnsafe(buffer.result())
+    buffer.result()
   }
 
   def discardHeaders[F[_]: Sync](
