@@ -113,25 +113,27 @@ private[h2] class H2Stream[F[_]: Temporal](
       s.state match {
         case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
             StreamState.ReservedLocal =>
-          enqueue(EncodableH2Frame.Headers(id, None, endStream, endHeaders = true, headers)) <*
-            state
-              .modify { b =>
-                val newState: StreamState = (b.state, endStream) match {
-                  case (StreamState.Idle, false) => StreamState.Open
-                  case (StreamState.Idle, true) => StreamState.HalfClosedLocal
-                  case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
-                  case (StreamState.HalfClosedRemote, true) => StreamState.Closed
-                  case (StreamState.Open, false) => StreamState.Open
-                  case (StreamState.Open, true) => StreamState.HalfClosedLocal
-                  case (StreamState.ReservedLocal, true) => StreamState.Closed
-                  case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
-                  case (st, _) => st // Hopefully Impossible
-                }
-                (b.copy(state = newState), newState)
-              }
-              .flatMap { state =>
-                if (state == StreamState.Closed) onClosed else Applicative[F].unit
-              }
+          Temporal[F]
+            .uncancelable(poll =>
+              poll(
+                enqueue(EncodableH2Frame.Headers(id, None, endStream, endHeaders = true, headers))
+              ) *>
+                state
+                  .flatModify { b =>
+                    val newState: StreamState = (b.state, endStream) match {
+                      case (StreamState.Idle, false) => StreamState.Open
+                      case (StreamState.Idle, true) => StreamState.HalfClosedLocal
+                      case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
+                      case (StreamState.HalfClosedRemote, true) => StreamState.Closed
+                      case (StreamState.Open, false) => StreamState.Open
+                      case (StreamState.Open, true) => StreamState.HalfClosedLocal
+                      case (StreamState.ReservedLocal, true) => StreamState.Closed
+                      case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
+                      case (st, _) => st // Hopefully Impossible
+                    }
+                    (b.copy(state = newState), onClosed.whenA(newState == StreamState.Closed))
+                  }
+            )
         case _ => new IllegalStateException("Stream Was Closed").raiseError
       }
     }

@@ -309,6 +309,10 @@ private[ember] class H2Client[F[_]](
         connection.streamCreateAndHeaders.surround(
           connection.initiateLocalStream.flatTap(stream =>
             poll(stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false))
+              .guaranteeCase {
+                case Outcome.Succeeded(_) => F.unit
+                case _ => connection.mapRef.update(m => m - stream.id)
+              }
           )
         )
       )(stream =>
