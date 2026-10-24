@@ -16,14 +16,84 @@
 
 package org.http4s.ember.core.h2
 
+import cats.Applicative
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import scodec.bits._
 
 import scala.annotation.nowarn
 import scala.annotation.switch
 
+/** H2Frames that have had further decoding applied to them, such as HPACK
+  * decoding of headers.
+  */
+private[h2] object DecodedH2Frame {
+  final case class PushPromise(
+      identifier: Int,
+      endHeaders: Boolean,
+      promisedStreamId: Int,
+      headers: NonEmptyList[(String, String)],
+  )
+
+  final case class Headers(
+      identifier: Int,
+      dependency: Option[H2Frame.Headers.StreamDependency],
+      endStream: Boolean,
+      endHeaders: Boolean,
+      headers: NonEmptyList[(String, String)],
+  )
+}
+
+private[h2] sealed trait EncodableH2Frame {
+  def toH2Frame[F[_]: Applicative](hpack: Hpack[F]): F[H2Frame]
+}
+
+/** Represents H2Frames that need further encoding before they can be sent on
+  * the wire. This ensures HPACK encoding happens in the same order as sending
+  * frames.
+  */
+private[h2] object EncodableH2Frame {
+  final case class PushPromise(
+      identifier: Int,
+      endHeaders: Boolean,
+      promisedStreamId: Int,
+      headers: NonEmptyList[(String, String, Boolean)],
+  ) extends EncodableH2Frame {
+    def toH2Frame[F[_]: Applicative](hpack: Hpack[F]): F[H2Frame] =
+      hpack
+        .encodeHeaders(headers)
+        .map(H2Frame.PushPromise(identifier, endHeaders, promisedStreamId, _, None))
+  }
+
+  // repeat the above for Headers
+  final case class Headers(
+      identifier: Int,
+      dependency: Option[H2Frame.Headers.StreamDependency],
+      endStream: Boolean,
+      endHeaders: Boolean,
+      headers: NonEmptyList[(String, String, Boolean)],
+  ) extends EncodableH2Frame {
+    def toH2Frame[F[_]: Applicative](hpack: Hpack[F]): F[H2Frame] =
+      hpack
+        .encodeHeaders(headers)
+        .map(H2Frame.Headers(identifier, dependency, endStream, endHeaders, _, None))
+  }
+}
+
+/** An H2Frame that can be converted to bytes without further effectful processing
+  */
 private[ember] sealed abstract class H2Frame {
   def toRaw: H2Frame.RawFrame
+}
+
+/** The H2Frame types that can be queued for sending. `H2Frame.PushPromise` and
+  * `H2Frame.Headers` are not included because they require HPACK encoding
+  *  before they can be sent. They must be created and queued as
+  * `EncodableH2Frame.PushPromise` and `EncodableH2Frame.Headers`, which will be
+  *  converted to `H2Frame` after HPACK encoding.
+  */
+private[ember] sealed abstract class EncodedH2Frame extends H2Frame with EncodableH2Frame {
+  def toH2Frame[F[_]: Applicative](hpack: Hpack[F]): F[H2Frame] = this.pure.widen
 }
 
 @nowarn("msg=implicit numeric widening")
@@ -151,7 +221,7 @@ private[ember] object H2Frame {
   def toByteVector(frame: H2Frame): ByteVector =
     RawFrame.toByteVector(frame.toRaw)
 
-  final case class Unknown(raw: RawFrame) extends H2Frame {
+  final case class Unknown(raw: RawFrame) extends EncodedH2Frame {
     def toRaw: RawFrame = raw
   }
 
@@ -169,7 +239,7 @@ private[ember] object H2Frame {
       data: ByteVector,
       pad: Option[ByteVector],
       endStream: Boolean,
-  ) extends H2Frame {
+  ) extends EncodedH2Frame {
     override def toString: String =
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
 
@@ -249,6 +319,17 @@ private[ember] object H2Frame {
     override def toString: String =
       s"Headers(identifier=$identifier, dependency=$dependency, endStream=$endStream, endHeaders=$endHeaders, headerBlock=$headerBlock, padding=$padding)"
     def toRaw: RawFrame = Headers.toRaw(this)
+
+    /** Decodes the header block of this Header frame using the provided
+      * HPACK decoder. This will fail if the header block is incomplete or
+      * exceeds the decoder's table size.
+      */
+    def decode[F[_]: Applicative](
+        hpack: Hpack[F]
+    ): F[DecodedH2Frame.Headers] =
+      hpack.decodeHeaders(headerBlock).map { decoded =>
+        DecodedH2Frame.Headers(identifier, dependency, endStream, endHeaders, decoded)
+      }
   }
   object Headers {
     final val `type` = 0x1
@@ -387,7 +468,7 @@ private[ember] object H2Frame {
       exclusive: Boolean,
       streamDependency: Int,
       weight: Byte,
-  ) extends H2Frame {
+  ) extends EncodedH2Frame {
     def toRaw: RawFrame = Priority.toRaw(this)
   }
   object Priority {
@@ -429,7 +510,7 @@ private[ember] object H2Frame {
   final case class RstStream(
       identifier: Int,
       value: Integer,
-  ) extends H2Frame {
+  ) extends EncodedH2Frame {
     override def toString: String =
       s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
     def toRaw: RawFrame = RstStream.toRaw(this)
@@ -461,7 +542,7 @@ private[ember] object H2Frame {
       identifier: Int,
       ack: Boolean,
       list: List[Settings.Setting],
-  ) extends H2Frame {
+  ) extends EncodedH2Frame {
     override def toString: String =
       if (identifier == 0 && ack && list.isEmpty) "Settings.Ack"
       else if (identifier == 0 && !ack) s"Settings(${list.map(_.toString).intercalate(", ")})"
@@ -679,6 +760,17 @@ private[ember] object H2Frame {
       padding: Option[ByteVector],
   ) extends H2Frame {
     def toRaw: RawFrame = PushPromise.toRaw(this)
+
+    /** Decodes the header block of this PushPromise frame using the provided
+      * HPACK decoder. This will fail if the header block is incomplete or
+      * exceeds the decoder's table size.
+      */
+    def decode[F[_]: Applicative](
+        hpack: Hpack[F]
+    ): F[DecodedH2Frame.PushPromise] =
+      hpack.decodeHeaders(headerBlock).map { decoded =>
+        DecodedH2Frame.PushPromise(identifier, endHeaders, promisedStreamId, decoded)
+      }
   }
   object PushPromise {
     final val `type` = 0x5
@@ -750,7 +842,7 @@ private[ember] object H2Frame {
     |                                                               |
     +---------------------------------------------------------------+
    */
-  final case class Ping(identifier: Int, ack: Boolean, data: ByteVector) extends H2Frame {
+  final case class Ping(identifier: Int, ack: Boolean, data: ByteVector) extends EncodedH2Frame {
     override def toString: String =
       if (identifier == 0 && ack) "Ping.Ack"
       else if (identifier == 0 && !ack) "Ping"
@@ -794,7 +886,7 @@ private[ember] object H2Frame {
       lastStreamId: Int,
       errorCode: Integer,
       additionalDebugData: Option[ByteVector],
-  ) extends H2Frame {
+  ) extends EncodedH2Frame {
     override def toString: String =
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
     def toRaw: RawFrame = GoAway.toRaw(this)
@@ -853,7 +945,7 @@ private[ember] object H2Frame {
     |R|              Window Size Increment (31)                     |
     +-+-------------------------------------------------------------+
    */
-  final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends H2Frame {
+  final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends EncodedH2Frame {
     def toRaw: RawFrame = WindowUpdate.toRaw(this)
   }
   object WindowUpdate {
@@ -895,7 +987,7 @@ private[ember] object H2Frame {
       identifier: Int,
       endHeaders: Boolean,
       headerBlockFragment: ByteVector,
-  ) extends H2Frame {
+  ) extends EncodedH2Frame {
     override def toString: String =
       s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
     def toRaw: RawFrame = Continuation.toRaw(this)
