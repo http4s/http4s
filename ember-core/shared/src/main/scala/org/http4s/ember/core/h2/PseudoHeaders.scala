@@ -20,6 +20,7 @@ import cats._
 import cats.data._
 import cats.syntax.all._
 import org.http4s._
+import org.http4s.ember.core.Util
 import org.typelevel.ci.CIString
 
 /** HTTP/2 pseudo headers */
@@ -136,10 +137,11 @@ private[h2] object PseudoHeaders {
   ): Option[Response[fs2.Pure]] = {
     // TODO Duplicate Check
     val statusO =
-      findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS).map(_._2).flatMap {
-        value =>
-          Status.fromInt(value.toInt).toOption
-      }
+      findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS)
+        .map(_._2)
+        .flatMap(
+          Util.parseStatus(_).toOption
+        )
     val h = Headers(
       headers
         .filterNot(t => t._1 == PseudoHeaders.STATUS)
