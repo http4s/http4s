@@ -362,6 +362,8 @@ private[h2] class H2Connection[F[_]](
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminated[F, EncodableH2Frame](outgoingQueue, 16)
+      // H2 frames must be encoded serially to so that header and push promise
+      // frames are enqueued in the same order they are encoded
       .evalMapChunk(_.toH2Frame(hpack))
       .chunks
       .prefetch
