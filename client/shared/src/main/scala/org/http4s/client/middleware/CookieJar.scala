@@ -17,10 +17,12 @@
 package org.http4s.client.middleware
 
 import cats._
+import cats.data.NonEmptyList
 import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
+import org.http4s.headers.Cookie
 import org.typelevel.ci.CIString
 
 import java.util.Locale
@@ -173,8 +175,7 @@ object CookieJar {
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {
         values <- ref.get.map(_.values.toList)
-      } yield cookiesForRequest(r, values, psl)
-        .foldLeft(r) { case (req, cookie) => req.addCookie(cookie) }
+      } yield withCookies(r, cookiesForRequest(r, values, psl))
   }
 
   private[middleware] final case class CookieKey(
@@ -259,6 +260,16 @@ object CookieJar {
         m
     }
   }
+
+  // Adds all the cookies in one update to the Cookie header. Adding them one at a
+  // time with addCookie re-parses and re-renders the header each time, which is
+  // quadratic in the number of cookies.
+  private def withCookies[N[_]](r: Request[N], cookies: List[RequestCookie]): Request[N] =
+    NonEmptyList.fromList(cookies).fold(r) { nel =>
+      r.putHeaders(
+        r.headers.get[Cookie].fold(Cookie(nel))(existing => Cookie(existing.values.concatNel(nel)))
+      )
+    }
 
   private[middleware] def responseCookieToRequestCookie(r: ResponseCookie): RequestCookie =
     RequestCookie(r.name, r.content)

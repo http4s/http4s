@@ -422,6 +422,24 @@ class CookieJarSuite extends Http4sSuite {
     )
   }
 
+  test("enrichRequest should append the jar's cookies to an existing Cookie header") {
+    val uri = uri"http://example.com/"
+    val stored = List("a", "b", "c").map { name =>
+      (ResponseCookie(name, s"v$name", domain = Some("example.com")), uri)
+    }
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookies(stored)
+      req <- jar.enrichRequest(Request[IO](Method.GET, uri).addCookie("existing", "v"))
+    } yield {
+      assertEquals(req.headers.headers.count(_.name == Header[Cookie].name), 1)
+      val names = req.headers.get[Cookie].toList.flatMap(_.values.toList.map(_.name))
+      // The jar's cookies come from a Map, so only the existing cookie's position is fixed
+      assertEquals(names.headOption, Some("existing"))
+      assertEquals(names.drop(1).sorted, List("a", "b", "c"))
+    }
+  }
+
   test("addCookies should bound the stored cookies, evicting the oldest first") {
     import scala.concurrent.duration._
     val cap = CookieJar.DefaultMaxCookies
