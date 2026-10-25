@@ -62,8 +62,14 @@ private[h2] class H2Stream[F[_]: Temporal](
         state.get.flatMap { s =>
           s.state match {
             case StreamState.Idle =>
-              state.update(s => s.copy(state = StreamState.ReservedLocal)) *>
-                enqueue(EncodableH2Frame.PushPromise(originating, endHeaders = true, id, headers))
+              Temporal[F]
+                .uncancelable(poll =>
+                  poll(
+                    enqueue(
+                      EncodableH2Frame.PushPromise(originating, endHeaders = true, id, headers)
+                    )
+                  ) *> state.update(s => s.copy(state = StreamState.ReservedLocal))
+                )
             case _ =>
               new IllegalStateException(
                 "Push Promises are only allowed on an idle Stream"
