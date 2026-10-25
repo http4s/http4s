@@ -105,7 +105,7 @@ private[h2] class H2Connection[F[_]](
       logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
 
     case e =>
-      logger.error(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
+      logger.debug(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
   }
 
   // An unauthenticated peer can open streams without limit.  The 4x
