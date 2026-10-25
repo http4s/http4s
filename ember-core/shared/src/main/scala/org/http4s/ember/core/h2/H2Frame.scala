@@ -24,24 +24,28 @@ import scodec.bits._
 import scala.annotation.nowarn
 import scala.annotation.switch
 
+private[h2] sealed trait DecodedH2Frame
+
 /** H2Frames that have had further decoding applied to them, such as HPACK
   * decoding of headers.
   */
 private[h2] object DecodedH2Frame {
+
+  /** A fully decoded push promise header block. */
   final case class PushPromise(
       identifier: Int,
-      endHeaders: Boolean,
       promisedStreamId: Int,
       headers: List[(String, String)],
-  )
+  ) extends DecodedH2Frame
 
+  /** A fully decoded regular header block.
+    */
   final case class Headers(
       identifier: Int,
       dependency: Option[H2Frame.Headers.StreamDependency],
       endStream: Boolean,
-      endHeaders: Boolean,
       headers: List[(String, String)],
-  )
+  ) extends DecodedH2Frame
 }
 
 private[h2] sealed trait EncodableH2Frame {
@@ -86,13 +90,17 @@ private[ember] sealed abstract class H2Frame {
   def toRaw: H2Frame.RawFrame
 }
 
-/** The H2Frame types that can be queued for sending. `H2Frame.PushPromise` and
-  * `H2Frame.Headers` are not included because they require HPACK encoding
-  *  before they can be sent. They must be created and queued as
+/** The H2Frame types that can be queued for sending or read. `H2Frame.PushPromise`
+  * and `H2Frame.Headers` are not included because they require HPACK encoding
+  * before they can be sent. They must be created and queued as
   * `EncodableH2Frame.PushPromise` and `EncodableH2Frame.Headers`, which will be
-  *  converted to `H2Frame` after HPACK encoding.
+  * converted to `H2Frame` after HPACK encoding. When reading, they must be
+  * converted to `DecodedH2Frame.PushPromise` and `DecodedH2Frame.Headers` first.
   */
-private[ember] sealed abstract class EncodedH2Frame extends H2Frame with EncodableH2Frame {
+private[ember] sealed abstract class LogicalH2Frame
+    extends H2Frame
+    with EncodableH2Frame
+    with DecodedH2Frame {
   def toH2Frame[F[_]: Applicative](hpack: Hpack[F]): F[H2Frame] = this.pure.widen
 }
 
@@ -221,7 +229,7 @@ private[ember] object H2Frame {
   def toByteVector(frame: H2Frame): ByteVector =
     RawFrame.toByteVector(frame.toRaw)
 
-  final case class Unknown(raw: RawFrame) extends EncodedH2Frame {
+  final case class Unknown(raw: RawFrame) extends LogicalH2Frame {
     def toRaw: RawFrame = raw
   }
 
@@ -239,7 +247,7 @@ private[ember] object H2Frame {
       data: ByteVector,
       pad: Option[ByteVector],
       endStream: Boolean,
-  ) extends EncodedH2Frame {
+  ) extends LogicalH2Frame {
     override def toString: String =
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
 
@@ -328,7 +336,7 @@ private[ember] object H2Frame {
         hpack: Hpack[F]
     ): F[DecodedH2Frame.Headers] =
       hpack.decodeHeaders(headerBlock).map { decoded =>
-        DecodedH2Frame.Headers(identifier, dependency, endStream, endHeaders, decoded)
+        DecodedH2Frame.Headers(identifier, dependency, endStream, decoded)
       }
   }
   object Headers {
@@ -468,7 +476,7 @@ private[ember] object H2Frame {
       exclusive: Boolean,
       streamDependency: Int,
       weight: Byte,
-  ) extends EncodedH2Frame {
+  ) extends LogicalH2Frame {
     def toRaw: RawFrame = Priority.toRaw(this)
   }
   object Priority {
@@ -510,7 +518,7 @@ private[ember] object H2Frame {
   final case class RstStream(
       identifier: Int,
       value: Integer,
-  ) extends EncodedH2Frame {
+  ) extends LogicalH2Frame {
     override def toString: String =
       s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
     def toRaw: RawFrame = RstStream.toRaw(this)
@@ -542,7 +550,7 @@ private[ember] object H2Frame {
       identifier: Int,
       ack: Boolean,
       list: List[Settings.Setting],
-  ) extends EncodedH2Frame {
+  ) extends LogicalH2Frame {
     override def toString: String =
       if (identifier == 0 && ack && list.isEmpty) "Settings.Ack"
       else if (identifier == 0 && !ack) s"Settings(${list.map(_.toString).intercalate(", ")})"
@@ -769,7 +777,7 @@ private[ember] object H2Frame {
         hpack: Hpack[F]
     ): F[DecodedH2Frame.PushPromise] =
       hpack.decodeHeaders(headerBlock).map { decoded =>
-        DecodedH2Frame.PushPromise(identifier, endHeaders, promisedStreamId, decoded)
+        DecodedH2Frame.PushPromise(identifier, promisedStreamId, decoded)
       }
   }
   object PushPromise {
@@ -842,7 +850,7 @@ private[ember] object H2Frame {
     |                                                               |
     +---------------------------------------------------------------+
    */
-  final case class Ping(identifier: Int, ack: Boolean, data: ByteVector) extends EncodedH2Frame {
+  final case class Ping(identifier: Int, ack: Boolean, data: ByteVector) extends LogicalH2Frame {
     override def toString: String =
       if (identifier == 0 && ack) "Ping.Ack"
       else if (identifier == 0 && !ack) "Ping"
@@ -886,7 +894,7 @@ private[ember] object H2Frame {
       lastStreamId: Int,
       errorCode: Integer,
       additionalDebugData: Option[ByteVector],
-  ) extends EncodedH2Frame {
+  ) extends LogicalH2Frame {
     override def toString: String =
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
     def toRaw: RawFrame = GoAway.toRaw(this)
@@ -945,7 +953,7 @@ private[ember] object H2Frame {
     |R|              Window Size Increment (31)                     |
     +-+-------------------------------------------------------------+
    */
-  final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends EncodedH2Frame {
+  final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends LogicalH2Frame {
     def toRaw: RawFrame = WindowUpdate.toRaw(this)
   }
   object WindowUpdate {
@@ -987,7 +995,7 @@ private[ember] object H2Frame {
       identifier: Int,
       endHeaders: Boolean,
       headerBlockFragment: ByteVector,
-  ) extends EncodedH2Frame {
+  ) extends H2Frame {
     override def toString: String =
       s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
     def toRaw: RawFrame = Continuation.toRaw(this)
