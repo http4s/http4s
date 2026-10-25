@@ -772,15 +772,6 @@ private[h2] class H2Connection[F[_]](
       case (H2Frame.Unknown(_), _) => Applicative[F].unit // Ignore Unknown Frames
     }
 
-    def readLoopAux(acc: ByteVector): F[Unit] =
-      readNextFrame(acc).flatMap {
-        case Some((frame, nacc)) =>
-          logger.debug(s"$addrStr Read - $frame") >>
-            state.get.flatMap(processFrame(frame, _)) >>
-            readLoopAux(nacc)
-        case None => F.unit
-      }
-
     def cancelClientStreams: F[Unit] = connectionType match {
       case H2Connection.ConnectionType.Client =>
         mapRef.get.flatMap(_.values.toList.traverse_(_.connectionClosed))
@@ -789,7 +780,13 @@ private[h2] class H2Connection[F[_]](
 
     val markClosed = state.update(s => s.copy(closed = true))
 
-    readLoopAux(acc)
+    Stream
+      .unfoldEval(acc)(readNextFrame)
+      .foreach(frame =>
+        logger.debug(s"$addrStr Read - $frame") >> state.get.flatMap(processFrame(frame, _))
+      )
+      .compile
+      .drain
       .recoverWith { case H2Connection.KillWithoutMessage() =>
         logger.debug(s"ReadLoop has received that is should kill")
       }
