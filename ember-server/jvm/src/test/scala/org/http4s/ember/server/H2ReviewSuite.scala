@@ -143,12 +143,7 @@ class H2ReviewSuite extends Http4sSuite {
           client
             .expect[String](req)
             .timeout(5.seconds)
-            .attempt
-            .map {
-              case Left(_: CancellationException) => true
-              case _ => false
-            }
-            .assertEquals(true)
+            .intercept[CancellationException]
         }
       }
       (startAndKillServer, runClient).parTupled
