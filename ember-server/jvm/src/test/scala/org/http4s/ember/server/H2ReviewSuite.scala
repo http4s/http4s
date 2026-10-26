@@ -155,11 +155,7 @@ class H2ReviewSuite extends Http4sSuite {
       // Resource finalizers should not be blocked on the write queue.
       // Ensure that the test completes if a timeout is applied.
       .timeout(3.seconds)
-    simulateDeadlock.attempt
-      .map {
-        case Left(_: TimeoutException) | Right(_) => true
-        case _ => false
-      }
-      .assertEquals(true)
+    simulateDeadlock
+      .intercept[TimeoutException]
   }
 }
