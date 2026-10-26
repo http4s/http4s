@@ -267,7 +267,7 @@ private[ember] class H2Client[F[_]](
     }
 
     for {
-      h2 <- Resource.makeFull(poll => poll(createH2Connection))(h2 =>
+      h2 <- Resource.makeFull[F, H2Connection[F]](poll => poll(createH2Connection))(h2 =>
         h2.mapRef.get.flatMap(streamMap =>
           streamMap.toList.traverse_ { case (id, stream) =>
             stream.finish(H2Error.Cancel).void >> h2.mapRef.update(_ - id)
