@@ -160,7 +160,7 @@ class H2ReviewSuite extends Http4sSuite {
   }
 
   test("requests made during a connection shutdown should be cancelled") {
-    val shutdownServerDelay = 1.second
+    val shutdownServerDelay = 200.milliseconds
     // Do not send a response. The server will stop before sending any data.
     val app = HttpApp[IO](_ => IO.never)
     val server = EmberServerBuilder
@@ -194,7 +194,7 @@ class H2ReviewSuite extends Http4sSuite {
           // The server terminates before responding to the request.
           client
             .expect[String](req)
-            .timeout(5.seconds)
+            .timeout(2.seconds)
             .intercept[CancellationException]
         }
       }
