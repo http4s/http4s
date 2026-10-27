@@ -43,6 +43,7 @@ import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
+    private val proxyOpt: Option[Proxy],
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
     val idleTimeInPool: Duration,
@@ -66,6 +67,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
 
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
+      proxyOpt: Option[Proxy] = self.proxyOpt,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
@@ -88,6 +90,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
+      proxyOpt = proxyOpt,
       maxTotal = maxTotal,
       maxPerKey = maxPerKey,
       idleTimeInPool = idleTimeInPool,
@@ -115,6 +118,12 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
 
   /** Unset any `TLSContext` and creates one from the system default `SSLContext`. */
   def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
+
+  /** Sets a `Proxy` to tunnel connections through. */
+  def withProxy(proxy: Proxy): EmberClientBuilder[F] = copy(proxyOpt = proxy.some)
+
+  /** Unset any `Proxy`. */
+  def withoutProxy: EmberClientBuilder[F] = copy(proxyOpt = None)
 
   /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
   @deprecated("Explicit socket groups are no longer supported", "0.23.34")
@@ -264,6 +273,11 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def build: Resource[F, Client[F]] =
     for {
       _ <- Resource.eval(verifyTimeoutRelations)
+      _ <- Resource.eval(
+        ApplicativeThrow[F]
+          .raiseError(new UnsupportedOperationException("TODO"))
+          .whenA(proxyOpt.isDefined)
+      )
       tlsContextOptWithDefault <-
         tlsContextOpt
           .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
@@ -415,6 +429,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
   def default[F[_]: Async: Network] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
+      proxyOpt = None,
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
       idleTimeInPool = Defaults.idleTimeInPool,
