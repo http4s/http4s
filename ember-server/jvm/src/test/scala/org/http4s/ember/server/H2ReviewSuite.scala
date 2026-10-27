@@ -24,7 +24,7 @@ import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.CancellationException
 import scala.concurrent.duration._
 
 /** Exercises real HTTP/2 client/server exchanges for the unread-body deadlock.
@@ -156,6 +156,49 @@ class H2ReviewSuite extends Http4sSuite {
       // Ensure that the test completes if a timeout is applied.
       .timeout(3.seconds)
     simulateDeadlock
-      .intercept[TimeoutException]
+      .intercept[CancellationException]
+  }
+
+  test("requests made during a connection shutdown should be cancelled") {
+    val shutdownServerDelay = 200.milliseconds
+    // Do not send a response. The server will stop before sending any data.
+    val app = HttpApp[IO](_ => IO.never)
+    val server = EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"127.0.0.1")
+      .withPort(port"0")
+      .withHttp2
+      // Drop the connection as soon as we stop the server
+      .withShutdownTimeout(0.nanos)
+      .withHttpApp(app)
+      .build
+    val client = EmberClientBuilder
+      .default[IO]
+      .withHttp2
+      .build
+
+    Deferred[IO, Port].flatMap { port =>
+      // Start the server, then stop it immediately.
+      val startAndKillServer = server.use { server =>
+        port.complete(server.addressIp4s.port) >> IO.sleep(shutdownServerDelay)
+      }
+
+      val runClient = client.use { client =>
+        // Wait for the server to start
+        port.get.flatMap { port =>
+          val uri = Uri.unsafeFromString(s"http://127.0.0.1:${port.value}/")
+          val req = Request[IO](Method.POST, uri)
+            .withEntity("Somebody")
+            .withAttribute(Http2PriorKnowledge, ())
+          // Make a request.
+          // The server terminates before responding to the request.
+          client
+            .expect[String](req)
+            .timeout(2.seconds)
+            .intercept[CancellationException]
+        }
+      }
+      (startAndKillServer, runClient).parTupled
+    }
   }
 }
