@@ -27,6 +27,7 @@ import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.EmberException
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
+import org.http4s.headers.Connection
 import org.http4s.implicits._
 import org.http4s.server.Server
 
@@ -115,6 +116,33 @@ class EmberServerSuite extends Http4sSuite {
     serverResource(_.withShutdownTimeout(0.nanos)).use { server =>
       client.expect[String](url(server.addressIp4s)).assertEquals("Hello!")
     }
+  }
+
+  client.test("request gets connection close while server is shutting down") { client =>
+    import org.http4s.dsl.io._
+
+    for {
+      requestStarted <- IO.deferred[Unit]
+      completeRequest <- IO.deferred[Unit]
+      blockingApp = HttpRoutes
+        .of[IO] { case GET -> Root / "blocks" =>
+          requestStarted.complete(()) *> completeRequest.get *> Ok()
+        }
+        .orNotFound
+      allocated <- serverResource(
+        _.withHttpApp(blockingApp).withShutdownTimeout(10.seconds)
+      ).allocated
+      (server, shutdownServer) = allocated
+      request <- client
+        .get(url(server.addressIp4s, "/blocks"))(_.headers.pure[IO])
+        .start
+      _ <- requestStarted.get
+      shuttingDown <- shutdownServer.start
+      _ <- IO.sleep(100.millis)
+      _ <- completeRequest.complete(())
+      responseHeaders <- request.joinWithNever
+      _ <- shuttingDown.joinWithNever
+    } yield assert(responseHeaders.get[Connection].exists(_.hasClose))
   }
 
   server().test("server startup fails if address is already in use") { server =>
