@@ -16,13 +16,13 @@
 
 package org.http4s.ember.client
 
-import org.http4s.Uri
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import org.http4s.BasicCredentials
+import org.http4s.Uri
 
 /** A proxy through which Ember tunnels connections to origin servers. */
-sealed trait Proxy
+sealed trait Proxy extends Product with Serializable
 
 final case class HttpProxy(
     scheme: Uri.Scheme,

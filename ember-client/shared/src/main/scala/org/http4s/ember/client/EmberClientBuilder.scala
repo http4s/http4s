@@ -19,6 +19,8 @@ package org.http4s.ember.client
 import cats._
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
 import com.comcast.ip4s.UnixSocketAddress
 import fs2.io.net.Network
 import fs2.io.net.SocketGroup
@@ -273,11 +275,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def build: Resource[F, Client[F]] =
     for {
       _ <- Resource.eval(verifyTimeoutRelations)
-      _ <- Resource.eval(
-        ApplicativeThrow[F]
-          .raiseError(new UnsupportedOperationException("TODO"))
-          .whenA(proxyOpt.isDefined)
-      )
       tlsContextOptWithDefault <-
         tlsContextOpt
           .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
@@ -294,6 +291,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   checkEndpointIdentification,
                   serverNameIndication,
                   additionalSocketOptions,
+                  proxyOpt,
+                  maxResponseHeaderSize,
                 ),
               chunkSize,
             ) <* Resource
@@ -322,7 +321,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
             Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxResponseHeaderSize)),
         )
 
-        H2Client.impl[F](
+        H2Client.implWithSocketBuilder[F](
           pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
           context,
           logger,
@@ -330,6 +329,20 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           settings,
           checkEndpointIdentification,
           serverNameIndication,
+          address =>
+            address match {
+              case address: SocketAddress[Host] =>
+                ClientHelpers.connectSocket(
+                  address,
+                  proxyOpt,
+                  tlsContextOptWithDefault,
+                  checkEndpointIdentification,
+                  serverNameIndication,
+                  additionalSocketOptions,
+                  maxResponseHeaderSize,
+                )
+              case address => Network[F].connect(address, additionalSocketOptions)
+            },
         )
       }
     } yield {

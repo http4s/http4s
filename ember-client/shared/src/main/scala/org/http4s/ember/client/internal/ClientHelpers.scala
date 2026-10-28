@@ -61,6 +61,8 @@ private[client] object ClientHelpers {
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
+      proxy: Option[Proxy],
+      maxResponseHeaderSize: Int,
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -69,6 +71,8 @@ private[client] object ClientHelpers {
       enableEndpointValidation,
       enableServerNameIndication,
       additionalSocketOptions,
+      proxy,
+      maxResponseHeaderSize,
     )
   }
 
@@ -97,11 +101,21 @@ private[client] object ClientHelpers {
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
+      proxy: Option[Proxy],
+      maxResponseHeaderSize: Int,
   ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
-        val s = Network[F].connect(address, options = additionalSocketOptions)
+        val s = connectSocket(
+          address,
+          proxy,
+          tlsContextOpt,
+          enableEndpointValidation,
+          enableServerNameIndication,
+          additionalSocketOptions,
+          maxResponseHeaderSize,
+        )
         elevateSocket(
           requestKey,
           s,
@@ -111,6 +125,27 @@ private[client] object ClientHelpers {
           Some(address),
         )
       }
+
+  private[client] def connectSocket[F[_]: MonadThrow: Network](
+      address: SocketAddress[Host],
+      proxy: Option[Proxy],
+      tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
+      additionalSocketOptions: List[SocketOption],
+      maxResponseHeaderSize: Int,
+  ): Resource[F, Socket[F]] =
+    proxy.fold(Network[F].connect(address, options = additionalSocketOptions))(
+      ProxyConnector.connect(
+        _,
+        address,
+        tlsContextOpt,
+        enableEndpointValidation,
+        enableServerNameIndication,
+        additionalSocketOptions,
+        maxResponseHeaderSize,
+      )
+    )
 
   def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
