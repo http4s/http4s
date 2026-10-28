@@ -142,7 +142,14 @@ private[ember] object H2Server {
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.closedStreams)
-        .evalMap(i => h2.mapRef.update(m => m - i))
+        .foreach(i =>
+          // Streams are cleaned up slowly to prevent rapid reset attacks
+          (Temporal[F].sleep(1.seconds) >> h2.mapRef.update(m => m - i))
+            .timeout(15.seconds)
+            .attempt
+            .start
+            .void
+        )
         .compile
         .drain
 
