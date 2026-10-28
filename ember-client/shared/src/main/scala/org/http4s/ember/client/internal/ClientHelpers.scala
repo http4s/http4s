@@ -55,7 +55,7 @@ import scala.concurrent.duration._
 
 @annotation.nowarn("cat=deprecation")
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: MonadThrow: Network](
+  def requestToSocketWithKey[F[_]: Temporal: Network](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
@@ -63,6 +63,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOption],
       proxy: Option[Proxy],
       maxResponseHeaderSize: Int,
+      proxyTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -73,6 +74,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions,
       proxy,
       maxResponseHeaderSize,
+      proxyTimeout,
     )
   }
 
@@ -95,7 +97,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: MonadThrow: Network](
+  def requestKeyToSocketWithKey[F[_]: Temporal: Network](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
@@ -103,6 +105,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOption],
       proxy: Option[Proxy],
       maxResponseHeaderSize: Int,
+      proxyTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
@@ -115,6 +118,7 @@ private[client] object ClientHelpers {
           enableServerNameIndication,
           additionalSocketOptions,
           maxResponseHeaderSize,
+          proxyTimeout,
         )
         elevateSocket(
           requestKey,
@@ -126,7 +130,7 @@ private[client] object ClientHelpers {
         )
       }
 
-  private[client] def connectSocket[F[_]: MonadThrow: Network](
+  private[client] def connectSocket[F[_]: Temporal: Network](
       address: SocketAddress[Host],
       proxy: Option[Proxy],
       tlsContextOpt: Option[TLSContext[F]],
@@ -134,6 +138,7 @@ private[client] object ClientHelpers {
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
       maxResponseHeaderSize: Int,
+      proxyTimeout: Duration,
   ): Resource[F, Socket[F]] =
     proxy.fold(Network[F].connect(address, options = additionalSocketOptions))(
       ProxyConnector.connect(
@@ -144,6 +149,7 @@ private[client] object ClientHelpers {
         enableServerNameIndication,
         additionalSocketOptions,
         maxResponseHeaderSize,
+        proxyTimeout,
       )
     )
 

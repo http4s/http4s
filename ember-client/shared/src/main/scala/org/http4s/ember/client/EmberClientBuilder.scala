@@ -46,6 +46,7 @@ import scala.concurrent.duration._
 final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val proxyOpt: Option[Proxy],
+    val proxyTimeout: Duration,
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
     val idleTimeInPool: Duration,
@@ -70,6 +71,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
       proxyOpt: Option[Proxy] = self.proxyOpt,
+      proxyTimeout: Duration = self.proxyTimeout,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
@@ -93,6 +95,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
       proxyOpt = proxyOpt,
+      proxyTimeout = proxyTimeout,
       maxTotal = maxTotal,
       maxPerKey = maxPerKey,
       idleTimeInPool = idleTimeInPool,
@@ -126,6 +129,10 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
 
   /** Unset any `Proxy`. */
   def withoutProxy: EmberClientBuilder[F] = copy(proxyOpt = None)
+
+  /** Sets the maximum amount of time to establish a tunnel through the `Proxy`. */
+  def withProxyTimeout(proxyTimeout: Duration): EmberClientBuilder[F] =
+    copy(proxyTimeout = proxyTimeout)
 
   /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
   @deprecated("Explicit socket groups are no longer supported", "0.23.34")
@@ -293,6 +300,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   additionalSocketOptions,
                   proxyOpt,
                   maxResponseHeaderSize,
+                  proxyTimeout,
                 ),
               chunkSize,
             ) <* Resource
@@ -340,6 +348,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   serverNameIndication,
                   additionalSocketOptions,
                   maxResponseHeaderSize,
+                  proxyTimeout,
                 )
               case address => Network[F].connect(address, additionalSocketOptions)
             },
@@ -443,6 +452,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       proxyOpt = None,
+      proxyTimeout = Defaults.proxyTimeout,
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
       idleTimeInPool = Defaults.idleTimeInPool,
@@ -472,6 +482,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     val maxResponseHeaderSize: Int = 4096
     val idleConnectionTime: FiniteDuration = org.http4s.ember.core.Defaults.IdleTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
+    val proxyTimeout: Duration = 10.seconds
 
     // Pool Settings
     val maxPerKey: RequestKey => Int = { (_: RequestKey) =>

@@ -18,9 +18,12 @@ package org.http4s.ember.client.internal
 
 import cats.MonadThrow
 import cats.effect.kernel.Resource
+import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import com.comcast.ip4s.Dns
 import com.comcast.ip4s.Host
+import com.comcast.ip4s.Hostname
+import com.comcast.ip4s.IDN
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Ipv4Address
 import com.comcast.ip4s.Ipv6Address
@@ -34,19 +37,22 @@ import fs2.io.net.tls.TLSContext
 import org.http4s.Uri
 import org.http4s.ember.client.HttpProxy
 import org.http4s.ember.client.Proxy
+import org.http4s.ember.client.ProxyException
 import org.http4s.ember.client.Socks4Proxy
 import org.http4s.ember.client.Socks5Credentials
 import org.http4s.ember.client.Socks5Proxy
 import org.http4s.ember.core.Util
 
-import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.Arrays
+import scala.concurrent.duration.Duration
 
 private[client] object ProxyConnector {
   private val HttpHeaderTerminator = Array[Byte](13, 10, 13, 10)
+  private val Socks5NoAuth = 0.toByte
+  private val Socks5UsernamePassword = 2.toByte
 
-  def connect[F[_]: MonadThrow: Network](
+  def connect[F[_]: Temporal: Network](
       proxy: Proxy,
       target: SocketAddress[Host],
       tlsContextOpt: Option[TLSContext[F]],
@@ -54,16 +60,18 @@ private[client] object ProxyConnector {
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
       maxResponseHeaderSize: Int,
-  ): Resource[F, Socket[F]] =
-    for {
+      timeout: Duration,
+  ): Resource[F, Socket[F]] = {
+    implicit val dns: Dns[F] = Network[F].dns
+
+    val tunnel = for {
       proxyAddress <- Resource.eval(address[F](proxy))
       _ <- Resource.eval(validate(proxy, tlsContextOpt, maxResponseHeaderSize))
-      resolvedTarget <- Resource.eval(resolve(proxy, target))
       rawSocket <- Network[F].connect(proxyAddress, additionalSocketOptions)
       socket <- proxy match {
         case HttpProxy(Uri.Scheme.https, _, _, _) =>
           tlsContextOpt.fold[Resource[F, Socket[F]]](
-            Resource.raiseError[F, Socket[F], Throwable](MissingProxyTlsContext())
+            Resource.raiseError[F, Socket[F], Throwable](new ProxyException.MissingTlsContext)
           )(
             _.clientBuilder(rawSocket)
               .withParameters(
@@ -78,40 +86,43 @@ private[client] object ProxyConnector {
           )
         case _ => rawSocket.pure[Resource[F, *]]
       }
-      _ <- Resource.eval(negotiate(proxy, socket, resolvedTarget, maxResponseHeaderSize))
+      _ <- Resource.eval(negotiate(proxy, socket, target, maxResponseHeaderSize))
     } yield socket
+
+    timeoutAcquire(tunnel, timeout, new ProxyException.Timeout(proxy, timeout))
+  }
+
+  // Bounds connecting to the proxy, any TLS handshake with it, and the negotiation. Resource has
+  // no timeout, so acquisition is bounded through allocated, which releases whatever it acquired
+  // when cancelled.
+  private def timeoutAcquire[F[_]: Temporal, A](
+      resource: Resource[F, A],
+      timeout: Duration,
+      onTimeout: => Throwable,
+  ): Resource[F, A] =
+    Resource.applyFull[F, A] { poll =>
+      poll(
+        Util.timeoutToMaybe(
+          resource.allocated,
+          timeout,
+          Temporal[F].raiseError[(A, F[Unit])](onTimeout),
+        )
+      ).map { case (a, release) => (a, (_: Resource.ExitCase) => release) }
+    }
 
   private def address[F[_]: MonadThrow](proxy: Proxy): F[SocketAddress[Host]] =
     proxy match {
       case HttpProxy(scheme, host, port, _) =>
-        if (scheme === Uri.Scheme.http || scheme === Uri.Scheme.https) {
-          val defaultPort = if (scheme === Uri.Scheme.https) 443 else 80
+        if (scheme == Uri.Scheme.http || scheme == Uri.Scheme.https) {
+          val defaultPort = if (scheme == Uri.Scheme.https) 443 else 80
           port
             .orElse(Port.fromInt(defaultPort))
             .map(SocketAddress(host, _))
-            .liftTo[F](UnsupportedHttpProxyScheme(scheme))
-        } else UnsupportedHttpProxyScheme(scheme).raiseError[F, SocketAddress[Host]]
+            .liftTo[F](new ProxyException.UnsupportedScheme(scheme))
+        } else new ProxyException.UnsupportedScheme(scheme).raiseError[F, SocketAddress[Host]]
       case Socks4Proxy(host, port, _) => SocketAddress(host, port).pure[F]
       case Socks5Proxy(host, port, _) => SocketAddress(host, port).pure[F]
     }
-
-  private def resolve[F[_]: MonadThrow: Network](
-      proxy: Proxy,
-      target: SocketAddress[Host],
-  ): F[SocketAddress[IpAddress]] = {
-    implicit val dns: Dns[F] = Network[F].dns
-    val address = proxy match {
-      case _: Socks4Proxy =>
-        target.host
-          .resolveAll[F]
-          .flatMap(
-            _.collectFirst { case address: Ipv4Address => address }
-              .liftTo[F](MissingSocks4Address(target.host))
-          )
-      case _ => target.host.resolve[F]
-    }
-    address.map(SocketAddress(_, target.port))
-  }
 
   private def validate[F[_]: MonadThrow](
       proxy: Proxy,
@@ -120,16 +131,16 @@ private[client] object ProxyConnector {
   ): F[Unit] =
     proxy match {
       case HttpProxy(Uri.Scheme.https, _, _, _) if tlsContextOpt.isEmpty =>
-        MissingProxyTlsContext().raiseError[F, Unit]
+        (new ProxyException.MissingTlsContext).raiseError[F, Unit]
       case _: HttpProxy if maxResponseHeaderSize <= 0 =>
-        InvalidProxyResponseHeaderSize(maxResponseHeaderSize).raiseError[F, Unit]
+        new ProxyException.InvalidResponseHeaderSize(maxResponseHeaderSize).raiseError[F, Unit]
       case _ => ().pure[F]
     }
 
-  private[internal] def negotiate[F[_]: MonadThrow](
+  private[internal] def negotiate[F[_]: MonadThrow: Dns](
       proxy: Proxy,
       socket: Socket[F],
-      target: SocketAddress[IpAddress],
+      target: SocketAddress[Host],
       maxResponseHeaderSize: Int,
   ): F[Unit] =
     proxy match {
@@ -140,11 +151,11 @@ private[client] object ProxyConnector {
 
   private def httpConnect[F[_]: MonadThrow](
       socket: Socket[F],
-      target: SocketAddress[IpAddress],
+      target: SocketAddress[Host],
       proxy: HttpProxy,
       maxResponseHeaderSize: Int,
   ): F[Unit] = {
-    val authority = target.toString
+    val authority = authorityForm(target)
     val authorization = proxy.credentials.fold("")(credentials =>
       s"Proxy-Authorization: Basic ${credentials.token}\r\n"
     )
@@ -152,117 +163,135 @@ private[client] object ProxyConnector {
       s"CONNECT $authority HTTP/1.1\r\nHost: $authority\r\n$authorization\r\n"
 
     socket.write(Chunk.array(request.getBytes(StandardCharsets.ISO_8859_1))) *>
-      readHttpResponseStatus(socket, maxResponseHeaderSize).flatMap { status =>
-        if (status / 100 === 2) ().pure[F]
-        else ProxyConnectFailure(status).raiseError[F, Unit]
+      readHttpConnectStatus(socket, maxResponseHeaderSize).flatMap { case (status, statusLine) =>
+        if (status / 100 == 2) ().pure[F]
+        else new ProxyException.HttpConnectFailure(status, statusLine).raiseError[F, Unit]
       }
   }
 
-  private def readHttpResponseStatus[F[_]: MonadThrow](
+  private def readHttpConnectStatus[F[_]: MonadThrow](
       socket: Socket[F],
       maxResponseHeaderSize: Int,
-  ): F[Int] =
+  ): F[(Int, String)] =
     if (maxResponseHeaderSize <= 0)
-      InvalidProxyResponseHeaderSize(maxResponseHeaderSize).raiseError[F, Int]
+      new ProxyException.InvalidResponseHeaderSize(maxResponseHeaderSize)
+        .raiseError[F, (Int, String)]
     else {
       val buffer = new Array[Byte](maxResponseHeaderSize)
 
       def go(offset: Int, matched: Int): F[Array[Byte]] =
         if (offset >= maxResponseHeaderSize)
-          ProxyResponseTooLarge(maxResponseHeaderSize).raiseError[F, Array[Byte]]
+          new ProxyException.ResponseTooLarge(maxResponseHeaderSize).raiseError[F, Array[Byte]]
         else
           socket.read(1).flatMap {
             case Some(chunk) if chunk.nonEmpty =>
               val byte = chunk(0)
               buffer(offset) = byte
               val nextMatched =
-                if (byte === HttpHeaderTerminator(matched)) matched + 1
-                else if (byte === HttpHeaderTerminator(0)) 1
+                if (byte == HttpHeaderTerminator(matched)) matched + 1
+                else if (byte == HttpHeaderTerminator(0)) 1
                 else 0
-              if (nextMatched === HttpHeaderTerminator.length)
+              if (nextMatched == HttpHeaderTerminator.length)
                 Arrays.copyOf(buffer, offset + 1).pure[F]
               else go(offset + 1, nextMatched)
             case Some(_) => go(offset, matched)
-            case None => UnexpectedProxyEof("HTTP CONNECT response").raiseError[F, Array[Byte]]
+            case None =>
+              new ProxyException.UnexpectedEof("HTTP CONNECT response").raiseError[F, Array[Byte]]
           }
 
       go(0, 0).flatMap { bytes =>
         val firstLineEnd =
-          bytes.indices.dropRight(1).find(i => bytes(i) === 13 && bytes(i + 1) === 10)
+          bytes.indices.dropRight(1).find(i => bytes(i) == 13 && bytes(i + 1) == 10)
         firstLineEnd
           .map(end => new String(bytes, 0, end, StandardCharsets.ISO_8859_1))
           .flatMap { line =>
             line.split(" ", 3).toList match {
               case version :: status :: _ if version.startsWith("HTTP/") =>
-                Either.catchOnly[NumberFormatException](status.toInt).toOption
+                Either
+                  .catchOnly[NumberFormatException](status.toInt)
+                  .toOption
+                  .map(status => (status, line))
               case _ => None
             }
           }
-          .liftTo[F](InvalidHttpProxyResponse())
+          .liftTo[F](new ProxyException.InvalidHttpResponse)
       }
     }
 
-  private def socks4Connect[F[_]: MonadThrow](
+  private def socks4Connect[F[_]: MonadThrow: Dns](
       socket: Socket[F],
-      target: SocketAddress[IpAddress],
+      target: SocketAddress[Host],
       proxy: Socks4Proxy,
-  ): F[Unit] =
-    target.host match {
-      case ipv4: Ipv4Address =>
-        val username = proxy.username.getOrElse("").getBytes(StandardCharsets.UTF_8)
-        if (username.contains(0.toByte))
-          InvalidProxyCredentials("SOCKS4 user ID contains a NUL byte").raiseError[F, Unit]
-        else {
-          val request =
-            Array[Byte](4, 1) ++ portBytes(target.port) ++ ipv4.toBytes ++ username ++ Array[Byte](
-              0
-            )
-          socket.write(Chunk.array(request)) *>
-            readExactly(socket, 8, "SOCKS4 response").flatMap { response =>
-              val status = unsigned(response(1))
-              if (response(0) =!= 0) InvalidSocks4Response().raiseError[F, Unit]
-              else if (status === 90) ().pure[F]
-              else Socks4ConnectFailure(status).raiseError[F, Unit]
-            }
-        }
-      case _: Ipv6Address =>
-        MissingSocks4Address(target.host).raiseError[F, Unit]
-    }
+  ): F[Unit] = {
+    val username = proxy.username.getOrElse("").getBytes(StandardCharsets.UTF_8)
+    if (username.contains(0.toByte))
+      new ProxyException.InvalidCredentials("SOCKS4 user ID contains a NUL byte")
+        .raiseError[F, Unit]
+    else
+      resolveIpv4(target.host).flatMap { ipv4 =>
+        val request =
+          Array[Byte](4, 1) ++ portBytes(target.port) ++ ipv4.toBytes ++ username ++ Array[Byte](0)
+        socket.write(Chunk.array(request)) *>
+          readExactly(socket, 8, "SOCKS4 response").flatMap { response =>
+            val status = response(1) & 0xff
+            if (response(0) != 0) (new ProxyException.InvalidSocks4Response).raiseError[F, Unit]
+            else if (status == 90) ().pure[F]
+            else new ProxyException.Socks4ConnectFailure(status).raiseError[F, Unit]
+          }
+      }
+  }
+
+  // SOCKS4 only understands IPv4 addresses, so the target has to be resolved client side.
+  private def resolveIpv4[F[_]: MonadThrow: Dns](host: Host): F[Ipv4Address] =
+    host
+      .resolveAll[F]
+      .flatMap(
+        _.collectFirst { case address: Ipv4Address => address }
+          .liftTo[F](new ProxyException.MissingSocks4Address(host))
+      )
 
   private def socks5Connect[F[_]: MonadThrow](
       socket: Socket[F],
-      target: SocketAddress[IpAddress],
+      target: SocketAddress[Host],
       proxy: Socks5Proxy,
   ): F[Unit] = {
-    val method = proxy.credentials.fold(0)(Function.const(2)).toByte
+    val methods =
+      proxy.credentials.fold(Array(Socks5NoAuth))(_ => Array(Socks5NoAuth, Socks5UsernamePassword))
 
     for {
-      _ <- socket.write(Chunk.array(Array[Byte](5, 1, method)))
+      _ <- socket.write(Chunk.array(Array[Byte](5, methods.length.toByte) ++ methods))
       selection <- readExactly(socket, 2, "SOCKS5 method selection")
       _ <-
-        if (selection(0) =!= 5) InvalidSocks5Response().raiseError[F, Unit]
-        else if (selection(1) === 0xff.toByte) Socks5NoAcceptableAuthMethod().raiseError[F, Unit]
-        else if (selection(1) =!= method)
-          UnexpectedSocks5AuthMethod(unsigned(selection(1))).raiseError[F, Unit]
+        if (selection(0) != 5) (new ProxyException.InvalidSocks5Response).raiseError[F, Unit]
         else ().pure[F]
-      _ <- proxy.credentials.traverse_(socks5Authenticate(socket, _))
-      address = target.host match {
-        case ipv4: Ipv4Address => Array[Byte](1) ++ ipv4.toBytes
-        case ipv6: Ipv6Address => Array[Byte](4) ++ ipv6.toBytes
+      _ <- selection(1) match {
+        // The proxy decides whether to authenticate, so configured credentials go unused when it
+        // selects no authentication.
+        case Socks5NoAuth => ().pure[F]
+        case Socks5UsernamePassword =>
+          proxy.credentials.fold(
+            new ProxyException.UnexpectedSocks5AuthMethod(Socks5UsernamePassword.toInt)
+              .raiseError[F, Unit]
+          )(socks5Authenticate(socket, _))
+        case method if method == 0xff.toByte =>
+          (new ProxyException.Socks5NoAcceptableAuthMethod).raiseError[F, Unit]
+        case method =>
+          new ProxyException.UnexpectedSocks5AuthMethod(method & 0xff).raiseError[F, Unit]
       }
+      address <- socks5Address[F](target.host)
       _ <- socket.write(Chunk.array(Array[Byte](5, 1, 0) ++ address ++ portBytes(target.port)))
       response <- readExactly(socket, 4, "SOCKS5 CONNECT response")
       _ <-
-        if (response(0) =!= 5 || response(2) =!= 0)
-          InvalidSocks5Response().raiseError[F, Unit]
-        else if (response(1) =!= 0)
-          Socks5ConnectFailure(unsigned(response(1))).raiseError[F, Unit]
+        if (response(0) != 5 || response(2) != 0)
+          (new ProxyException.InvalidSocks5Response).raiseError[F, Unit]
+        else if (response(1) != 0)
+          new ProxyException.Socks5ConnectFailure(response(1) & 0xff).raiseError[F, Unit]
         else ().pure[F]
       addressLength <- response(3) match {
         case 1 => 4.pure[F]
         case 4 => 16.pure[F]
-        case 3 => readExactly(socket, 1, "SOCKS5 bound address length").map(b => unsigned(b(0)))
-        case _ => InvalidSocks5Response().raiseError[F, Int]
+        case 3 => readExactly(socket, 1, "SOCKS5 bound address length").map(b => b(0) & 0xff)
+        case _ => (new ProxyException.InvalidSocks5Response).raiseError[F, Int]
       }
       _ <- readExactly(socket, addressLength + 2, "SOCKS5 bound address and port")
     } yield ()
@@ -276,7 +305,9 @@ private[client] object ProxyConnector {
     val password = credentials.password.getBytes(StandardCharsets.UTF_8)
 
     if (username.isEmpty || password.isEmpty || username.length > 255 || password.length > 255)
-      InvalidProxyCredentials("SOCKS5 username and password must contain between 1 and 255 bytes")
+      new ProxyException.InvalidCredentials(
+        "SOCKS5 username and password must contain between 1 and 255 bytes"
+      )
         .raiseError[F, Unit]
     else {
       val request =
@@ -284,11 +315,37 @@ private[client] object ProxyConnector {
           Array[Byte](password.length.toByte) ++ password
       socket.write(Chunk.array(request)) *>
         readExactly(socket, 2, "SOCKS5 authentication response").flatMap { response =>
-          if (response(0) === 1 && response(1) === 0) ().pure[F]
-          else Socks5AuthenticationFailure().raiseError[F, Unit]
+          if (response(0) == 1 && response(1) == 0) ().pure[F]
+          else (new ProxyException.Socks5AuthenticationFailure).raiseError[F, Unit]
         }
     }
   }
+
+  // Prefers the domain name address type so the proxy resolves the host. RFC 1928, section 5.
+  private def socks5Address[F[_]: MonadThrow](host: Host): F[Array[Byte]] =
+    host match {
+      case ipv4: Ipv4Address => (Array[Byte](1) ++ ipv4.toBytes).pure[F]
+      case ipv6: Ipv6Address => (Array[Byte](4) ++ ipv6.toBytes).pure[F]
+      case host =>
+        val name = asciiHost(host).getBytes(StandardCharsets.US_ASCII)
+        if (name.isEmpty || name.length > 255)
+          new ProxyException.InvalidSocks5Target(host).raiseError[F, Array[Byte]]
+        else (Array[Byte](3, name.length.toByte) ++ name).pure[F]
+    }
+
+  // The authority form required by CONNECT. RFC 9110, section 9.3.6.
+  private def authorityForm(target: SocketAddress[Host]): String =
+    target.host match {
+      case _: Ipv6Address => s"[${asciiHost(target.host)}]:${target.port}"
+      case host => s"${asciiHost(host)}:${target.port}"
+    }
+
+  private def asciiHost(host: Host): String =
+    host match {
+      case hostname: Hostname => hostname.normalized.toString
+      case idn: IDN => idn.hostname.normalized.toString
+      case address: IpAddress => address.toString
+    }
 
   private def readExactly[F[_]: MonadThrow](
       socket: Socket[F],
@@ -296,63 +353,12 @@ private[client] object ProxyConnector {
       context: String,
   ): F[Array[Byte]] =
     socket.readN(size).flatMap { chunk =>
-      if (chunk.size === size) chunk.toArray.pure[F]
-      else UnexpectedProxyEof(context).raiseError[F, Array[Byte]]
+      if (chunk.size == size) chunk.toArray.pure[F]
+      else new ProxyException.UnexpectedEof(context).raiseError[F, Array[Byte]]
     }
 
   private def portBytes(port: Port): Array[Byte] = {
     val value = port.value
     Array((value >>> 8).toByte, value.toByte)
   }
-
-  private def unsigned(byte: Byte): Int = byte & 0xff
-
-  private sealed abstract class ProxyException(message: String) extends IOException(message)
-
-  private final case class UnsupportedHttpProxyScheme(scheme: Uri.Scheme)
-      extends ProxyException(s"Unsupported HTTP proxy scheme: ${scheme.value}")
-
-  private final case class MissingProxyTlsContext()
-      extends ProxyException("EmberClient is not configured with a TLS context for the HTTPS proxy")
-
-  private final case class ProxyConnectFailure(status: Int)
-      extends ProxyException(s"HTTP proxy rejected CONNECT with status $status")
-
-  private final case class ProxyResponseTooLarge(maxSize: Int)
-      extends ProxyException(s"HTTP proxy response headers exceed $maxSize bytes")
-
-  private final case class InvalidProxyResponseHeaderSize(maxSize: Int)
-      extends ProxyException(s"HTTP proxy response header size must be positive: $maxSize")
-
-  private final case class InvalidHttpProxyResponse()
-      extends ProxyException("Invalid HTTP proxy response")
-
-  private final case class UnexpectedProxyEof(context: String)
-      extends ProxyException(s"Proxy closed the connection while reading $context")
-
-  private final case class InvalidProxyCredentials(message: String) extends ProxyException(message)
-
-  private final case class MissingSocks4Address(address: Host)
-      extends ProxyException(s"No IPv4 address found for SOCKS4 target $address")
-
-  private final case class InvalidSocks4Response()
-      extends ProxyException("Invalid SOCKS4 proxy response")
-
-  private final case class Socks4ConnectFailure(status: Int)
-      extends ProxyException(s"SOCKS4 proxy rejected CONNECT with status $status")
-
-  private final case class InvalidSocks5Response()
-      extends ProxyException("Invalid SOCKS5 proxy response")
-
-  private final case class Socks5NoAcceptableAuthMethod()
-      extends ProxyException("SOCKS5 proxy has no acceptable authentication method")
-
-  private final case class UnexpectedSocks5AuthMethod(method: Int)
-      extends ProxyException(s"SOCKS5 proxy selected unexpected authentication method $method")
-
-  private final case class Socks5AuthenticationFailure()
-      extends ProxyException("SOCKS5 proxy authentication failed")
-
-  private final case class Socks5ConnectFailure(status: Int)
-      extends ProxyException(s"SOCKS5 proxy rejected CONNECT with status $status")
 }
