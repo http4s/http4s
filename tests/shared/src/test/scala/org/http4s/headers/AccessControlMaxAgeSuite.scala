@@ -21,7 +21,7 @@ import org.http4s.ParseFailure
 import org.http4s.ParseResult
 import org.http4s.implicits.http4sSelectSyntaxOne
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration._
 
 class AccessControlMaxAgeSuite extends Http4sSuite {
 
@@ -65,18 +65,18 @@ class AccessControlMaxAgeSuite extends Http4sSuite {
     )
 
     assertEquals(
-      `Access-Control-Max-Age`.unsafeFromDuration(-1.seconds),
+      `Access-Control-Max-Age`.unsafeFromDuration((-1).seconds),
       `Access-Control-Max-Age`.NoCaching,
     )
     assertEquals(
-      `Access-Control-Max-Age`.unsafeFromLong(-1),
+      `Access-Control-Max-Age`.unsafeFromLong(-1L),
       `Access-Control-Max-Age`.NoCaching,
     )
   }
 
   test("build should fail unsafe for negatives other than -1") {
-    intercept[ParseFailure](`Access-Control-Max-Age`.unsafeFromDuration(-10.seconds))
-    intercept[ParseFailure](`Access-Control-Max-Age`.unsafeFromLong(-10))
+    intercept[ParseFailure](`Access-Control-Max-Age`.unsafeFromDuration((-10).seconds))
+    intercept[ParseFailure](`Access-Control-Max-Age`.unsafeFromLong(-10L))
   }
 
   test("produce should safe") {
