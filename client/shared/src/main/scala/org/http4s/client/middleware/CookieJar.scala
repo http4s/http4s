@@ -267,7 +267,7 @@ object CookieJar {
   private def withCookies[N[_]](r: Request[N], cookies: List[RequestCookie]): Request[N] =
     NonEmptyList.fromList(cookies).fold(r) { nel =>
       r.putHeaders(
-        r.headers.get[Cookie].fold(Cookie(nel))(existing => Cookie(existing.values.concatNel(nel)))
+        r.headers.get[Cookie].fold(Cookie(nel))(_ |+| Cookie(nel))
       )
     }
 
