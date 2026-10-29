@@ -117,6 +117,17 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
+  test("withBacklog sets the backlog") {
+    assertEquals(EmberServerBuilder.default[IO].backlog, 0)
+    assertEquals(EmberServerBuilder.default[IO].withBacklog(1024).backlog, 1024)
+  }
+
+  client.test("server with a custom backlog responds to requests") { client =>
+    serverResource(_.withBacklog(1024).withShutdownTimeout(0.nanos)).use { server =>
+      client.expect[String](url(server.addressIp4s)).assertEquals("Hello!")
+    }
+  }
+
   server().test("server startup fails if address is already in use") { server =>
     EmberServerBuilder
       .default[IO]

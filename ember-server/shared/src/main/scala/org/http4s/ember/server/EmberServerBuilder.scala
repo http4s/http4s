@@ -60,6 +60,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
     private val maxWebSocketMessageSize: Int,
+    val backlog: Int,
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -87,6 +88,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
         self.maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize: Int = self.maxWebSocketMessageSize,
+      backlog: Int = self.backlog,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -109,6 +111,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestLineParseErrorHandler = requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize = maxWebSocketMessageSize,
+      backlog = backlog,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -249,6 +252,24 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withMaxWebSocketMessageSize(maxWebSocketMessageSize: Int): EmberServerBuilder[F] =
     copy(maxWebSocketMessageSize = maxWebSocketMessageSize)
 
+  /** Sets the maximum length of the queue of pending connections on the
+    * listening socket (the `backlog` argument of `listen(2)`).
+    *
+    * Under bursts of new connections, a small backlog makes the kernel drop
+    * SYNs once the accept queue is full, and each client then waits for a
+    * TCP retransmit (typically 1-3 seconds). A larger value absorbs such
+    * bursts. The operating system may cap the value (e.g.
+    * `net.core.somaxconn` on Linux).
+    *
+    * A value of `0` or less uses the platform default (50 on the JVM).
+    * Ignored for Unix domain sockets.
+    *
+    * Note: this setting needs backlog support in fs2's server socket
+    * binding. Until that is available it is recorded but not applied.
+    */
+  def withBacklog(backlog: Int): EmberServerBuilder[F] =
+    copy(backlog = backlog)
+
   def build: Resource[F, Server] =
     for {
       _ <-
@@ -356,6 +377,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize = org.http4s.websocket.DefaultMaxMessageSize,
+      backlog = Defaults.backlog,
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
@@ -414,5 +436,6 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
     val idleTimeout: Duration = org.http4s.ember.core.Defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
     val additionalSocketOptions: List[SocketOption] = Nil
+    val backlog: Int = 0
   }
 }
