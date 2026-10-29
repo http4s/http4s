@@ -709,17 +709,11 @@ private[h2] class H2Connection[F[_]](
             mapRef.get.map(_.get(i)).flatMap {
               case Some(s) => s.receiveData(d)
               case None if isClosedStream(i, st) =>
-                creditReadWindow(size) >> (connectionType match {
-                  // We forget a stream as soon as we reset it, so its DATA may be in flight
-                  case H2Connection.ConnectionType.Client =>
-                    logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
-                  // We forget a stream a second after closing it, beyond any round trip
-                  case H2Connection.ConnectionType.Server =>
-                    logger.debug(
-                      s"$addrStr Received Data Frame for Closed Stream $i - Resetting"
-                    ) >>
-                      outgoingQueue.tryOffer(H2Error.StreamClosed.toRst(i)).void
-                })
+                // We forget a stream after closing it, so its DATA may be in flight.
+                // Account for it, but ignore it.
+                creditReadWindow(size) >>
+                  logger.debug(s"$addrStr Received Data Frame for Closed Stream $i - Ignoring")
+
               case None =>
                 logger.warn(
                   s"Received Data Frame for Idle Stream $i - Protocol Error - Issuing GoAway"
