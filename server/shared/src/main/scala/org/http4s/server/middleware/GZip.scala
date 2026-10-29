@@ -26,11 +26,16 @@ import cats.syntax.all._
 import fs2.compression._
 import org.http4s.headers._
 import org.typelevel.log4cats
+import scodec.bits.ByteVector
 
 object GZip {
 
-  // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
-  // TODO      zipping and buffering all the input. Just a thought.
+  /** Compresses responses for clients that accept gzip.
+    *
+    * On the JVM, a [[Entity.Strict strict]] or [[Entity.Empty empty]] entity is
+    * compressed in one pass and gets a `Content-Length`. Other entities are
+    * compressed as a stream, without a `Content-Length`.
+    */
   def apply[F[_]: Monad: log4cats.LoggerFactory, G[_]: Compression](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
@@ -87,14 +92,26 @@ object GZip {
           header = ZLibParams.Header.GZIP,
         ),
       )
+    val strictBody: Option[ByteVector] = resp.entity match {
+      case Entity.Strict(bytes) => Some(bytes)
+      case Entity.Empty => Some(ByteVector.empty)
+      case Entity.Streamed(_, _) => None
+    }
+    val encoded = resp
+      .removeHeader[`Content-Length`]
+      .putHeaders(`Content-Encoding`(ContentCoding.gzip))
     log4cats
       .Logger[F]
       .trace("GZip middleware encoding content")
       .as(
-        resp
-          .removeHeader[`Content-Length`]
-          .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-          .pipeBodyThrough(compressPipe)
+        strictBody.flatMap(GZipPlatform.gzipStrict(_, level)) match {
+          case Some(zipped) =>
+            encoded
+              .withEntity[G](Entity.strict(zipped))
+              .putHeaders(`Content-Length`.unsafeFromLong(zipped.size))
+          case None =>
+            encoded.pipeBodyThrough(compressPipe)
+        }
       )
   }
 }
