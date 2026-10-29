@@ -51,8 +51,8 @@ class RetryAfterSuite extends HeaderLaws {
     assertEquals(`Retry-After`.unsafeFromLong(10).value, "10")
   }
   test("build should fail unsafe for negatives") {
-    intercept[ParseFailure](`Retry-After`.unsafeFromDuration(-10.seconds).value)
-    intercept[ParseFailure](`Retry-After`.unsafeFromLong(-10).value)
+    intercept[ParseFailure](`Retry-After`.unsafeFromDuration((-10).seconds).value)
+    intercept[ParseFailure](`Retry-After`.unsafeFromLong(-10L).value)
   }
 
   test("parse should accept http date") {
