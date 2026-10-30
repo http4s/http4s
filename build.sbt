@@ -635,6 +635,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "org.http4s.ember.core.h2.H2Connection#State.copy$default$9"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$10"
+      ),
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.ember.core.h2.H2Connection#State.this"
       ),
@@ -685,6 +688,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.ember.core.h2.H2Connection#State._9"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._10"
           ),
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.ember.core.h2.H2Connection#State._10"

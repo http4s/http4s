@@ -477,6 +477,140 @@ class H2ConnectionSuite extends H2Suite {
     } yield assertEquals(frames.collect { case g: H2Frame.GoAway => g }, Vector.empty, clue(frames))
   }
 
+  test("headers for a stream id the client skipped are a connection error") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      block <- encoder.encodeHeaders(NonEmptyList.of((":method", "GET", false)))
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.Headers(3, None, endStream = true, endHeaders = true, block, None)),
+        writes,
+      )
+      _ <- h2.initiateRemoteStreamById(5)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
+  }
+
+  test("continued headers for a stream id the client skipped are a connection error") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      block <- encoder.encodeHeaders(NonEmptyList.of((":method", "GET", false)))
+      (first, rest) = block.splitAt(1)
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(
+          H2Frame.Headers(3, None, endStream = true, endHeaders = false, first, None),
+          H2Frame.Continuation(3, endHeaders = true, rest),
+        ),
+        writes,
+      )
+      _ <- h2.initiateRemoteStreamById(5)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
+  }
+
+  test("headers for a released client stream inside a skipped push id range are ignored") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      trailers <- encoder.encodeHeaders(NonEmptyList.of(("x-trailer", "value", false)))
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.Headers(3, None, endStream = true, endHeaders = true, trailers, None)),
+        Duration.Inf,
+        writes,
+        connectionType = H2Connection.ConnectionType.Client,
+      )
+      _ <- h2.initiateLocalStream
+      released <- h2.initiateLocalStream
+      _ = assertEquals(released.id, 3)
+      _ <- h2.initiateRemoteStreamById(6)
+      _ <- h2.mapRef.update(_ - released.id)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector.empty, clue(frames))
+  }
+
+  test("headers for a released push stream inside a skipped client id range are ignored") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      trailers <- encoder.encodeHeaders(NonEmptyList.of(("x-trailer", "value", false)))
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.Headers(2, None, endStream = true, endHeaders = true, trailers, None)),
+        writes,
+      )
+      released <- h2.initiateLocalStream
+      _ = assertEquals(released.id, 2)
+      _ <- h2.initiateRemoteStreamById(5)
+      _ <- h2.mapRef.update(_ - released.id)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector.empty, clue(frames))
+  }
+
+  test("headers for a released client stream are ignored when a gap starts on a local id") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      trailers <- encoder.encodeHeaders(NonEmptyList.of(("x-trailer", "value", false)))
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.Headers(3, None, endStream = true, endHeaders = true, trailers, None)),
+        Duration.Inf,
+        writes,
+        connectionType = H2Connection.ConnectionType.Client,
+      )
+      _ <- h2.initiateLocalStream
+      released <- h2.initiateLocalStream
+      _ <- h2.state.update(_.copy(remoteHighestStream = 5, skippedRemoteStreams = Vector(3 -> 3)))
+      _ <- h2.mapRef.update(_ - released.id)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector.empty, clue(frames))
+  }
+
+  test("headers for a released stream between gaps past the gap limit are ignored") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      trailers <- encoder.encodeHeaders(NonEmptyList.of(("x-trailer", "value", false)))
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(H2Frame.Headers(3, None, endStream = true, endHeaders = true, trailers, None)),
+        writes,
+      )
+      _ <- Stream.range(0, 130).evalMap(k => h2.initiateRemoteStreamById(4 * k + 3)).compile.drain
+      _ <- h2.mapRef.update(_ - 3)
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector.empty, clue(frames))
+  }
+
+  test("continued headers opening a stream with local parity are a connection error") {
+    for {
+      encoder <- Hpack.create[IO](4096)
+      block <- encoder.encodeHeaders(NonEmptyList.of((":method", "GET", false)))
+      (first, rest) = block.splitAt(1)
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        encode(
+          H2Frame.Headers(4, None, endStream = true, endHeaders = false, first, None),
+          H2Frame.Continuation(4, endHeaders = true, rest),
+        ),
+        writes,
+      )
+      _ <- h2.readLoop
+      frames <- drainOutgoing(h2, writes)
+    } yield assertEquals(goAways(frames), Vector(H2Error.ProtocolError.value), clue(frames))
+  }
+
   test("window update for an idle stream is a connection error") {
     for {
       writes <- Ref[IO].of(ByteVector.empty)

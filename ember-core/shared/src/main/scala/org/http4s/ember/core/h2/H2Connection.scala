@@ -87,13 +87,28 @@ private[h2] class H2Connection[F[_]](
   /** Whether a frame for a stream missing from the map is for one we have
     * already closed and forgotten rather than one that was never opened.
     */
-  private[this] def isClosedStream(id: Int, st: H2Connection.State[F]): Boolean = {
-    val remoteParity = connectionType match {
-      case H2Connection.ConnectionType.Server => id % 2 != 0
-      case H2Connection.ConnectionType.Client => id % 2 == 0
-    }
-    id > 0 && (if (remoteParity) id <= st.remoteHighestStream else id <= st.highestStream)
+  private[this] def isClosedStream(id: Int, st: H2Connection.State[F]): Boolean =
+    id > 0 && (if (isRemoteParity(id)) id <= st.remoteHighestStream else id <= st.highestStream)
+
+  private[this] def isRemoteParity(id: Int): Boolean = connectionType match {
+    case H2Connection.ConnectionType.Server => id % 2 != 0
+    case H2Connection.ConnectionType.Client => id % 2 == 0
   }
+
+  /** Whether a remote stream id was skipped by the peer, so HEADERS for it would
+    * open a stream below one already opened (RFC 9113 5.1.1).
+    */
+  private[this] def isSkippedRemoteStream(id: Int, st: H2Connection.State[F]): Boolean =
+    isRemoteParity(id) && id <= st.remoteHighestStream &&
+      st.skippedRemoteStreams.exists { case (from, to) =>
+        id >= from && id <= to && (id - from) % 2 == 0
+      }
+
+  private[this] def receiveHeadersForSkippedStream(id: Int): F[Unit] =
+    logger.warn(
+      s"$addrStr Received Headers for Skipped Stream $id - Protocol Error - Issuing GoAway"
+    ) >>
+      goAway(H2Error.ProtocolError)
 
   private[this] def receiveHeadersForClosedStream(id: Int, block: ByteVector): F[Unit] =
     logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
@@ -213,7 +228,21 @@ private[h2] class H2Connection[F[_]](
       logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
-    _ <- state.update(s => s.copy(remoteHighestStream = Math.max(s.remoteHighestStream, id)))
+    _ <- state.update { s =>
+      val expected =
+        if (s.remoteHighestStream > 0) s.remoteHighestStream + 2
+        else if (connectionType == H2Connection.ConnectionType.Server) 1
+        else 2
+      val skipped =
+        if (id > expected)
+          (s.skippedRemoteStreams :+ (expected -> (id - 2)))
+            .takeRight(H2Connection.maxTrackedSkippedRemoteStreams)
+        else s.skippedRemoteStreams
+      s.copy(
+        remoteHighestStream = Math.max(s.remoteHighestStream, id),
+        skippedRemoteStreams = skipped,
+      )
+    }
   } yield stream
 
   /** Records consumed or discarded bytes without waiting for the outgoing queue.
@@ -426,7 +455,7 @@ private[h2] class H2Connection[F[_]](
       // Headers if not closed MUST
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _),
+            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _, _),
           ) =>
         if (headers.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -442,8 +471,15 @@ private[h2] class H2Connection[F[_]](
                 mapRef.get.map(_.get(id)).flatMap {
                   case Some(s) =>
                     s.receiveHeaders(headers)
+                  case None if isSkippedRemoteStream(id, s) =>
+                    receiveHeadersForSkippedStream(id)
                   case None if isClosedStream(id, s) =>
                     receiveHeadersForClosedStream(id, headers.headerBlock)
+                  case None if !isRemoteParity(id) =>
+                    logger.warn(
+                      s"Not Valid Stream to Create $id - Protocol Error - Issuing GoAway"
+                    ) >>
+                      goAway(H2Error.ProtocolError)
                   case None =>
                     streamCreateAndHeaders.use(_ =>
                       for {
@@ -457,7 +493,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _),
+            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _, _),
           ) =>
         if (pushPromise.first.promisedStreamId != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -487,7 +523,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _),
+            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _, _),
           ) =>
         if (pushPromise.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -504,7 +540,7 @@ private[h2] class H2Connection[F[_]](
 
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _),
+            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _, _),
           ) =>
         if (headers.first.identifier != id) {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -517,13 +553,13 @@ private[h2] class H2Connection[F[_]](
             case Some(updated) =>
               state.update(s => s.copy(headersInProgress = updated.some))
           }
-      case (f, H2Connection.State(_, _, _, _, _, Some(_), None, _, _)) =>
+      case (f, H2Connection.State(_, _, _, _, _, Some(_), None, _, _, _)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
         ) >>
           goAway(H2Error.ProtocolError)
-      case (f, H2Connection.State(_, _, _, _, _, None, Some(_), _, _)) =>
+      case (f, H2Connection.State(_, _, _, _, _, None, Some(_), _, _, _)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for push promise in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
@@ -537,13 +573,12 @@ private[h2] class H2Connection[F[_]](
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
               s.receiveHeaders(h)
+            case None if isSkippedRemoteStream(i, s) =>
+              receiveHeadersForSkippedStream(i)
             case None if isClosedStream(i, s) =>
               receiveHeadersForClosedStream(i, h.headerBlock)
             case None =>
-              val isValidToCreate = connectionType match {
-                case H2Connection.ConnectionType.Server => i % 2 != 0
-                case H2Connection.ConnectionType.Client => i % 2 == 0
-              }
+              val isValidToCreate = isRemoteParity(i)
               if (!isValidToCreate) {
                 logger.warn(
                   s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error - Issuing GoAway"
@@ -782,7 +817,10 @@ private[h2] object H2Connection {
       pushPromiseInProgress: Option[ContinuationProgress[F, H2Frame.PushPromise]],
       stallStart: Option[FiniteDuration],
       advertisedReadWindow: Long,
+      skippedRemoteStreams: Vector[(Int, Int)],
   )
+
+  private val maxTrackedSkippedRemoteStreams = 128
 
   /** Helper class to buffer continuations to a header or push promise.
     */
@@ -853,6 +891,7 @@ private[h2] object H2Connection {
         pushPromiseInProgress = None,
         stallStart = None,
         advertisedReadWindow = readWindow.windowSize.toLong,
+        skippedRemoteStreams = Vector.empty,
       )
     )
 
