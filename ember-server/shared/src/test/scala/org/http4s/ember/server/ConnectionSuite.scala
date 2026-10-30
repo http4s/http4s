@@ -140,6 +140,25 @@ class ConnectionSuite extends Http4sSuite {
       } yield assertEquals(chunk, None)
     }
 
+  fixture(idleTimeout = 1.seconds).test("idle timeout terminates kept-alive connection") { client =>
+    for {
+      _ <- client.request(GET(uri"http://localhost:9000/keep-alive"))
+      _ <- client.responseAndDrain
+      chunk <- client.readChunk.timeout(10.seconds)
+    } yield assertEquals(chunk, None)
+  }
+
+  fixture(headerTimeout = 1.seconds).test("header timeout does not apply to kept-alive connection") {
+    client =>
+      for {
+        _ <- client.request(GET(uri"http://localhost:9000/keep-alive"))
+        _ <- client.responseAndDrain
+        _ <- IO.sleep(2.seconds)
+        _ <- client.request(GET(uri"http://localhost:9000/close"))
+        prelude <- client.responsePrelude
+      } yield assertEquals(prelude.status, Status.Ok)
+  }
+
   fixture(idleTimeout = 1.seconds).test("read timeout during body terminates connection") {
     client =>
       val request = Stream(

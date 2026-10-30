@@ -382,23 +382,15 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       head: Array[Byte],
       read: Read[F],
       maxHeaderSize: Int,
-      requestHeaderReceiveTimeout: Duration,
+      withHeaderTimeout: F[(Request[F], Drain[F])] => F[(Request[F], Drain[F])],
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
       socket: Socket[F],
       createRequestVault: Boolean,
-  )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
+  )(implicit F: Temporal[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
-    val parseWithHeaderTimeout = timeoutToMaybe(
-      parse,
-      requestHeaderReceiveTimeout,
-      D.defer(
-        F.raiseError[(Request[F], F[Option[Array[Byte]]])](
-          EmberException.RequestHeadersTimeout(requestHeaderReceiveTimeout)
-        )
-      ),
-    )
+    val parseWithHeaderTimeout = withHeaderTimeout(parse)
 
     for {
       tmp <- parseWithHeaderTimeout
@@ -463,89 +455,108 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
 
+    def serve(deadline: Option[ConnectionDeadline[F]]): Stream[F, Response[F]] = {
+      // without a deadline, `requestHeaderReceiveTimeout` is infinite
+      val withHeaderTimeout: F[(Request[F], Drain[F])] => F[(Request[F], Drain[F])] =
+        deadline.fold((parse: F[(Request[F], Drain[F])]) => parse)(d =>
+          d.within(_, requestHeaderReceiveTimeout)
+        )
+
+      Stream
+        .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
+          val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
+            // next request has already been (partially) received
+            buffer.pure[F]
+          } else if (reuse) {
+            // the connection is keep-alive, but we don't have any bytes.
+            // we want to be on the idle timeout until the next request is received.
+            deadline
+              .fold(read)(_.within(socket.read(receiveBufferSize), idleTimeout))
+              .flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+              }
+          } else {
+            // first request begins immediately
+            Array.emptyByteArray.pure[F]
+          }
+
+          val result = initRead.flatMap { initBuffer =>
+            runApp(
+              initBuffer,
+              read,
+              maxHeaderSize,
+              withHeaderTimeout,
+              httpApp,
+              errorHandler,
+              socket,
+              createRequestVault,
+            )
+          }
+
+          result.attempt.flatMap {
+            case Right((req, resp, drain)) =>
+              // TODO: Should we pay this cost for every HTTP request?
+              // Intercept the response for various upgrade paths
+              resp.attributes.lookup(webSocketKey) match {
+                case Some(ctx) =>
+                  drain.flatMap {
+                    case Some(buffer) =>
+                      webSocketHelpers
+                        .upgrade(
+                          socket,
+                          req,
+                          ctx,
+                          buffer,
+                          receiveBufferSize,
+                          idleTimeout,
+                          onWriteFailure,
+                          errorHandler,
+                          logger,
+                        )
+                        .as(None)
+                    case None =>
+                      Applicative[F].pure(None)
+                  }
+                case None =>
+                  for {
+                    nextResp <- postProcessResponse(req, resp)
+                    _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                    nextBuffer <- drain
+                  } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
+              }
+            case Left(err) =>
+              err match {
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
+                  Applicative[F].pure(None)
+                case err =>
+                  (err match {
+                    case err: Parser.HeaderP.ParseHeadersError => requestLineParseErrorHandler(err)
+                    case err: Parser.Request.ReqPrelude.ParsePreludeError =>
+                      requestLineParseErrorHandler(err)
+                    case err: EmberException.MessageTooLong =>
+                      maxHeaderSizeErrorHandler(err)
+                    case err =>
+                      errorHandler(err)
+                  }).handleError(_ => serverFailure.covary[F])
+                    .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                    .as(None)
+              }
+          }
+        }
+        .takeWhile(_.headers.get[Connection].exists(_.hasKeepAlive))
+    }
+
+    // Reaching the idle timeout while waiting for the next request, or the request header
+    // receive timeout, just closes the connection. Rather than racing a timer against each of
+    // these for every request, a single fiber per connection watches for a missed deadline.
     Stream
-      .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
-        val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
-          // next request has already been (partially) received
-          buffer.pure[F]
-        } else if (reuse) {
-          // the connection is keep-alive, but we don't have any bytes.
-          // we want to be on the idle timeout until the next request is received.
-          read
-            .flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
-        } else {
-          // first request begins immediately
-          Array.emptyByteArray.pure[F]
-        }
-
-        val result = initRead.flatMap { initBuffer =>
-          runApp(
-            initBuffer,
-            read,
-            maxHeaderSize,
-            requestHeaderReceiveTimeout,
-            httpApp,
-            errorHandler,
-            socket,
-            createRequestVault,
-          )
-        }
-
-        result.attempt.flatMap {
-          case Right((req, resp, drain)) =>
-            // TODO: Should we pay this cost for every HTTP request?
-            // Intercept the response for various upgrade paths
-            resp.attributes.lookup(webSocketKey) match {
-              case Some(ctx) =>
-                drain.flatMap {
-                  case Some(buffer) =>
-                    webSocketHelpers
-                      .upgrade(
-                        socket,
-                        req,
-                        ctx,
-                        buffer,
-                        receiveBufferSize,
-                        idleTimeout,
-                        onWriteFailure,
-                        errorHandler,
-                        logger,
-                      )
-                      .as(None)
-                  case None =>
-                    Applicative[F].pure(None)
-                }
-              case None =>
-                for {
-                  nextResp <- postProcessResponse(req, resp)
-                  _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                  nextBuffer <- drain
-                } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
-            }
-          case Left(err) =>
-            err match {
-              case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
-                  EmberException.ReadTimeout(_) =>
-                Applicative[F].pure(None)
-              case err =>
-                (err match {
-                  case err: Parser.HeaderP.ParseHeadersError => requestLineParseErrorHandler(err)
-                  case err: Parser.Request.ReqPrelude.ParsePreludeError =>
-                    requestLineParseErrorHandler(err)
-                  case err: EmberException.MessageTooLong =>
-                    maxHeaderSizeErrorHandler(err)
-                  case err =>
-                    errorHandler(err)
-                }).handleError(_ => serverFailure.covary[F])
-                  .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-                  .as(None)
-            }
-        }
+      .eval(ConnectionDeadline[F](idleTimeout, requestHeaderReceiveTimeout))
+      .flatMap {
+        case None => serve(None)
+        case Some(deadline) => serve(Some(deadline)).interruptWhen(deadline.expired.attempt)
       }
-      .takeWhile(_.headers.get[Connection].exists(_.hasKeepAlive))
       .drain
       .mask
   }
