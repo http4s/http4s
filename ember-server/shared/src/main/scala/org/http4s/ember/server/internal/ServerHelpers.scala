@@ -19,8 +19,12 @@ package org.http4s.ember.server.internal
 import cats._
 import cats.effect._
 import cats.effect.kernel.Resource
+import cats.effect.std.Semaphore
+import cats.effect.std.Supervisor
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
+import fs2.Pull
 import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
@@ -185,7 +189,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     *                               `javax.net.ssl.SSLException` maybe be thrown if the client doesn't speak SSL. By
     *                               default this just logs the error.
     */
-  def serverInternal[F[_]: Async](
+  def serverInternal[F[_]](
       server: Stream[F, Socket[F]],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
@@ -206,129 +210,130 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
-  ): Stream[F, Nothing] = {
-    val streams: Stream[F, Stream[F, Nothing]] = server
-      .interruptWhen(shutdown.signal.attempt)
-      .map { connect =>
-        val handler: Stream[F, Nothing] = shutdown.trackConnection >>
-          Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger, http2))
-            .handleErrorWith(err =>
-              Stream.exec(logger.warn(err)("Failed to upgrade socket to TLS"))
-            )
-            .flatMap { case (socket, alpn) =>
-              (alpn, http2) match {
-                case (Some("h2"), Some(h2)) =>
-                  Stream.exec(h2.requireConnectionPreface(socket, idleTimeout)) ++
-                    Stream
-                      .resource(
-                        h2.fromSocket(
-                          socket,
-                          httpApp,
-                          requestHeaderReceiveTimeout,
-                          idleTimeout,
-                          maxHeaderSize,
-                          logger,
-                        )
-                      )
-                      .drain
-                case (Some(_), _) =>
-                  // SSL Connection, not h2, will be http/1.1 but thats not how types align
-                  // Prior Knowledge is only allowed over clear where application
-                  // protocol has not been agreed via handshake
-                  runConnection(
-                    socket,
-                    logger,
-                    idleTimeout,
-                    receiveBufferSize,
-                    maxHeaderSize,
-                    requestHeaderReceiveTimeout,
-                    httpApp,
-                    errorHandler,
-                    onWriteFailure,
-                    createRequestVault,
-                    webSocketKey,
-                    ByteVector.empty,
-                    requestLineParseErrorHandler,
-                    maxHeaderSizeErrorHandler,
-                    webSocketHelpers,
-                  ).drain
-                case (None, Some(h2)) => // Cleartext Protocol
-                  // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
-                  // Otherwise this is now http1
-                  Stream.eval(h2.checkConnectionPreface(socket, idleTimeout)).flatMap {
-                    case Left(bv) =>
-                      runConnection(
-                        socket,
-                        logger,
-                        idleTimeout,
-                        receiveBufferSize,
-                        maxHeaderSize,
-                        requestHeaderReceiveTimeout,
-                        httpApp,
-                        errorHandler,
-                        onWriteFailure,
-                        createRequestVault,
-                        webSocketKey,
-                        bv, // Pass read bytes we thought might be the prelude
-                        requestLineParseErrorHandler,
-                        maxHeaderSizeErrorHandler,
-                        webSocketHelpers,
-                      ).drain
-                    case Right(_) =>
-                      Stream
-                        .resource(
-                          h2.fromSocket(
-                            socket,
-                            httpApp,
-                            requestHeaderReceiveTimeout,
-                            idleTimeout,
-                            maxHeaderSize,
-                            logger,
-                          )
-                        )
-                        .drain
-                  }
-                // Since its not enabled, run connection normally.
-                case (None, None) =>
-                  runConnection(
-                    socket,
-                    logger,
-                    idleTimeout,
-                    receiveBufferSize,
-                    maxHeaderSize,
-                    requestHeaderReceiveTimeout,
-                    httpApp,
-                    errorHandler,
-                    onWriteFailure,
-                    createRequestVault,
-                    webSocketKey,
-                    ByteVector.empty,
-                    requestLineParseErrorHandler,
-                    maxHeaderSizeErrorHandler,
-                    webSocketHelpers,
-                  ).drain
-              }
-            }
+  )(implicit F: Async[F]): Stream[F, Nothing] = {
+    assert(maxConnections > 0, s"maxConnections must be > 0, was: $maxConnections")
 
-        def fullConnectionErrorHandler(t: Throwable): F[Unit] =
-          connectionErrorHandler.applyOrElse(
-            t,
-            {
-              case e: EmberException.ReadTimeout =>
-                logger.debug(e)("Closing connection idle past the idle timeout")
-              case t: Throwable => logger.error(t)("Request handler failed with exception")
-            }: Throwable => F[Unit],
-          )
-        handler.handleErrorWith { t =>
-          Stream.eval(fullConnectionErrorHandler(t)).drain
-        }
+    def runHttp1(socket: Socket[F], initialBuffer: ByteVector): F[Unit] =
+      runConnection(
+        socket,
+        logger,
+        idleTimeout,
+        receiveBufferSize,
+        maxHeaderSize,
+        requestHeaderReceiveTimeout,
+        httpApp,
+        errorHandler,
+        onWriteFailure,
+        createRequestVault,
+        webSocketKey,
+        initialBuffer,
+        requestLineParseErrorHandler,
+        maxHeaderSizeErrorHandler,
+        webSocketHelpers,
+      )
+
+    def runHttp2(socket: Socket[F], h2: Http2Support[F]): F[Unit] =
+      h2.fromSocket(
+        socket,
+        httpApp,
+        requestHeaderReceiveTimeout,
+        idleTimeout,
+        maxHeaderSize,
+        logger,
+      ).use_
+
+    def serveSocket(socket: Socket[F], alpn: Option[String]): F[Unit] =
+      (alpn, http2) match {
+        case (Some("h2"), Some(h2)) =>
+          h2.requireConnectionPreface(socket, idleTimeout) >> runHttp2(socket, h2)
+        case (Some(_), _) =>
+          // SSL Connection, not h2, will be http/1.1 but thats not how types align
+          // Prior Knowledge is only allowed over clear where application
+          // protocol has not been agreed via handshake
+          runHttp1(socket, ByteVector.empty)
+        case (None, Some(h2)) => // Cleartext Protocol
+          // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+          // Otherwise this is now http1
+          h2.checkConnectionPreface(socket, idleTimeout).flatMap {
+            case Left(bv) =>
+              runHttp1(socket, bv) // Pass read bytes we thought might be the prelude
+            case Right(_) =>
+              runHttp2(socket, h2)
+          }
+        // Since its not enabled, run connection normally.
+        case (None, None) =>
+          runHttp1(socket, ByteVector.empty)
       }
 
-    streams.parJoin(
-      maxConnections
-    ) // TODO: replace with forking after we fix serverResource upstream
-    // StreamForking.forking(streams, maxConnections)
+    def fullConnectionErrorHandler(t: Throwable): F[Unit] =
+      connectionErrorHandler.applyOrElse(
+        t,
+        {
+          case e: EmberException.ReadTimeout =>
+            logger.debug(e)("Closing connection idle past the idle timeout")
+          case t: Throwable => logger.error(t)("Request handler failed with exception")
+        }: Throwable => F[Unit],
+      )
+
+    // Each connection is a plain `F[Unit]` rather than an inner `Stream`, so that an idle
+    // connection retains a single fiber and no fs2 scopes or interrupt contexts.
+    def handleConnection(connect: Socket[F]): F[Unit] =
+      F.bracket(shutdown.newConnection) { _ =>
+        upgradeSocket(connect, tlsInfoOpt, logger, http2).attempt.use {
+          case Right((socket, alpn)) => serveSocket(socket, alpn)
+          case Left(err) => logger.warn(err)("Failed to upgrade socket to TLS")
+        }
+      }(_ => shutdown.removeConnection)
+        .handleErrorWith(fullConnectionErrorHandler)
+
+    // Like `parJoin`: after accepting a socket, we wait for a permit before accepting the next
+    // one, each connection runs in its own fiber, and a failing connection fails the server.
+    def connections(
+        supervisor: Supervisor[F],
+        available: Semaphore[F],
+        failed: Deferred[F, Either[Throwable, Unit]],
+    ): Stream[F, Nothing] = {
+      def startConnection(socket: Socket[F], releaseSocket: F[Unit]): F[Unit] =
+        F.uncancelable { poll =>
+          poll(available.acquire).onCancel(releaseSocket) >>
+            supervisor
+              .supervise(
+                handleConnection(socket)
+                  .guarantee(releaseSocket)
+                  .onError { case t => failed.complete(Left(t)).void }
+                  .guarantee(available.release)
+              )
+              .onError { case _ => available.release >> releaseSocket }
+              .void
+        }
+
+      val acceptConnections: Stream[F, Nothing] = server
+        .interruptWhen(shutdown.signal.attempt)
+        .flatMap { socket =>
+          // The accepted socket is a resource of the outer stream's scope,
+          // so we lease it until its connection is done.
+          Pull
+            .extendScopeTo(Stream.empty.covaryAll[F, Nothing])
+            .flatMap(lease => Pull.eval(startConnection(socket, lease.compile.drain)))
+            .streamNoScope
+        }
+
+      // Once we stop accepting, wait for the running connections to finish.
+      val awaitConnections: Stream[F, Nothing] =
+        Stream.exec(available.acquireN(maxConnections.toLong))
+
+      (acceptConnections ++ awaitConnections).interruptWhen(failed)
+    }
+
+    // The connections lease the resources of all the scopes enclosing the accepted socket,
+    // so the supervisor, which cancels the connections, must not be one of them.
+    Stream.exec(
+      Supervisor[F](await = false).use { supervisor =>
+        (Semaphore[F](maxConnections.toLong), F.deferred[Either[Throwable, Unit]]).flatMapN {
+          (available, failed) => connections(supervisor, available, failed).compile.drain
+        }
+      }
+    )
   }
 
   // private[internal] def reachedEndError[F[_]: Sync](
@@ -455,7 +460,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
-  ): Stream[F, Nothing] = {
+  ): F[Unit] = {
     type State = (Array[Byte], Boolean)
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
       .adaptError {
@@ -463,91 +468,98 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
 
-    Stream
-      .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
-        val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
-          // next request has already been (partially) received
-          buffer.pure[F]
-        } else if (reuse) {
-          // the connection is keep-alive, but we don't have any bytes.
-          // we want to be on the idle timeout until the next request is received.
-          read
-            .flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
-        } else {
-          // first request begins immediately
-          Array.emptyByteArray.pure[F]
-        }
-
-        val result = initRead.flatMap { initBuffer =>
-          runApp(
-            initBuffer,
-            read,
-            maxHeaderSize,
-            requestHeaderReceiveTimeout,
-            httpApp,
-            errorHandler,
-            socket,
-            createRequestVault,
-          )
-        }
-
-        result.attempt.flatMap {
-          case Right((req, resp, drain)) =>
-            // TODO: Should we pay this cost for every HTTP request?
-            // Intercept the response for various upgrade paths
-            resp.attributes.lookup(webSocketKey) match {
-              case Some(ctx) =>
-                drain.flatMap {
-                  case Some(buffer) =>
-                    webSocketHelpers
-                      .upgrade(
-                        socket,
-                        req,
-                        ctx,
-                        buffer,
-                        receiveBufferSize,
-                        idleTimeout,
-                        onWriteFailure,
-                        errorHandler,
-                        logger,
-                      )
-                      .as(None)
-                  case None =>
-                    Applicative[F].pure(None)
-                }
-              case None =>
-                for {
-                  nextResp <- postProcessResponse(req, resp)
-                  _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                  nextBuffer <- drain
-                } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
-            }
-          case Left(err) =>
-            err match {
-              case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
-                  EmberException.ReadTimeout(_) =>
-                Applicative[F].pure(None)
-              case err =>
-                (err match {
-                  case err: Parser.HeaderP.ParseHeadersError => requestLineParseErrorHandler(err)
-                  case err: Parser.Request.ReqPrelude.ParsePreludeError =>
-                    requestLineParseErrorHandler(err)
-                  case err: EmberException.MessageTooLong =>
-                    maxHeaderSizeErrorHandler(err)
-                  case err =>
-                    errorHandler(err)
-                }).handleError(_ => serverFailure.covary[F])
-                  .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-                  .as(None)
-            }
-        }
+    def step(state: State): F[Option[(Response[F], State)]] = {
+      val (buffer, reuse) = state
+      val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
+        // next request has already been (partially) received
+        buffer.pure[F]
+      } else if (reuse) {
+        // the connection is keep-alive, but we don't have any bytes.
+        // we want to be on the idle timeout until the next request is received.
+        read
+          .flatMap {
+            case Some(chunk) => chunk.toArray.pure[F]
+            case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+          }
+      } else {
+        // first request begins immediately
+        Array.emptyByteArray.pure[F]
       }
-      .takeWhile(_.headers.get[Connection].exists(_.hasKeepAlive))
-      .drain
-      .mask
+
+      val result = initRead.flatMap { initBuffer =>
+        runApp(
+          initBuffer,
+          read,
+          maxHeaderSize,
+          requestHeaderReceiveTimeout,
+          httpApp,
+          errorHandler,
+          socket,
+          createRequestVault,
+        )
+      }
+
+      result.attempt.flatMap {
+        case Right((req, resp, drain)) =>
+          // TODO: Should we pay this cost for every HTTP request?
+          // Intercept the response for various upgrade paths
+          resp.attributes.lookup(webSocketKey) match {
+            case Some(ctx) =>
+              drain.flatMap {
+                case Some(buffer) =>
+                  webSocketHelpers
+                    .upgrade(
+                      socket,
+                      req,
+                      ctx,
+                      buffer,
+                      receiveBufferSize,
+                      idleTimeout,
+                      onWriteFailure,
+                      errorHandler,
+                      logger,
+                    )
+                    .as(None)
+                case None =>
+                  Applicative[F].pure(None)
+              }
+            case None =>
+              for {
+                nextResp <- postProcessResponse(req, resp)
+                _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                nextBuffer <- drain
+              } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
+          }
+        case Left(err) =>
+          err match {
+            case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                EmberException.ReadTimeout(_) =>
+              Applicative[F].pure(None)
+            case err =>
+              (err match {
+                case err: Parser.HeaderP.ParseHeadersError => requestLineParseErrorHandler(err)
+                case err: Parser.Request.ReqPrelude.ParsePreludeError =>
+                  requestLineParseErrorHandler(err)
+                case err: EmberException.MessageTooLong =>
+                  maxHeaderSizeErrorHandler(err)
+                case err =>
+                  errorHandler(err)
+              }).handleError(_ => serverFailure.covary[F])
+                .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                .as(None)
+          }
+      }
+    }
+
+    // Serve requests while the connection is kept alive.
+    def loop(state: State): F[Unit] =
+      step(state).flatMap {
+        case Some((resp, nextState)) if resp.headers.get[Connection].exists(_.hasKeepAlive) =>
+          loop(nextState)
+        case _ => Applicative[F].unit
+      }
+
+    loop(initialBuffer.toArray -> false).handleError(_ => ())
   }
 
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =

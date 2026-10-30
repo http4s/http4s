@@ -245,4 +245,54 @@ class ConnectionSuite extends Http4sSuite {
     } yield assertEquals(resp.status.code, 499)
   }
 
+  ResourceFunFixture(
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withMaxConnections(1)
+      .build
+      .flatMap(server =>
+        clientResource(server.addressIp4s)
+          .flatMap(client1 => clientResource(server.addressIp4s).map(client2 => (client1, client2)))
+      )
+  ).test("a connection waits until another one closes when maxConnections is reached") {
+    case (client1, client2) =>
+      for {
+        _ <- client1.request(GET(uri"http://localhost:9000/keep-alive"))
+        _ <- client1.responseAndDrain
+        _ <- client2.request(GET(uri"http://localhost:9000/close"))
+        waiting <- client2.readChunk.timeout(500.millis).attempt
+        _ <- client1.request(GET(uri"http://localhost:9000/close"))
+        _ <- client1.responseAndDrain
+        prelude <- client2.responsePrelude
+      } yield {
+        assert(waiting.isLeft, waiting)
+        assertEquals(prelude.status, Status.Ok)
+      }
+  }
+
+  test("graceful shutdown lets the running requests complete") {
+    Deferred[IO, Unit].flatMap { received =>
+      val app = HttpApp[IO] { _ =>
+        received.complete(()) >> IO.sleep(200.millis).as(Response[IO]().withEntity("done"))
+      }
+      EmberServerBuilder
+        .default[IO]
+        .withPort(port"0")
+        .withHttpApp(app)
+        .withShutdownTimeout(10.seconds)
+        .build
+        .allocated
+        .flatMap { case (server, shutdownServer) =>
+          clientResource(server.addressIp4s).use { client =>
+            for {
+              _ <- client.request(GET(uri"http://localhost:9000/").putHeaders(Connection.close))
+              _ <- received.get
+              shutdown <- shutdownServer.start
+              body <- client.response.flatMap(_.body.through(fs2.text.utf8.decode).compile.string)
+              _ <- shutdown.joinWithNever
+            } yield assertEquals(body, "done")
+          }
+        }
+    }
+  }
+
 }
