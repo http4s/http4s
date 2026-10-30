@@ -54,9 +54,9 @@ class H2StreamSuite extends Http4sSuite {
   private def streamAndQueue(
       config: H2Frame.Settings.ConnectionSettings,
       creditConnection: Int => IO[Unit] = _ => IO.unit,
-      outgoingQueue: IO[Queue[IO, H2Frame]] = Queue.unbounded[IO, H2Frame],
+      outgoingQueue: IO[Queue[IO, EncodableH2Frame]] = Queue.unbounded[IO, EncodableH2Frame],
       readBufferCapacity: Int = Int.MaxValue,
-  ): IO[(H2Stream[IO], Queue[IO, H2Frame])] =
+  ): IO[(H2Stream[IO], Queue[IO, EncodableH2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
@@ -83,7 +83,6 @@ class H2StreamSuite extends Http4sSuite {
           remoteReset = false,
         )
       )
-      hpack <- Hpack.create[IO](1024)
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
       outgoing <- outgoingQueue
       stream = new H2Stream[IO](
@@ -95,7 +94,6 @@ class H2StreamSuite extends Http4sSuite {
         state,
         bodyDone,
         readBufferLock,
-        hpack,
         outgoing.offer,
         IO.unit,
         _ => IO.unit,
@@ -133,9 +131,8 @@ class H2StreamSuite extends Http4sSuite {
           remoteReset = false,
         )
       )
-      hpack <- Hpack.create[IO](1024)
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
-      enqueue <- Queue.unbounded[IO, H2Frame]
+      enqueue <- Queue.unbounded[IO, EncodableH2Frame]
       stream = new H2Stream[IO](
         1,
         60.seconds,
@@ -145,7 +142,6 @@ class H2StreamSuite extends Http4sSuite {
         state,
         bodyDone,
         readBufferLock,
-        hpack,
         enqueue.offer,
         IO.unit,
         _ => IO.unit,
@@ -157,14 +153,14 @@ class H2StreamSuite extends Http4sSuite {
   private def emptyData(endStream: Boolean = false): H2Frame.Data =
     H2Frame.Data(1, ByteVector.empty, None, endStream)
 
-  private def rstCodes(outgoing: Queue[IO, H2Frame]): IO[List[Int]] =
+  private def rstCodes(outgoing: Queue[IO, EncodableH2Frame]): IO[List[Int]] =
     outgoing
       .tryTakeN(None)
       .map(_.toList.collect { case H2Frame.RstStream(_, code) => code.toInt })
 
   private def testMessageSize(
       stream: H2Stream[IO],
-      outgoing: Queue[IO, H2Frame],
+      outgoing: Queue[IO, EncodableH2Frame],
       frameSize: Int,
       messageSize: Int,
       numFrames: Int,
@@ -197,8 +193,9 @@ class H2StreamSuite extends Http4sSuite {
     "client should not hang when endStream is sent by H2Frame.Headers as trailers"
   ) {
     for {
+      hpack <- Hpack.create[IO](1024)
       stream <- clientStream(defaultSettings)
-      headers <- stream.hpack.encodeHeaders(
+      headers <- hpack.encodeHeaders(
         NonEmptyList.of(
           (":status", "200", false),
           (":method", "GET", false),
@@ -212,7 +209,7 @@ class H2StreamSuite extends Http4sSuite {
         headers,
         None,
       )
-      headers <- stream.hpack.encodeHeaders(
+      headers <- hpack.encodeHeaders(
         NonEmptyList.of(
           ("grpc-status", "0", false)
         )
@@ -229,7 +226,7 @@ class H2StreamSuite extends Http4sSuite {
       source = fs2.Stream.repeatEval(IO(42.toByte)).take(10000).chunkN(100)
       actual <- Queue.unbounded[IO, Chunk[Byte]]
 
-      _ <- stream.receiveHeaders(init)
+      _ <- init.decode(hpack).flatMap(stream.receiveHeaders)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
       _ <- (
         // Taken from `sendMessageBody` to emulate messages sent from server.
@@ -243,8 +240,7 @@ class H2StreamSuite extends Http4sSuite {
           .compile
           .drain >>
           // Taken from `sendTrailerHeaders` to emulate trailers headers sent from server.
-          stream
-            .receiveHeaders(trailers)
+          trailers.decode(hpack).flatMap(stream.receiveHeaders)
       )
         // Note: Without closing `readBuffer` on headers with `endStream=true`, `readBody` hangs forever.
         .both(stream.readBody.compile.drain)
@@ -357,10 +353,10 @@ class H2StreamSuite extends Http4sSuite {
         Stream.eval(gate.get).drain ++
         Stream("world").through(utf8.encode)
 
-    def assertFrame(chunk: H2Frame, expected: String, endStream: Boolean) = {
+    def assertFrame(chunk: EncodableH2Frame, expected: String, endStream: Boolean) = {
       val frame = chunk match {
         case data: H2Frame.Data => data
-        case other: H2Frame => fail("unexpected frame", clues(other))
+        case other: EncodableH2Frame => fail("unexpected frame", clues(other))
       }
 
       assertEquals(frame.data.decodeUtf8, Right(expected))
@@ -507,7 +503,7 @@ class H2StreamSuite extends Http4sSuite {
       for {
         sq <- streamAndQueue(
           defaultSettings,
-          outgoingQueue = Queue.bounded[IO, H2Frame](1),
+          outgoingQueue = Queue.bounded[IO, EncodableH2Frame](1),
         )
         (stream, outgoing) = sq
         _ <- outgoing.offer(H2Frame.Ping.ack)
@@ -707,7 +703,7 @@ class H2StreamSuite extends Http4sSuite {
     }
   }
 
-  private def sent(queue: Queue[IO, H2Frame]): IO[Vector[H2Frame]] =
+  private def sent(queue: Queue[IO, EncodableH2Frame]): IO[Vector[EncodableH2Frame]] =
     queue.tryTakeN(None).map(_.toVector)
 
   private def data(size: Int): H2Frame.Data =
@@ -725,7 +721,7 @@ class H2StreamSuite extends Http4sSuite {
         _ <- stream.finish(H2Error.NoError)
         _ <- waiting.joinWithNever
         frames <- sent(queue)
-      } yield assertEquals(frames, Vector[H2Frame](H2Error.NoError.toRst(1)))
+      } yield assertEquals(frames, Vector(H2Error.NoError.toRst(1)))
     }
   }
 
@@ -736,7 +732,7 @@ class H2StreamSuite extends Http4sSuite {
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Closed))
       _ <- stream.finish(H2Error.NoError)
       frames <- sent(queue)
-    } yield assertEquals(frames, Vector.empty[H2Frame])
+    } yield assertEquals(frames, Vector.empty)
   }
 
   test("data for a closed stream is dropped") {
@@ -746,7 +742,7 @@ class H2StreamSuite extends Http4sSuite {
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Closed))
       _ <- stream.receiveData(data(10))
       frames <- sent(queue)
-    } yield assertEquals(frames, Vector.empty[H2Frame])
+    } yield assertEquals(frames, Vector.empty)
   }
 
   test("rstStream doesn't wait for room in a full read buffer") {
@@ -757,7 +753,7 @@ class H2StreamSuite extends Http4sSuite {
         _ <- stream.receiveData(data(10))
         _ <- stream.rstStream(H2Error.RefusedStream)
         frames <- sent(queue)
-      } yield assertEquals(frames, Vector[H2Frame](H2Error.RefusedStream.toRst(1)))
+      } yield assertEquals(frames, Vector(H2Error.RefusedStream.toRst(1)))
     }
   }
 
@@ -770,7 +766,7 @@ class H2StreamSuite extends Http4sSuite {
       frames <- sent(queue)
     } yield {
       assert(body.isLeft, clue(body))
-      assertEquals(frames, Vector.empty[H2Frame])
+      assertEquals(frames, Vector.empty)
     }
   }
 }

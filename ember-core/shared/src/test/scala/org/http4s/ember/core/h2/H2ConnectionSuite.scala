@@ -121,7 +121,7 @@ class H2ConnectionSuite extends H2Suite {
       writeWindow <- H2Connection.WriteWindow.init[IO](
         H2Frame.Settings.SettingsInitialWindowSize(initialConnectionWindowSize)
       )
-      outgoing <- Queue.unbounded[IO, H2Frame]
+      outgoing <- Queue.unbounded[IO, EncodableH2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](
@@ -151,7 +151,7 @@ class H2ConnectionSuite extends H2Suite {
       logger,
     )
 
-  private def dataFrame(size: Int): H2Frame =
+  private def dataFrame(size: Int): H2Frame.Data =
     H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, endStream = false)
 
   private def settingsWithMaxHeaderListSize(
