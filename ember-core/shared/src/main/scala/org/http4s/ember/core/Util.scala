@@ -147,4 +147,10 @@ private[ember] object Util extends UtilPlatform {
       res
     }
 
+  // RFC 9110 15: status-code = 3DIGIT
+  def parseStatus(code: String): ParseResult[Status] =
+    if (code.length == 3 && code.forall(c => c >= '0' && c <= '9'))
+      Status.fromInt(code.toInt)
+    else Left(ParseFailure("Invalid status code", code))
+
 }
