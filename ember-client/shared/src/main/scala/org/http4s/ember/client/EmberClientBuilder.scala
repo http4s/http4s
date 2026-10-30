@@ -46,6 +46,7 @@ import scala.concurrent.duration._
 final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val proxyOpt: Option[Proxy],
+    val proxyForwarding: Boolean,
     val proxyTimeout: Duration,
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
@@ -71,6 +72,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
       proxyOpt: Option[Proxy] = self.proxyOpt,
+      proxyForwarding: Boolean = self.proxyForwarding,
       proxyTimeout: Duration = self.proxyTimeout,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
@@ -95,6 +97,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
       proxyOpt = proxyOpt,
+      proxyForwarding = proxyForwarding,
       proxyTimeout = proxyTimeout,
       maxTotal = maxTotal,
       maxPerKey = maxPerKey,
@@ -130,7 +133,19 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   /** Unset any `Proxy`. */
   def withoutProxy: EmberClientBuilder[F] = copy(proxyOpt = None)
 
-  /** Sets the maximum amount of time to establish a tunnel through the `Proxy`. */
+  /** Sets whether a request to an `http` origin is forwarded to an `HttpProxy` in absolute form
+    * rather than tunneled through it with `CONNECT`.
+    */
+  def withProxyForwarding(proxyForwarding: Boolean): EmberClientBuilder[F] =
+    copy(proxyForwarding = proxyForwarding)
+
+  /** Tunnels every request through the `Proxy` with `CONNECT`. */
+  def withoutProxyForwarding: EmberClientBuilder[F] =
+    copy(proxyForwarding = false)
+
+  /** Sets the maximum amount of time to connect through the `Proxy`, which covers connecting to
+    * it, any TLS handshake with it, and any tunnel negotiation.
+    */
   def withProxyTimeout(proxyTimeout: Duration): EmberClientBuilder[F] =
     copy(proxyTimeout = proxyTimeout)
 
@@ -299,6 +314,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   serverNameIndication,
                   additionalSocketOptions,
                   proxyOpt,
+                  proxyForwarding,
                   maxResponseHeaderSize,
                   proxyTimeout,
                 ),
@@ -343,6 +359,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                 ClientHelpers.connectSocket(
                   address,
                   proxyOpt,
+                  forwardAbsoluteForm = false,
                   tlsContextOptWithDefault,
                   checkEndpointIdentification,
                   serverNameIndication,
@@ -376,6 +393,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   idleConnectionTime,
                   timeout,
                   userAgent,
+                  proxyOpt,
+                  proxyForwarding,
                 )
             )
           ) { case ((response, drain), exitCase) =>
@@ -425,6 +444,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   idleConnectionTime,
                   timeout,
                   userAgent,
+                  proxy = None,
+                  proxyForwarding = false,
                 )
                 .map(_._1)
             )
@@ -452,6 +473,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       proxyOpt = None,
+      proxyForwarding = Defaults.proxyForwarding,
       proxyTimeout = Defaults.proxyTimeout,
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
@@ -482,6 +504,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     val maxResponseHeaderSize: Int = 4096
     val idleConnectionTime: FiniteDuration = org.http4s.ember.core.Defaults.IdleTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
+    val proxyForwarding: Boolean = true
     val proxyTimeout: Duration = 10.seconds
 
     // Pool Settings

@@ -45,6 +45,7 @@ import org.http4s.ember.core.EmberException
 import org.http4s.ember.core.Util
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
+import org.http4s.headers.`Proxy-Authorization`
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool._
@@ -62,6 +63,7 @@ private[client] object ClientHelpers {
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
       proxy: Option[Proxy],
+      proxyForwarding: Boolean,
       maxResponseHeaderSize: Int,
       proxyTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] = {
@@ -73,6 +75,7 @@ private[client] object ClientHelpers {
       enableServerNameIndication,
       additionalSocketOptions,
       proxy,
+      proxyForwarding,
       maxResponseHeaderSize,
       proxyTimeout,
     )
@@ -104,6 +107,7 @@ private[client] object ClientHelpers {
       enableServerNameIndication: Boolean,
       additionalSocketOptions: List[SocketOption],
       proxy: Option[Proxy],
+      proxyForwarding: Boolean,
       maxResponseHeaderSize: Int,
       proxyTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] =
@@ -113,6 +117,7 @@ private[client] object ClientHelpers {
         val s = connectSocket(
           address,
           proxy,
+          forwardsAbsoluteForm(proxy, proxyForwarding, requestKey),
           tlsContextOpt,
           enableEndpointValidation,
           enableServerNameIndication,
@@ -133,6 +138,7 @@ private[client] object ClientHelpers {
   private[client] def connectSocket[F[_]: Temporal: Network](
       address: SocketAddress[Host],
       proxy: Option[Proxy],
+      forwardAbsoluteForm: Boolean,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
@@ -140,18 +146,42 @@ private[client] object ClientHelpers {
       maxResponseHeaderSize: Int,
       proxyTimeout: Duration,
   ): Resource[F, Socket[F]] =
-    proxy.fold(Network[F].connect(address, options = additionalSocketOptions))(
-      ProxyConnector.connect(
-        _,
-        address,
-        tlsContextOpt,
-        enableEndpointValidation,
-        enableServerNameIndication,
-        additionalSocketOptions,
-        maxResponseHeaderSize,
-        proxyTimeout,
-      )
-    )
+    proxy.fold(Network[F].connect(address, options = additionalSocketOptions)) { proxy =>
+      if (forwardAbsoluteForm)
+        ProxyConnector.forward(
+          proxy,
+          tlsContextOpt,
+          enableEndpointValidation,
+          enableServerNameIndication,
+          additionalSocketOptions,
+          maxResponseHeaderSize,
+          proxyTimeout,
+        )
+      else
+        ProxyConnector.connect(
+          proxy,
+          address,
+          tlsContextOpt,
+          enableEndpointValidation,
+          enableServerNameIndication,
+          additionalSocketOptions,
+          maxResponseHeaderSize,
+          proxyTimeout,
+        )
+    }
+
+  /** Whether requests for `requestKey` are forwarded to `proxy` in absolute form instead of
+    * tunneled through it.
+    */
+  private[internal] def forwardsAbsoluteForm(
+      proxy: Option[Proxy],
+      proxyForwarding: Boolean,
+      requestKey: RequestKey,
+  ): Boolean =
+    proxyForwarding && requestKey.scheme =!= Uri.Scheme.https && proxy.exists {
+      case _: HttpProxy => true
+      case _ => false
+    }
 
   def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
@@ -190,11 +220,22 @@ private[client] object ClientHelpers {
       idleTimeout: Duration,
       timeout: Duration,
       userAgent: Option[`User-Agent`],
+      proxy: Option[Proxy],
+      proxyForwarding: Boolean,
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
+    val absoluteForm =
+      forwardsAbsoluteForm(proxy, proxyForwarding, connection.keySocket.requestKey)
+
+    // A forwarded request authenticates itself, there being no CONNECT exchange to carry the
+    // credentials.
+    val proxyAuthorization = proxy.collect {
+      case HttpProxy(_, _, _, Some(credentials)) if absoluteForm =>
+        `Proxy-Authorization`.fromBasicCredentials(credentials)
+    }
 
     def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
-        .reqToBytes(req)
+        .reqToBytes(req, absoluteForm = absoluteForm)
         .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
         .compile
         .drain
@@ -227,7 +268,7 @@ private[client] object ClientHelpers {
       }
 
     for {
-      processedReq <- preprocessRequest(request, userAgent)
+      processedReq <- preprocessRequest(request, userAgent, proxyAuthorization)
       res <- writeRead(processedReq)
     } yield res
   }.adaptError { case e: EmberException.EmptyStream =>
@@ -242,6 +283,7 @@ private[client] object ClientHelpers {
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
       req: Request[F],
       userAgent: Option[`User-Agent`],
+      proxyAuthorization: Option[`Proxy-Authorization`] = None,
   ): F[Request[F]] = {
     val connection = req.headers
       .get[Connection]
@@ -249,7 +291,7 @@ private[client] object ClientHelpers {
     val userAgentHeader: Option[`User-Agent`] = req.headers.get[`User-Agent`].orElse(userAgent)
     for {
       date <- req.headers.get[Date].fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
-    } yield req.putHeaders(date, connection, userAgentHeader)
+    } yield req.putHeaders(date, connection, userAgentHeader, proxyAuthorization)
   }
 
   private[ember] def postProcessResponse[F[_]](

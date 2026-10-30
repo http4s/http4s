@@ -52,6 +52,7 @@ private[client] object ProxyConnector {
   private val Socks5NoAuth = 0.toByte
   private val Socks5UsernamePassword = 2.toByte
 
+  /** Opens a tunnel to `target` through `proxy`. */
   def connect[F[_]: Temporal: Network](
       proxy: Proxy,
       target: SocketAddress[Host],
@@ -64,7 +65,47 @@ private[client] object ProxyConnector {
   ): Resource[F, Socket[F]] = {
     implicit val dns: Dns[F] = Network[F].dns
 
-    val tunnel = for {
+    connectToProxy(
+      proxy,
+      tlsContextOpt,
+      enableEndpointValidation,
+      enableServerNameIndication,
+      additionalSocketOptions,
+      maxResponseHeaderSize,
+      timeout,
+    )(negotiate(proxy, _, target, maxResponseHeaderSize))
+  }
+
+  /** Connects to `proxy` without opening a tunnel, for requests it forwards in absolute form. */
+  def forward[F[_]: Temporal: Network](
+      proxy: Proxy,
+      tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
+      additionalSocketOptions: List[SocketOption],
+      maxResponseHeaderSize: Int,
+      timeout: Duration,
+  ): Resource[F, Socket[F]] =
+    connectToProxy(
+      proxy,
+      tlsContextOpt,
+      enableEndpointValidation,
+      enableServerNameIndication,
+      additionalSocketOptions,
+      maxResponseHeaderSize,
+      timeout,
+    )(_ => ().pure[F])
+
+  private def connectToProxy[F[_]: Temporal: Network](
+      proxy: Proxy,
+      tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
+      additionalSocketOptions: List[SocketOption],
+      maxResponseHeaderSize: Int,
+      timeout: Duration,
+  )(negotiateTunnel: Socket[F] => F[Unit]): Resource[F, Socket[F]] = {
+    val connection = for {
       proxyAddress <- Resource.eval(address[F](proxy))
       _ <- Resource.eval(validate(proxy, tlsContextOpt, maxResponseHeaderSize))
       rawSocket <- Network[F].connect(proxyAddress, additionalSocketOptions)
@@ -86,10 +127,10 @@ private[client] object ProxyConnector {
           )
         case _ => rawSocket.pure[Resource[F, *]]
       }
-      _ <- Resource.eval(negotiate(proxy, socket, target, maxResponseHeaderSize))
+      _ <- Resource.eval(negotiateTunnel(socket))
     } yield socket
 
-    timeoutAcquire(tunnel, timeout, new ProxyException.Timeout(proxy, timeout))
+    timeoutAcquire(connection, timeout, new ProxyException.Timeout(proxy, timeout))
   }
 
   // Bounds connecting to the proxy, any TLS handshake with it, and the negotiation. Resource has
