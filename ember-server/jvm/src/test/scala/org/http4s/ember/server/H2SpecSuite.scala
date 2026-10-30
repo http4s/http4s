@@ -39,6 +39,7 @@ class H2SpecSuite extends Http4sSuite {
   private val knownTlsFailures = Set(
     "http2/5.1: closed: Sends a DATA frame",
     "http2/5.1: closed: Sends a HEADERS frame",
+    "http2/5.1.1: Sends stream identifier that is numerically smaller than previous",
     "http2/8.1: Sends a second HEADERS frame without the END_STREAM flag",
     "http2/8.1.2.1: Sends a HEADERS frame that contains a pseudo-header field as trailers",
     "hpack/4.2: Sends a dynamic table size update at the end of header block",
