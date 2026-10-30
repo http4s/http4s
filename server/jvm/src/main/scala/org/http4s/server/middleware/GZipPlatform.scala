@@ -26,6 +26,7 @@ import java.util.zip.Deflater
 private[middleware] object GZipPlatform {
   private[this] val HeaderSize = 10
   private[this] val TrailerSize = 8
+  private[this] val InitialMinSize = 256
 
   /** Compresses an in-memory body into a complete gzip member (RFC 1952) in one pass. */
   def gzipStrict(bytes: ByteVector, level: DeflateParams.Level): Option[ByteVector] = {
@@ -34,16 +35,18 @@ private[middleware] object GZipPlatform {
     try {
       deflater.setInput(input)
       deflater.finish()
-      // Room for incompressible input; compressible input does not need to grow the array
-      val bound = input.length + (input.length >>> 12) + (input.length >>> 14) + 64
-      var out = new Array[Byte](HeaderSize + bound + TrailerSize)
+      // Text bodies usually compress to well under a quarter of their size;
+      // the array grows if the output needs more room.
+      val initial = math.max(InitialMinSize, input.length >>> 2)
+      var out = new Array[Byte](HeaderSize + initial + TrailerSize)
       out(0) = 0x1f.toByte
       out(1) = 0x8b.toByte
       out(2) = Deflater.DEFLATED.toByte
       out(9) = 0xff.toByte // OS: unknown; FLG, MTIME and XFL stay 0
       var pos = HeaderSize
       while (!deflater.finished()) {
-        if (pos == out.length - TrailerSize) out = Arrays.copyOf(out, out.length * 2)
+        if (pos == out.length - TrailerSize)
+          out = Arrays.copyOf(out, out.length + (out.length >>> 1))
         pos += deflater.deflate(out, pos, out.length - TrailerSize - pos)
       }
       val crc = new CRC32()
