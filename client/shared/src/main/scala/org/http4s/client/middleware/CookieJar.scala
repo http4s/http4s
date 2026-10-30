@@ -82,11 +82,8 @@ object CookieJar {
         _ <- Resource.eval(alg.evictExpired)
         modRequest <- Resource.eval(alg.enrichRequest(req))
         out <- client.run(modRequest)
-        _ <- Resource.eval(
-          out.cookies
-            .take(DefaultMaxCookiesPerResponse)
-            .traverse_(alg.addCookie(_, req.uri))
-        )
+        cookies = out.cookies.take(DefaultMaxCookiesPerResponse)
+        _ <- Resource.eval(alg.addCookies(cookies.tupleRight(req.uri)).whenA(cookies.nonEmpty))
       } yield out
     }
 
@@ -228,11 +225,10 @@ object CookieJar {
       cookies: G[(ResponseCookie, Uri)],
       httpDate: HttpDate,
   ): Map[CookieKey, CookieValue] =
-    cookies
-      .foldRight(Eval.now(m)) { case ((rc, uri), eM) =>
-        eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri, psl))
-      }
-      .value
+    // In order, so a later cookie replaces an earlier one (RFC 6265 5.3).
+    cookies.foldLeft(m) { case (acc, (rc, uri)) =>
+      extractFromResponseCookie(acc)(rc, httpDate, uri, psl)
+    }
 
   private[middleware] def extractFromResponseCookie(
       m: Map[CookieKey, CookieValue]

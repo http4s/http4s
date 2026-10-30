@@ -493,4 +493,66 @@ class CookieJarSuite extends Http4sSuite {
         .map(_.toInt)
     } yield assertEquals(count, CookieJar.DefaultMaxCookiesPerResponse)
   }
+
+  test("addCookies should keep the last of several cookies with the same key") {
+    val uri = uri"http://example.com/"
+    val cookies = List("first", "second", "third").map(v => (ResponseCookie("a", v), uri))
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookies(cookies)
+      req <- jar.enrichRequest(Request[IO](Method.GET, uri))
+    } yield assertEquals(
+      req.headers.get[Cookie].map(_.values.toList),
+      Some(List(RequestCookie("a", "third"))),
+    )
+  }
+
+  test("set-cookie should let a later cookie in the same response replace an earlier one") {
+    // A server rotating a session deletes the old cookie and sets the new one
+    val app = HttpApp[IO] { _ =>
+      Response[IO](Status.Ok)
+        .putHeaders(
+          `Set-Cookie`(ResponseCookie("sid", "", maxAge = Some(0L))),
+          `Set-Cookie`(ResponseCookie("sid", "new")),
+        )
+        .pure[IO]
+    }
+    val req = Request[IO](Method.GET, uri"http://example.com/")
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookie(ResponseCookie("sid", "old"), req.uri)
+      _ <- CookieJar(jar)(Client.fromHttpApp(app)).successful(req)
+      enriched <- jar.enrichRequest(req)
+    } yield assertEquals(
+      enriched.headers.get[Cookie].map(_.values.toList),
+      Some(List(RequestCookie("sid", "new"))),
+    )
+  }
+
+  test("set-cookie should store all of a response's cookies in one addCookies call") {
+    val app = HttpApp[IO] { req =>
+      val resp = Response[IO](Status.Ok)
+      if (req.uri.path.renderString == "/set")
+        resp
+          .putHeaders((0 until 3).map(i => `Set-Cookie`(ResponseCookie(s"c$i", "v"))).toList)
+          .pure[IO]
+      else resp.pure[IO]
+    }
+    for {
+      underlying <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      calls <- Ref[IO].of(List.empty[Int])
+      jar = new CookieJar[IO] {
+        def evictExpired: IO[Unit] = underlying.evictExpired
+        def evictAll: IO[Unit] = underlying.evictAll
+        def addCookies[G[_]: cats.Foldable](cookies: G[(ResponseCookie, Uri)]): IO[Unit] =
+          calls.update(cookies.size.toInt :: _) *> underlying.addCookies(cookies)
+        def enrichRequest[G[_]](r: Request[G]): IO[Request[G]] = underlying.enrichRequest(r)
+      }
+      client = CookieJar(jar)(Client.fromHttpApp(app))
+      _ <- client.successful(Request[IO](Method.GET, uri"http://example.com/set"))
+      // A response without cookies doesn't touch the jar
+      _ <- client.successful(Request[IO](Method.GET, uri"http://example.com/"))
+      batches <- calls.get
+    } yield assertEquals(batches, List(3))
+  }
 }
