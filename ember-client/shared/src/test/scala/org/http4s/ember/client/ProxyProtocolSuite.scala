@@ -138,8 +138,10 @@ class ProxyProtocolSuite extends Http4sSuite {
       proxy: Proxy,
       request: Request[IO],
       forwarding: Boolean = true,
+      ignoredHosts: IgnoredHosts = IgnoredHosts.default,
   ): IO[String] = {
-    val builder = EmberClientBuilder.default[IO].withProxy(proxy)
+    val builder =
+      EmberClientBuilder.default[IO].withProxy(proxy).withProxyIgnoredHosts(ignoredHosts)
     (if (forwarding) builder else builder.withoutProxyForwarding).build
       .use(_.expect[String](request))
   }
@@ -268,6 +270,37 @@ class ProxyProtocolSuite extends Http4sSuite {
     }
   }
 
+  test("reaches an ignored host directly") {
+    // Nothing listens on port 1, so were the host not ignored the client would fail there rather
+    // than reach the origin bound below.
+    val proxy = HttpProxy(Uri.Scheme.http, host"127.0.0.1", port"1".some, credentials.some)
+
+    Network[IO]
+      .bind(SocketAddress(ip"127.0.0.1", port"0"))
+      .use { server =>
+        val origin = Uri.unsafeFromString(s"http://127.0.0.1:${server.address.asIpUnsafe.port}/")
+
+        for {
+          recorded <- IO.ref(Option.empty[String])
+          serve = server.accept.head
+            .evalMap(socket =>
+              readPrelude(socket)
+                .flatMap(prelude => recorded.set(prelude.some) *> writeAscii(socket, okResponse))
+            )
+            .compile
+            .drain
+          response <- serve.background.surround(through(proxy, Request[IO](uri = origin)).attempt)
+          prelude <- recorded.get
+        } yield (prelude, response)
+      }
+      .map { case (prelude, response) =>
+        assertEquals(response, Right("ok"))
+        // Origin form, and no credentials, because the proxy was never involved.
+        assert(prelude.exists(_.startsWith("GET / HTTP/1.1\r\n")), prelude.toString)
+        assert(!prelude.exists(_.contains("Proxy-Authorization")), prelude.toString)
+      }
+  }
+
   test("sends the target address and user id to a Socks4Proxy") {
     exchange { socket =>
       for {
@@ -281,6 +314,7 @@ class ProxyProtocolSuite extends Http4sSuite {
       through(
         Socks4Proxy(host"127.0.0.1", proxyPort, "socksuser".some),
         Request[IO](uri = ipOrigin),
+        ignoredHosts = IgnoredHosts.none,
       )
     }.map { case ((header, userId), response) =>
       assertEquals(header, List[Byte](4, 1, 31, -112, 127, 0, 0, 1))

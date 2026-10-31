@@ -47,6 +47,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val proxyOpt: Option[Proxy],
     val proxyForwarding: Boolean,
+    val proxyIgnoredHosts: IgnoredHosts,
     val proxyTimeout: Duration,
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
@@ -73,6 +74,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
       proxyOpt: Option[Proxy] = self.proxyOpt,
       proxyForwarding: Boolean = self.proxyForwarding,
+      proxyIgnoredHosts: IgnoredHosts = self.proxyIgnoredHosts,
       proxyTimeout: Duration = self.proxyTimeout,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
@@ -98,6 +100,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       tlsContextOpt = tlsContextOpt,
       proxyOpt = proxyOpt,
       proxyForwarding = proxyForwarding,
+      proxyIgnoredHosts = proxyIgnoredHosts,
       proxyTimeout = proxyTimeout,
       maxTotal = maxTotal,
       maxPerKey = maxPerKey,
@@ -142,6 +145,16 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   /** Tunnels every request through the `Proxy` with `CONNECT`. */
   def withoutProxyForwarding: EmberClientBuilder[F] =
     copy(proxyForwarding = false)
+
+  /** Sets the hosts reached directly rather than through the `Proxy`. Defaults to
+    * [[IgnoredHosts.default]], the hosts the JVM ignores by default.
+    */
+  def withProxyIgnoredHosts(proxyIgnoredHosts: IgnoredHosts): EmberClientBuilder[F] =
+    copy(proxyIgnoredHosts = proxyIgnoredHosts)
+
+  /** Reaches every host through the `Proxy`, ignoring none. */
+  def withoutProxyIgnoredHosts: EmberClientBuilder[F] =
+    copy(proxyIgnoredHosts = IgnoredHosts.none)
 
   /** Sets the maximum amount of time to connect through the `Proxy`, which covers connecting to
     * it, any TLS handshake with it, and any tunnel negotiation.
@@ -315,6 +328,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   additionalSocketOptions,
                   proxyOpt,
                   proxyForwarding,
+                  proxyIgnoredHosts,
                   maxResponseHeaderSize,
                   proxyTimeout,
                 ),
@@ -358,7 +372,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               case address: SocketAddress[Host] =>
                 ClientHelpers.connectSocket(
                   address,
-                  proxyOpt,
+                  proxyOpt.filterNot(_ => proxyIgnoredHosts.ignores(address.host)),
                   forwardAbsoluteForm = false,
                   tlsContextOptWithDefault,
                   checkEndpointIdentification,
@@ -395,6 +409,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   userAgent,
                   proxyOpt,
                   proxyForwarding,
+                  proxyIgnoredHosts,
                 )
             )
           ) { case ((response, drain), exitCase) =>
@@ -446,6 +461,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   userAgent,
                   proxy = None,
                   proxyForwarding = false,
+                  proxyIgnoredHosts = IgnoredHosts.none,
                 )
                 .map(_._1)
             )
@@ -474,6 +490,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       tlsContextOpt = None,
       proxyOpt = None,
       proxyForwarding = Defaults.proxyForwarding,
+      proxyIgnoredHosts = Defaults.proxyIgnoredHosts,
       proxyTimeout = Defaults.proxyTimeout,
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
@@ -505,6 +522,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     val idleConnectionTime: FiniteDuration = org.http4s.ember.core.Defaults.IdleTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
     val proxyForwarding: Boolean = true
+    val proxyIgnoredHosts: IgnoredHosts = IgnoredHosts.default
     val proxyTimeout: Duration = 10.seconds
 
     // Pool Settings

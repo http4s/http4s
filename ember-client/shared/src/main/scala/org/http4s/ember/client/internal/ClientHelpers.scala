@@ -64,6 +64,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOption],
       proxy: Option[Proxy],
       proxyForwarding: Boolean,
+      proxyIgnoredHosts: IgnoredHosts,
       maxResponseHeaderSize: Int,
       proxyTimeout: Duration,
   ): Resource[F, RequestKeySocket[F]] = {
@@ -76,6 +77,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions,
       proxy,
       proxyForwarding,
+      proxyIgnoredHosts,
       maxResponseHeaderSize,
       proxyTimeout,
     )
@@ -108,16 +110,18 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOption],
       proxy: Option[Proxy],
       proxyForwarding: Boolean,
+      proxyIgnoredHosts: IgnoredHosts,
       maxResponseHeaderSize: Int,
       proxyTimeout: Duration,
-  ): Resource[F, RequestKeySocket[F]] =
+  ): Resource[F, RequestKeySocket[F]] = {
+    val selected = proxyFor(proxy, proxyIgnoredHosts, requestKey)
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
         val s = connectSocket(
           address,
-          proxy,
-          forwardsAbsoluteForm(proxy, proxyForwarding, requestKey),
+          selected,
+          forwardsAbsoluteForm(selected, proxyForwarding, requestKey),
           tlsContextOpt,
           enableEndpointValidation,
           enableServerNameIndication,
@@ -134,6 +138,7 @@ private[client] object ClientHelpers {
           Some(address),
         )
       }
+  }
 
   private[client] def connectSocket[F[_]: Temporal: Network](
       address: SocketAddress[Host],
@@ -169,6 +174,14 @@ private[client] object ClientHelpers {
           proxyTimeout,
         )
     }
+
+  /** The proxy to reach `requestKey` through, if any. */
+  private[internal] def proxyFor(
+      proxy: Option[Proxy],
+      proxyIgnoredHosts: IgnoredHosts,
+      requestKey: RequestKey,
+  ): Option[Proxy] =
+    proxy.filterNot(_ => proxyIgnoredHosts.ignores(requestKey))
 
   /** Whether requests for `requestKey` are forwarded to `proxy` in absolute form instead of
     * tunneled through it.
@@ -222,13 +235,15 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`],
       proxy: Option[Proxy],
       proxyForwarding: Boolean,
+      proxyIgnoredHosts: IgnoredHosts,
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
-    val absoluteForm =
-      forwardsAbsoluteForm(proxy, proxyForwarding, connection.keySocket.requestKey)
+    val requestKey = connection.keySocket.requestKey
+    val selected = proxyFor(proxy, proxyIgnoredHosts, requestKey)
+    val absoluteForm = forwardsAbsoluteForm(selected, proxyForwarding, requestKey)
 
     // A forwarded request authenticates itself, there being no CONNECT exchange to carry the
     // credentials.
-    val proxyAuthorization = proxy.collect {
+    val proxyAuthorization = selected.collect {
       case HttpProxy(_, _, _, Some(credentials)) if absoluteForm =>
         `Proxy-Authorization`.fromBasicCredentials(credentials)
     }
