@@ -18,6 +18,7 @@ package org.http4s
 package server.websocket
 
 import cats.Applicative
+import cats.effect.SyncIO
 import cats.effect.kernel.Temporal
 import cats.effect.kernel.Unique
 import cats.syntax.all._
@@ -52,6 +53,9 @@ import scala.concurrent.duration.FiniteDuration
   * @param heartbeat If `Some`, send a `Ping` frame at the given interval and close the connection
   *                  when the client does not answer it with a `Pong` in time.
   *                  default: None
+  * @param compression If `false`, this route declines WebSocket compression even when the server
+  *                    enables it. Currently only Ember compresses.
+  *                    default: true
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
@@ -63,6 +67,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     maxMessageSize: Long,
     maxFragmentCount: Int,
     heartbeat: Option[F[Heartbeat[F]]],
+    compression: Boolean,
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
@@ -89,6 +94,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       maxMessageSize = WebSocketBuilder2.DefaultMaxMessageSize,
       maxFragmentCount = DefaultMaxFragmentCount,
       heartbeat = None,
+      compression = true,
       webSocketKey = webSocketKey,
     )
 
@@ -103,6 +109,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       maxMessageSize: Long = this.maxMessageSize,
       maxFragmentCount: Int = this.maxFragmentCount,
       heartbeat: Option[F[Heartbeat[F]]] = this.heartbeat,
+      compression: Boolean = this.compression,
   ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
     headers,
     onNonWebSocketRequest,
@@ -114,6 +121,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     maxMessageSize,
     maxFragmentCount,
     heartbeat,
+    compression,
   )
 
   def withHeaders(headers: Headers): WebSocketBuilder2[F] =
@@ -167,6 +175,13 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withoutHeartbeat: WebSocketBuilder2[F] =
     copy(heartbeat = None)
 
+  /** Allows WebSocket compression for this route when the server supports and enables it.
+    * `false` declines it even if the client offers it. Currently only Ember compresses.
+    * default: true
+    */
+  def withCompression(compression: Boolean): WebSocketBuilder2[F] =
+    copy(compression = compression)
+
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
     impl[G](
@@ -180,6 +195,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       maxMessageSize,
       maxFragmentCount,
       heartbeat.map(fk(_).map(_.imapK(fk)(gk))),
+      compression,
     )
 
   /** Starts the heartbeat, if there is one, and lets it ping on `webSocket`. */
@@ -188,8 +204,8 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 
   private def buildResponse(webSocket: F[WebSocket[F]]): F[Response[F]] =
     (webSocket, onNonWebSocketRequest)
-      .mapN((ws, response) =>
-        response.withAttribute(
+      .mapN { (ws, response) =>
+        val upgrade = response.withAttribute(
           webSocketKey,
           WebSocketContext(
             ws,
@@ -197,7 +213,9 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
             onHandshakeFailure,
           ),
         )
-      )
+        if (compression) upgrade
+        else upgrade.withAttribute(WebSocketBuilder2.CompressionDisabled, ())
+      }
 
   /** @param sendReceive The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
     *                    Once the stream have terminated, the server will initiate a close of the websocket connection.
@@ -291,6 +309,8 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 object WebSocketBuilder2 {
   private[http4s] val DefaultMaxMessageSize: Long = 64L * 1024L * 1024L
 
+  private[http4s] val CompressionDisabled: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
+
   @deprecated(
     "Use the arg-less constructor to create a `WebSocketBuilder2` and access its key with the webSocketKey method",
     "0.23.15",
@@ -319,6 +339,7 @@ object WebSocketBuilder2 {
       maxMessageSize = WebSocketBuilder2.DefaultMaxMessageSize,
       maxFragmentCount = DefaultMaxFragmentCount,
       heartbeat = None,
+      compression = true,
     )
 
   private def impl[F[_]: Applicative](
@@ -332,6 +353,7 @@ object WebSocketBuilder2 {
       maxMessageSize: Long,
       maxFragmentCount: Int,
       heartbeat: Option[F[Heartbeat[F]]],
+      compression: Boolean,
   ): WebSocketBuilder2[F] =
     new WebSocketBuilder2[F](
       headers = headers,
@@ -344,5 +366,6 @@ object WebSocketBuilder2 {
       maxMessageSize = maxMessageSize,
       maxFragmentCount = maxFragmentCount,
       heartbeat = heartbeat,
+      compression = compression,
     ) {}
 }

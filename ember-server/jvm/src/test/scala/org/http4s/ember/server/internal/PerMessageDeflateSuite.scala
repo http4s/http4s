@@ -1,0 +1,233 @@
+/*
+ * Copyright 2019 http4s.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.http4s.ember.server.internal
+
+import fs2.io.net.ProtocolException
+import org.http4s.Header
+import org.http4s.Headers
+import org.http4s.Http4sSuite
+import org.http4s.websocket.FrameTranscoder
+import org.http4s.websocket.FrameTranscoder.TranscodeError
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
+import scodec.bits._
+
+import java.util.zip.Deflater
+
+class PerMessageDeflateSuite extends Http4sSuite {
+  import PerMessageDeflate.Params
+
+  private val default = Params(false, false, false)
+  private val noContextTakeover = Params(true, true, false)
+
+  private def negotiate(offers: String*): Option[String] =
+    PerMessageDeflate
+      .negotiate(Headers(offers.toList.map(Header.Raw(PerMessageDeflate.HeaderName, _))))
+      .map(_.toHeader.value)
+
+  private def withDeflate[A](params: Params = default, maxSize: Int = 1 << 20)(
+      f: PerMessageDeflate => A
+  ): A = {
+    val deflate = PerMessageDeflate(params, maxSize).get
+    try f(deflate)
+    finally deflate.close()
+  }
+
+  private val writer = new FrameTranscoder(isClient = false, maxFrameSize = Int.MaxValue)
+  private val reader = new FrameTranscoder(isClient = true, maxFrameSize = Int.MaxValue)
+
+  private def encode(
+      deflate: PerMessageDeflate,
+      frame: WebSocketFrame,
+  ): (WebSocketFrame, Boolean) = {
+    val bytes = deflate.encode(frame, writer).foldLeft(ByteVector.empty)(_ ++ ByteVector(_))
+    val buffer = bytes.toByteBuffer
+    (reader.bufferToFrame(buffer), PerMessageDeflate.rsv1(buffer))
+  }
+
+  private def decode(frames: (WebSocketFrame, Boolean)*): ByteVector =
+    withDeflate() { deflate =>
+      frames.map { case (frame, rsv1) => deflate.decode(frame, rsv1).data }.reduce(_ ++ _)
+    }
+
+  private def rawDeflate(data: String, dictionary: String, finish: Boolean): ByteVector = {
+    val deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true)
+    try {
+      if (dictionary.nonEmpty) deflater.setDictionary(dictionary.getBytes)
+      deflater.setInput(data.getBytes)
+      if (finish) deflater.finish()
+      val buffer = new Array[Byte](1024)
+      val flush = if (finish) Deflater.NO_FLUSH else Deflater.SYNC_FLUSH
+      val n = deflater.deflate(buffer, 0, buffer.length, flush)
+      ByteVector(buffer, 0, n)
+    } finally deflater.end()
+  }
+
+  test("accept the offer browsers send") {
+    assertEquals(
+      negotiate("permessage-deflate; client_max_window_bits"),
+      Some("permessage-deflate"),
+    )
+  }
+
+  test("echo the parameters it agrees to") {
+    assertEquals(
+      negotiate(
+        "permessage-deflate; server_no_context_takeover; client_no_context_takeover; server_max_window_bits=\"15\""
+      ),
+      Some(
+        "permessage-deflate; server_no_context_takeover; client_no_context_takeover; server_max_window_bits=15"
+      ),
+    )
+  }
+
+  test("fall back to a later offer when an earlier one is unsupported") {
+    assertEquals(
+      negotiate("permessage-deflate; server_max_window_bits=10", "permessage-deflate"),
+      Some("permessage-deflate"),
+    )
+  }
+
+  test("decline invalid offers") {
+    List(
+      "permessage-deflate; foo",
+      "permessage-deflate; client_no_context_takeover; client_no_context_takeover",
+      "permessage-deflate; server_no_context_takeover=1",
+      "permessage-deflate; server_max_window_bits",
+      "permessage-deflate; client_max_window_bits=7",
+      "permessage-deflate; a=\"unterminated",
+    ).foreach(offer => assertEquals(negotiate(offer), None, offer))
+  }
+
+  test("ignore unusual syntax in other extensions") {
+    assertEquals(negotiate("x-foo; a=b/c; ; d=, permessage-deflate;"), Some("permessage-deflate"))
+  }
+
+  test("compress a message as in RFC 7692 7.2.3.1") {
+    withDeflate() { deflate =>
+      val (frame, rsv1) = encode(deflate, Text("Hello"))
+      assertEquals(frame.data, hex"f248cdc9c90700")
+      assert(rsv1)
+    }
+  }
+
+  test("decompress the examples of RFC 7692 7.2.3") {
+    val hello = ByteVector("Hello".getBytes)
+    assertEquals(decode(Text(hex"f248cdc9c90700", true) -> true), hello)
+    withDeflate() { deflate =>
+      deflate.decode(Text(hex"f248cdc9c90700", true), rsv1 = true)
+      assertEquals(deflate.decode(Text(hex"f200110000", true), rsv1 = true).data, hello)
+    }
+    assertEquals(
+      decode(Text(hex"f248cd", false) -> true, Continuation(hex"c9c90700", true) -> false),
+      hello,
+    )
+    assertEquals(decode(Text(hex"f348cdc9c9070000", true) -> true), hello)
+    assertEquals(decode(Binary(hex"00") -> true), ByteVector.empty)
+  }
+
+  test("round trip messages with and without context takeover") {
+    val messages = List(
+      List(Text("Hello")),
+      List(Text("Hello")),
+      List(Binary(ByteVector.fill(500)(1))),
+      List(Text("")),
+      List(
+        Binary(ByteVector.fill(300)(2), false),
+        Continuation(ByteVector.empty, false),
+        Continuation(ByteVector.empty, true),
+      ),
+    )
+    List(default, noContextTakeover).foreach { params =>
+      withDeflate(params) { server =>
+        withDeflate(params) { client =>
+          messages.foreach { frames =>
+            val received =
+              frames.map(encode(server, _)).map { case (f, rsv1) => client.decode(f, rsv1) }
+            assertEquals(received.map(_.data).reduce(_ ++ _), frames.map(_.data).reduce(_ ++ _))
+          }
+        }
+      }
+    }
+  }
+
+  test("reject RSV1 on control and continuation frames, and interleaved messages") {
+    withDeflate() { deflate =>
+      intercept[ProtocolException](deflate.decode(Ping(), rsv1 = true))
+      intercept[ProtocolException](deflate.decode(Continuation(hex"00", true), rsv1 = true))
+      deflate.decode(Text(hex"f248cd", false), rsv1 = true)
+      intercept[ProtocolException](deflate.decode(Text("next"), rsv1 = false))
+    }
+  }
+
+  test("keep decoding after a message that ends with a final block and no padding") {
+    val finalBlock = hex"f348cdc9c90700"
+    val next = Text(hex"f248cdc9c90700", true)
+    withDeflate() { deflate =>
+      deflate.decode(Text(finalBlock, true), rsv1 = true)
+      assertEquals(deflate.decode(next, rsv1 = true), Text("Hello"))
+    }
+    withDeflate() { deflate =>
+      deflate.decode(Text(finalBlock, false), rsv1 = true)
+      deflate.decode(Continuation(ByteVector.empty, true), rsv1 = false)
+      assertEquals(deflate.decode(next, rsv1 = true), Text("Hello"))
+    }
+  }
+
+  test("keep the window across final blocks, within and across messages") {
+    val first = rawDeflate("Hello", "", finish = true)
+    val reference = rawDeflate("Hello", "Hello", finish = false).dropRight(4)
+    withDeflate() { deflate =>
+      assertEquals(deflate.decode(Text(first ++ reference, true), rsv1 = true), Text("HelloHello"))
+      assertEquals(deflate.decode(Text(reference, true), rsv1 = true), Text("Hello"))
+    }
+  }
+
+  test("skip only the flush tail appended at the end of a message") {
+    val data = ByteVector.fill(0xff00)(1)
+    val head = rawDeflate("He", "", finish = true) ++ hex"0000ffff"
+    val rest = hex"00" ++ data ++ hex"00"
+    val expected = ByteVector("He".getBytes) ++ data
+    assertEquals(decode(Binary(head ++ rest) -> true), expected)
+    assertEquals(decode(Binary(head, false) -> true, Continuation(rest, true) -> false), expected)
+  }
+
+  test("limit final blocks per message, regardless of fragmentation") {
+    def finalBlocks(n: Int) = ByteVector.concat(List.fill(n)(hex"0300"))
+    assertEquals(decode(Binary(finalBlocks(8)) -> true), ByteVector.empty)
+    intercept[ProtocolException](
+      decode(Binary(finalBlocks(5), false) -> true, Continuation(finalBlocks(4), true) -> false)
+    )
+  }
+
+  test("reject invalid compressed data") {
+    withDeflate() { deflate =>
+      intercept[ProtocolException](deflate.decode(Binary(hex"ffffffff"), rsv1 = true))
+    }
+  }
+
+  test("limit the decompressed size of a message across its fragments") {
+    withDeflate(maxSize = 1000) { server =>
+      withDeflate() { client =>
+        val first = encode(client, Binary(ByteVector.fill(600)(0), false))
+        val last = encode(client, Continuation(ByteVector.fill(600)(0), true))
+        server.decode(first._1, first._2)
+        intercept[TranscodeError](server.decode(last._1, last._2))
+      }
+    }
+  }
+}
