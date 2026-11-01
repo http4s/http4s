@@ -136,32 +136,39 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   /** Unset any `TLSContext` and creates one from the system default `SSLContext`. */
   def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
-  /** Sets a `Proxy` to reach origin servers through. */
+  /** Sets a `Proxy` to reach origin servers through. No proxy is used by default. */
   def withProxy(proxy: Proxy): EmberClientBuilder[F] = withProxyOption(proxy.some)
 
   /** Sets or unsets a `Proxy`, for one chosen at runtime. */
   def withProxyOption(proxy: Option[Proxy]): EmberClientBuilder[F] =
     copy(proxyOpt = proxy, proxyFromEnvironment = false)
 
-  /** Unset any `Proxy`. */
+  /** Unset any `Proxy`, so origin servers are reached directly. */
   def withoutProxy: EmberClientBuilder[F] = withProxyOption(None)
 
-  /** Takes the `Proxy` and the ignored hosts from the environment, read when the client is built. */
+  /** Takes the `Proxy` and the ignored hosts from the environment, read when the client is built.
+    * The JVM networking system properties are preferred, falling back to the conventional
+    * `http_proxy`, `https_proxy`, `all_proxy` and `no_proxy` variables.
+    * See [[Proxy.fromEnvironment]] and [[IgnoredHosts.fromEnvironment]].
+    */
   def withEnvironmentProxy: EmberClientBuilder[F] =
     copy(proxyFromEnvironment = true, ignoredHostsFromEnvironment = true)
 
   /** Sets whether a request to an `http` origin is forwarded to an `HttpProxy` in absolute form
-    * rather than tunneled through it with `CONNECT`.
+    * rather than tunneled through it with `CONNECT`. Enabled by default. A request to an `https`
+    * origin, and any request through a SOCKS proxy, is tunneled either way.
     */
   def withProxyForwarding(proxyForwarding: Boolean): EmberClientBuilder[F] =
     copy(proxyForwarding = proxyForwarding)
 
-  /** Tunnels every request through the `Proxy` with `CONNECT`. */
+  /** Tunnels every request through the `Proxy` with `CONNECT`.
+    * Forwarding is enabled by default.
+    */
   def withoutProxyForwarding: EmberClientBuilder[F] =
     copy(proxyForwarding = false)
 
-  /** Sets the hosts reached directly rather than through the `Proxy`. Defaults to
-    * [[IgnoredHosts.default]], the hosts the JVM ignores by default.
+  /** Sets the hosts reached directly rather than through the `Proxy`.
+    * Defaults to [[IgnoredHosts.default]], which ignores `localhost` and the loopback addresses.
     */
   def withProxyIgnoredHosts(proxyIgnoredHosts: IgnoredHosts): EmberClientBuilder[F] =
     copy(proxyIgnoredHosts = proxyIgnoredHosts, ignoredHostsFromEnvironment = false)
@@ -171,7 +178,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     withProxyIgnoredHosts(IgnoredHosts.none)
 
   /** Sets the maximum amount of time to connect through the `Proxy`, which covers connecting to
-    * it, any TLS handshake with it, and any tunnel negotiation.
+    * it, any TLS handshake with it, and any tunnel negotiation. Defaults to 10 seconds.
     */
   def withProxyTimeout(proxyTimeout: Duration): EmberClientBuilder[F] =
     copy(proxyTimeout = proxyTimeout)

@@ -56,7 +56,10 @@ object IgnoredHosts {
   /** Ignores no host, so every request goes through the `Proxy`. */
   val none: IgnoredHosts = new IgnoredHosts(None)
 
-  /** The hosts the JVM ignores by default. */
+  /** Ignores `localhost` and the IPv4 and IPv6 loopback addresses. This is the value
+    * `http.nonProxyHosts` is documented to default to, though OpenJDK itself ignores `0.0.0.0`
+    * and `[::0]` besides.
+    */
   val default: IgnoredHosts = fromString("localhost|127.*|[::1]").getOrElse(none)
 
   /** Derives the ignored hosts from `http.nonProxyHosts`, falling back to `no_proxy`, and to

@@ -80,6 +80,9 @@ object Proxy {
     fromProperties(properties).orElse(fromVariables(variables))
 
   private def fromProperties(properties: Map[String, String]): Option[Proxy] = {
+    // Neither the `http` nor the `https` property says how the proxy itself is reached, only which
+    // origins it serves, and the JVM reaches it in the clear either way. Only the default port
+    // differs.
     def http(prefix: String, defaultPort: Port): Option[Proxy] =
       properties
         .get(s"$prefix.proxyHost")

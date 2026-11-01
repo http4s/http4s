@@ -17,6 +17,7 @@
 package org.http4s.ember.client
 
 import cats.Id
+import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
 import org.http4s.BasicCredentials
@@ -235,5 +236,10 @@ class ProxyEnvironmentSuite extends Http4sSuite {
       IgnoredHosts.fromEnvironment("".some, Map.empty).toString,
       IgnoredHosts.none.toString,
     )
+  }
+
+  test("a client resolves its proxy from the environment when asked") {
+    // Pins only that reading works.
+    EmberClientBuilder.default[IO].withEnvironmentProxy.build.use_
   }
 }
