@@ -21,43 +21,42 @@ import cats.Foldable
 import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.kernel.DeferredSource
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Stream
 
-@annotation.nowarn("cat=deprecation")
 object Reconnect {
 
   def apply[F[_]](
       connect: Resource[F, WSConnectionHighLevel[F]],
       reconnect: WSFrame.Close => F[Boolean],
   )(implicit F: Concurrent[F]): Resource[F, WSConnectionHighLevel[F]] =
-    Hotswap[F, Resource[F, Either[Throwable, WSConnectionHighLevel[F]]]](
+    NonEmptyHotswap[F, Resource[F, Either[Throwable, WSConnectionHighLevel[F]]]](
       connect.map(c => Resource.pure(c.asRight))
     )
-      .flatMap { case (hs, conn) =>
-        // we use memoize so that the swap succeeds immediately, and users will suspend while waiting for it to connect
-        // without it, users will keep getting the stale connection until the connect completes and installs the new one
-        def loop: F[Unit] = hs.swap(connect.attempt.memoize).flatMap {
-          _.use {
-            case Left(_) => F.canceled *> F.never[WSFrame.Close]
-            case Right(conn) => conn.closeFrame.get
-          }.flatMap(reconnect(_).ifM(loop, hs.clear))
-        }
+      .flatMap { hs =>
+        // installed once we stop reconnecting, so users get an error instead of a connection
+        val closed: Resource[F, Either[Throwable, WSConnectionHighLevel[F]]] =
+          Resource.pure(new IllegalStateException("No active connection").asLeft)
 
-        conn
-          .use(_.liftTo[F].flatMap(_.closeFrame.get))
-          .flatMap(reconnect(_).ifM(loop, hs.clear))
-          .background
-          .as(
-            hs.get
-              .evalMap(
-                _.liftTo(new IllegalStateException("No active connection"))
+        // waits for the current connection to close, then either reconnects or installs `closed`
+        def loop: F[Unit] =
+          hs.get
+            .use(_.use {
+              case Left(_) => F.canceled *> F.never[WSFrame.Close]
+              case Right(conn) => conn.closeFrame.get
+            })
+            .flatMap { close =>
+              // we use memoize so that the swap succeeds immediately, and users will suspend while waiting for it to connect
+              // without it, users will keep getting the stale connection until the connect completes and installs the new one
+              reconnect(close).ifM(
+                hs.swap(connect.attempt.memoize) *> loop,
+                hs.swap(Resource.pure(closed)),
               )
-              .flatten
-              .evalMap(_.liftTo)
-          )
+            }
+
+        loop.background.as(hs.get.flatten.evalMap(_.liftTo))
       }
       .map { conn =>
         new WSConnectionHighLevel[F] {

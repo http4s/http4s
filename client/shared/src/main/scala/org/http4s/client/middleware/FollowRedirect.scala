@@ -19,7 +19,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
 import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
@@ -52,7 +52,6 @@ import org.typelevel.vault._
   * Headers whose names match `sensitiveHeaderFilter` are not exposed when
   * redirecting to a different authority.
   */
-@annotation.nowarn("cat=deprecation")
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
@@ -104,29 +103,45 @@ object FollowRedirect {
       )
     }
 
+    def nextRedirect(req: Request[F], redirects: Int, resp: Response[F]): Option[Request[F]] =
+      (methodForRedirect(req, resp), resp.headers.get[Location]) match {
+        case (Some(method), Some(loc)) if redirects < maxRedirects =>
+          Some(nextRequest(req, loc.uri, method, resp.cookies))
+        case _ =>
+          // IF the response is missing the Location header, OR there is no method to redirect,
+          // OR we have exceeded max number of redirections, THEN we redirect no more
+          None
+      }
+
+    // Returns the URIs that were followed. The final response is left in the hotswap.
     def redirectLoop(
         req: Request[F],
         redirects: Int,
-        hotswap: Hotswap[F, Response[F]],
-    ): F[Response[F]] =
+        hotswap: NonEmptyHotswap[F, Option[Response[F]]],
+    ): F[List[Uri]] =
       hotswap.clear *> // Release the prior connection before allocating a new
-        hotswap.swap(client.run(req)).flatMap { resp =>
-          val l: Option[Location] = resp.headers.get[Location]
-          (methodForRedirect(req, resp), l) match {
-            case (Some(method), Some(loc)) if redirects < maxRedirects =>
-              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
-              redirectLoop(nextReq, redirects + 1, hotswap)
-                .map(res => res.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(res)))
-            case _ =>
-              // IF the response is missing the Location header, OR there is no method to redirect,
-              // OR we have exceeded max number of redirections, THEN we redirect no more
-              resp.pure[F]
+        hotswap.swap(client.run(req).map(_.some)) *>
+        hotswap.getOpt
+          .use(resp => F.pure(resp.flatMap(nextRedirect(req, redirects, _))))
+          .flatMap {
+            case Some(nextReq) =>
+              redirectLoop(nextReq, redirects + 1, hotswap).map(nextReq.uri :: _)
+            case None => F.pure(Nil)
           }
-        }
 
     Client { req =>
-      Hotswap.create[F, Response[F]].flatMap { case hotswap =>
-        Resource.eval(redirectLoop(req, 0, hotswap))
+      NonEmptyHotswap.empty[F, Response[F]].flatMap { hotswap =>
+        Resource.eval(redirectLoop(req, 0, hotswap)).flatMap { uris =>
+          hotswap.get.evalMap {
+            case Some(resp) =>
+              F.pure(
+                if (uris.isEmpty) resp
+                else resp.withAttribute(redirectUrisKey, uris ++ getRedirectUris(resp))
+              )
+            case None =>
+              F.raiseError[Response[F]](new IllegalStateException("No response after redirects"))
+          }
+        }
       }
     }
   }

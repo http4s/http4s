@@ -28,7 +28,7 @@ import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
 import cats.effect.kernel.Temporal
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
@@ -53,7 +53,6 @@ import org.typelevel.log4cats.Logger
 import java.io.IOException
 import scala.concurrent.duration._
 
-@annotation.nowarn("cat=deprecation")
 private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: MonadThrow: Network](
       request: Request[F],
@@ -265,21 +264,30 @@ private[client] object ClientHelpers {
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
   ): Resource[F, Managed[F, EmberConnection[F]]] =
-    Hotswap.create[F, Managed[F, EmberConnection[F]]].evalMap { hs =>
-      def go: F[Managed[F, EmberConnection[F]]] =
-        hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request))).flatMap { managed =>
-          managed.value.isValid.ifM(
-            managed.pure,
-            if (managed.isReused) // keep swapping connections until we find a valid one
-              managed.canBeReused.set(Reusable.DontReuse) *> go
-            else
-              Sync[F].raiseError(
-                new fs2.io.net.SocketException("Fresh connection from pool was not open")
-              ),
-          )
-        }
+    NonEmptyHotswap.empty[F, Managed[F, EmberConnection[F]]].flatMap { hs =>
+      // Leaves a valid connection in the hotswap
+      def go: F[Unit] =
+        hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request)).map(_.some)) *>
+          hs.getOpt
+            .use {
+              case Some(managed) =>
+                managed.value.isValid.ifM(
+                  false.pure[F],
+                  if (managed.isReused) // keep swapping connections until we find a valid one
+                    managed.canBeReused.set(Reusable.DontReuse).as(true)
+                  else
+                    Sync[F].raiseError[Boolean](
+                      new fs2.io.net.SocketException("Fresh connection from pool was not open")
+                    ),
+                )
+              case None => false.pure[F]
+            }
+            .ifM(go, Sync[F].unit)
 
-      go
+      Resource.eval(go) >>
+        hs.get.evalMap(
+          _.liftTo[F](new IllegalStateException("No connection was taken from the pool"))
+        )
     }
 
   private[ember] object RetryLogic {

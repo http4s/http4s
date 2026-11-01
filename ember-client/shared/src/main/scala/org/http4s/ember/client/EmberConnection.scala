@@ -20,11 +20,10 @@ import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
 import cats.syntax.all._
 import fs2.Chunk
 
-@annotation.nowarn("cat=deprecation")
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     chunkSize: Int,
@@ -35,7 +34,7 @@ private[ember] final case class EmberConnection[F[_]](
      * On the happy path when we reuse a connection, this will block until the next request is sent.
      * On the less-happy path, this read will complete with EOF, which we check before sending a request.
      */
-    hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
+    hotRead: NonEmptyHotswap[F, Unit],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
 
@@ -55,14 +54,11 @@ private[ember] final case class EmberConnection[F[_]](
     * This way [[isValid]] can check for EOF when the connection is retrieved from the pool.
     */
   def startNextRead: F[Unit] =
-    hotRead
-      .swap {
-        Resource.eval(F.deferred[Either[Throwable, Option[Chunk[Byte]]]]).flatTap { result =>
-          val read = keySocket.socket.read(chunkSize)
-          F.background(read.attempt.flatMap(result.complete(_)).void.voidError)
-        }
-      }
-      .flatMap(nextRead.set(_))
+    F.deferred[Either[Throwable, Option[Chunk[Byte]]]].flatMap { result =>
+      val read = keySocket.socket.read(chunkSize)
+      hotRead.swap(F.background(read.attempt.flatMap(result.complete(_)).void.voidError).void) *>
+        nextRead.set(result)
+    }
 
   def cleanup: F[Unit] =
     nextBytes.set(Array.emptyByteArray) >>
@@ -71,7 +67,6 @@ private[ember] final case class EmberConnection[F[_]](
       shutdown.attempt.void
 }
 
-@annotation.nowarn("cat=deprecation")
 private[ember] object EmberConnection {
   def apply[F[_]](
       keySocketResource: Resource[F, RequestKeySocket[F]],
@@ -80,7 +75,7 @@ private[ember] object EmberConnection {
     (
       Resource.eval(keySocketResource.allocated),
       Resource.eval(F.ref(Array.emptyByteArray)),
-      Hotswap.create[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
+      NonEmptyHotswap[F, Unit](Resource.unit),
       Resource.eval(
         F.deferred[Either[Throwable, Option[Chunk[Byte]]]]
           .flatTap(_.complete(Right(Some(Chunk.empty))))
