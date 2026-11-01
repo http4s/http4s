@@ -46,8 +46,10 @@ import scala.concurrent.duration._
 final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val proxyOpt: Option[Proxy],
+    private val proxyFromEnvironment: Boolean,
+    private val ignoredHostsFromEnvironment: Boolean,
     val proxyForwarding: Boolean,
-    val proxyIgnoredHosts: IgnoredHosts,
+    private val proxyIgnoredHosts: IgnoredHosts,
     val proxyTimeout: Duration,
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
@@ -73,6 +75,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
       proxyOpt: Option[Proxy] = self.proxyOpt,
+      proxyFromEnvironment: Boolean = self.proxyFromEnvironment,
+      ignoredHostsFromEnvironment: Boolean = self.ignoredHostsFromEnvironment,
       proxyForwarding: Boolean = self.proxyForwarding,
       proxyIgnoredHosts: IgnoredHosts = self.proxyIgnoredHosts,
       proxyTimeout: Duration = self.proxyTimeout,
@@ -99,6 +103,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
       proxyOpt = proxyOpt,
+      proxyFromEnvironment = proxyFromEnvironment,
+      ignoredHostsFromEnvironment = ignoredHostsFromEnvironment,
       proxyForwarding = proxyForwarding,
       proxyIgnoredHosts = proxyIgnoredHosts,
       proxyTimeout = proxyTimeout,
@@ -130,11 +136,19 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   /** Unset any `TLSContext` and creates one from the system default `SSLContext`. */
   def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
-  /** Sets a `Proxy` to tunnel connections through. */
-  def withProxy(proxy: Proxy): EmberClientBuilder[F] = copy(proxyOpt = proxy.some)
+  /** Sets a `Proxy` to reach origin servers through. */
+  def withProxy(proxy: Proxy): EmberClientBuilder[F] = withProxyOption(proxy.some)
+
+  /** Sets or unsets a `Proxy`, for one chosen at runtime. */
+  def withProxyOption(proxy: Option[Proxy]): EmberClientBuilder[F] =
+    copy(proxyOpt = proxy, proxyFromEnvironment = false)
 
   /** Unset any `Proxy`. */
-  def withoutProxy: EmberClientBuilder[F] = copy(proxyOpt = None)
+  def withoutProxy: EmberClientBuilder[F] = withProxyOption(None)
+
+  /** Takes the `Proxy` and the ignored hosts from the environment, read when the client is built. */
+  def withEnvironmentProxy: EmberClientBuilder[F] =
+    copy(proxyFromEnvironment = true, ignoredHostsFromEnvironment = true)
 
   /** Sets whether a request to an `http` origin is forwarded to an `HttpProxy` in absolute form
     * rather than tunneled through it with `CONNECT`.
@@ -150,11 +164,11 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     * [[IgnoredHosts.default]], the hosts the JVM ignores by default.
     */
   def withProxyIgnoredHosts(proxyIgnoredHosts: IgnoredHosts): EmberClientBuilder[F] =
-    copy(proxyIgnoredHosts = proxyIgnoredHosts)
+    copy(proxyIgnoredHosts = proxyIgnoredHosts, ignoredHostsFromEnvironment = false)
 
   /** Reaches every host through the `Proxy`, ignoring none. */
   def withoutProxyIgnoredHosts: EmberClientBuilder[F] =
-    copy(proxyIgnoredHosts = IgnoredHosts.none)
+    withProxyIgnoredHosts(IgnoredHosts.none)
 
   /** Sets the maximum amount of time to connect through the `Proxy`, which covers connecting to
     * it, any TLS handshake with it, and any tunnel negotiation.
@@ -315,6 +329,12 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
             _.some.pure[Resource[F, *]]
           )
+      proxy <-
+        if (proxyFromEnvironment) Resource.eval(Proxy.fromEnvironment[F])
+        else proxyOpt.pure[Resource[F, *]]
+      ignoredHosts <-
+        if (ignoredHostsFromEnvironment) Resource.eval(IgnoredHosts.fromEnvironment[F])
+        else proxyIgnoredHosts.pure[Resource[F, *]]
       builder =
         KeyPool.Builder
           .apply[F, RequestKey, EmberConnection[F]]((requestKey: RequestKey) =>
@@ -326,9 +346,9 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   checkEndpointIdentification,
                   serverNameIndication,
                   additionalSocketOptions,
-                  proxyOpt,
+                  proxy,
                   proxyForwarding,
-                  proxyIgnoredHosts,
+                  ignoredHosts,
                   maxResponseHeaderSize,
                   proxyTimeout,
                 ),
@@ -372,7 +392,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               case address: SocketAddress[Host] =>
                 ClientHelpers.connectSocket(
                   address,
-                  proxyOpt.filterNot(_ => proxyIgnoredHosts.ignores(address.host)),
+                  proxy.filterNot(_ => ignoredHosts.ignores(address.host)),
                   forwardAbsoluteForm = false,
                   tlsContextOptWithDefault,
                   checkEndpointIdentification,
@@ -407,9 +427,9 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   idleConnectionTime,
                   timeout,
                   userAgent,
-                  proxyOpt,
+                  proxy,
                   proxyForwarding,
-                  proxyIgnoredHosts,
+                  ignoredHosts,
                 )
             )
           ) { case ((response, drain), exitCase) =>
@@ -489,6 +509,8 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       proxyOpt = None,
+      proxyFromEnvironment = false,
+      ignoredHostsFromEnvironment = false,
       proxyForwarding = Defaults.proxyForwarding,
       proxyIgnoredHosts = Defaults.proxyIgnoredHosts,
       proxyTimeout = Defaults.proxyTimeout,

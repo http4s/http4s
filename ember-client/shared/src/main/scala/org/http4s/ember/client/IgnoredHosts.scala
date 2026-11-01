@@ -16,6 +16,9 @@
 
 package org.http4s.ember.client
 
+import cats.effect.kernel.Sync
+import cats.effect.std.Env
+import cats.effect.std.SystemProperties
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Ipv6Address
@@ -55,6 +58,47 @@ object IgnoredHosts {
 
   /** The hosts the JVM ignores by default. */
   val default: IgnoredHosts = fromString("localhost|127.*|[::1]").getOrElse(none)
+
+  /** Derives the ignored hosts from `http.nonProxyHosts`, falling back to `no_proxy`, and to
+    * [[default]] when the environment names neither.
+    */
+  def fromEnvironment[F[_]: Sync]: F[IgnoredHosts] =
+    for {
+      property <- SystemProperties.make[F].get("http.nonProxyHosts")
+      variables <- Env.make[F].entries
+    } yield fromEnvironment(property, variables.toMap)
+
+  private[client] def fromEnvironment(
+      nonProxyHosts: Option[String],
+      variables: Map[String, String],
+  ): IgnoredHosts =
+    nonProxyHosts
+      .map(mask => fromString(mask).getOrElse(none))
+      .orElse(
+        variables
+          .get("no_proxy")
+          .orElse(variables.get("NO_PROXY"))
+          .map(list => fromNoProxy(list).getOrElse(none))
+      )
+      .getOrElse(default)
+
+  /** Parses a `no_proxy` list, the syntax the `*_proxy` environment variables are written in:
+    * hosts separated by commas, where a leading dot marks a suffix and so covers the domain
+    * itself along with its subdomains. Any other entry is taken as [[fromString]] takes it, so
+    * `*` still wildcards. Yields `None` when the list names no host.
+    */
+  def fromNoProxy(list: String): Option[IgnoredHosts] =
+    fromString(toMask(list))
+
+  private def toMask(noProxy: String): String =
+    noProxy
+      .split(',')
+      .iterator
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      // A leading dot reads as "and its subdomains", which the mask spells as two disjuncts.
+      .flatMap(host => if (host.startsWith(".")) List(host.drop(1), s"*$host") else List(host))
+      .mkString("|")
 
   /** Parses a `|` separated mask, yielding `None` when it names no host. */
   def fromString(mask: String): Option[IgnoredHosts] = {

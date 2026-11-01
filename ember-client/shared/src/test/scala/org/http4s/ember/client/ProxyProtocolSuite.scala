@@ -270,6 +270,22 @@ class ProxyProtocolSuite extends Http4sSuite {
     }
   }
 
+  test("an explicitly set proxy and ignored hosts override the environment") {
+    exchange(socket => readPrelude(socket).flatTap(_ => writeAscii(socket, okResponse))) {
+      proxyPort =>
+        EmberClientBuilder
+          .default[IO]
+          .withEnvironmentProxy
+          .withProxy(httpProxy(proxyPort))
+          .withProxyIgnoredHosts(IgnoredHosts.none)
+          .build
+          .use(_.expect[String](Request[IO](uri = origin)))
+    }.map { case (prelude, response) =>
+      assert(prelude.startsWith("GET http://origin.example:8080/ HTTP/1.1\r\n"), prelude)
+      assertEquals(response, Right("ok"))
+    }
+  }
+
   test("reaches an ignored host directly") {
     // Nothing listens on port 1, so were the host not ignored the client would fail there rather
     // than reach the origin bound below.

@@ -67,6 +67,25 @@ class IgnoredHostsSuite extends Http4sSuite {
     assert(!IgnoredHosts.none.ignores(key("http://localhost/")))
   }
 
+  test("a no_proxy entry with a leading dot covers the domain and its subdomains") {
+    val hosts = IgnoredHosts.fromNoProxy(".example.com, 10.0.0.1 ,*.internal")
+    assert(hosts.exists(_.ignores(key("http://example.com/"))))
+    assert(hosts.exists(_.ignores(key("http://host.example.com/"))))
+    assert(hosts.exists(_.ignores(key("http://10.0.0.1/"))))
+    assert(hosts.exists(_.ignores(key("http://db.internal/"))))
+    assert(!hosts.exists(_.ignores(key("http://example.org/"))))
+  }
+
+  test("a no_proxy entry without a leading dot is exact") {
+    val hosts = IgnoredHosts.fromNoProxy("example.com")
+    assert(hosts.exists(_.ignores(key("http://example.com/"))))
+    assert(!hosts.exists(_.ignores(key("http://host.example.com/"))))
+  }
+
+  test("a no_proxy list naming no host yields None") {
+    assertEquals(IgnoredHosts.fromNoProxy(" , "), None)
+  }
+
   test("ip4s hosts match the same mask as request keys") {
     assert(IgnoredHosts.default.ignores(host"localhost"))
     assert(IgnoredHosts.default.ignores(ip"127.0.0.1"))
