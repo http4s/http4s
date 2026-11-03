@@ -20,8 +20,9 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 ThisBuild / githubWorkflowJobSetup ~= { steps =>
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("cachix", "install-nix-action", "v27"),
-      name = Some("Install Nix"),
+      UseRef
+        .Public("samueldr", "lix-gha-installer-action", "a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d"),
+      name = Some("Install Lix"),
     )
   ) ++ steps
 }
