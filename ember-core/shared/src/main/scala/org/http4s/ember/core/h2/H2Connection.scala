@@ -362,7 +362,9 @@ private[h2] class H2Connection[F[_]](
         Stream.exec(
           logger.debug(ex)("writeLoop terminated") >>
             state.update(_.copy(closed = true))
-        )
+        ) ++
+          // Drain the queue to unblock any fibers offering frames.
+          Stream.fromQueueUnterminated[F, H2Frame](outgoingQueue, 16).drain
       )
 
   def readLoop: F[Unit] = {
