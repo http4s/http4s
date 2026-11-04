@@ -101,4 +101,18 @@ class PsuedoHeadersSuite extends Http4sSuite {
     assertEquals(test, expected)
 
   }
+
+  test("headersToResponseNoBody should parse a 3 digit :status") {
+    val test = PseudoHeaders.headersToResponseNoBody(NonEmptyList.of(":status" -> "204"))
+    assertEquals(test.map(_.status), Some(Status.NoContent))
+  }
+
+  List("abc", "+20", "2000", "099", "").foreach { status =>
+    test(s"headersToResponseNoBody should reject :status '$status'") {
+      assertEquals(
+        PseudoHeaders.headersToResponseNoBody(NonEmptyList.of(":status" -> status)),
+        None,
+      )
+    }
+  }
 }
