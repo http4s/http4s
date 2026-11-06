@@ -28,6 +28,7 @@ import org.http4s._
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.core.Util
 import org.typelevel.log4cats.Logger
+import org.typelevel.vault.Vault
 import scodec.bits._
 
 import java.util.concurrent.CancellationException
@@ -83,9 +84,7 @@ private[ember] object H2Server {
       case Right(unit) => unit.pure[F]
     }
 
-  // This is the full h2 management of a socket
-  // AFTER the connection preface.
-  // allowing delegation
+  // Kept for binary compatibility
   def fromSocket[F[_]](
       socket: Socket[F],
       httpApp: HttpApp[F],
@@ -93,10 +92,40 @@ private[ember] object H2Server {
       idleTimeout: Duration,
       localSettings: H2Frame.Settings.ConnectionSettings,
       logger: Logger[F],
+  )(implicit F: Async[F]): Resource[F, Unit] =
+    fromSocket(
+      socket,
+      httpApp,
+      receiveHeadersTimeout,
+      idleTimeout,
+      localSettings,
+      logger,
+      Vault.empty,
+    )
+
+  // This is the full h2 management of a socket
+  // AFTER the connection preface.
+  // allowing delegation
+  //
+  // `connectionAttributes` are added to every request served on this
+  // connection (e.g. ConnectionInfo, SecureSession). HTTP/2 forbids TLS
+  // renegotiation, so they are computed once per connection.
+  def fromSocket[F[_]](
+      socket: Socket[F],
+      httpApp: HttpApp[F],
+      receiveHeadersTimeout: Duration,
+      idleTimeout: Duration,
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      logger: Logger[F],
+      connectionAttributes: Vault,
   )(implicit F: Async[F]): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
 
     val initialRemoteSettings = defaultSettings
+
+    // Stream-level attributes (StreamIdentifier, TrailerHeaders, ...) win on conflict
+    def withConnectionAttributes(req: Request[F]): Request[F] =
+      req.withAttributes(connectionAttributes ++ req.attributes)
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
@@ -177,7 +206,7 @@ private[ember] object H2Server {
 
         def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
           for {
-            resp <- httpApp(req.covary[F])
+            resp <- httpApp(withConnectionAttributes(req.covary[F]))
             // _ <- Console.make[F].println("Push Promise Response Completed")
             pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
             _ <- stream.sendHeaders(pseudoHeaders, endStream = false) // PP Response
@@ -201,7 +230,8 @@ private[ember] object H2Server {
         permit.use {
           case true =>
             val respond = for {
-              req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+              req <- stream.getRequest
+                .map(r => withConnectionAttributes(r.covary[F].withBodyStream(stream.readBody)))
               resp <- httpApp(req)
               _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
               _ <- fulfillPushPromises(resp)

@@ -207,6 +207,26 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
+    // HTTP/2 forbids TLS renegotiation, so the addresses and TLS session are
+    // fixed for the connection. The request vault is shared across streams.
+    def runH2Connection(h2: Http2Support[F], socket: Socket[F]): Stream[F, Nothing] =
+      Stream
+        .eval(if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F])
+        .flatMap { connectionAttributes =>
+          Stream.resource(
+            h2.fromSocket(
+              socket,
+              httpApp,
+              requestHeaderReceiveTimeout,
+              idleTimeout,
+              maxHeaderSize,
+              logger,
+              connectionAttributes,
+            )
+          )
+        }
+        .drain
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -220,18 +240,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               (alpn, http2) match {
                 case (Some("h2"), Some(h2)) =>
                   Stream.exec(h2.requireConnectionPreface(socket, idleTimeout)) ++
-                    Stream
-                      .resource(
-                        h2.fromSocket(
-                          socket,
-                          httpApp,
-                          requestHeaderReceiveTimeout,
-                          idleTimeout,
-                          maxHeaderSize,
-                          logger,
-                        )
-                      )
-                      .drain
+                    runH2Connection(h2, socket)
                 case (Some(_), _) =>
                   // SSL Connection, not h2, will be http/1.1 but thats not how types align
                   // Prior Knowledge is only allowed over clear where application
@@ -276,18 +285,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         webSocketHelpers,
                       ).drain
                     case Right(_) =>
-                      Stream
-                        .resource(
-                          h2.fromSocket(
-                            socket,
-                            httpApp,
-                            requestHeaderReceiveTimeout,
-                            idleTimeout,
-                            maxHeaderSize,
-                            logger,
-                          )
-                        )
-                        .drain
+                      runH2Connection(h2, socket)
                   }
                 // Since its not enabled, run connection normally.
                 case (None, None) =>

@@ -25,6 +25,7 @@ import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Server
 import org.http4s.ember.core.h2.H2TLS
 import org.typelevel.log4cats.Logger
+import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
@@ -48,7 +49,10 @@ private[ember] trait Http2Support[F[_]] {
   /** Like [[checkConnectionPreface]], but fails if the preface is not there. */
   def requireConnectionPreface(socket: Socket[F], timeout: Duration)(implicit F: Async[F]): F[Unit]
 
-  /** Serves the socket as HTTP/2, after the connection preface. */
+  /** Serves the socket as HTTP/2, after the connection preface.
+    *
+    * `connectionAttributes` are added to every request served on the connection.
+    */
   def fromSocket(
       socket: Socket[F],
       httpApp: HttpApp[F],
@@ -56,6 +60,7 @@ private[ember] trait Http2Support[F[_]] {
       idleTimeout: Duration,
       maxHeaderSize: Int,
       logger: Logger[F],
+      connectionAttributes: Vault,
   )(implicit F: Async[F]): Resource[F, Unit]
 }
 
@@ -85,6 +90,7 @@ private[ember] object Http2Support {
         idleTimeout: Duration,
         maxHeaderSize: Int,
         logger: Logger[F],
+        connectionAttributes: Vault,
     )(implicit F: Async[F]): Resource[F, Unit] = {
       val settings = H2Frame.Settings.ConnectionSettings.default
         .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
@@ -95,6 +101,7 @@ private[ember] object Http2Support {
         idleTimeout,
         settings,
         logger,
+        connectionAttributes,
       )
     }
   }
