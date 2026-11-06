@@ -27,6 +27,7 @@ import fs2._
 import fs2.concurrent.Channel
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
+import org.http4s.ember.core.EmberException
 import org.http4s.ember.core.h2.H2Connection.ContinuationProgress
 import org.typelevel.log4cats.Logger
 import scodec.bits._
@@ -46,7 +47,7 @@ private[h2] class H2Connection[F[_]](
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
     val pendingReadCredit: SignallingRef[F, Int],
     val writeWindow: H2Connection.WriteWindow[F],
-    outgoingQueue: cats.effect.std.Queue[F, H2Frame],
+    outgoingQueue: cats.effect.std.Queue[F, EncodableH2Frame],
     val createdStreams: cats.effect.std.Queue[F, Int],
     val closedStreams: cats.effect.std.Queue[F, Int],
     hpack: Hpack[F],
@@ -97,7 +98,15 @@ private[h2] class H2Connection[F[_]](
 
   private[this] def receiveHeadersForClosedStream(id: Int, block: ByteVector): F[Unit] =
     logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
-      H2Stream.discardHeaders(hpack, block, goAway, logger)
+      hpack.discardHeaders(block).onError(onHpackError)
+
+  private[this] val onHpackError: PartialFunction[Throwable, F[Unit]] = {
+    case e @ EmberException.MessageTooLong(_) =>
+      logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
+
+    case e =>
+      logger.debug(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
+  }
 
   // An unauthenticated peer can open streams without limit.  The 4x
   // gives us slack to reap the closed streams in a graceful fashion,
@@ -152,7 +161,6 @@ private[h2] class H2Connection[F[_]](
       refState,
       bodyDone,
       readBufferLock,
-      hpack,
       offerFrame,
       closedStreams.offer(id),
       goAway,
@@ -205,7 +213,6 @@ private[h2] class H2Connection[F[_]](
       refState,
       bodyDone,
       readBufferLock,
-      hpack,
       offerFrame,
       closedStreams.offer(id),
       goAway,
@@ -264,7 +271,7 @@ private[h2] class H2Connection[F[_]](
     mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(goAway))) >>
       state.update(s => s.copy(closed = true))
 
-  def offerFrame(frame: H2Frame): F[Unit] =
+  def offerFrame(frame: EncodableH2Frame): F[Unit] =
     frame match {
       case data: H2Frame.Data =>
 
@@ -294,7 +301,7 @@ private[h2] class H2Connection[F[_]](
           }
 
         withStallTimeout(go(data))
-      case other: H2Frame => outgoingQueue.offer(other)
+      case other: EncodableH2Frame => outgoingQueue.offer(other)
     }
 
   private[this] def withStallTimeout[A](fa: F[Unit]): F[Unit] =
@@ -354,8 +361,12 @@ private[h2] class H2Connection[F[_]](
 
   def writeLoop: Stream[F, Nothing] =
     Stream
-      .fromQueueUnterminated[F, H2Frame](outgoingQueue, 16)
+      .fromQueueUnterminated[F, EncodableH2Frame](outgoingQueue, 16)
+      // H2 frames must be encoded serially to so that header and push promise
+      // frames are enqueued in the same order they are encoded
+      .evalMapChunk(_.toH2Frame(hpack))
       .chunks
+      .prefetch
       .foreach(writeChunk)
       .concurrently(sendReadWindowUpdates)
       .handleErrorWith(ex =>
@@ -441,7 +452,7 @@ private[h2] class H2Connection[F[_]](
               state.update(s => s.copy(headersInProgress = None)) >>
                 mapRef.get.map(_.get(id)).flatMap {
                   case Some(s) =>
-                    s.receiveHeaders(headers)
+                    headers.decode(hpack).onError(onHpackError).flatMap(s.receiveHeaders)
                   case None if isClosedStream(id, s) =>
                     receiveHeadersForClosedStream(id, headers.headerBlock)
                   case None =>
@@ -449,7 +460,10 @@ private[h2] class H2Connection[F[_]](
                       for {
                         stream <- initiateRemoteStreamById(id)
                         _ <- createdStreams.offer(id)
-                        _ <- stream.receiveHeaders(headers)
+                        _ <- headers
+                          .decode(hpack)
+                          .onError(onHpackError)
+                          .flatMap(stream.receiveHeaders)
                       } yield ()
                     )
                 }
@@ -473,13 +487,17 @@ private[h2] class H2Connection[F[_]](
               state.update(s => s.copy(pushPromiseInProgress = None)) >>
                 mapRef.get.map(_.get(id)).flatMap {
                   case Some(s) =>
-                    s.receivePushPromise(pushPromise)
+                    pushPromise.decode(hpack).onError(onHpackError).flatMap(s.receivePushPromise)
                   case None =>
                     streamCreateAndHeaders.use(_ =>
                       for {
                         stream <- initiateRemoteStreamById(id)
                         _ <- createdStreams.offer(id)
-                        _ <- stream.receivePushPromise(pushPromise)
+                        _ <-
+                          pushPromise
+                            .decode(hpack)
+                            .onError(onHpackError)
+                            .flatMap(stream.receivePushPromise)
                       } yield ()
                     )
                 }
@@ -536,7 +554,7 @@ private[h2] class H2Connection[F[_]](
         } else {
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
-              s.receiveHeaders(h)
+              h.decode(hpack).onError(onHpackError).flatMap(s.receiveHeaders)
             case None if isClosedStream(i, s) =>
               receiveHeadersForClosedStream(i, h.headerBlock)
             case None =>
@@ -554,7 +572,7 @@ private[h2] class H2Connection[F[_]](
                   for {
                     stream <- initiateRemoteStreamById(i)
                     _ <- createdStreams.offer(i)
-                    _ <- stream.receiveHeaders(h)
+                    _ <- h.decode(hpack).onError(onHpackError).flatMap(stream.receiveHeaders)
 
                   } yield ()
                 )
@@ -587,7 +605,7 @@ private[h2] class H2Connection[F[_]](
         } else {
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
-              s.receivePushPromise(h)
+              h.decode(hpack).onError(onHpackError).flatMap(s.receivePushPromise)
             case None =>
               val isValidToCreate = i % 2 == 0
               if (!isValidToCreate || i <= s.remoteHighestStream) {
@@ -600,7 +618,7 @@ private[h2] class H2Connection[F[_]](
                   for {
                     stream <- initiateRemoteStreamById(i)
                     _ <- createdStreams.offer(i)
-                    _ <- stream.receivePushPromise(h)
+                    _ <- h.decode(hpack).onError(onHpackError).flatMap(stream.receivePushPromise)
                   } yield ()
                 )
               }
