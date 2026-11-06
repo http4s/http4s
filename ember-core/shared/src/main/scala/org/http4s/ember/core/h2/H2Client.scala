@@ -80,9 +80,31 @@ private[ember] class H2Client[F[_]](
         F[org.http4s.Response[F]],
     ) => F[Outcome[F, Throwable, Unit]],
     logger: Logger[F],
-)(implicit F: Async[F], F2: Network[F]) {
+    socketBuilder: GenSocketAddress => Resource[F, Socket[F]],
+)(implicit F: Async[F]) {
   import org.http4s._
   import H2Client._
+
+  def this(
+      idleTimeout: Duration,
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      tls: TLSContext[F],
+      connections: Ref[F, Map[H2Client.RequestKey, (H2Connection[F], F[Unit])]],
+      onPushPromise: (
+          org.http4s.Request[fs2.Pure],
+          F[org.http4s.Response[F]],
+      ) => F[Outcome[F, Throwable, Unit]],
+      logger: Logger[F],
+  )(implicit F: Async[F], network: Network[F]) =
+    this(
+      idleTimeout,
+      localSettings,
+      tls,
+      connections,
+      onPushPromise,
+      logger,
+      address => network.connect(address),
+    )(F)
 
   def getOrCreate(
       key: RequestKey,
@@ -143,7 +165,7 @@ private[ember] class H2Client[F[_]](
       enableServerNameIndication: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
-    baseSocket <- Network[F].connect(address)
+    baseSocket <- socketBuilder(address)
     socket <- {
       if (useTLS) {
         val tlsParams = Util.mkClientTLSParameters(
@@ -342,6 +364,30 @@ private[ember] object H2Client {
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
   ): Resource[F, TinyClient[F] => TinyClient[F]] =
+    implWithSocketBuilder(
+      onPushPromise,
+      tlsContext,
+      logger,
+      idleTimeout,
+      settings,
+      enableEndpointValidation,
+      enableServerNameIndication,
+      address => Network[F].connect(address),
+    )
+
+  def implWithSocketBuilder[F[_]: Async](
+      onPushPromise: (
+          org.http4s.Request[fs2.Pure],
+          F[org.http4s.Response[F]],
+      ) => F[Outcome[F, Throwable, Unit]],
+      tlsContext: TLSContext[F],
+      logger: Logger[F],
+      idleTimeout: Duration,
+      settings: H2Frame.Settings.ConnectionSettings,
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
+      socketBuilder: GenSocketAddress => Resource[F, Socket[F]],
+  ): Resource[F, TinyClient[F] => TinyClient[F]] =
     for {
       mapH2 <- Resource.make {
         Concurrent[F].ref(
@@ -366,7 +412,15 @@ private[ember] object H2Client {
         .compile
         .drain
         .background
-      h2 = new H2Client(idleTimeout, settings, tlsContext, mapH2, onPushPromise, logger)
+      h2 = new H2Client(
+        idleTimeout,
+        settings,
+        tlsContext,
+        mapH2,
+        onPushPromise,
+        logger,
+        socketBuilder,
+      )
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
       val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
