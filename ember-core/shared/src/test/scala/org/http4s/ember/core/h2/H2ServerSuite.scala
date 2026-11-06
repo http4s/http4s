@@ -121,7 +121,7 @@ class H2ServerSuite extends H2Suite {
       }
   }
 
-  test("data long after a stream was reset gets a STREAM_CLOSED reset") {
+  test("data long after a stream was reset is ignored") {
     val ignoreBody = HttpApp[IO](_ => Response[IO](Status.Ok).pure[IO])
     TestControl
       .executeEmbed(
@@ -137,7 +137,7 @@ class H2ServerSuite extends H2Suite {
       .map { frames =>
         assertEquals(
           resets(1, frames),
-          Vector(H2Error.NoError, H2Error.StreamClosed, H2Error.StreamClosed).map(_.value),
+          Vector(H2Error.NoError).map(_.value),
           clue(frames),
         )
         assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
