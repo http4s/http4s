@@ -302,9 +302,7 @@ private[h2] class H2Stream[F[_]: Temporal](
             goAway(H2Error.ProtocolError)
         case StreamState.Closed =>
           logger.debug(s"Received Headers for Closed Stream $id - Ignoring") >>
-            hpack.decodeHeaders(block).void.onError { case e =>
-              logger.debug(e)("Issue in headers") >> goAway(H2Error.CompressionError)
-            }
+            H2Stream.discardHeaders(hpack, block, goAway, logger)
         case StreamState.ReservedLocal =>
           goAway(H2Error.ProtocolError)
       }
@@ -556,6 +554,20 @@ private[h2] class H2Stream[F[_]: Temporal](
 }
 
 private[h2] object H2Stream {
+
+  /** Decodes a header block only to keep HPACK state in sync. */
+  def discardHeaders[F[_]: MonadThrow](
+      hpack: Hpack[F],
+      block: ByteVector,
+      goAway: H2Error => F[Unit],
+      logger: Logger[F],
+  ): F[Unit] =
+    hpack.discardHeaders(block).onError {
+      case e @ EmberException.MessageTooLong(_) =>
+        logger.debug(e)("Headers too large") >> goAway(H2Error.EnhanceYourCalm)
+      case e =>
+        logger.debug(e)("Issue in headers") >> goAway(H2Error.CompressionError)
+    }
 
   /** Internal state for a stream. Unlike the H2Stream members themselves, these values may change
     * over the lifespan of the stream.

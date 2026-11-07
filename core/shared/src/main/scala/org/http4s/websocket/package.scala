@@ -37,6 +37,12 @@ package object websocket {
   private[websocket] val PING = 0x9
   private[websocket] val PONG = 0xa
 
+  // RFC6455 §5.2:
+  //   * opcodes 0x8-0xa identify Close, Ping, and Pong;
+  //   * 0xb-0xf are reserved for control frames.
+  private[websocket] def isControlFrame(opcode: Int): Boolean =
+    opcode >= CLOSE && opcode <= OP_CODE
+
   // Type constructors
   @throws[ProtocolException]
   private[websocket] def makeFrame(opcode: Int, data: ByteVector, last: Boolean): WebSocketFrame =

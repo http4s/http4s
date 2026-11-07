@@ -95,6 +95,10 @@ private[h2] class H2Connection[F[_]](
     id > 0 && (if (remoteParity) id <= st.remoteHighestStream else id <= st.highestStream)
   }
 
+  private[this] def receiveHeadersForClosedStream(id: Int, block: ByteVector): F[Unit] =
+    logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
+      H2Stream.discardHeaders(hpack, block, goAway, logger)
+
   // An unauthenticated peer can open streams without limit.  The 4x
   // gives us slack to reap the closed streams in a graceful fashion,
   // while giving a hard upper bound to protect the server or client
@@ -358,7 +362,9 @@ private[h2] class H2Connection[F[_]](
         Stream.exec(
           logger.debug(ex)("writeLoop terminated") >>
             state.update(_.copy(closed = true))
-        )
+        ) ++
+          // Drain the queue to unblock any fibers offering frames.
+          Stream.fromQueueUnterminated[F, H2Frame](outgoingQueue, 16).drain
       )
 
   def readLoop: F[Unit] = {
@@ -437,10 +443,7 @@ private[h2] class H2Connection[F[_]](
                   case Some(s) =>
                     s.receiveHeaders(headers)
                   case None if isClosedStream(id, s) =>
-                    logger.debug(
-                      s"$addrStr Received Headers for Closed Stream $id - Closing Connection"
-                    ) >>
-                      goAway(H2Error.ProtocolError)
+                    receiveHeadersForClosedStream(id, headers.headerBlock)
                   case None =>
                     streamCreateAndHeaders.use(_ =>
                       for {
@@ -535,10 +538,7 @@ private[h2] class H2Connection[F[_]](
             case Some(s) =>
               s.receiveHeaders(h)
             case None if isClosedStream(i, s) =>
-              logger.debug(
-                s"$addrStr Received Headers for Closed Stream $i - Closing Connection"
-              ) >>
-                goAway(H2Error.ProtocolError)
+              receiveHeadersForClosedStream(i, h.headerBlock)
             case None =>
               val isValidToCreate = connectionType match {
                 case H2Connection.ConnectionType.Server => i % 2 != 0
@@ -629,27 +629,31 @@ private[h2] class H2Connection[F[_]](
         goAway(H2Error.ProtocolError)
 
       case (settings @ H2Frame.Settings(0, false, _), _) =>
-        for {
-          t <- state.modify { s =>
-            val newSettings = H2Frame.Settings.updateSettings(settings, s.remoteSettings)
-            val differenceInWindow =
-              newSettings.initialWindowSize.windowSize - s.remoteSettings.initialWindowSize.windowSize
-            (
-              s.copy(remoteSettings = newSettings),
-              (newSettings, differenceInWindow),
-            )
-          }
-          (settings, differenceInWindow) = t
-
-          _ <- mapRef.get.flatMap { map =>
-            map.toList.traverse { case (_, stream) =>
-              stream.modifyWriteWindow(differenceInWindow)
+        // Stream creation must observe either the old settings and this adjustment,
+        // or the new settings, never a mixture of the two.
+        streamCreateAndHeaders.use { _ =>
+          for {
+            t <- state.modify { s =>
+              val newSettings = H2Frame.Settings.updateSettings(settings, s.remoteSettings)
+              val differenceInWindow =
+                newSettings.initialWindowSize.windowSize - s.remoteSettings.initialWindowSize.windowSize
+              (
+                s.copy(remoteSettings = newSettings),
+                (newSettings, differenceInWindow),
+              )
             }
-          }
-          _ <- offerFrame(H2Frame.Settings.Ack)
-          _ <- settingsAck.complete(Either.right(settings)).void
+            (settings, differenceInWindow) = t
 
-        } yield ()
+            _ <- mapRef.get.flatMap { map =>
+              map.toList.traverse { case (_, stream) =>
+                stream.modifyWriteWindow(differenceInWindow)
+              }
+            }
+            _ <- offerFrame(H2Frame.Settings.Ack)
+            _ <- settingsAck.complete(Either.right(settings)).void
+
+          } yield ()
+        }
       case (H2Frame.Settings(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Settings(_, _, _), _) =>
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
