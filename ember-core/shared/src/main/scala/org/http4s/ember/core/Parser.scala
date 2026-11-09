@@ -579,7 +579,7 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                Util.parseStatus(codeS) match {
+                Status.fromString(codeS) match {
                   case Left(e) =>
                     if (NonFatal(e)) {
                       throwable = e
