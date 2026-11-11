@@ -92,7 +92,6 @@ final case class BasicCredentials(
 object BasicCredentials {
 
   private val utf8Charset = StandardCharsets.UTF_8
-  private val utf8CharsetDecoder = utf8Charset.newDecoder
   private val fallbackCharset = StandardCharsets.ISO_8859_1
 
   private def decode(bytes: Array[Byte], decoder: CharsetDecoder): Try[String] = {
@@ -104,7 +103,7 @@ object BasicCredentials {
 
   private def fromString0(token: String): Try[BasicCredentials] =
     Try(Base64.getDecoder.decode(token)).map { bytes =>
-      val (userPass, charset) = decode(bytes, utf8CharsetDecoder)
+      val (userPass, charset) = decode(bytes, utf8Charset.newDecoder())
         .fold(_ => (decode(bytes, fallbackCharset), fallbackCharset), up => (up, utf8Charset))
       userPass.indexOf(':') match {
         case -1 => apply(userPass, "", charset)
