@@ -52,8 +52,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     steps:
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      - name: Install Lix
+        uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v6
@@ -146,8 +146,8 @@ jobs:
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      - name: Install Lix
+        uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v6
@@ -229,8 +229,8 @@ jobs:
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      - name: Install Lix
+        uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v6
@@ -318,8 +318,8 @@ jobs:
         java: [temurin@11]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      - name: Install Lix
+        uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v6

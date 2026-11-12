@@ -65,7 +65,7 @@ private[h2] object PseudoHeaders {
     l
   }
 
-  def headersToRequestNoBody(hI: NonEmptyList[(String, String)]): Option[Request[fs2.Pure]] = {
+  def headersToRequestNoBody(hI: List[(String, String)]): Option[Request[fs2.Pure]] = {
     // TODO This can be a 1 pass operation. This is not...
     val headers: List[(String, String)] = hI.toList
     val pseudos = headers.takeWhile(_._1.startsWith(":"))
@@ -132,14 +132,13 @@ private[h2] object PseudoHeaders {
     )
 
   def headersToResponseNoBody(
-      headers: NonEmptyList[(String, String)]
+      headers: List[(String, String)]
   ): Option[Response[fs2.Pure]] = {
     // TODO Duplicate Check
     val statusO =
-      findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS).map(_._2).flatMap {
-        value =>
-          Status.fromInt(value.toInt).toOption
-      }
+      findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS)
+        .map(_._2)
+        .flatMap(Status.fromString(_).toOption)
     val h = Headers(
       headers
         .filterNot(t => t._1 == PseudoHeaders.STATUS)

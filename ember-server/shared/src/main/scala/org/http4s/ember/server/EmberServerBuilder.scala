@@ -30,6 +30,7 @@ import fs2.io.net.unixsocket.UnixSockets
 import fs2.io.net.unixsocket.{UnixSocketAddress => OldUnixSocketAddress}
 import org.http4s._
 import org.http4s.ember.core.EmberException
+import org.http4s.ember.server.internal.Http2Support
 import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Ip4sServer
@@ -55,7 +56,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
     private val unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)],
-    private val enableHttp2: Boolean,
+    private val http2: Option[Http2Support[F]],
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
     private val maxWebSocketMessageSize: Int,
@@ -81,7 +82,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger,
       unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)] = self.unixSocketConfig,
-      enableHttp2: Boolean = self.enableHttp2,
+      http2: Option[Http2Support[F]] = self.http2,
       requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
         self.maxHeaderSizeErrorHandler,
@@ -104,7 +105,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       additionalSocketOptions = additionalSocketOptions,
       logger = logger,
       unixSocketConfig = unixSocketConfig,
-      enableHttp2 = enableHttp2,
+      http2 = http2,
       requestLineParseErrorHandler = requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize = maxWebSocketMessageSize,
@@ -194,8 +195,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
   /** Enables HTTP/2 support. */
-  def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
-  def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
+  def withHttp2: EmberServerBuilder[F] = copy(http2 = Some(Http2Support.default[F]))
+  def withoutHttp2: EmberServerBuilder[F] = copy(http2 = None)
 
   // If used will bind to UnixSocket
   @deprecated("Use overload that doesn't take a UnixSockets[F]", "0.23.34")
@@ -251,7 +252,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def build: Resource[F, Server] =
     for {
       _ <-
-        if (unixSocketConfig.isDefined && enableHttp2)
+        if (unixSocketConfig.isDefined && http2.isDefined)
           Resource.eval(
             logger.warn("Unix sockets are not tested on HTTP/2.  Proceed at your own risk.")
           )
@@ -285,7 +286,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               idleTimeout,
               logger,
               wsBuilder.webSocketKey,
-              enableHttp2,
+              http2,
               requestLineParseErrorHandler,
               maxHeaderSizeErrorHandler,
               maxWebSocketMessageSize,
@@ -314,7 +315,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             idleTimeout,
             logger,
             wsBuilder.webSocketKey,
-            enableHttp2,
+            http2,
             requestLineParseErrorHandler,
             maxHeaderSizeErrorHandler,
             maxWebSocketMessageSize,
@@ -351,7 +352,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
       unixSocketConfig = None,
-      enableHttp2 = false,
+      http2 = None,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
       maxWebSocketMessageSize = org.http4s.websocket.DefaultMaxMessageSize,

@@ -106,8 +106,8 @@ class DecodeSpec extends Http4sSuite {
   test("decode should handle overflows") {
     assume(Platform.isJvm, "x-ISCII91 charset is unavailable on JS/Native")
 
-    // Found by scalachek
-    val source = Stream(-36.toByte)
+    // Found by scalacheck
+    val source = Stream((-36).toByte)
     val decoded =
       source.through(decodeWithCharset[Fallible](JCharset.forName("x-ISCII91"))).compile.string
     assertEquals(decoded, Right("ी"))
@@ -116,8 +116,8 @@ class DecodeSpec extends Http4sSuite {
   test("decode should not crash in IllegalStateException") {
     assume(Platform.isJvm, "x-ISCII91 charset is unavailable on JS/Native")
 
-    // Found by scalachek
-    val source = Stream(-1.toByte)
+    // Found by scalacheck
+    val source = Stream((-1).toByte)
     val decoded =
       source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
     val Left(_: MalformedInputException) = decoded: @unchecked

@@ -109,7 +109,7 @@ private[ember] object H2Server {
       )
       pendingReadCredit <- SignallingRef[F, Int](0)
       writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
-      queue <- cats.effect.std.Queue.bounded[F, H2Frame](128)
+      queue <- cats.effect.std.Queue.bounded[F, EncodableH2Frame](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
       )

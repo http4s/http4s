@@ -101,7 +101,7 @@ class H2FrameSizeSuite extends H2Suite {
       writeWindow <- H2Connection.WriteWindow.init[IO](
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize
       )
-      outgoing <- Queue.unbounded[IO, H2Frame]
+      outgoing <- Queue.unbounded[IO, EncodableH2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize))
