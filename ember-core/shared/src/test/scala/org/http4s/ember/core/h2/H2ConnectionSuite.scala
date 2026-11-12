@@ -343,7 +343,7 @@ class H2ConnectionSuite extends H2Suite {
         frames <- written(h2, writes)
       } yield {
         assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
-        assertEquals(resets(1, frames), Vector.fill(2)(H2Error.StreamClosed.value), clue(frames))
+        assertEquals(resets(1, frames), Vector.empty, clue(frames))
         assertEquals(goAways(frames), Vector.empty, clue(frames))
       }
     }
