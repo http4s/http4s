@@ -20,9 +20,11 @@ import cats.Hash
 import cats.Order
 import cats.Show
 import cats.kernel.BoundedEnumerable
-import cats.parse.Rfc5234.digit
-import cats.parse.{Parser => P}
+import cats.parse.Parser0
 import cats.syntax.all._
+import org.http4s.codec.Http1Codec
+import org.http4s.codec.catsParserDecoder
+import org.http4s.codec.rendererEncoder
 import org.http4s.util._
 
 /** HTTP's version number consists of two decimal digits separated by
@@ -41,7 +43,7 @@ import org.http4s.util._
   * HTTP Semantics, Protocol Versioning]]
   */
 // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
-final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
+final case class HttpVersion private[http4s] (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
   // scalafix:on
@@ -53,7 +55,8 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
     * HTTP/1.1
     * }}}
     */
-  override def render(writer: Writer): writer.type = writer << "HTTP/" << major << '.' << minor
+  override def render(writer: Writer): writer.type =
+    HttpVersion.renderer.render(writer, this)
 
   /** Orders by major version ascending, then minor version ascending.
     *
@@ -155,6 +158,23 @@ object HttpVersion {
   private[this] val right_1_0 = Right(`HTTP/1.0`)
   private[this] val right_1_1 = Right(`HTTP/1.1`)
 
+  val http1Codec: Http1Codec[HttpVersion] = {
+    // HTTP-name = %x48.54.54.50 ; HTTP
+    // HTTP-version = HTTP-name "/" DIGIT "." DIGIT
+    import Http1Codec._
+    (
+      stringLiteral("HTTP/"),
+      digit.imap(_ - '0')(i => (i + '0').toChar),
+      charLiteral('.'),
+      digit.imap(_ - '0')(i => (i + '0').toChar),
+    ).imapN((_, major, _, minor) => new HttpVersion(major, minor))(httpVersion =>
+      ((), httpVersion.major, (), httpVersion.minor)
+    )
+  }
+
+  private val renderer: Renderer[HttpVersion] =
+    http1Codec.foldMap(rendererEncoder)
+
   /** Returns an HTTP version from its HTTP/1 string representation.
     *
     * {{{
@@ -170,15 +190,8 @@ object HttpVersion {
         ParseResult.fromParser(parser, "HTTP version")(s)
     }
 
-  private val parser: P[HttpVersion] = {
-    // HTTP-name = %x48.54.54.50 ; HTTP
-    // HTTP-version = HTTP-name "/" DIGIT "." DIGIT
-    val httpVersion = P.string("HTTP/") *> digit ~ (P.char('.') *> digit)
-
-    httpVersion.map { case (major, minor) =>
-      new HttpVersion(major - '0', minor - '0')
-    }
-  }
+  private val parser: Parser0[HttpVersion] =
+    http1Codec.foldMap(catsParserDecoder)
 
   /** Returns an HTTP version from a major and minor version.
     *
