@@ -137,8 +137,7 @@ private[h2] object PseudoHeaders {
     // TODO Duplicate Check
     val statusO =
       findWithNoDuplicates(headers.toList)(_._1 === PseudoHeaders.STATUS).map(_._2).flatMap {
-        value =>
-          Status.fromInt(value.toInt).toOption
+        Status.fromString(_).toOption
       }
     val h = Headers(
       headers

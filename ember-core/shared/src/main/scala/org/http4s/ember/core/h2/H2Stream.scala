@@ -127,15 +127,15 @@ private[h2] class H2Stream[F[_]: Temporal](
               ) *>
                 setStreamState { st =>
                   (st, endStream) match {
-                      case (StreamState.Idle, false) => StreamState.Open
-                      case (StreamState.Idle, true) => StreamState.HalfClosedLocal
-                      case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
-                      case (StreamState.HalfClosedRemote, true) => StreamState.Closed
-                      case (StreamState.Open, false) => StreamState.Open
-                      case (StreamState.Open, true) => StreamState.HalfClosedLocal
-                      case (StreamState.ReservedLocal, true) => StreamState.Closed
-                      case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
-                      case (st, _) => st // Hopefully Impossible
+                    case (StreamState.Idle, false) => StreamState.Open
+                    case (StreamState.Idle, true) => StreamState.HalfClosedLocal
+                    case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
+                    case (StreamState.HalfClosedRemote, true) => StreamState.Closed
+                    case (StreamState.Open, false) => StreamState.Open
+                    case (StreamState.Open, true) => StreamState.HalfClosedLocal
+                    case (StreamState.ReservedLocal, true) => StreamState.Closed
+                    case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
+                    case (st, _) => st // Hopefully Impossible
                   }
                 }
             )
@@ -229,22 +229,22 @@ private[h2] class H2Stream[F[_]: Temporal](
           // rstStream must still see it open so it can reset it.
           val setState = (rest: F[Unit]) =>
             transitionState { current =>
-            val newState =
-              if (headers.endStream) current.state match {
-                case StreamState.Open => StreamState.HalfClosedRemote // Client
-                case StreamState.Idle => StreamState.HalfClosedRemote // Server
-                case StreamState.HalfClosedLocal => StreamState.Closed // Client
-                case StreamState.ReservedRemote => StreamState.Closed
-                case st => st
-              }
-              else
-                current.state match {
-                  case StreamState.Idle => StreamState.Open // Server
-                  case StreamState.ReservedRemote => StreamState.HalfClosedLocal
+              val newState =
+                if (headers.endStream) current.state match {
+                  case StreamState.Open => StreamState.HalfClosedRemote // Client
+                  case StreamState.Idle => StreamState.HalfClosedRemote // Server
+                  case StreamState.HalfClosedLocal => StreamState.Closed // Client
+                  case StreamState.ReservedRemote => StreamState.Closed
                   case st => st
                 }
-            (current.copy(state = newState), ())
-          }((_, poll) => poll(rest))
+                else
+                  current.state match {
+                    case StreamState.Idle => StreamState.Open // Server
+                    case StreamState.ReservedRemote => StreamState.HalfClosedLocal
+                    case st => st
+                  }
+              (current.copy(state = newState), ())
+            }((_, poll) => poll(rest))
           for {
             _ <- connectionType match {
               case H2Connection.ConnectionType.Client =>

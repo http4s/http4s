@@ -975,7 +975,7 @@ class H2StreamSuite extends Http4sSuite {
       s"client resets when receiving DATA after an informational response (endStream = $endStream)"
     ) {
       for {
-        outgoing <- Queue.unbounded[IO, H2Frame]
+        outgoing <- Queue.unbounded[IO, EncodableH2Frame]
         stream <- clientStream(
           defaultSettings,
           H2Stream.StreamState.HalfClosedLocal,
