@@ -33,13 +33,19 @@ class EmberUnixSocketSuite extends Http4sSuite {
       setupServer: EmberServerBuilder[IO] => EmberServerBuilder[IO],
       setupClient: EmberClientBuilder[IO] => EmberClientBuilder[IO],
       setupRequest: Request[IO] => Request[IO],
+      checkRequest: Request[IO] => Unit,
   ): IO[Unit] = {
 
     val msg = "Hello Unix Sockets!"
 
-    def app = HttpApp.liftF(Response[IO](Status.Ok).withEntity(msg).pure[IO])
+    // Requests are checked after the exchange, so a failed assertion isn't turned into a 500
+    def app(seen: Ref[IO, List[Request[IO]]]) =
+      HttpApp[IO](req => seen.update(req :: _).as(Response[IO](Status.Ok).withEntity(msg)))
 
-    Files[IO].tempFile(None, "", "sock", None).use { path =>
+    (
+      Files[IO].tempFile(None, "", "sock", None),
+      Ref[IO].of(List.empty[Request[IO]]).toResource,
+    ).tupled.use { case (path, seen) =>
       val localSocket = UnixSocketAddress(path.toString)
 
       val server = setupServer(
@@ -47,7 +53,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
           .default[IO]
           .withUnixSocketConfig(localSocket)
           .withShutdownTimeout(1.second)
-          .withHttpApp(app)
+          .withHttpApp(app(seen))
       ).build
 
       val client = setupClient(
@@ -61,16 +67,32 @@ class EmberUnixSocketSuite extends Http4sSuite {
         (server *> client).use { client =>
           client.expect[String](request).assertEquals(msg) *>
             client.expect[String](request).assertEquals(msg)
+        } *>
+        seen.get.map { reqs =>
+          assertEquals(reqs.size, 2)
+          reqs.foreach(checkRequest)
         }
     }
   }
 
+  // Unix sockets have no IP addresses, so neither HTTP/1.1 nor HTTP/2 attach ConnectionInfo
+  private def assertNoConnectionInfo(req: Request[IO]): Unit =
+    assert(!req.attributes.contains(Request.Keys.ConnectionInfo), "unexpected ConnectionInfo")
+
   test("http/1.1") {
-    run(identity(_), identity(_), identity(_))
+    run(identity(_), identity(_), identity(_), assertNoConnectionInfo)
   }
 
   test("http/2".flaky) {
-    run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
+    run(
+      _.withHttp2,
+      _.withHttp2,
+      _.withAttribute(Http2PriorKnowledge, ()),
+      { req =>
+        assertEquals(req.httpVersion, HttpVersion.`HTTP/2`)
+        assertNoConnectionInfo(req)
+      },
+    )
   }
 
 }
