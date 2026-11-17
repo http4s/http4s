@@ -28,6 +28,7 @@ import org.http4s.syntax.all._
 import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrameDefragmenter
 import org.http4s.websocket.WebSocketSeparatePipe
 import scodec.bits.ByteVector
 
@@ -79,6 +80,15 @@ class WebSocketBuilderSuite extends Http4sSuite {
       data: ByteVector = ByteVector.empty,
   ): Stream[IO, WebSocketFrame] =
     Stream.awakeDelay[IO](period).as(WebSocketFrame.Pong(data))
+
+  test("apply withMaxFragmentCount to a combined pipe") {
+    val fragments =
+      Stream[IO, WebSocketFrame](WebSocketFrame.Binary(ByteVector(1), last = false)) ++
+        Stream.emits(List.fill(3)(WebSocketFrame.Continuation(ByteVector(1), last = false)))
+    outgoing(_.withDefragment(true).withMaxFragmentCount(2).build(identity), fragments)
+      .intercept[WebSocketFrameDefragmenter.TooManyFragments]
+      .void
+  }
 
   test("keep pinging as long as the client pongs") {
     TestControl.executeEmbed {

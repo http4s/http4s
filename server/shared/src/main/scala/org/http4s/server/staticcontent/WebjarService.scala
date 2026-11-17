@@ -214,7 +214,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpRoutes
     */
-  @deprecated("use WebjarServiceBuilder", "1.0.0-M1")
+  @deprecated("use WebjarServiceBuilder", "0.21.4")
   def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
@@ -226,6 +226,8 @@ object WebjarService {
           .liftF(F.catchNonFatal {
             segments.foldLeft(Root) {
               case (_, "" | "." | "..") => throw BadTraversal
+              case (_, segment) if segment.contains("/") || segment.contains("\\") =>
+                throw BadTraversal
               case (path, segment) =>
                 path.resolve(segment)
             }

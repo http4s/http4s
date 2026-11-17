@@ -37,9 +37,19 @@ private[ember] object Encoder {
   def respToBytes[F[_]: Applicative](
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024,
+  ): Stream[F, Byte] = responseToBytes(None, resp, writeBufferSize)
+
+  def respToBytes[F[_]: Applicative](
+      request: Option[Request[F]],
+      resp: Response[F],
+  ): Stream[F, Byte] = responseToBytes(request, resp)
+
+  private def responseToBytes[F[_]: Applicative](
+      request: Option[Request[F]],
+      resp: Response[F],
+      writeBufferSize: Int = 32 * 1024,
   ): Stream[F, Byte] = {
     var chunked = resp.isChunked
-    // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()
@@ -63,11 +73,19 @@ private[ember] object Encoder {
       }
 
       def isEmptyBody = resp.body eq EmptyBody
-      def isEntityAllowed = resp.status.isEntityAllowed
-      if (!appliedContentLength && isEmptyBody && isEntityAllowed) {
+
+      // Per RFC 9112 section 6.3, rule 1, framing headers are not needed for status codes 1xx, 204
+      // and 304, or HEAD request responses.
+      def skipFramingHeader =
+        request.exists(_.method == Method.HEAD) ||
+          resp.status.responseClass == Status.Informational ||
+          resp.status == Status.NoContent ||
+          resp.status == Status.NotModified
+
+      if (!appliedContentLength && isEmptyBody && !skipFramingHeader) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-      } else if (!chunked && !appliedContentLength && isEntityAllowed) {
+      } else if (!chunked && !appliedContentLength && !skipFramingHeader) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
       }

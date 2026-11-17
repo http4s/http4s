@@ -65,22 +65,32 @@ object Http4sSitePlugin extends AutoPlugin {
         milestoneVersion: String,
         links: Seq[IconLink],
     ): Helium =
-      helium.site.landingPage(
-        logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
-        title = None,
-        subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
-        latestReleases = Seq(
-          ReleaseInfo("Latest Stable Release", stableVersion),
-          ReleaseInfo("Latest Milestone Release", milestoneVersion),
-        ),
-        license = Some("Apache 2.0"),
-        titleLinks = Seq(
-          versions.menu("Getting Started"),
-          LinkGroup.create(links.head, links.tail: _*),
-        ),
-        documentationLinks = projectLinks,
-        teasers = landingPage.teasers,
-      )
+      helium.site
+        .landingPage(
+          logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
+          title = None,
+          subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+          latestReleases = Seq(
+            ReleaseInfo("Latest Stable Release", stableVersion),
+            ReleaseInfo("Latest Milestone Release", milestoneVersion),
+          ),
+          license = Some("Apache 2.0"),
+          titleLinks = Seq(
+            versions.menu("Getting Started"),
+            LinkGroup.create(links.head, links.tail: _*),
+          ),
+          documentationLinks = projectLinks,
+          teasers = landingPage.teasers,
+        )
+        .site
+        .inlineCSS(
+          s"""
+          |#page-nav {
+          |  max-height: 80%;
+          |  overflow-y: auto;
+          |}
+        """.stripMargin
+        )
 
     val teasers: Seq[Teaser] = Seq(
       Teaser(

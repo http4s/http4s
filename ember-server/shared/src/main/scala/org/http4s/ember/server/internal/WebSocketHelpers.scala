@@ -38,10 +38,14 @@ import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.http4s.websocket.FrameTranscoder
+import org.http4s.websocket.FrameTranscoder.TranscodeError
+import org.http4s.websocket.FrameTranscoder.TranscodeErrorReason
 import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.CloseStatusCode
+import org.http4s.websocket.WebSocketFrameDefragmenter
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -50,6 +54,7 @@ import scodec.bits.ByteVector
 import java.io.IOException
 import java.nio.ByteBuffer
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration.Duration
 
 private[internal] class WebSocketHelpers(maxFrameSize: Int) {
@@ -149,8 +154,8 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
             }
         }
 
-        val sendClosingFrame: F[Unit] =
-          F.fromEither(WebSocketFrame.Close(1000)).flatMap(writeClosingFrame)
+        def sendClosingFrame(statusCode: CloseStatusCode = CloseStatusCode.Normal): F[Unit] =
+          writeClosingFrame(WebSocketFrame.Close(statusCode))
 
         val (stream, onClose) = ctx.webSocket match {
           case WebSocketCombinedPipe(receiveSend, onClose) =>
@@ -159,13 +164,13 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, mut))
               .through(receiveSend)
             val stream =
-              reader.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
+              reader.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame())
 
             stream -> onClose
 
           case WebSocketSeparatePipe(send, receive, onClose) =>
             val writer: Stream[F, Nothing] =
-              send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame)
+              send.foreach(writeOutgoing) ++ Stream.exec(sendClosingFrame())
             val reader = incoming
               .through(decodeFrames[F])
               .evalMapFilter(handleIncomingFrame[F](writeFrameUnsafe, close, mut))
@@ -174,7 +179,27 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
             reader.concurrently(writer) -> onClose
         }
 
+        def onError(err: Throwable): F[Unit] = {
+          val closeCode = err match {
+            case transcode: TranscodeError =>
+              transcode.reason match {
+                case Some(TranscodeErrorReason.MaxFrameSizeExceeded) => Some(CloseStatusCode.TooBig)
+                case _ => Some(CloseStatusCode.ProtocolError)
+              }
+            case _: WebSocketFrameDefragmenter.MessageTooLong |
+                _: WebSocketFrameDefragmenter.TooManyFragments =>
+              Some(CloseStatusCode.TooBig)
+            case _: ProtocolException => Some(CloseStatusCode.ProtocolError)
+            case EndOfStreamError() | _: IOException | _: TimeoutException =>
+              None // connection is likely gone
+            case _ => Some(CloseStatusCode.UnexpectedCondition)
+          }
+
+          closeCode.traverse_(sendClosingFrame).attempt.void
+        }
+
         stream
+          .handleErrorWith(e => Stream.exec(onError(e)) ++ Stream.raiseError[F](e))
           .interruptWhen(close.map(_ == BothClosed))
           .onFinalize(onClose)
           .compile
@@ -210,7 +235,7 @@ private[internal] class WebSocketHelpers(maxFrameSize: Int) {
               case Open =>
                 // Peer closed first, so we answer and then handshake is complete.
                 for {
-                  frame <- F.fromEither(WebSocketFrame.Close(1000))
+                  frame <- F.pure(WebSocketFrame.Close(CloseStatusCode.Normal))
                   _ <- writeFrame(frame)
                   _ <- closeState.set(BothClosed)
                 } yield ()

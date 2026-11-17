@@ -70,11 +70,38 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
+  /** Pipe to parse a stream of bytes to a stream of parts.
+    *
+    * At most 50 parts are parsed.  If the input contains more, parsing fails
+    * with a `MalformedMessageBodyFailure`.  Use the 4-arg overload to configure
+    * the part limit and whether exceeding it fails or truncates.
+    *
+    * @param boundary The multipart boundary
+    * @param limit the maximum length of the part's header, in bytes
+    * @return the pipe
+    */
   def parseToPartsStream[F[_]](boundary: Boundary, limit: Int = 1024)(implicit
       F: Concurrent[F]
+  ): Pipe[F, Byte, Part[F]] =
+    parseToPartsStream(boundary, limit, maxParts = 50, failOnLimit = true)
+
+  /** Pipe to parse a stream of bytes to a stream of parts.
+    *
+    * @param boundary the multipart boundary
+    * @param limit the maximum length of any single part's header, in bytes
+    * @param maxParts the maximum number of parts to parse
+    * @param failOnLimit If `true`, exceeding `maxParts` fails the stream with a
+    *   `MalformedMessageBodyFailure`.  If `false`, parts beyond
+    *   the limit are silently dropped.
+    * @return the pipe
+    */
+  def parseToPartsStream[F[_]](boundary: Boundary, limit: Int, maxParts: Int, failOnLimit: Boolean)(
+      implicit F: Concurrent[F]
   ): Pipe[F, Byte, Part[F]] = { st =>
     st.through(
       parseEvents[F](boundary, limit)
+    ).through(
+      limitParts[F](maxParts, failOnLimit)
     )
       // The left half is the part under construction, the right half is a part to be emitted.
       .evalMapAccumulate[F, Option[Part[F]], Option[Part[F]]](None) { (acc, item) =>

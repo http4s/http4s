@@ -18,6 +18,7 @@ package org.http4s.websocket
 
 import cats.syntax.all._
 import org.http4s.Http4sSuite
+import org.http4s.websocket.FrameTranscoder.TranscodeErrorReason
 import org.http4s.websocket.WebSocketFrame._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen._
@@ -29,11 +30,11 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class WebSocketSuite extends Http4sSuite {
   private def helloTxtMasked =
-    intArrayOps(Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58)).map(
-      _.toByte
-    )
+    intArrayOps(Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58))
+      .map(_.toByte)
 
-  private def helloTxt = intArrayOps(Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f)).map(_.toByte)
+  private def helloTxtUnmasked =
+    intArrayOps(Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f)).map(_.toByte)
 
   def decode(
       msg: Array[Byte],
@@ -73,7 +74,7 @@ class WebSocketSuite extends Http4sSuite {
     assert(result.last)
     assertEquals(new String(result.data.toArray, UTF_8), "Hello")
 
-    val result2 = decode(helloTxt, isClient = true)
+    val result2 = decode(helloTxtUnmasked, isClient = true)
     assert(result2.last)
     assertEquals(new String(result2.data.toArray, UTF_8), "Hello")
   }
@@ -151,20 +152,134 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test("decode should reject a frame declaring a negative 64-bit length") {
-    // 0x82 = FIN
-    // 0x7f = Length-code: length is 64 bits
-    // 0xFFFFFFFFFFFFFFF6 = -10
+    // 0x82 -> FIN
+    // 0xff -> MASK=1, length-code 127: 64-bit length
+    // 0xFFFFFFFFFFFFFFF6 -> -10
+    // 0x00, 0x00, 0x00, 0x00 -> masking key
     val negativeLengthFrame = ByteVector(
-      0x82, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf6,
+      0x82, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf6, 0x00, 0x00, 0x00, 0x00,
     ).toArray
     intercept[FrameTranscoder.TranscodeError](decode(negativeLengthFrame, isClient = false))
   }
 
   test("decode rejects a frame whose declared length exceeds maxFrameSize") {
-    // 0x82 = FIN
-    // 0x7e = Length-code: length is 16 bits
-    // 0x00c8 = 200
-    val frame = ByteVector(0x82, 0x7e, 0x00, 0xc8).toArray
-    intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
+    // 0x82 -> FIN
+    // 0xfe -> MASK=1, length-code 126: 16-bit length
+    // 0x00c8 -> 200
+    // 0x00, 0x00, 0x00, 0x00 -> masking key
+    val frame = ByteVector(0x82, 0xfe, 0x00, 0xc8, 0x00, 0x00, 0x00, 0x00).toArray
+    val err =
+      intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false, maxFrameSize = 199))
+
+    assertEquals(err.reason, Some(TranscodeErrorReason.MaxFrameSizeExceeded))
+  }
+
+  test("decode rejects a masked frame when used by a client") {
+    // 0x81 -> FIN=1
+    // 0x85 -> MASK=1, payload length=5
+    // 0x01, 0x02, 0x03, 0x04 -> masking key
+    val frame =
+      ByteVector(0x81, 0x85, 0x01, 0x02, 0x03, 0x04, 0x4e, 0x6d, 0x73, 0x77, 0x20).toArray
+    val err =
+      intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = true))
+
+    assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
+  }
+
+  test("decode rejects an unmasked frame when used by a server") {
+    // 0x81 -> FIN=1
+    // 0x05 -> MASK=0, payload length=5
+    val frame = ByteVector(0x81, 0x05, 0x4f, 0x6f, 0x70, 0x73, 0x21).toArray
+    val err =
+      intercept[FrameTranscoder.TranscodeError](decode(frame, isClient = false))
+
+    assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
+  }
+
+  test("decode accepts control frames with a 125-byte payload") {
+    val maskingKey = ByteVector(0x01, 0x02, 0x03, 0x04)
+    val data = List.fill(125)(0x42.toByte)
+
+    def pingFrame(masked: Boolean) =
+      // 0x89 -> FIN=1, opcode=Ping
+      // 0xfd -> MASK=1, 125
+      // 0x7d -> MASK=0, 125
+      if (masked) {
+        val maskedArr =
+          data.zipWithIndex.map { case (b, i) => (b ^ maskingKey(i & 3L)).toByte }.toArray
+
+        (ByteVector(0x89, 0xfd) ++ maskingKey).toArray ++ maskedArr
+      } else
+        ByteVector(0x89, 0x7d).toArray ++ data
+
+    def check(frame: Array[Byte], isClient: Boolean): Unit =
+      assertEquals(decode(frame, isClient), Ping(ByteVector(data)))
+
+    check(pingFrame(masked = true), isClient = false)
+    check(pingFrame(masked = false), isClient = true)
+  }
+
+  test("decode rejects control frames with payloads exceeding 125 bytes") {
+    def closeFrame(masked: Boolean) = {
+      // 0x88 -> FIN=1, opcode=Close
+      // 0xfe -> MASK=1
+      // 0x7e -> MASK=0
+      // 0x00, 0x80 -> 128
+      // 0x01, 0x02, 0x03, 0x04 -> masking key
+      val head =
+        if (masked)
+          ByteVector(0x88, 0xfe, 0x00, 0x80, 0x01, 0x02, 0x03, 0x04)
+        else
+          ByteVector(0x88, 0x7e, 0x00, 0x80)
+      val data = ByteVector.fill(128)(0x42).toArray
+
+      head.toArray ++ data
+    }
+
+    def pingFrame(masked: Boolean) = {
+      // 0x89 -> FIN=1, opcode=Ping
+      // 0xfe -> MASK=1
+      // 0x7e -> MASK=0
+      // 0x00, 0x7e -> 126
+      // 0x01, 0x02, 0x03, 0x04 -> masking key
+      val head =
+        if (masked)
+          ByteVector(0x89, 0xfe, 0x00, 0x7e, 0x01, 0x02, 0x03, 0x04)
+        else
+          ByteVector(0x89, 0x7e, 0x00, 0x7e)
+      val data = ByteVector.fill(126)(0x42).toArray
+
+      head.toArray ++ data
+    }
+
+    def pongFrame(masked: Boolean) = {
+      // 0x8a -> FIN=1, opcode=Pong
+      // 0xfe -> MASK=1
+      // 0x7e -> MASK=0
+      // 0x00, 0x7e -> 126
+      // 0x01, 0x02, 0x03, 0x04 -> masking key
+      val head =
+        if (masked)
+          ByteVector(0x8a, 0xfe, 0x00, 0x7e, 0x01, 0x02, 0x03, 0x04)
+        else
+          ByteVector(0x8a, 0x7e, 0x00, 0x7e)
+      val data = ByteVector.fill(126)(0x42).toArray
+
+      head.toArray ++ data
+    }
+
+    def check(frame: Array[Byte], isClient: Boolean): Unit = {
+      val err =
+        intercept[FrameTranscoder.TranscodeError](decode(frame, isClient))
+
+      assertEquals(err.reason, Some(TranscodeErrorReason.InvalidFrame))
+    }
+
+    check(closeFrame(masked = true), isClient = false)
+    check(closeFrame(masked = false), isClient = true)
+    check(pingFrame(masked = true), isClient = false)
+    check(pingFrame(masked = false), isClient = true)
+    check(pongFrame(masked = true), isClient = false)
+    check(pongFrame(masked = false), isClient = true)
   }
 }

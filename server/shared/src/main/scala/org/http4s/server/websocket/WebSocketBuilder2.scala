@@ -38,7 +38,7 @@ import scala.concurrent.duration.FiniteDuration
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
-  * @param headers Handshake response headers, such as such as:Sec-WebSocket-Protocol.
+  * @param headers Handshake response headers, such as `Sec-WebSocket-Protocol`.
   * @param onNonWebSocketRequest The status code to return to a client making a non-websocket HTTP request to this route.
   *                              default: NotImplemented
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
@@ -227,10 +227,10 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (false, false) => sendReceive
         case (true, true) =>
           sendReceive.compose(
-            defragFragment(maxMessageSize, DefaultMaxFragmentCount).compose(filterPingPongFrames)
+            defragFragment(maxMessageSize, maxFragmentCount).compose(filterPingPongFrames)
           )
         case (false, true) =>
-          sendReceive.compose(defragFragment(maxMessageSize, DefaultMaxFragmentCount))
+          sendReceive.compose(defragFragment(maxMessageSize, maxFragmentCount))
       }
 
     buildResponse(startHeartbeat(WebSocketCombinedPipe(finalSendReceive, onClose)))

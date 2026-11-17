@@ -44,6 +44,14 @@ class EncoderSuite extends Http4sSuite {
         .compile
         .string
         .map(stripLines)
+
+    def encodeResponseRig[F[_]: Concurrent](req: Request[F], resp: Response[F]): F[String] =
+      Encoder
+        .respToBytes(req.some, resp)
+        .through(fs2.text.utf8.decode[F])
+        .compile
+        .string
+        .map(stripLines)
   }
 
   test("reqToBytes should encode a no body GET request correctly") {
@@ -137,6 +145,18 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeResponseRig(resp).assertEquals(expected)
   }
 
+  test("respToBytes should encode a 205 no body response correctly") {
+    val resp = Response[IO](Status.ResetContent)
+
+    val expected =
+      """HTTP/1.1 205 Reset Content
+      |Content-Length: 0
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
   test("respToBytes should encode a no body response correctly with no header") {
     val resp = Response[IO](Status.Ok)
 
@@ -211,6 +231,17 @@ class EncoderSuite extends Http4sSuite {
       |""".stripMargin
 
     Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
+  test("encode an empty HEAD response correctly") {
+    val req = Request[IO](Method.HEAD)
+    val resp = Response[IO](Status.Ok)
+    val expected =
+      """HTTP/1.1 200 OK
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(req, resp).assertEquals(expected)
   }
 
   test("encode a response with a body correctly") {

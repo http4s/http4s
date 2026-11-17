@@ -20,8 +20,9 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 ThisBuild / githubWorkflowJobSetup ~= { steps =>
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("cachix", "install-nix-action", "v27"),
-      name = Some("Install Nix"),
+      UseRef
+        .Public("samueldr", "lix-gha-installer-action", "a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d"),
+      name = Some("Install Lix"),
     )
   ) ++ steps
 }
@@ -395,6 +396,18 @@ lazy val client = libraryCrossProject("client")
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
           ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.cookieAppliesToRequest"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.cookiesForRequest"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.extractFromResponseCookie"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.middleware.CookieJar.extractFromResponseCookies"
+          ),
         )
       else Seq.empty
     },
@@ -587,6 +600,54 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.h2.H2Connection#State.apply"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.addContinuation"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.start"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.writeWindow"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.writeBlock"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$3"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$5"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$6"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$7"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$9"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.this"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$10"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$11"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -610,6 +671,27 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ),
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.ember.core.h2.H2Keys.H2cUpgrade"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._3"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._5"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._6"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._7"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._9"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._10"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._11"
           ),
         )
       else Seq.empty
@@ -676,7 +758,8 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .jvmSettings(
     libraryDependencies ++= Seq(
       log4catsSlf4j,
-      javaWebSocket % Test,
+      // Exclude a mismatching slf4j version so logs are printed in tests
+      (javaWebSocket % Test).exclude("org.slf4j", "slf4j-api"),
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
   )

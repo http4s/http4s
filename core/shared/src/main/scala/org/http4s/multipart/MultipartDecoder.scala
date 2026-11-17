@@ -19,6 +19,7 @@ package multipart
 
 import cats.data.EitherT
 import cats.effect.Concurrent
+import cats.effect.Ref
 import cats.effect.Resource
 import cats.effect.std.Supervisor
 import cats.syntax.all._
@@ -92,20 +93,51 @@ private[http4s] object MultipartDecoder {
       )
     }
 
-  /** A decoder for `multipart/form-data` content, where each "part"
-    * is stored to an in-memory buffer which can be read repeatedly
-    * as a `Stream[F, Byte]`.
+  /** A decoder for `multipart/form-data` content, with default limits.
     *
-    * Note that this decoder should typically be avoided when expecting
-    * to receive file uploads, as this would cause the content of each
-    * uploaded file to be loaded into memory.
+    * This is the decoder backing the implicit `EntityDecoder[F, Multipart[F]]`,
+    * i.e. what `req.as[Multipart[F]]` resolves to.
     *
-    * @return A decoder for `multipart/form-data` content, with part
-    *         bodies buffered in memory.
+    * Each part body is buffered in memory and exposed as a `Stream[F, Byte]`.
+    * When expecting file uploads, prefer [[mixedMultipartResource]], which
+    * buffers large part bodies to temporary files instead of memory.
+    *
+    * Uses the following defaults:
+    * - `headerLimit = 1024`
+    * - `maxParts = 50`
+    * - `failOnLimit = true`
+    *
+    * @return a `multipart/form-data` decoder that buffers into memory
     */
   def decoder[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
+    decoder(headerLimit = 1024, maxParts = 50, failOnLimit = true)
+
+  /** A decoder for `multipart/form-data` content, where each part body is
+    * buffered in memory and exposed as a `Stream[F, Byte]`.
+    *
+    * Note that this decoder should typically be avoided when expecting to
+    * receive file uploads, as it buffers the content of each uploaded file
+    * into memory.  Prefer [[mixedMultipartResource]] in that case.
+    *
+    * @param headerLimit the maximum size, in bytes, of any single part's header
+    *   block.  A part whose headers exceed this fails with a
+    *   `MalformedMessageBodyFailure`.  This does not limit part
+    *   body sizes.
+    * @param maxParts the maximum number of parts to decode.
+    * @param failOnLimit If `true`, a body containing more than `maxParts` parts
+    *   is rejected with a `MalformedMessageBodyFailure`.  If
+    *   `false`, parts beyond the limit are silently dropped.
+    * @return a `multipart/form-data` decoder with part bodies buffered in memory
+    */
+  def decoder[F[_]: Concurrent](
+      headerLimit: Int,
+      maxParts: Int,
+      failOnLimit: Boolean,
+  ): EntityDecoder[F, Multipart[F]] =
     makeDecoder[F, Part[F], Vector, Multipart[F]](
-      MultipartParser.parseToPartsStream[F](_).andThen(_.map(Right(_))),
+      MultipartParser
+        .parseToPartsStream[F](_, headerLimit, maxParts, failOnLimit)
+        .andThen(_.map(Right(_))),
       Vector,
       (parts, boundary) => Right(Multipart(parts, boundary)),
     )
@@ -162,6 +194,80 @@ private[http4s] object MultipartDecoder {
           maxParts = Some(maxParts),
           failOnLimit = failOnLimit,
         ),
+        Vector,
+        (parts, boundary) => Right(Multipart[F](parts, boundary)),
+      )
+    }
+
+  /** Multipart decoder that streams all parts into a temporary file once the
+    * parts sum to at least `maxTotalSizeBeforeWrite`. The decoder is only
+    * valid inside the `Resource` scope; once the `Resource` is released all
+    * the created files are deleted.
+    *
+    * Note that no files are deleted until the `Resource` is released. Thus,
+    * sharing and reusing the resulting `EntityDecoder` is not recommended
+    * and can lead to disk space leaks.
+    *
+    * The intended way to use this is as follows:
+    * {{{
+    * mixedMultipartResourceTotalLimit[F]()
+    *   .flatTap(request.decodeWith(_, strict = true))
+    *   .use { multipart =>
+    *     // Use the decoded entity
+    *   }
+    * }}}
+    *
+    * @param headerLimit the max size for the headers, in bytes. This is
+    *                    required as headers are strictly evaluated and parsed.
+    * @param maxTotalSizeBeforeWrite the maximum size across all parts before
+    *                                writing to a file is triggered
+    * @param maxParts the maximum number of parts this decoder accepts. NOTE:
+    *                 this also may mean that a body that doesn't conform
+    *                 perfectly to the spec (i.e isn't terminated properly) but
+    *                 has a lot of parts might be parsed correctly, despite the
+    *                 total body being malformed due to not conforming to the
+    *                 multipart spec. You can control this by `failOnLimit`, by
+    *                 setting it to true if you want to raise an error if
+    *                 sending too many parts to a particular endpoint
+    * @param failOnLimit Fail if `maxParts` is exceeded _during_ multipart parsing.
+    * @param chunkSize the size of chunks created when reading data from
+    *                  temporary files.
+    * @return A multipart/form-data encoded vector of parts with some part
+    *         bodies held in temporary files.
+    */
+  def mixedMultipartResourceTotalLimit[F[_]: Concurrent: Files](
+      headerLimit: Int = 1024,
+      maxTotalSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 50,
+      failOnLimit: Boolean = false,
+      chunkSize: Int = 8192,
+  ): Resource[F, EntityDecoder[F, Multipart[F]]] =
+    Supervisor[F].map { supervisor =>
+      val supervisedDecode = { (boundary: Boundary) => (pipe: Stream[F, Byte]) =>
+        Stream.eval(Ref.of(0L)).flatMap { totalBytesRead =>
+          val partReceiver = PartReceiver
+            .toMixedBufferTotal[F](
+              totalBytesRead,
+              maxTotalSizeBeforeWrite,
+              chunkSize,
+            )
+            .mapWithHeaders(Part.apply[F])
+
+          pipe.through(
+            MultipartParser.decodePartsSupervised[F, Part[F]](
+              supervisor,
+              boundary,
+              part => EitherT(partReceiver.receive(part)),
+              limit = headerLimit,
+              maxParts = Some(maxParts),
+              failOnLimit = failOnLimit,
+            )
+          )
+        }
+      }
+
+      makeDecoder[F, Part[F], Vector, Multipart[F]](
+        supervisedDecode,
         Vector,
         (parts, boundary) => Right(Multipart[F](parts, boundary)),
       )

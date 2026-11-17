@@ -193,4 +193,133 @@ class ServerSentEventSpec extends Http4sSuite {
     } yield assertEquals(r, e)
   }
 
+  test("encode splits multi-line data into multiple data: fields") {
+    val sse = ServerSentEvent(data = "first\nsecond\nthird".some)
+    val encoded = Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .through(utf8.decode)
+      .compile
+      .string
+    assertEquals(encoded, "data: first\ndata: second\ndata: third\n\n")
+  }
+
+  test("encode splits multi-line comments into multiple comment fields") {
+    val sse = ServerSentEvent(comment = "line1\nline2".some)
+    val encoded = Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .through(utf8.decode)
+      .compile
+      .string
+    assertEquals(encoded, ": line1\n: line2\n\n")
+  }
+
+  test("encode normalizes CR and CRLF in data and comments to LF") {
+    val value = "a\r\nb\rc\r\n\r"
+    val sse = ServerSentEvent(data = value.some, comment = value.some)
+    val encoded = Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .through(utf8.decode)
+      .compile
+      .string
+    assertEquals(encoded, "data: a\ndata: b\ndata: c\ndata: \ndata: \n: a\n: b\n: c\n: \n: \n\n")
+  }
+
+  test("encode should render trailing empty lines in data and comments") {
+    val sse = ServerSentEvent(data = "a\n".some, comment = "b\n".some)
+    val encoded = Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .through(utf8.decode)
+      .compile
+      .string
+    assertEquals(encoded, "data: a\ndata: \n: b\n: \n\n")
+  }
+
+  test("encode should preserve empty and trailing lines") {
+    List("", "\n", "\n\n", "a\n", "a\n\n").foreach { value =>
+      val sse = ServerSentEvent(data = value.some, comment = value.some)
+      val roundTrip = Stream
+        .emit(sse)
+        .through(ServerSentEvent.encoder)
+        .through(ServerSentEvent.decoder)
+        .dropLast
+        .compile
+        .toVector
+      assertEquals(roundTrip, Vector(sse))
+    }
+  }
+
+  test("encode permits NUL in data, comments, and eventType") {
+    val value = "a\u0000b"
+    val sse = ServerSentEvent(data = value.some, comment = value.some, eventType = value.some)
+    val encoded = Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .through(utf8.decode)
+      .compile
+      .string
+    assertEquals(encoded, "data: a\u0000b\n: a\u0000b\nevent: a\u0000b\n\n")
+
+    val roundTrip = Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .through(ServerSentEvent.decoder)
+      .dropLast
+      .compile
+      .toVector
+    assertEquals(roundTrip, Vector(sse))
+  }
+
+  List("CR" -> "\r", "LF" -> "\n", "CRLF" -> "\r\n").foreach { case (name, value) =>
+    test(s"encode rejects $name in eventType") {
+      val sse = ServerSentEvent(data = "x".some, eventType = s"evil${value}event: forged".some)
+      Stream
+        .emit(sse)
+        .through(ServerSentEvent.encoder)
+        .covary[IO]
+        .compile
+        .drain
+        .intercept[IllegalArgumentException]
+    }
+
+    test(s"encode rejects $name in id") {
+      val sse = ServerSentEvent(data = "x".some, id = EventId(s"evil${value}id: forged").some)
+      Stream
+        .emit(sse)
+        .through(ServerSentEvent.encoder)
+        .covary[IO]
+        .compile
+        .drain
+        .intercept[IllegalArgumentException]
+    }
+  }
+
+  test("encode rejects NUL in id") {
+    val sse = ServerSentEvent(data = "x".some, id = EventId("a\u0000b").some)
+    Stream
+      .emit(sse)
+      .through(ServerSentEvent.encoder)
+      .covary[IO]
+      .compile
+      .drain
+      .intercept[IllegalArgumentException]
+  }
+
+  test("multi-line data does not forge extra events") {
+    val payload = "first\nevent: forged\n\nid: evil\nretry: 1\ndata: second"
+    val decoded = Stream
+      .emit(ServerSentEvent(data = payload.some))
+      .through(ServerSentEvent.encoder)
+      .through(ServerSentEvent.decoder)
+      .dropLast
+      .compile
+      .toVector
+    assertEquals(
+      decoded,
+      Vector(ServerSentEvent(data = payload.some)),
+    )
+  }
 }
