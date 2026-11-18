@@ -131,6 +131,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaJavaTime = "2.7.0"
     val scodecBits = "1.2.5"
     val slf4j = "1.7.36"
+    val testcontainers = "2.0.5"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
     val vault = "3.7.0"
@@ -193,6 +194,7 @@ object Http4sPlugin extends AutoPlugin {
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
+  lazy val testcontainers = "org.testcontainers" % "testcontainers" % V.testcontainers
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
   lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack
   lazy val vault = Def.setting("org.typelevel" %%% "vault" % V.vault)
