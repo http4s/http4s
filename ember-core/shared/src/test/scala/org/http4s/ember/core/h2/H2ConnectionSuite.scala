@@ -121,7 +121,7 @@ class H2ConnectionSuite extends H2Suite {
       writeWindow <- H2Connection.WriteWindow.init[IO](
         H2Frame.Settings.SettingsInitialWindowSize(initialConnectionWindowSize)
       )
-      outgoing <- Queue.unbounded[IO, H2Frame]
+      outgoing <- Queue.unbounded[IO, EncodableH2Frame]
       created <- Queue.unbounded[IO, Int]
       closed <- Queue.unbounded[IO, Int]
       hpack <- Hpack.create[IO](
@@ -151,7 +151,7 @@ class H2ConnectionSuite extends H2Suite {
       logger,
     )
 
-  private def dataFrame(size: Int): H2Frame =
+  private def dataFrame(size: Int): H2Frame.Data =
     H2Frame.Data(1, ByteVector.fill(size.toLong)(0), None, endStream = false)
 
   private def settingsWithMaxHeaderListSize(
@@ -343,7 +343,7 @@ class H2ConnectionSuite extends H2Suite {
         frames <- written(h2, writes)
       } yield {
         assertEquals(windowUpdates(0, frames), Vector(32768), clue(frames))
-        assertEquals(resets(1, frames), Vector.fill(2)(H2Error.StreamClosed.value), clue(frames))
+        assertEquals(resets(1, frames), Vector.empty, clue(frames))
         assertEquals(goAways(frames), Vector.empty, clue(frames))
       }
     }

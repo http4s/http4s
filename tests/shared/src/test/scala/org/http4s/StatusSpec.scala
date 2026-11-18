@@ -62,6 +62,17 @@ class StatusSpec extends StatusDeprecatedSpec {
     }
   }
 
+  test("fromString should parse a 3 digit status code") {
+    assertEquals(fromString("204"), Right(NoContent))
+    assertEquals(fromString("299").map(_.code), Right(299))
+  }
+
+  test("fromString should reject anything but 3 digits in range") {
+    List("", "abc", "+20", "-20", " 20", "2000", "099", "600", "２００").foreach { code =>
+      assert(fromString(code).isLeft, code)
+    }
+  }
+
   test("The collection of registered statuses should contain 62 standard ones") {
     assertEquals(Status.registered.size, 62)
   }
