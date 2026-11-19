@@ -17,10 +17,12 @@
 package org.http4s.client.middleware
 
 import cats._
+import cats.data.NonEmptyList
 import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
+import org.http4s.headers.Cookie
 import org.typelevel.ci.CIString
 
 import java.util.Locale
@@ -80,11 +82,8 @@ object CookieJar {
         _ <- Resource.eval(alg.evictExpired)
         modRequest <- Resource.eval(alg.enrichRequest(req))
         out <- client.run(modRequest)
-        _ <- Resource.eval(
-          out.cookies
-            .take(DefaultMaxCookiesPerResponse)
-            .traverse_(alg.addCookie(_, req.uri))
-        )
+        cookies = out.cookies.take(DefaultMaxCookiesPerResponse)
+        _ <- Resource.eval(alg.addCookies(cookies.tupleRight(req.uri)).whenA(cookies.nonEmpty))
       } yield out
     }
 
@@ -173,8 +172,7 @@ object CookieJar {
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {
         values <- ref.get.map(_.values.toList)
-      } yield cookiesForRequest(r, values, psl)
-        .foldLeft(r) { case (req, cookie) => req.addCookie(cookie) }
+      } yield withCookies(r, cookiesForRequest(r, values, psl))
   }
 
   private[middleware] final case class CookieKey(
@@ -227,11 +225,10 @@ object CookieJar {
       cookies: G[(ResponseCookie, Uri)],
       httpDate: HttpDate,
   ): Map[CookieKey, CookieValue] =
-    cookies
-      .foldRight(Eval.now(m)) { case ((rc, uri), eM) =>
-        eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri, psl))
-      }
-      .value
+    // In order, so a later cookie replaces an earlier one (RFC 6265 5.3).
+    cookies.foldLeft(m) { case (acc, (rc, uri)) =>
+      extractFromResponseCookie(acc)(rc, httpDate, uri, psl)
+    }
 
   private[middleware] def extractFromResponseCookie(
       m: Map[CookieKey, CookieValue]
@@ -259,6 +256,16 @@ object CookieJar {
         m
     }
   }
+
+  // Adds all the cookies in one update to the Cookie header. Adding them one at a
+  // time with addCookie re-parses and re-renders the header each time, which is
+  // quadratic in the number of cookies.
+  private def withCookies[N[_]](r: Request[N], cookies: List[RequestCookie]): Request[N] =
+    NonEmptyList.fromList(cookies).fold(r) { nel =>
+      r.putHeaders(
+        r.headers.get[Cookie].fold(Cookie(nel))(_ |+| Cookie(nel))
+      )
+    }
 
   private[middleware] def responseCookieToRequestCookie(r: ResponseCookie): RequestCookie =
     RequestCookie(r.name, r.content)

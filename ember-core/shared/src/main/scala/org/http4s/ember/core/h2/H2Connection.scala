@@ -267,6 +267,15 @@ private[h2] class H2Connection[F[_]](
         closeWithGoAway(g)
     } >> H2Connection.KillWithoutMessage().raiseError
 
+  /** Local streams above `lastStreamId` were not processed by the peer. */
+  private def unprocessed(id: Int, goAway: H2Frame.GoAway): Boolean = {
+    val local = connectionType match {
+      case H2Connection.ConnectionType.Server => id % 2 == 0
+      case H2Connection.ConnectionType.Client => id % 2 != 0
+    }
+    local && id > goAway.lastStreamId
+  }
+
   private def closeWithGoAway(goAway: H2Frame.GoAway) =
     mapRef.get.flatMap(m => m.values.toList.traverse_(stream => stream.receiveGoAway(goAway))) >>
       state.update(s => s.copy(closed = true))
@@ -677,8 +686,13 @@ private[h2] class H2Connection[F[_]](
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
-        mapRef.get.flatMap { m =>
-          m.values.toList.traverse_(connection => connection.receiveGoAway(g))
+        val graceful = g.errorCode.toInt == H2Error.NoError.value
+        streamCreateAndHeaders.use { _ =>
+          mapRef.get.flatMap { m =>
+            m.values.toList
+              .filter(stream => !graceful || unprocessed(stream.id, g))
+              .traverse_(_.receiveGoAway(g))
+          }
         } >> offerFrame(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
@@ -767,6 +781,14 @@ private[h2] class H2Connection[F[_]](
         case None => F.unit
       }
 
+    def cancelClientStreams: F[Unit] = connectionType match {
+      case H2Connection.ConnectionType.Client =>
+        mapRef.get.flatMap(_.values.toList.traverse_(_.connectionClosed))
+      case H2Connection.ConnectionType.Server => F.unit
+    }
+
+    val markClosed = state.update(s => s.copy(closed = true))
+
     readLoopAux(acc)
       .recoverWith { case H2Connection.KillWithoutMessage() =>
         logger.debug(s"ReadLoop has received that is should kill")
@@ -774,10 +796,11 @@ private[h2] class H2Connection[F[_]](
       .guaranteeCase {
         case Outcome.Errored(e) =>
           logger.error(e)(s"ReadLoop has errored") >>
-            goAway(H2Error.InternalError).attempt.void >>
-            state.update(s => s.copy(closed = true))
+            markClosed >>
+            cancelClientStreams >>
+            goAway(H2Error.InternalError).attempt.void
         case _ =>
-          state.update(s => s.copy(closed = true))
+          markClosed >> cancelClientStreams
       }
   }
 

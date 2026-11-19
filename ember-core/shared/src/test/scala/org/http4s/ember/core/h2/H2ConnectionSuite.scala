@@ -21,6 +21,7 @@ import cats.effect._
 import cats.effect.std.Queue
 import cats.effect.std.Semaphore
 import cats.effect.testkit.TestControl
+import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pipe
@@ -45,17 +46,21 @@ class H2ConnectionSuite extends H2Suite {
 
   private val addr = SocketAddress(ip"127.0.0.1", port"0")
 
-  private def stubSocket(bytes: ByteVector, recorded: Ref[IO, ByteVector]): IO[Socket[IO]] =
+  private def stubSocket(
+      bytes: ByteVector,
+      recorded: Ref[IO, ByteVector],
+      eof: Boolean,
+  ): IO[Socket[IO]] =
     Ref[IO].of(bytes).map { ref =>
       new Socket[IO] {
         def read(maxBytes: Int): IO[Option[Chunk[Byte]]] =
           ref.modify { bv =>
-            if (bv.isEmpty) (bv, None)
+            if (bv.isEmpty) (bv, if (eof) IO.none else IO.never)
             else {
               val (h, t) = bv.splitAt(maxBytes.toLong)
-              (t, Some(Chunk.byteVector(h)))
+              (t, IO.some(Chunk.byteVector(h)))
             }
-          }
+          }.flatten
         // Implement only as necessary...
         def endOfInput: IO[Unit] = ???
         def endOfOutput: IO[Unit] = ???
@@ -109,9 +114,10 @@ class H2ConnectionSuite extends H2Suite {
       connectionType: H2Connection.ConnectionType = H2Connection.ConnectionType.Server,
       initialConnectionWindowSize: Int =
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize.windowSize,
+      eof: Boolean = true,
   ): IO[H2Connection[IO]] =
     for {
-      socket <- stubSocket(input, writes)
+      socket <- stubSocket(input, writes, eof)
       mapRef <- Ref[IO].of(Map.empty[Int, H2Stream[IO]])
       stateRef <- H2Connection.initState[IO](
         remoteSettings,
@@ -475,6 +481,54 @@ class H2ConnectionSuite extends H2Suite {
       _ <- h2.readLoop
       frames <- drainOutgoing(h2, writes)
     } yield assertEquals(frames.collect { case g: H2Frame.GoAway => g }, Vector.empty, clue(frames))
+  }
+
+  List(
+    (H2Error.NoError, List(false, true)),
+    (H2Error.ProtocolError, List(true, true)),
+  ).foreach { case (error, expected) =>
+    test(s"GOAWAY $error with lastStreamId 1 closes the expected client streams") {
+      TestControl.executeEmbed {
+        for {
+          writes <- Ref[IO].of(ByteVector.empty)
+          h2 <- mkConnection(
+            H2Frame.Settings.ConnectionSettings.default,
+            H2Frame.toByteVector(error.toGoAway(1)),
+            Duration.Inf,
+            writes,
+            connectionType = H2Connection.ConnectionType.Client,
+            eof = false,
+          )
+          streams <- h2.initiateLocalStream.replicateA(2)
+          closed <- h2.readLoop.background.surround(
+            IO.sleep(1.second) >>
+              streams.traverse(_.state.get.map(_.state == H2Stream.StreamState.Closed))
+          )
+        } yield {
+          assertEquals(streams.map(_.id), List(1, 3))
+          assertEquals(closed, expected)
+        }
+      }
+    }
+  }
+
+  test("streams left open by a graceful GOAWAY fail when the connection closes") {
+    for {
+      writes <- Ref[IO].of(ByteVector.empty)
+      h2 <- mkConnection(
+        H2Frame.Settings.ConnectionSettings.default,
+        H2Frame.toByteVector(H2Error.NoError.toGoAway(1)),
+        Duration.Inf,
+        writes,
+        connectionType = H2Connection.ConnectionType.Client,
+      )
+      stream <- h2.initiateLocalStream
+      _ <- h2.readLoop
+      response <- stream.getResponse.timeout(1.second).attempt
+    } yield assert(
+      response.left.exists(_.getMessage == "Connection closed, cancelling"),
+      clue(response),
+    )
   }
 
   test("window update for an idle stream is a connection error") {

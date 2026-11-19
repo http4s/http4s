@@ -120,6 +120,7 @@ class H2FlowControlReviewSuite extends H2Suite {
     for {
       stream <- h2.initiateRemoteStreamById(id)
       _ <- stream.state.update(_.copy(state = H2Stream.StreamState.Open))
+      _ <- stream.state.get.flatMap(_.response.complete(Right(org.http4s.Response())))
       // Model the connection debit made immediately before receiveData.
       _ <- h2.state.update(s =>
         s.copy(
