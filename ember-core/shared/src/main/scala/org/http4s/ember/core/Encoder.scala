@@ -110,11 +110,17 @@ private[ember] object Encoder {
   def reqToBytes[F[_]: ApplicativeThrow](
       req: Request[F],
       writeBufferSize: Int = 32 * 1024,
+      absoluteForm: Boolean = false,
   ): Stream[F, Byte] = {
-    val uriOriginFormString = req.uri.toOriginForm.renderString
+    // Absolute form names the origin server for a proxy that forwards the request rather than
+    // tunneling it. The path is absolutized so that an authority without one still renders a
+    // target. RFC 9112, section 3.2.2.
+    val requestTarget =
+      if (absoluteForm) req.uri.withPath(req.uri.path.toAbsolute).withoutFragment.renderString
+      else req.uri.toOriginForm.renderString
 
-    if (uriOriginFormString.exists(ForbiddenUriCharacters)) {
-      Stream.raiseError(new IllegalArgumentException(s"Invalid URI: ${uriOriginFormString}"))
+    if (requestTarget.exists(ForbiddenUriCharacters)) {
+      Stream.raiseError(new IllegalArgumentException(s"Invalid URI: ${requestTarget}"))
     } else {
       var chunked = req.isChunked
       val initSection = {
@@ -125,7 +131,7 @@ private[ember] object Encoder {
         stringBuilder
           .append(req.method.renderString)
           .append(SPACE)
-          .append(uriOriginFormString)
+          .append(requestTarget)
           .append(SPACE)
           .append(req.httpVersion.renderString)
           .append(CRLF)
