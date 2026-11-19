@@ -69,7 +69,7 @@ class StrictTransportSecuritySuite extends HeaderLaws {
   }
   test("unsafeFromDuration should fail for negative durations") {
     intercept[ParseFailure] {
-      `Strict-Transport-Security`.unsafeFromDuration(-10.hours).value
+      `Strict-Transport-Security`.unsafeFromDuration((-10).hours).value
     }
   }
 

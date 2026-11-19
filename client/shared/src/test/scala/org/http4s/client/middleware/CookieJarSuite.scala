@@ -422,6 +422,24 @@ class CookieJarSuite extends Http4sSuite {
     )
   }
 
+  test("enrichRequest should append the jar's cookies to an existing Cookie header") {
+    val uri = uri"http://example.com/"
+    val stored = List("a", "b", "c").map { name =>
+      (ResponseCookie(name, s"v$name", domain = Some("example.com")), uri)
+    }
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookies(stored)
+      req <- jar.enrichRequest(Request[IO](Method.GET, uri).addCookie("existing", "v"))
+    } yield {
+      assertEquals(req.headers.headers.count(_.name == Header[Cookie].name), 1)
+      val names = req.headers.get[Cookie].toList.flatMap(_.values.toList.map(_.name))
+      // The jar's cookies come from a Map, so only the existing cookie's position is fixed
+      assertEquals(names.headOption, Some("existing"))
+      assertEquals(names.drop(1).sorted, List("a", "b", "c"))
+    }
+  }
+
   test("addCookies should bound the stored cookies, evicting the oldest first") {
     import scala.concurrent.duration._
     val cap = CookieJar.DefaultMaxCookies
@@ -474,5 +492,68 @@ class CookieJarSuite extends Http4sSuite {
         .expect[String](Request[IO](Method.GET, uri"http://example.com/"))
         .map(_.toInt)
     } yield assertEquals(count, CookieJar.DefaultMaxCookiesPerResponse)
+  }
+
+  test("addCookies should keep the last of several cookies with the same key") {
+    val uri = uri"http://example.com/"
+    val cookies = List("first", "second", "third").map(v => (ResponseCookie("a", v), uri))
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookies(cookies)
+      req <- jar.enrichRequest(Request[IO](Method.GET, uri))
+    } yield assertEquals(
+      req.headers.get[Cookie].map(_.values.toList),
+      Some(List(RequestCookie("a", "third"))),
+    )
+  }
+
+  test("set-cookie should let a later cookie in the same response replace an earlier one") {
+    // A server rotating a session deletes the old cookie and sets the new one
+    val app = HttpApp[IO] { _ =>
+      Response[IO](Status.Ok)
+        .putHeaders(
+          `Set-Cookie`(ResponseCookie("sid", "", maxAge = Some(0L))),
+          `Set-Cookie`(ResponseCookie("sid", "new")),
+        )
+        .pure[IO]
+    }
+    val req = Request[IO](Method.GET, uri"http://example.com/")
+    for {
+      jar <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      _ <- jar.addCookie(ResponseCookie("sid", "old"), req.uri)
+      _ <- CookieJar(jar)(Client.fromHttpApp(app)).successful(req)
+      enriched <- jar.enrichRequest(req)
+    } yield assertEquals(
+      enriched.headers.get[Cookie].map(_.values.toList),
+      Some(List(RequestCookie("sid", "new"))),
+    )
+  }
+
+  test("set-cookie should store all of a response's cookies in one addCookies call") {
+    val app = HttpApp[IO] { req =>
+      val resp = Response[IO](Status.Ok)
+      if (req.uri.path.renderString == "/set")
+        resp
+          .putHeaders((0 until 3).map(i => `Set-Cookie`(ResponseCookie(s"c$i", "v"))).toList)
+          .pure[IO]
+      else resp.pure[IO]
+    }
+    for {
+      underlying <- CookieJar.jarImpl[IO](PublicSuffixMatcher.default)
+      calls <- Ref[IO].of(List.empty[Int])
+      jar = new CookieJar[IO] {
+        def evictExpired: IO[Unit] = underlying.evictExpired
+        def evictAll: IO[Unit] = underlying.evictAll
+        def addCookies[G[_]: cats.Foldable](cookies: G[(ResponseCookie, Uri)]): IO[Unit] =
+          calls.update(cookies.size.toInt :: _) *> underlying.addCookies(cookies)
+        def enrichRequest[G[_]](r: Request[G]): IO[Request[G]] = underlying.enrichRequest(r)
+        override def cookies: IO[List[ResponseCookie]] = underlying.cookies
+      }
+      client = CookieJar(jar)(Client.fromHttpApp(app))
+      _ <- client.successful(Request[IO](Method.GET, uri"http://example.com/set"))
+      // A response without cookies doesn't touch the jar
+      _ <- client.successful(Request[IO](Method.GET, uri"http://example.com/"))
+      batches <- calls.get
+    } yield assertEquals(batches, List(3))
   }
 }
