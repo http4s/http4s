@@ -115,6 +115,7 @@ class H2ConnectionSuite extends H2Suite {
       initialConnectionWindowSize: Int =
         H2Frame.Settings.ConnectionSettings.default.initialWindowSize.windowSize,
       eof: Boolean = true,
+      receiveHeadersTimeout: Duration = Duration.Inf,
   ): IO[H2Connection[IO]] =
     for {
       socket <- stubSocket(input, writes, eof)
@@ -139,7 +140,7 @@ class H2ConnectionSuite extends H2Suite {
     } yield new H2Connection[IO](
       addr,
       connectionType,
-      Duration.Inf,
+      receiveHeadersTimeout,
       idleTimeout,
       localSettings,
       mapRef,
@@ -574,7 +575,14 @@ class H2ConnectionSuite extends H2Suite {
       headerBlock <- hpack.encodeHeaders(NonEmptyList.one(("x-header", "a" * 60, false)))
       splitAt = headerBlock.length / 2
       headers =
-        H2Frame.Headers(1, None, endStream = false, endHeaders = false, headerBlock.take(splitAt), None)
+        H2Frame.Headers(
+          1,
+          None,
+          endStream = false,
+          endHeaders = false,
+          headerBlock.take(splitAt),
+          None,
+        )
       cont = H2Frame.Continuation(1, endHeaders = true, headerBlock.drop(splitAt))
       input = H2Frame.toByteVector(headers) ++ H2Frame.toByteVector(cont)
       writes <- Ref[IO].of(ByteVector.empty)
@@ -642,6 +650,32 @@ class H2ConnectionSuite extends H2Suite {
         clue(frames),
       )
     } yield ()
+  }
+
+  test("receiveHeadersTimeout expires independently of idleTimeout") {
+    val receiveHeadersTimeout = 1.second
+    val idleTimeout = Duration.Inf
+    val headers =
+      H2Frame.Headers(1, None, endStream = false, endHeaders = false, ByteVector(0x82), None)
+
+    TestControl.executeEmbed {
+      for {
+        writes <- Ref[IO].of(ByteVector.empty)
+        h2 <- mkConnection(
+          H2Frame.Settings.ConnectionSettings.default,
+          H2Frame.toByteVector(headers),
+          idleTimeout,
+          writes,
+          eof = false,
+          receiveHeadersTimeout = receiveHeadersTimeout,
+        )
+        readLoop <- h2.readLoop.start
+        writeLoop <- h2.writeLoop.compile.drain.start
+        _ <- readLoop.join
+        frames <- writes.get.map(decodeFrames)
+        _ <- writeLoop.cancel
+      } yield assertEquals(goAways(frames), Vector(H2Error.EnhanceYourCalm.value), clue(frames))
+    }
   }
 
   test("connection window update accepts the maximum and wakes blocked writes") {
