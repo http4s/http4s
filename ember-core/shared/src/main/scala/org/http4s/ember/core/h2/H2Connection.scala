@@ -28,7 +28,6 @@ import fs2.concurrent.Channel
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import org.http4s.ember.core.EmberException
-import org.http4s.ember.core.h2.H2Connection.ContinuationProgress
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -96,10 +95,6 @@ private[h2] class H2Connection[F[_]](
     id > 0 && (if (remoteParity) id <= st.remoteHighestStream else id <= st.highestStream)
   }
 
-  private[this] def receiveHeadersForClosedStream(id: Int, block: ByteVector): F[Unit] =
-    logger.debug(s"$addrStr Received Headers for Closed Stream $id - Ignoring") >>
-      hpack.discardHeaders(block).onError(onHpackError)
-
   private[this] val onHpackError: PartialFunction[Throwable, F[Unit]] = {
     case e @ EmberException.MessageTooLong(_) =>
       logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
@@ -163,7 +158,7 @@ private[h2] class H2Connection[F[_]](
       readBufferLock,
       offerFrame,
       closedStreams.offer(id),
-      goAway,
+      goAway[Unit],
       creditReadWindow,
       logger,
     )
@@ -215,7 +210,7 @@ private[h2] class H2Connection[F[_]](
       readBufferLock,
       offerFrame,
       closedStreams.offer(id),
-      goAway,
+      goAway[Unit],
       creditReadWindow,
       logger,
     )
@@ -245,7 +240,7 @@ private[h2] class H2Connection[F[_]](
         mapRef.get.flatMap(_.values.toList.traverse_(_.sendReadWindowUpdate))
     }
 
-  def goAway(error: H2Error): F[Unit] =
+  def goAway[A](error: H2Error): F[A] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
       val g = error.toGoAway(i)
       offerFrame(g)
@@ -390,6 +385,7 @@ private[h2] class H2Connection[F[_]](
   def readLoop: F[Unit] = {
 
     def connectionTerminated: String = s"Connection $addrStr readLoop Terminated"
+
     val readFromSocket: F[Option[Chunk[Byte]]] = {
       val read = socket.read(localSettings.initialWindowSize.windowSize)
       readIdleTimeout match {
@@ -441,171 +437,35 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-    def processFrame(frame: H2Frame, s: H2Connection.State[F]): F[Unit] = (frame, s) match {
-      // Headers and Continuation Frames are Stateful
-      // Headers if not closed MUST
-      case (
-            c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _),
-          ) =>
-        if (headers.first.identifier != id) {
-          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
-            goAway(H2Error.ProtocolError)
-        } else {
-          headers.complete(c).flatMap {
-            case None =>
-              logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
-                goAway(H2Error.EnhanceYourCalm)
+    def processFrame(frame: DecodedH2Frame, s: H2Connection.State[F]): F[Unit] = (frame, s) match {
+      case (h @ DecodedH2Frame.Headers(i, _, _, _), s) =>
+        mapRef.get.map(_.get(i)).flatMap {
+          case Some(s) =>
+            s.receiveHeaders(h)
+          case None if isClosedStream(i, s) =>
+            logger.debug(s"$addrStr Received Headers for Closed Stream $i - Ignoring")
+          case None =>
+            val isValidToCreate = connectionType match {
+              case H2Connection.ConnectionType.Server => i % 2 != 0
+              case H2Connection.ConnectionType.Client => i % 2 == 0
+            }
+            if (!isValidToCreate) {
+              logger.warn(
+                s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error - Issuing GoAway"
+              ) >>
+                goAway(H2Error.ProtocolError)
+            } else {
+              streamCreateAndHeaders.use(_ =>
+                for {
+                  stream <- initiateRemoteStreamById(i)
+                  _ <- createdStreams.offer(i)
+                  _ <- stream.receiveHeaders(h)
 
-            case Some(headers) =>
-              state.update(s => s.copy(headersInProgress = None)) >>
-                mapRef.get.map(_.get(id)).flatMap {
-                  case Some(s) =>
-                    headers.decode(hpack).onError(onHpackError).flatMap(s.receiveHeaders)
-                  case None if isClosedStream(id, s) =>
-                    receiveHeadersForClosedStream(id, headers.headerBlock)
-                  case None =>
-                    streamCreateAndHeaders.use(_ =>
-                      for {
-                        stream <- initiateRemoteStreamById(id)
-                        _ <- createdStreams.offer(id)
-                        _ <- headers
-                          .decode(hpack)
-                          .onError(onHpackError)
-                          .flatMap(stream.receiveHeaders)
-                      } yield ()
-                    )
-                }
-          }
+                } yield ()
+              )
+            }
         }
-      case (
-            c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _),
-          ) =>
-        if (pushPromise.first.promisedStreamId != id) {
-          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
-            goAway(H2Error.ProtocolError)
-        } else {
-          pushPromise.complete(c).flatMap {
-            case None =>
-              logger.debug(
-                "PUSH_PROMISE Header block exceeds maxHeaderListSize - Issuing GoAway"
-              ) >> goAway(H2Error.EnhanceYourCalm)
-
-            case Some(pushPromise) =>
-              state.update(s => s.copy(pushPromiseInProgress = None)) >>
-                mapRef.get.map(_.get(id)).flatMap {
-                  case Some(s) =>
-                    pushPromise.decode(hpack).onError(onHpackError).flatMap(s.receivePushPromise)
-                  case None =>
-                    streamCreateAndHeaders.use(_ =>
-                      for {
-                        stream <- initiateRemoteStreamById(id)
-                        _ <- createdStreams.offer(id)
-                        _ <-
-                          pushPromise
-                            .decode(hpack)
-                            .onError(onHpackError)
-                            .flatMap(stream.receivePushPromise)
-                      } yield ()
-                    )
-                }
-          }
-        }
-      case (
-            c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, None, Some(pushPromise), _, _),
-          ) =>
-        if (pushPromise.first.identifier != id) {
-          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
-            goAway(H2Error.ProtocolError)
-        } else
-          pushPromise.addContinuation(c) match {
-            case None =>
-              logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
-                goAway(H2Error.EnhanceYourCalm)
-
-            case Some(updated) =>
-              state.update(s => s.copy(pushPromiseInProgress = updated.some))
-          }
-
-      case (
-            c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, Some(headers), None, _, _),
-          ) =>
-        if (headers.first.identifier != id) {
-          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
-            goAway(H2Error.ProtocolError)
-        } else
-          headers.addContinuation(c) match {
-            case None =>
-              logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
-                goAway(H2Error.EnhanceYourCalm)
-            case Some(updated) =>
-              state.update(s => s.copy(headersInProgress = updated.some))
-          }
-      case (f, H2Connection.State(_, _, _, _, _, Some(_), None, _, _)) =>
-        // Only Continuation Frames Are Valid While there is a value
-        logger.warn(
-          s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
-        ) >>
-          goAway(H2Error.ProtocolError)
-      case (f, H2Connection.State(_, _, _, _, _, None, Some(_), _, _)) =>
-        // Only Continuation Frames Are Valid While there is a value
-        logger.warn(
-          s"Continuation for push promise in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
-        ) >>
-          goAway(H2Error.ProtocolError)
-
-      case (h @ H2Frame.Headers(i, sd, _, true, _, _), s) =>
-        if (sd.exists(s => s.dependency == i)) {
-          goAway(H2Error.ProtocolError)
-        } else {
-          mapRef.get.map(_.get(i)).flatMap {
-            case Some(s) =>
-              h.decode(hpack).onError(onHpackError).flatMap(s.receiveHeaders)
-            case None if isClosedStream(i, s) =>
-              receiveHeadersForClosedStream(i, h.headerBlock)
-            case None =>
-              val isValidToCreate = connectionType match {
-                case H2Connection.ConnectionType.Server => i % 2 != 0
-                case H2Connection.ConnectionType.Client => i % 2 == 0
-              }
-              if (!isValidToCreate) {
-                logger.warn(
-                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error - Issuing GoAway"
-                ) >>
-                  goAway(H2Error.ProtocolError)
-              } else {
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(i)
-                    _ <- createdStreams.offer(i)
-                    _ <- h.decode(hpack).onError(onHpackError).flatMap(stream.receiveHeaders)
-
-                  } yield ()
-                )
-              }
-          }
-        }
-      case (h @ H2Frame.Headers(i, sd, _, false, headerBlock, _), _) =>
-        if (sd.exists(s => s.dependency == i)) goAway(H2Error.ProtocolError)
-        else if (headerBlock.size > maxHeaderBlockSize)
-          logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
-            goAway(H2Error.EnhanceYourCalm)
-        else {
-          ContinuationProgress
-            .start[F, H2Frame.Headers](
-              h,
-              (h, c) => h.copy(headerBlock = h.headerBlock ++ c),
-              headerBlock.size,
-              receiveHeadersTimeout,
-              maxHeaderBlockSize,
-              goAway(H2Error.EnhanceYourCalm),
-            )
-            .flatMap(headers => state.update(s => s.copy(headersInProgress = Some(headers))))
-        }
-      case (h @ H2Frame.PushPromise(_, true, i, _, _), s) =>
+      case (h @ DecodedH2Frame.PushPromise(i, _, _), s) =>
         if (connectionType == H2Connection.ConnectionType.Server) {
           logger.warn(
             "Encountered Push Promise Frame a a Server - Protocol Error - Issuing GoAway"
@@ -614,7 +474,7 @@ private[h2] class H2Connection[F[_]](
         } else {
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
-              h.decode(hpack).onError(onHpackError).flatMap(s.receivePushPromise)
+              s.receivePushPromise(h)
             case None =>
               val isValidToCreate = i % 2 == 0
               if (!isValidToCreate || i <= s.remoteHighestStream) {
@@ -627,33 +487,12 @@ private[h2] class H2Connection[F[_]](
                   for {
                     stream <- initiateRemoteStreamById(i)
                     _ <- createdStreams.offer(i)
-                    _ <- h.decode(hpack).onError(onHpackError).flatMap(stream.receivePushPromise)
+                    _ <- stream.receivePushPromise(h)
                   } yield ()
                 )
               }
           }
         }
-      case (h @ H2Frame.PushPromise(_, false, _, headerBlock, _), _) =>
-        if (headerBlock.size > maxHeaderBlockSize)
-          logger.debug("Header block exceeds maxHeaderListSize - Issuing GoAway") >>
-            goAway(H2Error.EnhanceYourCalm)
-        else {
-          ContinuationProgress
-            .start[F, H2Frame.PushPromise](
-              h,
-              (h, c) => h.copy(headerBlock = h.headerBlock ++ c),
-              headerBlock.size,
-              receiveHeadersTimeout,
-              maxHeaderBlockSize,
-              goAway(H2Error.EnhanceYourCalm),
-            )
-            .flatMap(pushPromise =>
-              state.update(s => s.copy(pushPromiseInProgress = Some(pushPromise)))
-            )
-        }
-
-      case (H2Frame.Continuation(_, _, _), _) =>
-        goAway(H2Error.ProtocolError)
 
       case (settings @ H2Frame.Settings(0, false, _), _) =>
         // Stream creation must observe either the old settings and this adjustment,
@@ -772,15 +611,6 @@ private[h2] class H2Connection[F[_]](
       case (H2Frame.Unknown(_), _) => Applicative[F].unit // Ignore Unknown Frames
     }
 
-    def readLoopAux(acc: ByteVector): F[Unit] =
-      readNextFrame(acc).flatMap {
-        case Some((frame, nacc)) =>
-          logger.debug(s"$addrStr Read - $frame") >>
-            state.get.flatMap(processFrame(frame, _)) >>
-            readLoopAux(nacc)
-        case None => F.unit
-      }
-
     def cancelClientStreams: F[Unit] = connectionType match {
       case H2Connection.ConnectionType.Client =>
         mapRef.get.flatMap(_.values.toList.traverse_(_.connectionClosed))
@@ -789,7 +619,14 @@ private[h2] class H2Connection[F[_]](
 
     val markClosed = state.update(s => s.copy(closed = true))
 
-    readLoopAux(acc)
+    Stream
+      .unfoldEval(acc)(readNextFrame)
+      .through(decodeFrame)
+      .foreach(frame =>
+        logger.debug(s"$addrStr Read - $frame") >> state.get.flatMap(processFrame(frame, _))
+      )
+      .compile
+      .drain
       .recoverWith { case H2Connection.KillWithoutMessage() =>
         logger.debug(s"ReadLoop has received that is should kill")
       }
@@ -804,6 +641,143 @@ private[h2] class H2Connection[F[_]](
       }
   }
 
+  // Decode wire encoded HTTP/2 frames into logical frames. Most frames pass
+  // through unchanged, but header and push promise frames are merged with their
+  // continuations.
+  //
+  // Decoding is handled using a Pull based implicit state machine, which starts
+  // in `decodeRegularFrame`. When Headers or PushPromise frames are encountered
+  // it transitions to processing their continuations before returning to
+  // regular frame processing again.
+  private val decodeFrame: Pipe[F, H2Frame, DecodedH2Frame] = stream =>
+    // If a timeout occurs, this Deferred is used to signal stream termination
+    Stream.eval(Deferred[F, Either[Throwable, Unit]]).flatMap { interrupt =>
+      // Run a pull with a timeout. Pull has its own timeout mechanism, but it's
+      // unwieldy for our purposes.
+      def withTimeout[O, R](pull: Pull[F, O, R])(duration: Duration, message: String) =
+        Pull
+          .eval(
+            {
+              F.sleep(duration) *>
+                logger.warn(message) *>
+                goAway(H2Error.EnhanceYourCalm).attempt.flatMap(interrupt.complete)
+            }.start
+          )
+          .flatMap(timerFiber => pull.evalMap(result => timerFiber.cancel *> F.pure(result)))
+
+      def decodeRegularFrame(stream: Stream[F, H2Frame]): Pull[F, DecodedH2Frame, Unit] =
+        stream.pull.uncons1.flatMap {
+          case None => Pull.done
+
+          case Some((frame: DecodedH2Frame, rest)) =>
+            Pull.output1(frame) >> decodeRegularFrame(rest)
+
+          case Some((headers: H2Frame.Headers, rest)) =>
+            decodeHeaders(headers, rest).flatMap(decodeRegularFrame)
+
+          case Some((pushPromise: H2Frame.PushPromise, rest)) =>
+            decodePushPromise(pushPromise, rest).flatMap(decodeRegularFrame)
+
+          case Some((_: H2Frame.Continuation, _)) =>
+            Pull.eval(
+              logger.debug(
+                "encountered continuation without preceding header or push promise frame - Issuing GoAway"
+              ) *> goAway(H2Error.ProtocolError)
+            )
+        }
+
+      def decodeHeaders(
+          headers: H2Frame.Headers,
+          rest: Stream[F, H2Frame],
+      ): Pull[F, DecodedH2Frame, Stream[F, H2Frame]] =
+        if (headers.dependency.exists(s => s.dependency == headers.identifier))
+          Pull.eval(goAway(H2Error.ProtocolError)).as(rest)
+        else {
+          withTimeout {
+            decodeContinuations(headers.identifier, headers.headerBlock, headers.endHeaders, rest)
+          }(receiveHeadersTimeout, "Took too long to receive headers - Issuing GoAway").flatMap {
+            case (headerBlock, rest) =>
+              Pull
+                .eval[F, Option[DecodedH2Frame]] {
+                  (mapRef.get.map(_.isDefinedAt(headers.identifier)), state.get).flatMapN {
+                    // processing optimization, discard headers if the stream is closed
+                    case (false, s) if isClosedStream(headers.identifier, s) =>
+                      logger.debug(
+                        s"$addrStr Received Headers for Closed Stream ${headers.identifier} - Ignoring"
+                      ) *> hpack.discardHeaders(headerBlock).as(None)
+                    case _ =>
+                      headers
+                        .copy(headerBlock = headerBlock)
+                        .decode(hpack)
+                        .onError(onHpackError)
+                        .map(_.some)
+                  }
+                }
+                .flatMap(Pull.outputOption1)
+                .as(rest)
+          }
+        }
+
+      def decodePushPromise(
+          push: H2Frame.PushPromise,
+          rest: Stream[F, H2Frame],
+      ): Pull[F, DecodedH2Frame, Stream[F, H2Frame]] =
+        withTimeout {
+          decodeContinuations(push.identifier, push.headerBlock, push.endHeaders, rest)
+        }(receiveHeadersTimeout, "Took too long to receive push promise - Issuing GoAway")
+          .flatMap { case (headerBlock, rest) =>
+            Pull
+              .eval(push.copy(headerBlock = headerBlock).decode(hpack).onError(onHpackError))
+              .flatMap(Pull.output1)
+              .as(rest)
+          }
+
+      def decodeContinuations(
+          identifier: Int,
+          block: ByteVector,
+          end: Boolean,
+          rest: Stream[F, H2Frame],
+      ): Pull[F, Nothing, (ByteVector, Stream[F, H2Frame])] =
+        if (block.size > maxHeaderBlockSize)
+          Pull.eval(logger.debug("Headers too large") *> goAway(H2Error.EnhanceYourCalm))
+        else if (end)
+          Pull.pure((block, rest))
+        else
+          rest.pull.uncons1.flatMap {
+            case Some((continuation: H2Frame.Continuation, rest)) =>
+              if (continuation.identifier != identifier)
+                Pull.eval(
+                  logger.debug("Invalid Continuation - Protocol Error - Issuing GoAway") *>
+                    goAway(H2Error.ProtocolError)
+                )
+              else
+                decodeContinuations(
+                  identifier,
+                  block ++ continuation.headerBlockFragment,
+                  continuation.endHeaders,
+                  rest,
+                )
+
+            case Some((f, _)) =>
+              Pull.eval(
+                logger.debug(
+                  s"Continuation in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
+                ) >> goAway(H2Error.ProtocolError)
+              )
+
+            // This is not strictly correct behavior, but at this point, the
+            // connection is terminated so it's cleaner to throw out of the Pull
+            // than thread returning an Option through the calls.
+            case None =>
+              Pull.eval(
+                logger.debug(s"Unexpected end of stream -  Protocol Error - Issuing GoAway") >>
+                  goAway(H2Error.NoError)
+              )
+          }
+
+      decodeRegularFrame(stream).stream.interruptWhen(interrupt)
+
+    }
 }
 
 private[h2] object H2Connection {
@@ -813,65 +787,9 @@ private[h2] object H2Connection {
       highestStream: Int,
       remoteHighestStream: Int,
       closed: Boolean,
-      headersInProgress: Option[ContinuationProgress[F, H2Frame.Headers]],
-      pushPromiseInProgress: Option[ContinuationProgress[F, H2Frame.PushPromise]],
       stallStart: Option[FiniteDuration],
       advertisedReadWindow: Long,
   )
-
-  /** Helper class to buffer continuations to a header or push promise.
-    */
-  final class ContinuationProgress[F[_]: Applicative, A](
-      val first: A,
-      add: (A, ByteVector) => A,
-      val size: Long,
-      timeout: Fiber[F, Throwable, Unit],
-      maxHeaderBlockSize: Long,
-  ) {
-
-    /** Buffer data from an additional frame in the continuation. If the continuation doesn't exceed
-      * the size limit, the updated ContinuationProgress is returned.
-      */
-    def addContinuation(next: H2Frame.Continuation): Option[ContinuationProgress[F, A]] =
-      if (canAcceptNextContinuation(next))
-        new ContinuationProgress(
-          add(first, next.headerBlockFragment),
-          add,
-          size + next.headerBlockFragment.size,
-          timeout,
-          maxHeaderBlockSize,
-        ).some
-      else
-        None
-
-    /** Complete the continuation buffering with a final frame. If the continuation doesn't exceed
-      * the size limit, the original frame and buffered data from the continuations are returned.
-      */
-    def complete(last: H2Frame.Continuation): F[Option[A]] =
-      timeout.cancel *> Applicative[F].pure {
-        if (canAcceptNextContinuation(last))
-          Some(add(first, last.headerBlockFragment))
-        else
-          None
-      }
-
-    private def canAcceptNextContinuation(next: H2Frame.Continuation): Boolean =
-      size + next.headerBlockFragment.size <= maxHeaderBlockSize
-  }
-
-  object ContinuationProgress {
-    def start[F[_]: Temporal, A](
-        first: A,
-        add: (A, ByteVector) => A,
-        initialSize: Long,
-        timeout: Duration,
-        maxHeaderBlockSize: Long,
-        cancel: F[Unit],
-    ): F[ContinuationProgress[F, A]] =
-      (Temporal[F].sleep(timeout) >> cancel.attempt.void).start
-        .map(new ContinuationProgress(first, add, initialSize, _, maxHeaderBlockSize))
-
-  }
 
   def initState[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
@@ -884,8 +802,6 @@ private[h2] object H2Connection {
         highestStream = 0,
         remoteHighestStream = 0,
         closed = false,
-        headersInProgress = None,
-        pushPromiseInProgress = None,
         stallStart = None,
         advertisedReadWindow = readWindow.windowSize.toLong,
       )

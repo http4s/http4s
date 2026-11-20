@@ -600,9 +600,6 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.h2.H2Connection#State.apply"
       ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#ContinuationProgress.addContinuation"
-      ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.h2.H2Connection#.this"
       ),
@@ -618,35 +615,14 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.h2.H2Connection#State.writeBlock"
       ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy"
+      // Internal H2 classes
+      ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.DecodedH2Frame*"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.EncodedH2Frame"),
+      ProblemFilters.exclude[Problem](
+        "org.http4s.ember.core.h2.H2Connection$ContinuationProgress*"
       ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$3"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$5"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$6"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$7"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$9"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.this"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.apply"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$10"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.core.h2.H2Connection#State.copy$default$11"
+      ProblemFilters.exclude[Problem](
+        "org.http4s.ember.core.h2.H2Connection#State*"
       ),
     ) ++ {
       if (tlIsScala3.value)
@@ -671,27 +647,6 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ),
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.ember.core.h2.H2Keys.H2cUpgrade"
-          ),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._3"
-          ),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._5"
-          ),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._6"
-          ),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._7"
-          ),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._9"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._10"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.core.h2.H2Connection#State._11"
           ),
         )
       else Seq.empty
