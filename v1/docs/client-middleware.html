@@ -173,9 +173,9 @@
     <li class="level2 nav-leaf"><a href="testing.html">Testing</a></li>
     <li class="level2 nav-leaf"><a href="uri.html">URI Handling</a></li>
     <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
+    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
     <li class="level2 nav-leaf"><a href="multipart.html">Multipart and Form Handling</a></li>
     <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
-    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
     <li class="level1 nav-header">Related Projects</li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
@@ -212,6 +212,7 @@
     <li class="level1 nav-leaf"><a href="#destinationattribute">DestinationAttribute</a></li>
     <li class="level1 nav-leaf"><a href="#followredirects">FollowRedirects</a></li>
     <li class="level1 nav-leaf"><a href="#logger-responselogger-requestlogger">Logger, ResponseLogger, RequestLogger</a></li>
+    <li class="level1 nav-leaf"><a href="#basic-authentication">Basic authentication</a></li>
     <li class="level1 nav-leaf"><a href="#gzip">GZip</a></li>
     <li class="level1 nav-leaf"><a href="#retry">Retry</a></li>
     <li class="level1 nav-leaf"><a href="#unixsocket">UnixSocket</a></li>
@@ -295,15 +296,15 @@
   .</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// The rhino is the second largest land animal, after the elephant.
 // The rhino is the second largest land animal, after the elephant.
-// Rhinoceros horns are made from keratin, just like human fingernails.
+// The rhino is the second largest land animal, after the elephant.
 // The gestation period for a rhinoceros baby is almost 15 months.
 </span><span>
 </span><span class="comment">// the server won&#39;t repeat facts because the client indicates what it already knows
 </span><span class="type-name">CookieJar</span><span>.</span><span class="identifier">impl</span><span>(</span><span class="identifier">client</span><span>).</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">cl</span><span> =&gt;
   </span><span class="identifier">cl</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">factRequest</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>).</span><span class="identifier">replicateA</span><span>(</span><span class="number-literal">4</span><span>).</span><span class="identifier">void</span><span>
 }.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// The gestation period for a rhinoceros baby is almost 15 months.
-// The rhino is the second largest land animal, after the elephant.
+</span><span class="comment">// The rhino is the second largest land animal, after the elephant.
+// The gestation period for a rhinoceros baby is almost 15 months.
 // Rhinoceros horns are made from keratin, just like human fingernails.
 // You know all the facts!</span></code></pre>
         
@@ -349,6 +350,35 @@
 </span><span class="comment">// HTTP/1.1 GET /ok
 // HTTP/1.1 200 OK body=&quot;👍&quot;</span></code></pre>
         
+        <h2 id="basic-authentication" class="section"><a class="anchor-link left" href="#basic-authentication"><i class="icofont-laika link">&#xef71;</i></a>Basic authentication</h2>
+        <p>Adds support for basic authentication. The client will introduce the Authorization header matching the provided 
+        credentials to the outgoing requests. </p>
+        <p>Requests that already carry an <code>Authorization</code> header are left untouched, so a per-request header always takes precedence 
+        over the configured credentials.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">BasicAuth</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">BasicCredentials</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">credentials</span><span>     = </span><span class="type-name">BasicCredentials</span><span>(</span><span class="string-literal">&quot;username&quot;</span><span>, </span><span class="string-literal">&quot;password&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">basicAuthClient</span><span> = </span><span class="type-name">BasicAuth</span><span>(</span><span class="identifier">credentials</span><span>)(</span><span class="identifier">client</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">basicAuthClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/ok&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>()</span></code></pre>
+        <p><code>BasicAuth(credentials)</code> sends the credentials with every request, whatever its destination. When it is combined with
+        <a href="#followredirects">FollowRedirect</a>, it must therefore wrap it, and not the other way around: <code>FollowRedirect</code> drops the
+        <code>Authorization</code> header when redirected to a different authority, and an inner <code>BasicAuth</code> would put it back, leaking the
+        credentials to the redirect target.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">safeOrdering</span><span> = </span><span class="type-name">BasicAuth</span><span>(</span><span class="identifier">credentials</span><span>)(</span><span class="type-name">FollowRedirect</span><span>(</span><span class="number-literal">3</span><span>)(</span><span class="identifier">client</span><span>))</span></code></pre>
+        <p>Alternatively, scope the credentials to the origin (scheme, host and port) they belong to. They are then never sent
+        anywhere else, whichever way the middlewares are stacked, including over plain <code>http</code> when a request to an <code>https</code>
+        origin is downgraded by a redirect. A missing port stands for the default port of the scheme:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">scopedClient</span><span> = </span><span class="type-name">FollowRedirect</span><span>(</span><span class="number-literal">3</span><span>)(
+  </span><span class="type-name">BasicAuth</span><span>.</span><span class="identifier">forOrigin</span><span>[</span><span class="type-name">IO</span><span>](
+    </span><span class="type-name">Uri</span><span>.</span><span class="type-name">Scheme</span><span>.</span><span class="identifier">https</span><span>,
+    </span><span class="type-name">Uri</span><span>.</span><span class="type-name">Authority</span><span>(</span><span class="identifier">host</span><span> = </span><span class="type-name">Uri</span><span>.</span><span class="type-name">RegName</span><span>(</span><span class="string-literal">&quot;example.com&quot;</span><span>)),
+    </span><span class="identifier">credentials</span><span>,
+  )(</span><span class="identifier">client</span><span>)
+)</span></code></pre>
+        <p>Basic credentials are only base64-encoded, so they should only be sent over <code>https</code>.</p>
+        <p><code>BasicAuth.when</code> takes an arbitrary predicate on the request if the origin is not the right granularity.</p>
+        
         <h2 id="gzip" class="section"><a class="anchor-link left" href="#gzip"><i class="icofont-laika link">&#xef71;</i></a>GZip</h2>
         <p>Adds support for gzip compression. The client will indicate it can read gzip responses
         and if the server responds with gzip, the client will decode the response transparently.</p>
@@ -376,13 +406,13 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// without gzip in our client, nothing exciting happens
 </span><span class="identifier">clientWithoutGzip</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">longRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// HTTP/1.1 200 OK body=&quot;01234567890123456789012345678901234567890123456789&quot;
-// res6: String = &quot;01234567890123456789012345678901234567890123456789&quot;
+// res7: String = &quot;01234567890123456789012345678901234567890123456789&quot;
 </span><span>
 </span><span class="comment">// with the middleware we can see that the original body is smaller and 
 // the response is decompressed transparently
 </span><span class="identifier">clientWithGzip</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">longRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// HTTP/1.1 200 OK body=&quot;�      30426153��4 � T���2   &quot;
-// res7: String = &quot;01234567890123456789012345678901234567890123456789&quot;</span></code></pre>
+// res8: String = &quot;01234567890123456789012345678901234567890123456789&quot;</span></code></pre>
         
         <h2 id="retry" class="section"><a class="anchor-link left" href="#retry"><i class="icofont-laika link">&#xef71;</i></a>Retry</h2>
         <p>Allows a client to handle server errors by retrying requests. See <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M49/org/http4s/client/middleware/Retry$.html">Retry</a> and
@@ -404,7 +434,7 @@
   </span><span class="keyword">val</span><span> </span><span class="identifier">client</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
   </span><span class="identifier">client</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/&quot;</span><span>)).</span><span class="identifier">attempt</span><span>
 }.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res8: Either[Throwable, String] = Left(
+</span><span class="comment">// res9: Either[Throwable, String] = Left(
 //   value = UnexpectedStatus(
 //     status = Status(code = 503),
 //     requestMethod = GET,
@@ -424,7 +454,7 @@
   </span><span class="keyword">val</span><span> </span><span class="identifier">retryClient</span><span> = </span><span class="type-name">Retry</span><span>(</span><span class="identifier">policy</span><span>)(</span><span class="identifier">client</span><span>)
   </span><span class="identifier">retryClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/&quot;</span><span>))
 }.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res9: String = &quot;ok&quot;</span></code></pre>
+</span><span class="comment">// res10: String = &quot;ok&quot;</span></code></pre>
         
         <h2 id="unixsocket" class="section"><a class="anchor-link left" href="#unixsocket"><i class="icofont-laika link">&#xef71;</i></a>UnixSocket</h2>
         <p><a href="https://en.wikipedia.org/wiki/Unix_domain_socket">Unix domain sockets</a> are an operating system feature which allows communication between processes
@@ -453,7 +483,7 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">localSocket</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">socket</span><span> =&gt; </span><span class="identifier">server</span><span>(</span><span class="identifier">socket</span><span>) *&gt; </span><span class="identifier">client</span><span>(</span><span class="identifier">socket</span><span>))
   .</span><span class="identifier">use</span><span>(</span><span class="identifier">cl</span><span> =&gt; </span><span class="identifier">cl</span><span>.</span><span class="identifier">status</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/ok&quot;</span><span>)))
   .</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res10: Status = Status(code = 200)</span></code></pre>
+</span><span class="comment">// res11: Status = Status(code = 200)</span></code></pre>
 
         
 <hr class="footer-rule"/>
