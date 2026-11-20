@@ -130,7 +130,7 @@ class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
 
     val opcode = in.opcode
 
-    if (in.length > 125 && (opcode == PING || opcode == PONG || opcode == CLOSE)) {
+    if (in.length > 125 && isControlFrame(opcode)) {
       val frame = opcode match {
         case PING => "Ping"
         case PONG => "Pong"
@@ -201,6 +201,17 @@ class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
       null
     else {
       val opcode = in.get(0) & OP_CODE
+      val bodylen = FrameTranscoder.bodyLength(in)
+
+      if (bodylen > 125 && isControlFrame(opcode)) {
+        val frame = opcode match {
+          case PING => "Ping"
+          case PONG => "Pong"
+          case _ => "Close"
+        }
+        throw TranscodeError.invalidFrame(s"Invalid $frame frame. Too long: " + bodylen)
+      }
+
       val finished = (in.get(0) & FINISHED) != 0
       val masked = (in.get(1) & MASK) != 0
 
@@ -221,7 +232,6 @@ class FrameTranscoder(val isClient: Boolean, maxFrameSize: Int) {
         null
 
       val oldLim = in.limit()
-      val bodylen = FrameTranscoder.bodyLength(in)
 
       in.position(bodyOffset)
       in.limit(in.position() + bodylen)

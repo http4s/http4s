@@ -26,7 +26,7 @@ import fs2.concurrent.Channel
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.Message
-import org.http4s.ember.core.EmberException
+import org.http4s.Status
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -47,8 +47,7 @@ private[h2] class H2Stream[F[_]: Temporal](
     val state: Ref[F, H2Stream.State[F]],
     private[this] val bodyDone: Deferred[F, Either[Throwable, Unit]],
     private[this] val readBufferLock: Semaphore[F],
-    val hpack: Hpack[F],
-    val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
+    val enqueue: EncodableH2Frame => F[Unit],
     val onClosed: F[Unit],
     val goAway: H2Error => F[Unit],
     val creditConnection: Int => F[Unit],
@@ -64,12 +63,14 @@ private[h2] class H2Stream[F[_]: Temporal](
         state.get.flatMap { s =>
           s.state match {
             case StreamState.Idle =>
-              for {
-                h <- hpack.encodeHeaders(headers)
-                frame = H2Frame.PushPromise(originating, endHeaders = true, id, h, None)
-                _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
-                _ <- enqueue.offer(Chunk.singleton(frame))
-              } yield ()
+              Temporal[F]
+                .uncancelable(poll =>
+                  poll(
+                    enqueue(
+                      EncodableH2Frame.PushPromise(originating, endHeaders = true, id, headers)
+                    )
+                  ) *> setStreamState(_ => StreamState.ReservedLocal)
+                )
             case _ =>
               new IllegalStateException(
                 "Push Promises are only allowed on an idle Stream"
@@ -96,7 +97,7 @@ private[h2] class H2Stream[F[_]: Temporal](
           .compile
           .drain >> sendData(ByteVector.empty, endStream = true).whenA(noTrailers)
       sendBody.onError { case _ =>
-        rstStreamUnlessClosed(H2Error.InternalError)
+        rstStream(H2Error.InternalError)
       }
     }
   }
@@ -119,28 +120,25 @@ private[h2] class H2Stream[F[_]: Temporal](
       s.state match {
         case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
             StreamState.ReservedLocal =>
-          hpack.encodeHeaders(headers).flatMap { bv =>
-            val f = H2Frame.Headers(id, None, endStream, endHeaders = true, bv, None)
-            enqueue.offer(Chunk.singleton(f))
-          } <*
-            state
-              .modify { b =>
-                val newState: StreamState = (b.state, endStream) match {
-                  case (StreamState.Idle, false) => StreamState.Open
-                  case (StreamState.Idle, true) => StreamState.HalfClosedLocal
-                  case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
-                  case (StreamState.HalfClosedRemote, true) => StreamState.Closed
-                  case (StreamState.Open, false) => StreamState.Open
-                  case (StreamState.Open, true) => StreamState.HalfClosedLocal
-                  case (StreamState.ReservedLocal, true) => StreamState.Closed
-                  case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
-                  case (st, _) => st // Hopefully Impossible
+          Temporal[F]
+            .uncancelable(poll =>
+              poll(
+                enqueue(EncodableH2Frame.Headers(id, None, endStream, endHeaders = true, headers))
+              ) *>
+                setStreamState { st =>
+                  (st, endStream) match {
+                    case (StreamState.Idle, false) => StreamState.Open
+                    case (StreamState.Idle, true) => StreamState.HalfClosedLocal
+                    case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
+                    case (StreamState.HalfClosedRemote, true) => StreamState.Closed
+                    case (StreamState.Open, false) => StreamState.Open
+                    case (StreamState.Open, true) => StreamState.HalfClosedLocal
+                    case (StreamState.ReservedLocal, true) => StreamState.Closed
+                    case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
+                    case (st, _) => st // Hopefully Impossible
+                  }
                 }
-                (b.copy(state = newState), newState)
-              }
-              .flatMap { state =>
-                if (state == StreamState.Closed) onClosed else Applicative[F].unit
-              }
+            )
         case _ => new IllegalStateException("Stream Was Closed").raiseError
       }
     }
@@ -149,26 +147,24 @@ private[h2] class H2Stream[F[_]: Temporal](
     s.state match {
       case StreamState.Open | StreamState.HalfClosedRemote =>
         if (bv.size.toInt <= s.writeWindow && s.writeWindow > 0) {
-          enqueue.offer(Chunk.singleton(H2Frame.Data(id, bv, None, endStream))) >>
-            state
-              .modify { s =>
-                val newState = if (endStream) {
-                  s.state match {
-                    case StreamState.Open => StreamState.HalfClosedLocal
-                    case StreamState.HalfClosedRemote => StreamState.Closed
-                    case st => st // Ruh-roh
-                  }
-                } else s.state
-                (
-                  s.copy(
-                    state = newState,
-                    writeWindow = s.writeWindow - bv.size.toInt,
-                    stallStart = None,
-                  ),
-                  newState,
-                )
-              }
-              .flatMap(state => if (state == StreamState.Closed) onClosed else Applicative[F].unit)
+          enqueue(H2Frame.Data(id, bv, None, endStream)) >>
+            transitionState { s =>
+              val newState = if (endStream) {
+                s.state match {
+                  case StreamState.Open => StreamState.HalfClosedLocal
+                  case StreamState.HalfClosedRemote => StreamState.Closed
+                  case st => st // Ruh-roh
+                }
+              } else s.state
+              (
+                s.copy(
+                  state = newState,
+                  writeWindow = s.writeWindow - bv.size.toInt,
+                  stallStart = None,
+                ),
+                (),
+              )
+            }((_, _) => Applicative[F].unit)
         } else {
           if (s.writeWindow > 0) {
             state
@@ -179,7 +175,7 @@ private[h2] class H2Stream[F[_]: Temporal](
               }
               .flatMap { case (head, tail) =>
                 val frame = H2Frame.Data(id, head, None, endStream = false)
-                enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
+                enqueue(frame) >> sendData(tail, endStream)
               }
           } else {
             Temporal[F].monotonic
@@ -210,7 +206,7 @@ private[h2] class H2Stream[F[_]: Temporal](
   }
 
   def receiveHeaders(
-      headers: H2Frame.Headers
+      headers: DecodedH2Frame.Headers
   ): F[Unit] = {
 
     def checkLengthOf(mess: Message[Pure]): F[Unit] =
@@ -225,73 +221,82 @@ private[h2] class H2Stream[F[_]: Temporal](
         iMess.withAttribute(org.http4s.Message.Keys.TrailerHeaders[F], trailerF)
       }
 
-      val block = headers.headerBlock
-
       s.state match {
         case StreamState.Open | StreamState.HalfClosedLocal | StreamState.Idle |
             StreamState.ReservedRemote =>
-          for {
-            h <- hpack.decodeHeaders(block).onError {
-              case e @ EmberException.MessageTooLong(_) =>
-                logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
-
-              case e =>
-                logger.error(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
-            }
-            newstate =
-              if (headers.endStream) s.state match {
-                case StreamState.Open => StreamState.HalfClosedRemote // Client
-                case StreamState.Idle => StreamState.HalfClosedRemote // Server
-                case StreamState.HalfClosedLocal => StreamState.Closed // Client
-                case StreamState.ReservedRemote => StreamState.Closed
-                case s => s
-              }
-              else
-                s.state match {
-                  case StreamState.Idle => StreamState.Open // Server
-                  case StreamState.ReservedRemote => StreamState.HalfClosedLocal
-                  case s => s
+          // Run first in each valid branch, before completing the request/response.
+          // Not in the malformed branch: if this frame would close the stream,
+          // rstStream must still see it open so it can reset it.
+          val setState = (rest: F[Unit]) =>
+            transitionState { current =>
+              val newState =
+                if (headers.endStream) current.state match {
+                  case StreamState.Open => StreamState.HalfClosedRemote // Client
+                  case StreamState.Idle => StreamState.HalfClosedRemote // Server
+                  case StreamState.HalfClosedLocal => StreamState.Closed // Client
+                  case StreamState.ReservedRemote => StreamState.Closed
+                  case st => st
                 }
-            t <- state.modify(s => (s.copy(state = newstate), (s.request, s.response)))
-            (request, response) = t
+                else
+                  current.state match {
+                    case StreamState.Idle => StreamState.Open // Server
+                    case StreamState.ReservedRemote => StreamState.HalfClosedLocal
+                    case st => st
+                  }
+              (current.copy(state = newState), ())
+            }((_, poll) => poll(rest))
+          for {
             _ <- connectionType match {
               case H2Connection.ConnectionType.Client =>
-                response.tryGet.flatMap {
+                s.response.tryGet.flatMap {
                   case x if x.isEmpty =>
-                    PseudoHeaders.headersToResponseNoBody(h) match {
+                    PseudoHeaders.headersToResponseNoBody(headers.headers) match {
+                      // RFC 9113 8.1: skip 1xx until the final response, 1xx with END_STREAM is malformed
+                      // RFC 9113 8.6: 101 is not supported in HTTP/2
+                      case Some(resp) if resp.status.responseClass == Status.Informational =>
+                        if (resp.status == Status.SwitchingProtocols || headers.endStream)
+                          logger.debug(s"Malformed informational response ${resp.status}") >>
+                            rstStream(H2Error.ProtocolError)
+                        else Applicative[F].unit
                       case Some(resp) =>
-                        response.complete(Either.right(attribute(resp))) >>
-                          checkLengthOf(resp) >>
-                          (if (headers.endStream) s.readBuffer.close *> s.trailWith(List.empty).void
-                           else Applicative[F].unit) >>
-                          (if (newstate == StreamState.Closed) onClosed
-                           else Applicative[F].unit)
+                        setState(
+                          s.response.complete(Either.right(attribute(resp))) >>
+                            checkLengthOf(resp) >>
+                            (if (headers.endStream)
+                               s.readBuffer.close *> s.trailWith(List.empty).void
+                             else Applicative[F].unit)
+                        )
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
                   case _ =>
-                    s.readBuffer.close.whenA(headers.endStream) >> s.trailWith(h.toList) >>
-                      onClosed.whenA(newstate == StreamState.Closed)
+                    setState(
+                      s.readBuffer.close.whenA(headers.endStream) >>
+                        s.trailWith(headers.headers.toList).void
+                    )
                 }
               case H2Connection.ConnectionType.Server =>
-                request.tryGet.flatMap {
+                s.request.tryGet.flatMap {
                   case x if x.isEmpty =>
-                    PseudoHeaders.headersToRequestNoBody(h) match {
+                    PseudoHeaders.headersToRequestNoBody(headers.headers) match {
                       case Some(req) =>
-                        request.complete(Either.right(attribute(req))) >>
-                          checkLengthOf(req) >>
-                          (if (headers.endStream) s.readBuffer.close *> s.trailWith(List.empty).void
-                           else Applicative[F].unit) >>
-                          (if (newstate == StreamState.Closed) onClosed
-                           else Applicative[F].unit)
+                        setState(
+                          s.request.complete(Either.right(attribute(req))) >>
+                            checkLengthOf(req) >>
+                            (if (headers.endStream)
+                               s.readBuffer.close *> s.trailWith(List.empty).void
+                             else Applicative[F].unit)
+                        )
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
                   case _ =>
-                    s.readBuffer.close.whenA(headers.endStream) >> s.trailWith(h.toList) >>
-                      onClosed.whenA(newstate == StreamState.Closed)
+                    setState(
+                      s.readBuffer.close.whenA(headers.endStream) >>
+                        s.trailWith(headers.headers.toList).void
+                    )
                 }
             }
           } yield ()
@@ -301,10 +306,7 @@ private[h2] class H2Stream[F[_]: Temporal](
           logger.debug(s"Received Headers for Remote Closed Stream $id - Terminating") >>
             goAway(H2Error.ProtocolError)
         case StreamState.Closed =>
-          logger.debug(s"Received Headers for Closed Stream $id - Ignoring") >>
-            hpack.decodeHeaders(block).void.onError { case e =>
-              logger.debug(e)("Issue in headers") >> goAway(H2Error.CompressionError)
-            }
+          logger.debug(s"Received Headers for Closed Stream $id - Ignoring")
         case StreamState.ReservedLocal =>
           goAway(H2Error.ProtocolError)
       }
@@ -312,23 +314,15 @@ private[h2] class H2Stream[F[_]: Temporal](
   }
 
   def receivePushPromise(
-      headers: H2Frame.PushPromise
+      headers: DecodedH2Frame.PushPromise
   ): F[Unit] = state.get.flatMap { s =>
     connectionType match {
       case H2Connection.ConnectionType.Client =>
         s.state match {
           case StreamState.Idle =>
-            val block = headers.headerBlock
             for {
-              h <- hpack.decodeHeaders(block).onError {
-                case e @ EmberException.MessageTooLong(_) =>
-                  logger.debug(e)(s"Headers too large") >> goAway(H2Error.EnhanceYourCalm)
-
-                case e =>
-                  logger.error(e)("Issue in headers") >> goAway(H2Error.CompressionError)
-              }
-              _ <- state.update(s => s.copy(state = StreamState.ReservedRemote))
-              _ <- PseudoHeaders.headersToRequestNoBody(h) match {
+              _ <- setStreamState(_ => StreamState.ReservedRemote)
+              _ <- PseudoHeaders.headersToRequestNoBody(headers.headers) match {
                 case Some(req) =>
                   val attributed =
                     req
@@ -347,23 +341,41 @@ private[h2] class H2Stream[F[_]: Temporal](
   }
 
   def receiveData(data: H2Frame.Data): F[Unit] = state.get.flatMap { s =>
+    val awaitingResponse = connectionType match {
+      case H2Connection.ConnectionType.Client => s.response.tryGet.map(_.isEmpty)
+      case H2Connection.ConnectionType.Server => false.pure[F]
+    }
+    awaitingResponse.flatMap(receiveData(data, s, _))
+  }
+
+  private def receiveData(
+      data: H2Frame.Data,
+      s: H2Stream.State[F],
+      awaitingResponse: Boolean,
+  ): F[Unit] = {
     val size = data.flowControlSize
     s.state match {
+      // RFC 9113 8.1, 8.1.1: DATA before the final response HEADERS is malformed
+      case StreamState.Open | StreamState.HalfClosedLocal if awaitingResponse =>
+        logger.debug(s"Received Data before response headers on stream $id") >>
+          creditConnection(size) >> rstStream(H2Error.ProtocolError)
       case StreamState.Open | StreamState.HalfClosedLocal =>
-        val newState = if (data.endStream) s.state match {
-          case StreamState.Open => StreamState.HalfClosedRemote
-          case StreamState.HalfClosedLocal => StreamState.Closed
-          case s => s
-        }
-        else s.state
-
-        val sizeReadOk = !data.endStream ||
-          s.contentLengthCheck.forall { case (max, current) => max === (current + data.data.size) }
-
         val bytes = data.data.size.toInt
-        val reserveWindow = state.modify { s =>
-          if (size > s.readWindow) (s, Some(H2Error.FlowControlError))
-          else if (!sizeReadOk) (s, Some(H2Error.ProtocolError))
+        transitionState { s =>
+          val newState = if (data.endStream) s.state match {
+            case StreamState.Open => StreamState.HalfClosedRemote
+            case StreamState.HalfClosedLocal => StreamState.Closed
+            case st => st
+          }
+          else s.state
+
+          val sizeReadOk = !data.endStream ||
+            s.contentLengthCheck.forall { case (max, current) =>
+              max === (current + data.data.size)
+            }
+
+          if (size > s.readWindow) (s, Option[H2Error](H2Error.FlowControlError))
+          else if (!sizeReadOk) (s, Option[H2Error](H2Error.ProtocolError))
           else
             (
               s.copy(
@@ -375,22 +387,20 @@ private[h2] class H2Stream[F[_]: Temporal](
                   (max, current + data.data.size)
                 },
               ),
-              None,
+              Option.empty[H2Error],
             )
-        }
-
-        reserveWindow.flatMap {
-          case Some(error) => creditConnection(size) >> rstStream(error)
-          case None =>
+        } {
+          case (Some(error), poll) => creditConnection(size) >> poll(rstStream(error))
+          case (None, poll) =>
             for {
               _ <- creditConnection(size - bytes).whenA(data.pad.isDefined)
               // DATA slices can retain an entire socket read, including unrelated frames.
               // Copy the payload so retained storage follows the receive-window charge.
               accepted <-
-                if (bytes > 0) s.readBuffer.send(Right(data.data.copy)) else Right(()).pure[F]
+                if (bytes > 0) poll(s.readBuffer.send(Right(data.data.copy)))
+                else Right(()).pure[F]
               _ <- discardUnread(bytes).whenA(accepted.isLeft)
               _ <- (s.readBuffer.close *> s.trailWith(List.empty)).whenA(data.endStream)
-              _ <- onClosed.whenA(newState == StreamState.Closed)
             } yield ()
         }
       case StreamState.Idle =>
@@ -437,7 +447,7 @@ private[h2] class H2Stream[F[_]: Temporal](
       }
       .flatMap { case (grant, trailers) =>
         Temporal[F]
-          .race(enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, grant))), trailers.get)
+          .race(enqueue(H2Frame.WindowUpdate(id, grant)), trailers.get)
           .void
           .whenA(grant > 0)
       }
@@ -468,41 +478,57 @@ private[h2] class H2Stream[F[_]: Temporal](
     }
 
   /** Finishes local processing, discards the body, and resets the stream unless
-    * the peer already closed it.
+    * it is already closed.
     */
   def finish(error: H2Error): F[Unit] =
     Temporal[F].uncancelable { _ =>
       state.get.flatMap(s => bodyDone.complete(Either.unit) >> discardBody(s))
-    } >> rstStreamUnlessClosed(error)
+    } >> rstStream(error)
 
-  private def rstStreamUnlessClosed(error: H2Error): F[Unit] =
-    state.get.flatMap { s =>
-      if (s.state == StreamState.Closed) Applicative[F].unit else rstStream(error)
+  /** Applies `f` to the current state, then runs `after` uncancelably unless it polls.
+    * A Closed stream stays Closed. On the edge into Closed, `onClosed` runs once `after`
+    * ends, even if it fails.
+    */
+  private def transitionState[A, B](
+      f: H2Stream.State[F] => (H2Stream.State[F], A)
+  )(after: (A, Poll[F]) => F[B]): F[B] =
+    state.flatModifyFull { (poll, s) =>
+      val (next, a) = f(s)
+      if (s.state == StreamState.Closed) (next.copy(state = StreamState.Closed), after(a, poll))
+      else if (next.state == StreamState.Closed)
+        (next, Temporal[F].guarantee(after(a, poll), onClosed))
+      else (next, after(a, poll))
+    }
+
+  private def setStreamState(f: StreamState => StreamState): F[Unit] =
+    transitionState(s => (s.copy(state = f(s.state)), ()))((_, _) => Applicative[F].unit)
+
+  private def closeOnce(message: String, remoteReset: Boolean)(andThen: F[Unit]): F[Unit] =
+    transitionState { s =>
+      (
+        s.copy(state = StreamState.Closed, remoteReset = s.remoteReset || remoteReset),
+        if (s.state == StreamState.Closed) None else Some(s),
+      )
+    } {
+      case (Some(s), poll) => cancelBody(s, message).attempt.flatTap(_ => poll(andThen)).rethrow
+      case (None, _) => Applicative[F].unit
     }
 
   def rstStream(error: H2Error): F[Unit] = {
     val rst = error.toRst(id)
-    for {
-      s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-      _ <- cancelBody(s, s"Sending RstStream, cancelling: $rst")
-      _ <- enqueue.offer(Chunk.singleton(rst))
-      _ <- onClosed
-    } yield ()
+    closeOnce(s"Sending RstStream, cancelling: $rst", remoteReset = false)(enqueue(rst))
   }
 
   // Broadcast Frame
   // Will eventually allow us to know we can retry if we are above the processed window declared
-  def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] = for {
-    s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    _ <- cancelBody(s, s"Received GoAway, cancelling: $goAway")
-    _ <- onClosed
-  } yield ()
+  def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] =
+    closeOnce(s"Received GoAway, cancelling: $goAway", remoteReset = false)(Applicative[F].unit)
 
-  def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
-    s <- state.modify(s => (s.copy(state = StreamState.Closed, remoteReset = true), s))
-    _ <- cancelBody(s, s"Received RstStream, cancelling: $rst")
-    _ <- onClosed
-  } yield ()
+  def connectionClosed: F[Unit] =
+    closeOnce("Connection closed, cancelling", remoteReset = false)(Applicative[F].unit).void
+
+  def receiveRstStream(rst: H2Frame.RstStream): F[Unit] =
+    closeOnce(s"Received RstStream, cancelling: $rst", remoteReset = true)(Applicative[F].unit)
 
   // Important for telling folks we can send more data
   def receiveWindowUpdate(window: H2Frame.WindowUpdate): F[Unit] = for {

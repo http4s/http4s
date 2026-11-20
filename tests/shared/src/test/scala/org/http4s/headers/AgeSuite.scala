@@ -42,8 +42,8 @@ class AgeSuite extends HeaderLaws {
     assertEquals(Age.unsafeFromLong(10).value, "10")
   }
   test("build should fail unsafe for negatives") {
-    intercept[ParseFailure](Age.unsafeFromDuration(-10.seconds).value)
-    intercept[ParseFailure](Age.unsafeFromLong(-10).value)
+    intercept[ParseFailure](Age.unsafeFromDuration((-10).seconds).value)
+    intercept[ParseFailure](Age.unsafeFromLong(-10L).value)
   }
 
   test("produce should safe") {

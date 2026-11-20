@@ -105,11 +105,11 @@ private[ember] object H2Server {
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
         initialRemoteSettings,
-        defaultSettings.initialWindowSize,
         localSettings.initialWindowSize,
       )
       pendingReadCredit <- SignallingRef[F, Int](0)
-      queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
+      writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
+      queue <- cats.effect.std.Queue.bounded[F, EncodableH2Frame](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
       )
@@ -127,6 +127,7 @@ private[ember] object H2Server {
       ref,
       stateRef,
       pendingReadCredit,
+      writeWindow,
       queue,
       created,
       closed,
@@ -143,12 +144,14 @@ private[ember] object H2Server {
         .fromQueueUnterminated(h2.closedStreams)
         .map(i =>
           Stream.eval(
-            // Max Time After Close We Will Still Accept Messages
-            (Temporal[F].sleep(1.seconds) >>
-              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
+            // Streams are cleaned up slowly to prevent rapid reset attacks
+            (Temporal[F].sleep(1.seconds) >> h2.mapRef.update(m => m - i))
+              .timeout(15.seconds)
+              .attempt
+              .void
           )
         )
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .parJoinUnbounded
         .compile
         .drain
 
@@ -241,16 +244,13 @@ private[ember] object H2Server {
     for {
       h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
+      _ <- Resource.eval(h2.offerFrame(settingsFrame))
       _ <- h2.readLoop.background
       maxStreams <- Resource.eval(
         Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)
       )
       _ <- clearClosedStreams(h2).background
       _ <- processCreatedStreams(h2, maxStreams).background
-      _ <- Resource.eval(
-        h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
-      )
       _ <- Resource.eval(holdWhileOpen(h2.state))
     } yield ()
   }
