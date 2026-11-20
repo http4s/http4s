@@ -671,6 +671,7 @@ class H2ConnectionSuite extends H2Suite {
         )
         readLoop <- h2.readLoop.start
         writeLoop <- h2.writeLoop.compile.drain.start
+        _ <- IO.sleep(receiveHeadersTimeout * 2)
         _ <- readLoop.join
         frames <- writes.get.map(decodeFrames)
         _ <- writeLoop.cancel
