@@ -16,7 +16,9 @@
 
 package org.http4s.ember.server.internal
 
+import cats.Functor
 import cats.syntax.all._
+import fs2.io.net.tls.TLSSocket
 import org.http4s.internal.tls.deduceKeyLength
 import org.http4s.internal.tls.getCertChain
 import org.http4s.server.SecureSession
@@ -25,6 +27,9 @@ import scodec.bits.ByteVector
 import javax.net.ssl.SSLSession
 
 private[internal] trait ServerHelpersPlatform {
+
+  def readSecureSession[F[_]: Functor](socket: TLSSocket[F]): F[Option[SecureSession]] =
+    socket.session.map(parseSSLSession(_))
 
   def parseSSLSession(session: SSLSession): Option[SecureSession] =
     (

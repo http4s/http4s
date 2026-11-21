@@ -31,6 +31,7 @@ import org.http4s._
 import org.http4s.syntax.literals._
 import org.typelevel.ci.CIString
 import org.typelevel.log4cats.noop.NoOpFactory
+import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
@@ -125,6 +126,7 @@ class H2ServerGraceSuite extends Http4sSuite {
               Duration.Inf,
               settings,
               logger,
+              Vault.empty,
             )
             .useForever
             .background
