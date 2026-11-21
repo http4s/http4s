@@ -109,7 +109,7 @@ private[ember] object H2Server {
       )
       pendingReadCredit <- SignallingRef[F, Int](0)
       writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
-      queue <- cats.effect.std.Queue.bounded[F, H2Frame](128)
+      queue <- cats.effect.std.Queue.bounded[F, EncodableH2Frame](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
       )
@@ -144,12 +144,14 @@ private[ember] object H2Server {
         .fromQueueUnterminated(h2.closedStreams)
         .map(i =>
           Stream.eval(
-            // Max Time After Close We Will Still Accept Messages
-            (Temporal[F].sleep(1.seconds) >>
-              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
+            // Streams are cleaned up slowly to prevent rapid reset attacks
+            (Temporal[F].sleep(1.seconds) >> h2.mapRef.update(m => m - i))
+              .timeout(15.seconds)
+              .attempt
+              .void
           )
         )
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .parJoinUnbounded
         .compile
         .drain
 

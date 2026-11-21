@@ -192,7 +192,7 @@ private[ember] class H2Client[F[_]](
         )
         pendingReadCredit <- SignallingRef[F, Int](0)
         writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
-        queue <- cats.effect.std.Queue.bounded[F, H2Frame](128)
+        queue <- cats.effect.std.Queue.bounded[F, EncodableH2Frame](128)
         hpack <- Hpack.create[F](
           localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
         )
@@ -267,7 +267,13 @@ private[ember] class H2Client[F[_]](
     }
 
     for {
-      h2 <- Resource.eval(createH2Connection)
+      h2 <- Resource.makeFull[F, H2Connection[F]](poll => poll(createH2Connection))(h2 =>
+        h2.mapRef.get.flatMap(streamMap =>
+          streamMap.toList.traverse_ { case (id, stream) =>
+            stream.finish(H2Error.Cancel).void >> h2.mapRef.update(_ - id)
+          }
+        )
+      )
       // Queue the connection preface before the reader can enqueue a SETTINGS acknowledgment.
       _ <- Resource.eval(processSettings(h2))
       _ <- h2.readLoop.background
@@ -305,10 +311,14 @@ private[ember] class H2Client[F[_]](
         )
       )
       // Stream Order Must Be Correct, so we must grab the global lock
-      stream <- Resource.make(
-        connection.streamCreateAndHeaders.use(_ =>
-          connection.initiateLocalStream.flatMap(stream =>
-            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
+      stream <- Resource.makeFull[F, H2Stream[F]](poll =>
+        connection.streamCreateAndHeaders.surround(
+          connection.initiateLocalStream.flatTap(stream =>
+            poll(stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false))
+              .guaranteeCase {
+                case Outcome.Succeeded(_) => F.unit
+                case _ => connection.mapRef.update(m => m - stream.id)
+              }
           )
         )
       )(stream =>

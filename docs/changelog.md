@@ -3,6 +3,83 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.39 (2026-11-17)
+
+## What's Changed
+
+### Security
+
+* [`GHSA-hcc2-5wp2-49fj`](https://github.com/http4s/http4s/security/advisories/GHSA-hcc2-5wp2-49fj): Ember WebSocket frame decoding has quadratic cost in frame size
+* [`GHSA-q22p-387c-3hw8`](https://github.com/http4s/http4s/security/advisories/GHSA-q22p-387c-3hw8): Ember HTTP/2: RST_STREAM flood on closed streams starts unbounded cleanup fibers
+* [`GHSA-g6c8-chr7-3mc2`](https://github.com/http4s/http4s/security/advisories/GHSA-g6c8-chr7-3mc2): Quadratic Cookie header construction in CookieJar allows a remote server to exhaust client CPU 
+
+### http4s-core
+* Send Close WS frames on decoding/protocol errors in Ember server by @danicheg in https://github.com/http4s/http4s/pull/7968
+* Multipart decoder with cumulative part size limit by @OddKristensen in https://github.com/http4s/http4s/pull/7978
+* Reject WS control frames whose payloads exceed 125 bytes in decoder by @danicheg in https://github.com/http4s/http4s/pull/7983
+* Fix concurrent decoding in `BasicCredentials.fromString` by @vlovgr in https://github.com/http4s/http4s/pull/8036
+* Validate status code in ember HTTP/1 and h2 parsers by @stasimus in https://github.com/http4s/http4s/pull/8007
+### http4s-server
+* Honor withMaxFragmentCount in combined-pipe WebSocket build by @stasimus in https://github.com/http4s/http4s/pull/7985
+### http4s-client
+* Add basic auth middleware for the client by @imsdu in https://github.com/http4s/http4s/pull/7750
+### http4s-ember-core
+* Fix Ember HTTP/2 outgoing queue blocked by data frames by @reardonj in https://github.com/http4s/http4s/pull/7974
+* Fix #7964: unread request body stalls the whole connection on Ember H2 by @vlovgr in https://github.com/http4s/http4s/pull/7965
+* Fix flaky h2 cancelled readers credit test by @stasimus in https://github.com/http4s/http4s/pull/7986
+* Fix flakey TraversalSpec test by @reardonj in https://github.com/http4s/http4s/pull/7989
+* Ember H2 fixes from TCK branch by @reardonj in https://github.com/http4s/http4s/pull/7995
+* Fix flaky H2 drainOutgoing test helper by @stasimus in https://github.com/http4s/http4s/pull/8002
+* Ignore late h2 HEADERS for reset streams by @stasimus in https://github.com/http4s/http4s/pull/7993
+* Resolve uncancellable deadlock in `H2Client` by @zainab-ali in https://github.com/http4s/http4s/pull/8016
+* Cancel requests made by `H2Client` during server shutdown by @zainab-ali in https://github.com/http4s/http4s/pull/8017
+* Isolate `HTTP/2` behind internal `Http2Support` in ember-server by @lolgab in https://github.com/http4s/http4s/pull/7975
+* Fix HPACK encoding ordering by @reardonj in https://github.com/http4s/http4s/pull/8018
+* Fix Ember H2 handling of closed streams by @reardonj in https://github.com/http4s/http4s/pull/8004
+* Check shutdown signal before returning keep-alive by @M-J-Brown in https://github.com/http4s/http4s/pull/7957
+
+### Updated dependencies
+
+* circe-0.14.17
+* fs2-3.15.0
+* jawn-1.8.0
+* keypool-0.4.12
+
+### Behind the scenes
+
+<details>
+
+* Update http4s-circe, http4s-ember-client to 0.23.38 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7969
+* Update jawn-parser to 1.8.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7972
+* Update circe-core, circe-generic, ... to 0.14.17 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7977
+* Update netty-buffer, netty-codec-http to 4.2.19.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7976
+* Make Changelog outline scrollable by @OddKristensen in https://github.com/http4s/http4s/pull/7979
+* Update sbt-native-packager to 1.13.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7981
+* Update jnr-unixsocket to 0.39.6 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8008
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8006
+* Update sbt, scripted-plugin to 1.13.1 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8022
+* Update jnr-unixsocket to 0.39.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8028
+* Replace Nix installer with Lix installer by @rossabaker in https://github.com/http4s/http4s/pull/8031
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8034
+* Update netty-buffer, netty-codec-http to 4.2.20.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8033
+* Update jnr-unixsocket to 0.39.8 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8032
+* Update jnr-unixsocket to 0.39.9 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8035
+* Update netty-buffer, netty-codec-http to 4.2.21.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8039
+* Update keypool to 0.4.12 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8041
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8042
+* Update fs2-core, fs2-io to 3.15.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8043
+* Update scala3-library, ... to 3.3.9 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/8023
+
+</details>
+
+## New Contributors
+* @OddKristensen made their first contribution in https://github.com/http4s/http4s/pull/7979
+* @vlovgr made their first contribution in https://github.com/http4s/http4s/pull/7965
+* @imsdu made their first contribution in https://github.com/http4s/http4s/pull/7750
+* @M-J-Brown made their first contribution in https://github.com/http4s/http4s/pull/7957
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.38...v0.23.39
+
 # v0.23.38 (2026-09-28)
 
 ## Security fixes

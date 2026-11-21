@@ -125,6 +125,12 @@ object Status {
       }
     }
 
+  /** Parses a status code as defined in RFC 9112 Section 4: `status-code = 3DIGIT`. */
+  def fromString(code: String): ParseResult[Status] =
+    if (code.length == 3 && code.forall(c => c >= '0' && c <= '9'))
+      fromInt(code.toInt)
+    else ParseResult.fail("Invalid status code", code)
+
   @deprecated(
     "Use fromInt. Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
     "0.22.6",
