@@ -16,12 +16,16 @@
 
 package org.http4s.ember.server.internal
 
-import fs2.io.net.tls.SSLSession
+import cats.Apply
+import cats.syntax.all._
+import fs2.io.net.tls.TLSSocket
 import org.http4s.server.SecureSession
 
 private[internal] trait ServerHelpersPlatform {
 
-  def parseSSLSession(session: SSLSession): Option[SecureSession] =
-    Some(new SecureSession(session.raw))
+  def readSecureSession[F[_]: Apply](socket: TLSSocket[F]): F[Option[SecureSession]] =
+    (socket.session, socket.peerCertificates).mapN { (session, peerCertificates) =>
+      Some(new SecureSession(session.raw, peerCertificates))
+    }
 
 }

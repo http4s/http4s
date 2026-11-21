@@ -24,7 +24,7 @@ import org.http4s.server.ServerRequestKeys
 /** HTTP/2 requests over cleartext (prior knowledge) must carry the same connection
   * attributes as HTTP/1.1: ConnectionInfo with secure = false, and no SecureSession.
   *
-  * The TLS cases are in [[EmberServerH2TLSConnectionAttributesSuite]].
+  * The TLS cases are in [[EmberServerTLSConnectionAttributesSuite]].
   */
 class EmberServerH2ConnectionAttributesSuite extends Http4sSuite with ConnectionAttributesHelpers {
 

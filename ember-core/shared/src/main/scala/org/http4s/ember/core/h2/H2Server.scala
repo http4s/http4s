@@ -84,7 +84,7 @@ private[ember] object H2Server {
       case Right(unit) => unit.pure[F]
     }
 
-  // Kept for binary compatibility
+  @deprecated("Preserved for binary compatibility", "0.23.40")
   def fromSocket[F[_]](
       socket: Socket[F],
       httpApp: HttpApp[F],

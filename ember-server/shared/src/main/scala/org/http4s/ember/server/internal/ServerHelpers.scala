@@ -209,8 +209,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
-    // HTTP/2 forbids TLS renegotiation, so the addresses and TLS session are
-    // fixed for the connection. The request vault is shared across streams.
+    // Built once per connection and shared across streams; see H2Server.fromSocket
     def runH2Connection(h2: Http2Support[F], socket: Socket[F]): Stream[F, Nothing] =
       Stream
         .eval(requestVaultFor(socket))
@@ -571,9 +570,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
     socket match {
       case socket: TLSSocket[F] =>
-        socket.session
-          .map(parseSSLSession(_))
-          .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
+        readSecureSession(socket).map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
       case _ =>
         Vault.empty.pure[F]
     }
