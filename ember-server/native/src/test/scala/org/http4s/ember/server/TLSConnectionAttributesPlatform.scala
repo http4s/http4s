@@ -55,6 +55,12 @@ trait TLSConnectionAttributesPlatform {
   /** s2n fails the handshake if an optional client certificate does not verify. */
   protected val acceptsUntrustedOptionalClientCert: Boolean = false
 
+  /** fs2's Native TLS can loop forever, uncancelably, when a socket is closed after a write was
+    * cancelled partway or failed. Ember's HTTP/2 does both: it cancels its write loop on
+    * teardown, and the client writes a GOAWAY after the server drops the connection.
+    */
+  protected val skipHttp2OverTLS: Boolean = true
+
   /** The client certificate chain the server should report for [[TestCertificates.clientPem]]:
     * the client's certificate followed by the trusted root that verified it.
     */

@@ -19,6 +19,8 @@ package org.http4s.ember.server
 import cats.effect._
 import cats.syntax.all._
 import fs2.io.net.tls.TLSParameters
+import munit.Location
+import munit.TestOptions
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.h2.H2Keys
@@ -129,8 +131,14 @@ class EmberServerTLSConnectionAttributesSuite
   private def peerCertificates(req: Request[IO]): List[ByteVector] =
     certificates(secureSession(req))
 
+  /** A test that is ignored for HTTP/2 where [[skipHttp2OverTLS]] is set. */
+  private def tlsTest(name: String, http2: Boolean)(body: => Any)(implicit loc: Location): Unit = {
+    val options = TestOptions(name)
+    test(if (http2 && skipHttp2OverTLS) options.ignore else options)(body)
+  }
+
   for ((name, http2) <- List("HTTP/2" -> true, "HTTP/1.1" -> false)) {
-    test(s"$name over TLS exposes the session and the client certificate chain") {
+    tlsTest(s"$name over TLS exposes the session and the client certificate chain", http2) {
       requestsSeen(requireClientCert, clientIdentity, http2).map { reqs =>
         val req = reqs.head
         assertSessionDetails(secureSession(req))
@@ -139,13 +147,16 @@ class EmberServerTLSConnectionAttributesSuite
       }
     }
 
-    test(s"$name over TLS without a client certificate has a SecureSession with no certificates") {
+    tlsTest(
+      s"$name over TLS without a client certificate has a SecureSession with no certificates",
+      http2,
+    ) {
       requestsSeen(optionalClientCert, identity = None, http2).map { reqs =>
         assertEquals(peerCertificates(reqs.head), Nil)
       }
     }
 
-    test(s"$name over TLS never exposes an untrusted client certificate") {
+    tlsTest(s"$name over TLS never exposes an untrusted client certificate", http2) {
       attemptRequest(optionalClientCert, untrustedIdentity, http2).map { result =>
         if (acceptsUntrustedOptionalClientCert) {
           // The handshake succeeds, but the certificate was not verified, so it is not exposed
@@ -157,25 +168,25 @@ class EmberServerTLSConnectionAttributesSuite
       }
     }
 
-    test(s"$name over TLS exposes a trusted client certificate when one is optional") {
+    tlsTest(s"$name over TLS exposes a trusted client certificate when one is optional", http2) {
       requestsSeen(optionalClientCert, clientIdentity, http2).map { reqs =>
         assertEquals(peerCertificates(reqs.head), clientChain)
       }
     }
 
-    test(s"$name over TLS refuses a client without a certificate when one is required") {
+    tlsTest(s"$name over TLS refuses a client without a certificate when one is required", http2) {
       requireClientCertVariants.traverse_ { params =>
         attemptRequest(params, identity = None, http2).map(assertRefused)
       }
     }
 
-    test(s"$name over TLS refuses an untrusted client certificate when one is required") {
+    tlsTest(s"$name over TLS refuses an untrusted client certificate when one is required", http2) {
       requireClientCertVariants.traverse_ { params =>
         attemptRequest(params, untrustedIdentity, http2).map(assertRefused)
       }
     }
 
-    test(s"$name over TLS does not request a client certificate by default") {
+    tlsTest(s"$name over TLS does not request a client certificate by default", http2) {
       // The client has a certificate, but the server never asks for it
       requestsSeen(TLSParameters.Default, clientIdentity, http2).map { reqs =>
         assertEquals(peerCertificates(reqs.head), Nil)
@@ -183,7 +194,10 @@ class EmberServerTLSConnectionAttributesSuite
     }
   }
 
-  test("every stream on one HTTP/2 TLS connection carries the client certificate chain") {
+  tlsTest(
+    "every stream on one HTTP/2 TLS connection carries the client certificate chain",
+    http2 = true,
+  ) {
     requestsSeen(requireClientCert, clientIdentity, http2 = true, requests = 10).map { reqs =>
       assertEquals(reqs.size, 10)
       // All requests went over one connection, on distinct streams
@@ -216,7 +230,7 @@ class EmberServerTLSConnectionAttributesSuite
     }
   }
 
-  test("HTTP/2 push promise requests carry the client certificate chain") {
+  tlsTest("HTTP/2 push promise requests carry the client certificate chain", http2 = true) {
     // The app needs the server's port to build the pushed request's URI, but the
     // server only knows its port once it is bound, so it is handed over afterwards.
     (Deferred[IO, Server], Deferred[IO, Request[IO]]).flatMapN { (boundServer, pushedReq) =>

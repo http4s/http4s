@@ -129,6 +129,8 @@ trait TLSConnectionAttributesPlatform { self: Http4sSuite =>
   /** JSSE fails the handshake if an optional client certificate does not verify. */
   protected val acceptsUntrustedOptionalClientCert: Boolean = false
 
+  protected val skipHttp2OverTLS: Boolean = false
+
   /** The client certificate chain the server should report: the chain as the client sent it,
     * which is just the client's certificate.
     */

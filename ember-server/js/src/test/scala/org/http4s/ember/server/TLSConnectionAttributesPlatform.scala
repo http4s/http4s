@@ -59,6 +59,8 @@ trait TLSConnectionAttributesPlatform {
   /** Node completes the handshake with an untrusted client certificate when it is optional. */
   protected val acceptsUntrustedOptionalClientCert: Boolean = true
 
+  protected val skipHttp2OverTLS: Boolean = false
+
   /** The client certificate chain the server should report for [[TestCertificates.clientPem]]:
     * the client's certificate followed by the trusted root that verified it.
     */
