@@ -62,6 +62,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     ],
     private val maxDrainBytes: Long,
     private val drainTimeout: Duration,
+    val poolMetricsProvider: Metrics.Provider[F],
 ) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
@@ -85,6 +86,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       ] = self.pushPromiseSupport,
       maxDrainBytes: Long = self.maxDrainBytes,
       drainTimeout: Duration = self.drainTimeout,
+      poolMetricsProvider: Metrics.Provider[F] = self.poolMetricsProvider,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -105,6 +107,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       pushPromiseSupport = pushPromiseSupport,
       maxDrainBytes = maxDrainBytes,
       drainTimeout = drainTimeout,
+      poolMetricsProvider = poolMetricsProvider,
     )
 
   /** Sets a custom `TLSContext`.
@@ -128,6 +131,13 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   /** Sets the connection pool's maximum number of pooled connections per RequestKey. */
   def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] =
     copy(maxPerKey = maxPerKey)
+
+  /** Sets the metrics provider for the HTTP/1 connection pool.
+    * Defaults to a no-op provider. The provider is evaluated each time the client is built.
+    * Metrics implementations must not fail pool operations.
+    */
+  def withPoolMetricsProvider(poolMetricsProvider: Metrics.Provider[F]): EmberClientBuilder[F] =
+    copy(poolMetricsProvider = poolMetricsProvider)
 
   /** Sets the connection pool's maximum time a connection can be idle.
     * The timeout starts when a connection is returned the the pool, and reset when it is borrowed.
@@ -295,6 +305,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           .withMaxPerKey(maxPerKey)
           .withMaxTotal(maxTotal)
           .withOnReaperException(_ => Applicative[F].unit)
+          .withMetricsProvider(poolMetricsProvider)
       pool <- builder.build
       optH2 <- (if (enableHttp2) tlsContextOptWithDefault else None).traverse { context =>
         val enablePushPromise =
@@ -432,6 +443,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       pushPromiseSupport = None,
       maxDrainBytes = 64L * 1024L,
       drainTimeout = 5.seconds,
+      poolMetricsProvider = Metrics.Provider.noop[F],
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
