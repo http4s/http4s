@@ -40,7 +40,6 @@ trait TLSConnectionAttributesPlatform {
     builder.build[IO].map(Network[IO].tlsContext.fromS2nConfig(_))
   }
 
-  // s2n verifies the server against the SNI server name, so it must stay enabled
   protected def configureClient(builder: EmberClientBuilder[IO]): EmberClientBuilder[IO] =
     builder
 

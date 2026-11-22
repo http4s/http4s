@@ -41,7 +41,8 @@ trait TLSConnectionAttributesPlatform {
       )
     )
 
-  // Node rejects an IP address as the SNI server name, which Ember sends for 127.0.0.1
+  // Node rejects an IP address as the SNI server name, which Ember sends for 127.0.0.1.
+  // Only needed on JS: Native must keep SNI, as s2n checks the server certificate against it.
   protected def configureClient(builder: EmberClientBuilder[IO]): EmberClientBuilder[IO] =
     builder.withoutServerNameIndication
 
