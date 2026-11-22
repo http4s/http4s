@@ -39,6 +39,10 @@ class EmberServerTLSConnectionAttributesSuite
     with ConnectionAttributesHelpers
     with TLSConnectionAttributesPlatform {
 
+  // On Scala Native, the TLS library (s2n-tls) waits 10-30 seconds, uncancelably, before closing
+  // a connection whose client certificate failed verification, so those tests can take that long.
+  override def munitIOTimeout: Duration = 60.seconds
+
   private type Identity = Option[(String, String)]
 
   private val serverIdentity: Identity =
@@ -83,6 +87,32 @@ class EmberServerTLSConnectionAttributesSuite
       }
     }
 
+  /** Sends one request that may fail, and returns its result and what the app saw. */
+  private def attemptRequest(
+      serverParams: TLSParameters,
+      identity: Identity,
+      http2: Boolean,
+  ): IO[(Either[Throwable, Status], List[Request[IO]])] =
+    withTls(serverParams, identity) { (setupServer, setupClient) =>
+      Ref[IO].of(List.empty[Request[IO]]).flatMap { seen =>
+        val setup = setupClient.andThen(b => if (http2) b.withHttp2 else b)
+        (server(recordingApp(seen), setupServer), client(setup)).tupled.use {
+          case (server, client) =>
+            client
+              .status(Request[IO](Method.GET, uri(server)))
+              .timeout(10.seconds)
+              .attempt
+              .product(seen.get)
+        }
+      }
+    }
+
+  private def assertRefused(result: (Either[Throwable, Status], List[Request[IO]])): Unit = {
+    val (status, reqs) = result
+    assert(status.isLeft, s"the request succeeded with $status")
+    assert(reqs.isEmpty, s"the app saw ${reqs.size} request(s)")
+  }
+
   private def assertSecure(req: Request[IO], server: Server, http2: Boolean): Unit = {
     val version = if (http2) HttpVersion.`HTTP/2` else HttpVersion.`HTTP/1.1`
     assertEquals(req.httpVersion, version)
@@ -116,26 +146,39 @@ class EmberServerTLSConnectionAttributesSuite
     }
 
     test(s"$name over TLS never exposes an untrusted client certificate") {
-      withTls(optionalClientCert, untrustedIdentity) { (setupServer, setupClient) =>
-        Ref[IO].of(List.empty[Request[IO]]).flatMap { seen =>
-          val setup = setupClient.andThen(b => if (http2) b.withHttp2 else b)
-          (server(recordingApp(seen), setupServer), client(setup)).tupled.use {
-            case (server, client) =>
-              // Short, as s2n delays reporting a failed handshake by 10-30 seconds
-              client.status(Request[IO](Method.GET, uri(server))).timeout(2.seconds).attempt >>
-                seen.get
-          }
-        }
-      }.map { reqs =>
+      attemptRequest(optionalClientCert, untrustedIdentity, http2).map { result =>
         if (acceptsUntrustedOptionalClientCert) {
           // The handshake succeeds, but the certificate was not verified, so it is not exposed
+          val (status, reqs) = result
+          assertEquals(status, Right(Status.Ok))
           assertEquals(reqs.size, 1)
           assertEquals(peerCertificates(reqs.head), Nil)
-        } else
-          assert(
-            reqs.isEmpty,
-            s"the app saw ${reqs.size} request(s) despite the untrusted certificate",
-          )
+        } else assertRefused(result)
+      }
+    }
+
+    test(s"$name over TLS exposes a trusted client certificate when one is optional") {
+      requestsSeen(optionalClientCert, clientIdentity, http2).map { reqs =>
+        assertEquals(peerCertificates(reqs.head), clientChain)
+      }
+    }
+
+    test(s"$name over TLS refuses a client without a certificate when one is required") {
+      requireClientCertVariants.traverse_ { params =>
+        attemptRequest(params, identity = None, http2).map(assertRefused)
+      }
+    }
+
+    test(s"$name over TLS refuses an untrusted client certificate when one is required") {
+      requireClientCertVariants.traverse_ { params =>
+        attemptRequest(params, untrustedIdentity, http2).map(assertRefused)
+      }
+    }
+
+    test(s"$name over TLS does not request a client certificate by default") {
+      // The client has a certificate, but the server never asks for it
+      requestsSeen(TLSParameters.Default, clientIdentity, http2).map { reqs =>
+        assertEquals(peerCertificates(reqs.head), Nil)
       }
     }
   }

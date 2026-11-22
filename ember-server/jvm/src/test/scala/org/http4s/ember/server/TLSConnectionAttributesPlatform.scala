@@ -121,6 +121,9 @@ trait TLSConnectionAttributesPlatform { self: Http4sSuite =>
 
   protected val requireClientCert: TLSParameters = TLSParameters(needClientAuth = true)
 
+  /** Each way to require a client certificate. */
+  protected val requireClientCertVariants: List[TLSParameters] = List(requireClientCert)
+
   protected val optionalClientCert: TLSParameters = TLSParameters(wantClientAuth = true)
 
   /** JSSE fails the handshake if an optional client certificate does not verify. */

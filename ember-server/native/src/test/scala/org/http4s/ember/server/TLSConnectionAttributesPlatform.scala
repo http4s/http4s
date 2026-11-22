@@ -46,6 +46,9 @@ trait TLSConnectionAttributesPlatform {
   protected val requireClientCert: TLSParameters =
     TLSParameters(clientAuthType = CertAuthType.Required.some)
 
+  /** Each way to require a client certificate. */
+  protected val requireClientCertVariants: List[TLSParameters] = List(requireClientCert)
+
   protected val optionalClientCert: TLSParameters =
     TLSParameters(clientAuthType = CertAuthType.Optional.some)
 
