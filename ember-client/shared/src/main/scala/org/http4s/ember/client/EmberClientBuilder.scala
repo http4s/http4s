@@ -132,9 +132,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] =
     copy(maxPerKey = maxPerKey)
 
-  /** Sets the metrics provider for the HTTP/1 connection pool.
-    * Defaults to a no-op provider. The provider is evaluated each time the client is built.
-    * Metrics implementations must not fail pool operations.
+  /** Sets the metrics provider for the HTTP/1 connection pool. Defaults to a no-op provider.
     */
   def withPoolMetricsProvider(poolMetricsProvider: Metrics.Provider[F]): EmberClientBuilder[F] =
     copy(poolMetricsProvider = poolMetricsProvider)
