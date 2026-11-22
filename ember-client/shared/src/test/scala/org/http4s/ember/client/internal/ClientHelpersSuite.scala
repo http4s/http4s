@@ -18,13 +18,24 @@ package org.http4s.ember.client.internal
 
 import cats.data.NonEmptyList
 import cats.effect._
+import cats.effect.testkit.TestControl
+import com.comcast.ip4s._
+import fs2.Chunk
+import fs2.Pipe
 import fs2.Stream
+import fs2.io.net.Socket
+import fs2.io.net.SocketOption
 import org.http4s._
+import org.http4s.client.RequestKey
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.client.EmberConnection
+import org.http4s.ember.client.RequestKeySocket
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
+import org.http4s.syntax.all._
 import org.typelevel.ci._
+import org.typelevel.keypool.KeyPool
 import org.typelevel.keypool.Reusable
 import org.typelevel.log4cats.noop.NoOpFactory
 
@@ -34,6 +45,42 @@ class ClientHelpersSuite extends Http4sSuite {
   private[this] val logger = NoOpFactory[IO].getLogger
 
   private[this] val CloseHeader = Connection(NonEmptyList.of(ci"close"))
+
+  private[this] val socketAddress = SocketAddress(ip"127.0.0.1", port"0")
+
+  private[this] def stubSocket: Socket[IO] = new Socket[IO] {
+    def read(maxBytes: Int): IO[Option[Chunk[Byte]]] = IO.never
+    def write(bytes: Chunk[Byte]): IO[Unit] = IO.unit
+    def peerAddress: GenSocketAddress = socketAddress
+    def endOfInput: IO[Unit] = IO.unit
+    def endOfOutput: IO[Unit] = IO.unit
+    def isOpen: IO[Boolean] = IO.pure(true)
+    def localAddress: IO[SocketAddress[IpAddress]] = IO.pure(socketAddress)
+    def readN(numBytes: Int): IO[Chunk[Byte]] = IO.never
+    def reads: Stream[IO, Byte] = Stream.never[IO]
+    def remoteAddress: IO[SocketAddress[IpAddress]] = IO.pure(socketAddress)
+    def writes: Pipe[IO, Byte, Nothing] = _.drain
+    def address: GenSocketAddress = socketAddress
+    def getOption[A](key: SocketOption.Key[A]): IO[Option[A]] = IO.pure(None)
+    def setOption[A](key: SocketOption.Key[A], value: A): IO[Unit] = IO.unit
+    def supportedOptions: IO[Set[SocketOption.Key[_]]] = IO.pure(Set.empty)
+  }
+
+  private[this] def connectionPool: Resource[IO, KeyPool[IO, RequestKey, EmberConnection[IO]]] =
+    KeyPool
+      .Builder[IO, RequestKey, EmberConnection[IO]] { requestKey =>
+        EmberConnection(
+          Resource.pure[IO, RequestKeySocket[IO]](RequestKeySocket(stubSocket, requestKey)),
+          chunkSize = 32 * 1024,
+        )
+      }
+      .withDefaultReuseState(Reusable.DontReuse)
+      .withIdleTimeAllowedInPool(1.day)
+      .withDurationBetweenEvictionRuns(1.day)
+      .build
+
+  private[this] def testRequest: Request[IO] =
+    Request[IO](uri = uri"http://example.com/")
 
   test("Request Preprocessing should add a date header if not present") {
     ClientHelpers
@@ -108,6 +155,73 @@ class ClientHelpersSuite extends Http4sSuite {
         }
       }
       .assertEquals(Some(name))
+  }
+
+  test("getValidManaged reuses a connection before its maximum lifetime") {
+    TestControl.executeEmbed {
+      connectionPool.use { pool =>
+        val request = testRequest
+        val key = RequestKey.fromRequest(request)
+        for {
+          _ <- pool.take(key).use(_.canBeReused.set(Reusable.Reuse))
+          _ <- IO.sleep(4.seconds)
+          wasReused <- ClientHelpers
+            .getValidManaged(pool, request, 5.seconds)
+            .use(managed => IO.pure(managed.isReused))
+        } yield assert(wasReused)
+      }
+    }
+  }
+
+  test("getValidManaged discards a connection at its maximum lifetime") {
+    TestControl.executeEmbed {
+      connectionPool.use { pool =>
+        val request = testRequest
+        val key = RequestKey.fromRequest(request)
+        for {
+          _ <- pool.take(key).use(_.canBeReused.set(Reusable.Reuse))
+          _ <- IO.sleep(5.seconds)
+          wasReused <- ClientHelpers
+            .getValidManaged(pool, request, 5.seconds)
+            .use(managed => IO.pure(managed.isReused))
+        } yield assert(!wasReused)
+      }
+    }
+  }
+
+  test("getValidManaged keeps reusing connections with an infinite maximum lifetime") {
+    TestControl.executeEmbed {
+      connectionPool.use { pool =>
+        val request = testRequest
+        val key = RequestKey.fromRequest(request)
+        for {
+          _ <- pool.take(key).use(_.canBeReused.set(Reusable.Reuse))
+          _ <- IO.sleep(1.hour)
+          wasReused <- ClientHelpers
+            .getValidManaged(pool, request, Duration.Inf)
+            .use(managed => IO.pure(managed.isReused))
+        } yield assert(wasReused)
+      }
+    }
+  }
+
+  test("maximum connection lifetime does not interrupt a checked out connection") {
+    TestControl.executeEmbed {
+      connectionPool.use { pool =>
+        val request = testRequest
+        val key = RequestKey.fromRequest(request)
+        for {
+          _ <- pool.take(key).use(_.canBeReused.set(Reusable.Reuse))
+          _ <- IO.sleep(4.seconds)
+          (managed, release) <- ClientHelpers
+            .getValidManaged(pool, request, 5.seconds)
+            .allocated
+          _ <- IO.sleep(2.seconds)
+          isValid <- managed.value.isValid
+          _ <- release
+        } yield assert(isValid)
+      }
+    }
   }
 
   test("Postprocess response should reuse") {
