@@ -5,6 +5,7 @@ import org.http4s.sbt.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
+
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
 ThisBuild / tlBspCrossProjectPlatforms := Set(JVMPlatform)
 ThisBuild / tlBaseVersion := "0.23"
@@ -25,6 +26,20 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
       name = Some("Install Lix"),
     )
   ) ++ steps
+}
+
+// Scala JS only supports Java 17+ and Scala Native is deprecated on less than Java 17.
+val Java8 = JavaSpec.temurin("8")
+val Java11 = JavaSpec.temurin("11")
+
+// JS and Native build and test only on Java 17 but sbt-typelevel excludes them
+// from the matrix for Java 8 and 11 by default.
+ThisBuild / githubWorkflowBuildMatrixExclusions ~= { exclusions =>
+  val jsOrNative = List("rootJS", "rootNative")
+  exclusions.filterNot(e => e.matching.get("project").exists(jsOrNative.contains)) ++
+    jsOrNative.flatMap(p =>
+      List("temurin@8", "temurin@11").map(j => MatrixExclude(Map("project" -> p, "java" -> j)))
+    )
 }
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
