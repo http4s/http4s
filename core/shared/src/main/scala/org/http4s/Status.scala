@@ -99,6 +99,12 @@ object Status {
       }
     }
 
+  /** Parses a status code as defined in RFC 9112 Section 4: `status-code = 3DIGIT`. */
+  def fromString(code: String): ParseResult[Status] =
+    if (code.length == 3 && code.forall(c => c >= '0' && c <= '9'))
+      fromInt(code.toInt)
+    else ParseResult.fail("Invalid status code", code)
+
   private def withRangeCheck(code: Int)(onSuccess: => ParseResult[Status]): ParseResult[Status] =
     if (code >= MinCode && code <= MaxCode) onSuccess
     else ParseResult.fail("Invalid code", s"$code is not between $MinCode and $MaxCode.")

@@ -28,7 +28,9 @@ import org.http4s.implicits._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
-class ParsingSuite extends Http4sSuite {
+import java.nio.charset.StandardCharsets
+
+class ParserSuite extends Http4sSuite {
   object Helpers {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
@@ -260,9 +262,8 @@ class ParsingSuite extends Http4sSuite {
     val reqS = Stream(
       "POST /foo HTTP/1.1\r\na\r\n"
     )
-    val byteStream: Stream[IO, Byte] = reqS.flatMap(s =>
-      Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-    )
+    val byteStream: Stream[IO, Byte] =
+      reqS.flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -310,9 +311,7 @@ class ParsingSuite extends Http4sSuite {
       )
 
     val byteStream: Stream[IO, Byte] = reqS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -359,9 +358,7 @@ class ParsingSuite extends Http4sSuite {
         // "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n\r\n"
       )
     val byteStream: Stream[IO, Byte] = respS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.ISO_8859_1))))
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -391,9 +388,7 @@ class ParsingSuite extends Http4sSuite {
       )
 
     val byteStream: Stream[IO, Byte] = respS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -524,9 +519,7 @@ class ParsingSuite extends Http4sSuite {
         "\r\n",
       )
     val byteStream: Stream[IO, Byte] = respS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     val result = for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -595,9 +588,7 @@ class ParsingSuite extends Http4sSuite {
         "Content-Length: 5\r\n\r\nworld",
       )
     val byteStream: Stream[IO, Byte] = respS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.ISO_8859_1))))
 
     (for {
       take <- Helpers.taking[IO, Byte](byteStream)
@@ -615,9 +606,7 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Body should completely consume a body") {
     val bodyS = Stream("hello ", "world!")
     val byteStream: Stream[IO, Byte] = bodyS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     for {
       take <- Helpers.taking(byteStream)
@@ -633,9 +622,7 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Body should partially consume a body") {
     val bodyS = Stream("hello ", "world!")
     val byteStream: Stream[IO, Byte] = bodyS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     for {
       take <- Helpers.taking(byteStream)
@@ -651,15 +638,13 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Body should consume previous bytes") {
     val bodyS = Stream("world!")
     val byteStream: Stream[IO, Byte] = bodyS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(
         12L,
-        "hello ".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+        "hello ".getBytes(StandardCharsets.US_ASCII),
         take,
       )
       bodyString <- body._1.body.through(fs2.text.utf8.decode).compile.string
@@ -674,9 +659,7 @@ class ParsingSuite extends Http4sSuite {
   test("Parser.Body should raise an error when compiling the body more than once") {
     val bodyS = Stream("hello world!")
     val byteStream: Stream[IO, Byte] = bodyS
-      .flatMap(s =>
-        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
-      )
+      .flatMap(s => Stream.chunk(Chunk.array(s.getBytes(StandardCharsets.US_ASCII))))
 
     for {
       take <- Helpers.taking(byteStream)
@@ -712,7 +695,7 @@ class ParsingSuite extends Http4sSuite {
     def parse(headers: String) = {
       val raw = Helpers
         .httpifyString(s"$headers\n\n")
-        .getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        .getBytes(StandardCharsets.UTF_8)
       Parser.HeaderP.parse[IO](raw, 4096, Parser.HeaderP.ParserState.initial)
     }
     def chunked(headers: String) = parse(headers).map {
@@ -750,6 +733,29 @@ class ParsingSuite extends Http4sSuite {
     }
   }
 
+  test("Response.parser should reject Transfer-Encoding combined with Content-Length") {
+    val raw =
+      "HTTP/1.1 200 OK\r\n" +
+        "Transfer-Encoding: chunked\r\n" +
+        "Content-Length: 38\r\n" +
+        "\r\n" +
+        "0\r\n" +
+        "\r\n" +
+        "HTTP/1.1 200 OK\r\n" +
+        "Content-Length: 9\r\n" +
+        "\r\n" +
+        "smuggled!"
+    Helpers
+      .taking[IO, Byte](
+        Stream.chunk(Chunk.array(raw.getBytes(StandardCharsets.ISO_8859_1)))
+      )
+      .flatMap { take =>
+        interceptMessageIO[ParseHeadersError](
+          "Encountered Error Attempting to Parse Headers - ContentLengthAndTransferEncoding"
+        )(Parser.Response.parser[IO](4096)(Array.emptyByteArray, take))
+      }
+  }
+
   test("HeaderP should reject a Content-Length that is not 1*DIGIT") {
     def parse(headers: String) = {
       val raw = Helpers.httpifyString(s"$headers\n\n")
@@ -766,6 +772,60 @@ class ParsingSuite extends Http4sSuite {
       parse("Content-Length: 5\nContent-Length: 5").map {
         case Right(h) => assertEquals(h.contentLength, Some(5L))
         case Left(_) => fail("incomplete header section")
+      }
+  }
+
+  test("HeaderP rejects a bare LF folded into a header value") {
+    val raw =
+      "Host: x\r\nFoo: bar\nContent-Length: 38\r\n\r\n"
+        .getBytes(StandardCharsets.ISO_8859_1)
+    Parser.HeaderP
+      .parse[IO](raw, 8192, Parser.HeaderP.ParserState.initial)
+      .attempt
+      .map {
+        case Left(Parser.HeaderP.ParseHeadersError(cause)) =>
+          assertEquals(cause, Parser.HeaderP.InvalidHeaderWhitespace)
+        case other => fail(s"expected InvalidHeaderWhitespace, got $other")
+      }
+  }
+
+  test("HeaderP rejects a bare CR in a header value") {
+    val raw = "Foo: ba\rz\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1)
+    Parser.HeaderP
+      .parse[IO](raw, 8192, Parser.HeaderP.ParserState.initial)
+      .attempt
+      .map(r => assert(r.isLeft, "bare CR must be rejected"))
+  }
+
+  test("HeaderP rejects NUL in a header value") {
+    val raw = "Foo: ba\u0000r\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1)
+    Parser.HeaderP
+      .parse[IO](raw, 8192, Parser.HeaderP.ParserState.initial)
+      .attempt
+      .map(r => assert(r.isLeft, "NUL must be rejected"))
+  }
+
+  test("HeaderP still accepts HTAB and normal CRLF values") {
+    val raw = "Foo:\tbar baz\r\nContent-Length: 3\r\n\r\n"
+      .getBytes(StandardCharsets.ISO_8859_1)
+    Parser.HeaderP
+      .parse[IO](raw, 8192, Parser.HeaderP.ParserState.initial)
+      .map {
+        case Right(h) =>
+          assertEquals(h.contentLength, Some(3L))
+          assert(h.headers.headers.exists(_.value == "bar baz"))
+        case Left(_) => fail("well-formed headers must parse")
+      }
+  }
+
+  test("HeaderP: bare CR split across reads is deferred") {
+    // CR at the buffer edge, LF arrives next — must NOT error as bare CR
+    val first = "Foo: bar\r".getBytes(StandardCharsets.ISO_8859_1)
+    Parser.HeaderP
+      .parse[IO](first, 8192, Parser.HeaderP.ParserState.initial)
+      .map {
+        case Left(s) => assert(s.progress == Parser.HeaderP.Progress.InProgress)
+        case Right(_) => fail("should await more input")
       }
   }
 

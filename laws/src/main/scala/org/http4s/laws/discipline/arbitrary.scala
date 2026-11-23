@@ -655,19 +655,20 @@ private[discipline] trait ArbitraryInstances {
 
   implicit val http4sTestingArbitraryForServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
+    def multiLineString: Gen[String] =
+      getArbitrary[String].suchThat(!_.contains("\r"))
+
     def singleLineString: Gen[String] =
-      getArbitrary[String].suchThat { s =>
-        !s.contains("\r") && !s.contains("\n")
-      }
+      multiLineString.suchThat(!_.contains("\n"))
 
     Arbitrary(
       for {
         data <- frequency(
-          8 -> singleLineString.map(Some.apply),
+          8 -> multiLineString.map(Some.apply),
           1 -> None,
         )
         comment <- frequency(
-          1 -> singleLineString.map(Some.apply),
+          1 -> multiLineString.map(Some.apply),
           8 -> None,
         )
         event <- frequency(
@@ -677,7 +678,9 @@ private[discipline] trait ArbitraryInstances {
         id <- frequency(
           8 -> None,
           1 -> Some(EventId.reset),
-          1 -> singleLineString.suchThat(_.nonEmpty).map(id => Some(EventId(id))),
+          1 -> singleLineString
+            .suchThat(s => s.nonEmpty && !s.contains("\u0000"))
+            .map(id => Some(EventId(id))),
         )
         retry <- frequency(
           4 -> None,

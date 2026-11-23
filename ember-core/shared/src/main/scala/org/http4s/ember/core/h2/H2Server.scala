@@ -22,7 +22,7 @@ import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
-import fs2.io.IOException
+import fs2.concurrent.SignallingRef
 import fs2.io.net._
 import org.http4s._
 import org.http4s.ember.core.EmberException
@@ -64,15 +64,14 @@ private[ember] object H2Server {
       timeout: Duration,
   ): F[Either[ByteVector, Unit]] =
     Util
-      .timeoutMaybe(socket.read(Preface.clientBV.size.toInt), timeout)
+      .timeoutMaybe(socket.readN(Preface.clientBV.size.toInt), timeout)
       .adaptError { case _: TimeoutException => EmberException.ReadTimeout(timeout) }
-      .flatMap {
-        case Some(s) =>
-          val received = s.toByteVector
-          if (received == Preface.clientBV) Applicative[F].pure(Either.unit)
-          else Applicative[F].pure(Either.left(received))
-        case None =>
-          new IOException("Input Closed Before Receiving Data").raiseError
+      .flatMap { s =>
+        val received = s.toByteVector
+        if (received == Preface.clientBV)
+          Applicative[F].pure(Either.unit)
+        else
+          Applicative[F].pure(Either.left(received))
       }
 
   // For Anything that is guaranteed to only be h2 this method will fail
@@ -106,10 +105,11 @@ private[ember] object H2Server {
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
         initialRemoteSettings,
-        defaultSettings.initialWindowSize,
         localSettings.initialWindowSize,
       )
-      queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
+      pendingReadCredit <- SignallingRef[F, Int](0)
+      writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
+      queue <- cats.effect.std.Queue.bounded[F, EncodableH2Frame](128)
       hpack <- Hpack.create[F](
         localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
       )
@@ -126,6 +126,8 @@ private[ember] object H2Server {
       localSettings,
       ref,
       stateRef,
+      pendingReadCredit,
+      writeWindow,
       queue,
       created,
       closed,
@@ -142,12 +144,14 @@ private[ember] object H2Server {
         .fromQueueUnterminated(h2.closedStreams)
         .map(i =>
           Stream.eval(
-            // Max Time After Close We Will Still Accept Messages
-            (Temporal[F].sleep(1.seconds) >>
-              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
+            // Streams are cleaned up slowly to prevent rapid reset attacks
+            (Temporal[F].sleep(1.seconds) >> h2.mapRef.update(m => m - i))
+              .timeout(15.seconds)
+              .attempt
+              .void
           )
         )
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .parJoinUnbounded
         .compile
         .drain
 
@@ -198,17 +202,21 @@ private[ember] object H2Server {
 
         permit.use {
           case true =>
-            for {
+            val respond = for {
               req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
               resp <- httpApp(req)
               _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
               _ <- fulfillPushPromises(resp)
               _ <- stream.sendMessageBody(resp) // Initial Resp Body
               _ <- stream.sendTrailerHeaders(resp)
-              _ <- h2.mapRef.update(_ - streamIx) // Remove stream from map on normal termination
+              _ <- stream.finish(H2Error.NoError)
             } yield ()
 
-          case false => stream.rstStream(H2Error.RefusedStream)
+            respond.onError { case _ =>
+              stream.finish(H2Error.InternalError) >> h2.mapRef.update(_ - streamIx)
+            }
+
+          case false => stream.finish(H2Error.RefusedStream)
         }
       }
     }
@@ -236,16 +244,13 @@ private[ember] object H2Server {
     for {
       h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
+      _ <- Resource.eval(h2.offerFrame(settingsFrame))
       _ <- h2.readLoop.background
       maxStreams <- Resource.eval(
         Semaphore[F](localSettings.maxConcurrentStreams.maxConcurrency.toLong)
       )
       _ <- clearClosedStreams(h2).background
       _ <- processCreatedStreams(h2, maxStreams).background
-      _ <- Resource.eval(
-        h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
-      )
       _ <- Resource.eval(holdWhileOpen(h2.state))
     } yield ()
   }

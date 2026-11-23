@@ -834,7 +834,7 @@ class CORSSuite extends Http4sSuite {
   test("withMaxAge negative, preflight request with matching origin") {
     CORS.policy
       .withAllowOriginHeader(_ => true)
-      .withMaxAge(-10.seconds)
+      .withMaxAge((-10).seconds)
       .apply(app)
       .flatMap(
         _.run(preflightReq)

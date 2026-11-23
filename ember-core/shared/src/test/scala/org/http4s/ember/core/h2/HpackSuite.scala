@@ -45,7 +45,7 @@ class HpackSuite extends Http4sSuite {
         hpack <- Hpack.create[IO](65635)
         bv <- hpack.encodeHeaders(headers.map { case Header.Raw(n, v) => (n.toString, v, false) })
         decoded <- hpack.decodeHeaders(bv)
-      } yield assertEquals(decoded, headers.map { case Header.Raw(n, v) => (n.toString, v) })
+      } yield assertEquals(decoded, headers.toList.map { case Header.Raw(n, v) => (n.toString, v) })
     }
   }
 

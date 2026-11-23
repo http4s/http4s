@@ -22,6 +22,7 @@ import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2._
+import fs2.concurrent.SignallingRef
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s.Uri.Authority
@@ -187,10 +188,11 @@ private[ember] class H2Client[F[_]](
         ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
         stateRef <- H2Connection.initState[F](
           defaultSettings,
-          defaultSettings.initialWindowSize,
           localSettings.initialWindowSize,
         )
-        queue <- cats.effect.std.Queue.bounded[F, Chunk[H2Frame]](128)
+        pendingReadCredit <- SignallingRef[F, Int](0)
+        writeWindow <- H2Connection.WriteWindow.init[F](defaultSettings.initialWindowSize)
+        queue <- cats.effect.std.Queue.bounded[F, EncodableH2Frame](128)
         hpack <- Hpack.create[F](
           localSettings.maxHeaderListSize.fold(Int.MaxValue)(_.listSize)
         )
@@ -207,6 +209,8 @@ private[ember] class H2Client[F[_]](
         localSettings,
         ref,
         stateRef,
+        pendingReadCredit,
+        writeWindow,
         queue,
         created,
         closed,
@@ -241,6 +245,7 @@ private[ember] class H2Client[F[_]](
             case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
             case Outcome.Succeeded(f) => f
           }.attempt
+          _ <- stream.finish(H2Error.Cancel)
           _ <- h2.mapRef.update(_ - i)
           out <- outE.liftTo[F]
         } yield out)
@@ -258,16 +263,23 @@ private[ember] class H2Client[F[_]](
 
     def processSettings(h2: H2Connection[F]): F[Unit] = {
       val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
-      h2.outgoing.offer(Chunk.singleton(localSetts))
+      h2.offerFrame(localSetts)
     }
 
     for {
-      h2 <- Resource.eval(createH2Connection)
+      h2 <- Resource.makeFull[F, H2Connection[F]](poll => poll(createH2Connection))(h2 =>
+        h2.mapRef.get.flatMap(streamMap =>
+          streamMap.toList.traverse_ { case (id, stream) =>
+            stream.finish(H2Error.Cancel).void >> h2.mapRef.update(_ - id)
+          }
+        )
+      )
+      // Queue the connection preface before the reader can enqueue a SETTINGS acknowledgment.
+      _ <- Resource.eval(processSettings(h2))
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <- clearClosed(h2).background
       _ <- pullCreatedStreams(h2).background
-      _ <- Resource.eval(processSettings(h2))
     } yield h2
   }
 
@@ -299,13 +311,20 @@ private[ember] class H2Client[F[_]](
         )
       )
       // Stream Order Must Be Correct, so we must grab the global lock
-      stream <- Resource.make(
-        connection.streamCreateAndHeaders.use(_ =>
-          connection.initiateLocalStream.flatMap(stream =>
-            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
+      stream <- Resource.makeFull[F, H2Stream[F]](poll =>
+        connection.streamCreateAndHeaders.surround(
+          connection.initiateLocalStream.flatTap(stream =>
+            poll(stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false))
+              .guaranteeCase {
+                case Outcome.Succeeded(_) => F.unit
+                case _ => connection.mapRef.update(m => m - stream.id)
+              }
           )
         )
-      )(stream => connection.mapRef.update(m => m - stream.id))
+      )(stream =>
+        connection.state.get.map(_.closed).ifM(F.unit, stream.finish(H2Error.Cancel).start.void) >>
+          connection.mapRef.update(m => m - stream.id)
+      )
       _ <- (stream.sendMessageBody(req) >> stream.sendTrailerHeaders(req)).background
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp
