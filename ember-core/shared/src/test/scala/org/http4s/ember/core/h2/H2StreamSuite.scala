@@ -816,7 +816,7 @@ class H2StreamSuite extends Http4sSuite {
         outgoing.offer,
       )
       _ <- stream.receiveHeaders(
-        DecodedH2Frame.Headers(1, None, true, true, List(("content-type", "text/plain")))
+        DecodedH2Frame.Headers(1, None, true, List(("content-type", "text/plain")))
       )
       _ <- assertIO(rstCodes(outgoing), List(H2Error.ProtocolError.value))
       _ <- assertIOBoolean(stream.getResponse.attempt.map(_.isLeft))
@@ -890,7 +890,6 @@ class H2StreamSuite extends Http4sSuite {
           1,
           None,
           true,
-          true,
           List(
             (":method", "GET"),
             (":scheme", "https"),
@@ -948,7 +947,7 @@ class H2StreamSuite extends Http4sSuite {
       headers: (String, String)*
   ): IO[Unit] =
     stream.receiveHeaders(
-      DecodedH2Frame.Headers(1, None, endStream, true, headers.toList)
+      DecodedH2Frame.Headers(1, None, endStream, headers.toList)
     )
 
   List(
