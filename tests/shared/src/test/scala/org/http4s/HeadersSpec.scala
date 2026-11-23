@@ -19,6 +19,7 @@ package org.http4s
 import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.MonoidTests
 import cats.kernel.laws.discipline.OrderTests
+import cats.syntax.either._
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
@@ -158,4 +159,22 @@ class HeadersSpec extends Http4sSuite {
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
   checkAll("Order[Headers]", OrderTests[Headers].order)
+
+  test("Headers#parse should error when header does not exist") {
+    val headers = Headers(Header.Raw(ci"Authorization", "someAuthString"))
+    assert(headers.parse[`Accept-Encoding`].isLeft)
+  }
+
+  test("Headers#parse should succeed when header exists") {
+    val auth = Authorization(BasicCredentials("someAuthString"))
+    val headers = Headers(`Content-Type`(MediaType.application.json), auth)
+    assertEquals(headers.parse[Authorization], auth.asRight[ParseFailure])
+  }
+
+  test("Headers#parse should error when header fails to parse") {
+    val headers = Headers(
+      Header.Raw(ci"Content-Type", "application/*"),
+      Authorization(BasicCredentials("someAuthString")))
+    assert(headers.parse[`Content-Type`].isLeft)
+  }
 }
