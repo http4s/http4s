@@ -56,8 +56,9 @@ trait TLSConnectionAttributesPlatform {
   protected val acceptsUntrustedOptionalClientCert: Boolean = false
 
   /** fs2's Native TLS can loop forever, uncancelably, when a socket is closed after a write was
-    * cancelled partway or failed. Ember's HTTP/2 does both: it cancels its write loop on
-    * teardown, and the client writes a GOAWAY after the server drops the connection.
+    * canceled partway or failed. Ember's HTTP/2 does both: it cancels its write loop on
+    * teardown, and the client writes a GOAWAY after the server drops the connection. See:
+    * https://github.com/typelevel/fs2/issues/3808
     */
   protected val skipHttp2OverTLS: Boolean = true
 
