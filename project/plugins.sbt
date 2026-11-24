@@ -11,7 +11,7 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.13.0")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("com.github.sbt" % "sbt-jmh" % "0.4.9")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.22.0")
-addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.12")
+addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.13")
 addSbtPlugin("com.armanbilge" % "sbt-scala-native-config-brew" % "0.4.0")
 
 libraryDependencySchemes += "com.lihaoyi" %% "geny" % VersionScheme.Always
