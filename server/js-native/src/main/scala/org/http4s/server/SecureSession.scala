@@ -18,4 +18,18 @@ package org.http4s.server
 
 import scodec.bits.ByteVector
 
-final class SecureSession private[http4s] (val raw: ByteVector)
+/** The TLS session of a connection.
+  *
+  * @param raw the session, as serialized by the TLS implementation
+  * @param peerCertificates the peer's verified certificate chain, DER-encoded,
+  * leaf first and including the trusted root. Empty if the peer presented no
+  * certificate, or it was not verified. Unlike `SecureSession.X509Certificate` on
+  * the JVM, which lists the chain as the peer sent it, this is the chain as verified.
+  */
+final class SecureSession private[http4s] (
+    val raw: ByteVector,
+    val peerCertificates: List[ByteVector],
+) {
+  @deprecated("Preserved for binary compatibility", "0.23.40")
+  private[http4s] def this(raw: ByteVector) = this(raw, Nil)
+}

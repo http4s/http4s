@@ -29,6 +29,7 @@ import fs2.io.net.SocketOption
 import org.http4s._
 import org.http4s.syntax.all._
 import org.typelevel.log4cats.noop.NoOpFactory
+import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
@@ -76,7 +77,15 @@ class H2ServerSuite extends H2Suite {
       hpack <- Hpack.create[IO](Int.MaxValue)
       settings = H2Frame.Settings.ConnectionSettings.default
       server <- H2Server
-        .fromSocket(stubSocket(input, writes), app, Duration.Inf, 60.seconds, settings, logger)
+        .fromSocket(
+          stubSocket(input, writes),
+          app,
+          Duration.Inf,
+          60.seconds,
+          settings,
+          logger,
+          Vault.empty,
+        )
         .useForever
         .start
       c = new Client(input, hpack)

@@ -103,7 +103,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      createRequestVault = true,
+      requestVaultFor = mkRequestVault[F](_),
       webSocketKey,
       http2 = http2,
       requestLineParseErrorHandler,
@@ -172,7 +172,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      createRequestVault = false,
+      // Unix sockets have no IP addresses for ConnectionInfo. This also leaves out
+      // SecureSession, even with TLS.
+      requestVaultFor = (_: Socket[F]) => Vault.empty.pure[F],
       webSocketKey,
       http2 = http2,
       requestLineParseErrorHandler,
@@ -200,13 +202,32 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      createRequestVault: Boolean,
+      requestVaultFor: Socket[F] => F[Vault],
       webSocketKey: Key[WebSocketContext[F]],
       http2: Option[Http2Support[F]],
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
       webSocketHelpers: WebSocketHelpers,
   ): Stream[F, Nothing] = {
+    // Built once per connection and shared across streams; see H2Server.fromSocket
+    def runH2Connection(h2: Http2Support[F], socket: Socket[F]): Stream[F, Nothing] =
+      Stream
+        .eval(requestVaultFor(socket))
+        .flatMap { connectionAttributes =>
+          Stream.resource(
+            h2.fromSocket(
+              socket,
+              httpApp,
+              requestHeaderReceiveTimeout,
+              idleTimeout,
+              maxHeaderSize,
+              logger,
+              connectionAttributes,
+            )
+          )
+        }
+        .drain
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -220,18 +241,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               (alpn, http2) match {
                 case (Some("h2"), Some(h2)) =>
                   Stream.exec(h2.requireConnectionPreface(socket, idleTimeout)) ++
-                    Stream
-                      .resource(
-                        h2.fromSocket(
-                          socket,
-                          httpApp,
-                          requestHeaderReceiveTimeout,
-                          idleTimeout,
-                          maxHeaderSize,
-                          logger,
-                        )
-                      )
-                      .drain
+                    runH2Connection(h2, socket)
                 case (Some(_), _) =>
                   // SSL Connection, not h2, will be http/1.1 but thats not how types align
                   // Prior Knowledge is only allowed over clear where application
@@ -246,7 +256,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                     httpApp,
                     errorHandler,
                     onWriteFailure,
-                    createRequestVault,
+                    requestVaultFor,
                     webSocketKey,
                     ByteVector.empty,
                     requestLineParseErrorHandler,
@@ -269,7 +279,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         httpApp,
                         errorHandler,
                         onWriteFailure,
-                        createRequestVault,
+                        requestVaultFor,
                         webSocketKey,
                         bv, // Pass read bytes we thought might be the prelude
                         requestLineParseErrorHandler,
@@ -278,18 +288,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         shutdown,
                       ).drain
                     case Right(_) =>
-                      Stream
-                        .resource(
-                          h2.fromSocket(
-                            socket,
-                            httpApp,
-                            requestHeaderReceiveTimeout,
-                            idleTimeout,
-                            maxHeaderSize,
-                            logger,
-                          )
-                        )
-                        .drain
+                      runH2Connection(h2, socket)
                   }
                 // Since its not enabled, run connection normally.
                 case (None, None) =>
@@ -303,7 +302,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                     httpApp,
                     errorHandler,
                     onWriteFailure,
-                    createRequestVault,
+                    requestVaultFor,
                     webSocketKey,
                     ByteVector.empty,
                     requestLineParseErrorHandler,
@@ -389,7 +388,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
       socket: Socket[F],
-      createRequestVault: Boolean,
+      requestVaultFor: Socket[F] => F[Vault],
   )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
@@ -406,9 +405,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     for {
       tmp <- parseWithHeaderTimeout
       (req, drain) = tmp
-      requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
+      attributes <- requestVaultFor(socket)
       resp <- httpApp
-        .run(req.withAttributes(requestVault))
+        .run(req.withAttributes(attributes))
         .recover { case Parser.HeaderP.ParseHeadersError(_) =>
           badRequest.covary[F]
         }
@@ -453,7 +452,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      createRequestVault: Boolean,
+      requestVaultFor: Socket[F] => F[Vault],
       webSocketKey: Key[WebSocketContext[F]],
       initialBuffer: ByteVector,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
@@ -495,7 +494,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             httpApp,
             errorHandler,
             socket,
-            createRequestVault,
+            requestVaultFor,
           )
         }
 
@@ -571,9 +570,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
     socket match {
       case socket: TLSSocket[F] =>
-        socket.session
-          .map(parseSSLSession(_))
-          .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
+        readSecureSession(socket).map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
       case _ =>
         Vault.empty.pure[F]
     }

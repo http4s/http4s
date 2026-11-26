@@ -25,6 +25,7 @@ import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Server
 import org.http4s.ember.core.h2.H2TLS
 import org.typelevel.log4cats.Logger
+import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration.Duration
@@ -56,6 +57,7 @@ private[ember] trait Http2Support[F[_]] {
       idleTimeout: Duration,
       maxHeaderSize: Int,
       logger: Logger[F],
+      connectionAttributes: Vault,
   )(implicit F: Async[F]): Resource[F, Unit]
 }
 
@@ -85,6 +87,7 @@ private[ember] object Http2Support {
         idleTimeout: Duration,
         maxHeaderSize: Int,
         logger: Logger[F],
+        connectionAttributes: Vault,
     )(implicit F: Async[F]): Resource[F, Unit] = {
       val settings = H2Frame.Settings.ConnectionSettings.default
         .copy(maxHeaderListSize = Some(H2Frame.Settings.SettingsMaxHeaderListSize(maxHeaderSize)))
@@ -95,6 +98,7 @@ private[ember] object Http2Support {
         idleTimeout,
         settings,
         logger,
+        connectionAttributes,
       )
     }
   }
