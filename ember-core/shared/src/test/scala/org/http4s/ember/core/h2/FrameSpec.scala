@@ -145,6 +145,18 @@ class H2FrameSpec extends CatsEffectSuite {
     )
   }
 
+  test("Settings should accept the maximum initial window size") {
+    val init = H2Frame.Settings(
+      0x0,
+      ack = false,
+      List(H2Frame.Settings.SettingsInitialWindowSize(Int.MaxValue)),
+    )
+    val encoded = H2Frame.Settings.toRaw(init)
+    val back = H2Frame.Settings.fromRaw(encoded)
+
+    assertEquals(back, init.asRight)
+  }
+
   test("Settings should accept the maximum number of entries") {
     val payload = ByteVector.concat(
       List.fill(32)(ByteVector(0xff, 0xff, 0x00, 0x00, 0x00, 0x00))
