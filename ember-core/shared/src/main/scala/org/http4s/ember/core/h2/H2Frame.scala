@@ -53,18 +53,6 @@ private[h2] sealed trait EncodableH2Frame {
   * frames.
   */
 private[h2] object EncodableH2Frame {
-  final case class PushPromise(
-      identifier: Int,
-      endHeaders: Boolean,
-      promisedStreamId: Int,
-      headers: NonEmptyList[(String, String, Boolean)],
-  ) extends EncodableH2Frame {
-    def toH2Frame[F[_]: Applicative](hpack: Hpack[F]): F[H2Frame] =
-      hpack
-        .encodeHeaders(headers)
-        .map(H2Frame.PushPromise(identifier, endHeaders, promisedStreamId, _, None))
-  }
-
   // repeat the above for Headers
   final case class Headers(
       identifier: Int,

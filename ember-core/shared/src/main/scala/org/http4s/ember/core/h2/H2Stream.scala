@@ -57,30 +57,6 @@ private[h2] class H2Stream[F[_]: Temporal](
 
   private[this] val windowSize: Int = localSettings.initialWindowSize.windowSize
 
-  def sendPushPromise(originating: Int, headers: NonEmptyList[(String, String, Boolean)]): F[Unit] =
-    connectionType match {
-      case H2Connection.ConnectionType.Server =>
-        state.get.flatMap { s =>
-          s.state match {
-            case StreamState.Idle =>
-              Temporal[F]
-                .uncancelable(poll =>
-                  poll(
-                    enqueue(
-                      EncodableH2Frame.PushPromise(originating, endHeaders = true, id, headers)
-                    )
-                  ) *> setStreamState(_ => StreamState.ReservedLocal)
-                )
-            case _ =>
-              new IllegalStateException(
-                "Push Promises are only allowed on an idle Stream"
-              ).raiseError
-          }
-        }
-      case H2Connection.ConnectionType.Client =>
-        new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
-    }
-
   /** Send [[Message]] in chunks according to remote receiver's max frame size.
     * On empty [[Message]], send an empty DATA frame if there are no trailer headers.
     *

@@ -94,8 +94,6 @@ private[ember] object H2Server {
       localSettings: H2Frame.Settings.ConnectionSettings,
       logger: Logger[F],
   )(implicit F: Async[F]): Resource[F, Unit] = {
-    import cats.effect.kernel.instances.spawn._
-
     val initialRemoteSettings = defaultSettings
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
@@ -159,43 +157,7 @@ private[ember] object H2Server {
         h2: H2Connection[F],
         streamIx: Int,
         maxStreams: Semaphore[F],
-    ): F[Unit] = {
-      def fulfillPushPromises(resp: Response[F]): F[Unit] = {
-        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
-          h2.streamCreateAndHeaders.use[(Request[Pure], H2Stream[F])](_ =>
-            h2.initiateLocalStream.flatMap { stream =>
-              stream
-                .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
-                .map(_ => (req, stream))
-            }
-          )
-
-        def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
-          resp.body.chunks
-            .foreach(c => stream.sendData(c.toByteVector, endStream = false))
-            .compile
-            .drain >> // PP Resp Body
-            stream.sendData(ByteVector.empty, endStream = true)
-
-        def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
-          for {
-            resp <- httpApp(req.covary[F])
-            // _ <- Console.make[F].println("Push Promise Response Completed")
-            pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
-            _ <- stream.sendHeaders(pseudoHeaders, endStream = false) // PP Response
-          } yield (resp.body, stream)
-
-        resp.attributes.lookup(H2Keys.PushPromises).traverse_ { (l: List[Request[Pure]]) =>
-          h2.state.get.flatMap {
-            case s if s.remoteSettings.enablePush.isEnabled =>
-              l.traverse(sender)
-                .flatMap(_.parTraverse { case (req, stream) => respond(req, stream) })
-                .flatMap(_.parTraverse_ { case (_, stream) => sendData(resp, stream) })
-            case _ => Applicative[F].unit
-          }
-        }
-      }
-
+    ): F[Unit] =
       h2.mapRef.get.map(_.get(streamIx)).map(_.get).flatMap { stream =>
         val permit =
           if (streamIx % 2 != 0) maxStreams.tryPermit else Resource.pure[F, Boolean](true)
@@ -206,7 +168,6 @@ private[ember] object H2Server {
               req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
               resp <- httpApp(req)
               _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
-              _ <- fulfillPushPromises(resp)
               _ <- stream.sendMessageBody(resp) // Initial Resp Body
               _ <- stream.sendTrailerHeaders(resp)
               _ <- stream.finish(H2Error.NoError)
@@ -219,7 +180,6 @@ private[ember] object H2Server {
           case false => stream.finish(H2Error.RefusedStream)
         }
       }
-    }
 
     def processCreatedStreams(h2: H2Connection[F], maxStreams: Semaphore[F]): F[Unit] =
       Stream
