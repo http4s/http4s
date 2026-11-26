@@ -705,8 +705,8 @@ private[ember] object H2Frame {
     // The initial value is 2^16-1 (65,535) octets.
     final case class SettingsInitialWindowSize(windowSize: Integer) extends Setting(0x4, windowSize)
     object SettingsInitialWindowSize {
-      val MAX: SettingsInitialWindowSize = SettingsInitialWindowSize(Int.MaxValue - 1)
-      val MIN: SettingsInitialWindowSize = SettingsInitialWindowSize(65536 - 1)
+      val MAX: SettingsInitialWindowSize = SettingsInitialWindowSize(Int.MaxValue)
+      val MIN: SettingsInitialWindowSize = SettingsInitialWindowSize(65535)
       def fromInt(windowSize: Int): Either[H2Error, SettingsInitialWindowSize] =
         if (
           windowSize <= MAX.windowSize && windowSize >= 0
