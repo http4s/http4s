@@ -46,6 +46,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
     val idleTimeInPool: Duration,
+    private val maxConnectionLifetime: Duration,
     private val logger: Logger[F],
     val chunkSize: Int,
     val maxResponseHeaderSize: Int,
@@ -70,6 +71,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
+      maxConnectionLifetime: Duration = self.maxConnectionLifetime,
       logger: Logger[F] = self.logger,
       chunkSize: Int = self.chunkSize,
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
@@ -93,6 +95,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       maxTotal = maxTotal,
       maxPerKey = maxPerKey,
       idleTimeInPool = idleTimeInPool,
+      maxConnectionLifetime = maxConnectionLifetime,
       logger = logger,
       chunkSize = chunkSize,
       maxResponseHeaderSize = maxResponseHeaderSize,
@@ -142,6 +145,13 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     */
   def withIdleTimeInPool(idleTimeInPool: Duration): EmberClientBuilder[F] =
     copy(idleTimeInPool = idleTimeInPool)
+
+  /** Sets the maximum age of a connection before it is discarded when taken from the pool.
+    * Connections that are already in use are allowed to complete their request.
+    * By default, connections have no maximum lifetime.
+    */
+  def withMaxConnectionLifetime(maxConnectionLifetime: Duration): EmberClientBuilder[F] =
+    copy(maxConnectionLifetime = maxConnectionLifetime)
 
   /** Sets the idle timeout on connections.  The timeout is reset with each read or write. */
   def withIdleConnectionTime(idleConnectionTime: Duration): EmberClientBuilder[F] =
@@ -330,7 +340,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     } yield {
       def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {
-          managed <- ClientHelpers.getValidManaged(pool, request)
+          managed <- ClientHelpers.getValidManaged(pool, request, maxConnectionLifetime)
           _ <- Resource.eval(
             pool.state.flatMap { poolState =>
               logger.trace(
@@ -427,6 +437,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
       idleTimeInPool = Defaults.idleTimeInPool,
+      maxConnectionLifetime = Defaults.maxConnectionLifetime,
       logger = defaultLogger[F],
       chunkSize = Defaults.chunkSize,
       maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
@@ -461,6 +472,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     }
     val maxTotal: Int = 100
     val idleTimeInPool: FiniteDuration = 30.seconds // 30 Seconds in Nanos
+    val maxConnectionLifetime: Duration = Duration.Inf
     val additionalSocketOptions: List[SocketOption] = List.empty[SocketOption]
     val userAgent: Some[`User-Agent`] = Some(
       `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))

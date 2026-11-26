@@ -264,12 +264,20 @@ private[client] object ClientHelpers {
   private[client] def getValidManaged[F[_]: Async](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
+      maxConnectionLifetime: Duration,
   ): Resource[F, Managed[F, EmberConnection[F]]] =
     Hotswap.create[F, Managed[F, EmberConnection[F]]].evalMap { hs =>
       def go: F[Managed[F, EmberConnection[F]]] =
         hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request))).flatMap { managed =>
           managed.value.isValid.ifM(
-            managed.pure,
+            if (managed.isReused)
+              managed.value
+                .isExpired(maxConnectionLifetime)
+                .ifM(
+                  managed.canBeReused.set(Reusable.DontReuse) *> go,
+                  managed.pure,
+                )
+            else managed.pure,
             if (managed.isReused) // keep swapping connections until we find a valid one
               managed.canBeReused.set(Reusable.DontReuse) *> go
             else

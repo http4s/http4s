@@ -16,16 +16,19 @@
 
 package org.http4s.ember.client
 
-import cats.effect.Concurrent
 import cats.effect.Resource
+import cats.effect.Temporal
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
 import cats.effect.std.Hotswap
 import cats.syntax.all._
 import fs2.Chunk
 
+import scala.concurrent.duration._
+
 @annotation.nowarn("cat=deprecation")
 private[ember] final case class EmberConnection[F[_]](
+    createdAt: FiniteDuration,
     keySocket: RequestKeySocket[F],
     chunkSize: Int,
     shutdown: F[Unit],
@@ -37,7 +40,14 @@ private[ember] final case class EmberConnection[F[_]](
      */
     hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
-)(implicit F: Concurrent[F]) {
+)(implicit F: Temporal[F]) {
+
+  def isExpired(maxLifetime: Duration): F[Boolean] =
+    maxLifetime match {
+      case finiteLifetime: FiniteDuration =>
+        F.monotonic.map(now => now - createdAt >= finiteLifetime)
+      case _ => F.pure(false)
+    }
 
   /** For the connection to be valid, its pre-emptive read must not have terminated in an error or EOF.
     */
@@ -76,9 +86,10 @@ private[ember] object EmberConnection {
   def apply[F[_]](
       keySocketResource: Resource[F, RequestKeySocket[F]],
       chunkSize: Int,
-  )(implicit F: Concurrent[F]): Resource[F, EmberConnection[F]] =
+  )(implicit F: Temporal[F]): Resource[F, EmberConnection[F]] =
     (
       Resource.eval(keySocketResource.allocated),
+      Resource.eval(F.monotonic),
       Resource.eval(F.ref(Array.emptyByteArray)),
       Hotswap.create[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
       Resource.eval(
@@ -86,9 +97,11 @@ private[ember] object EmberConnection {
           .flatTap(_.complete(Right(Some(Chunk.empty))))
           .flatMap(F.ref(_))
       ),
-    ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
+    ).flatMapN { case ((keySocket, release), createdAt, nextBytes, hotRead, nextRead) =>
       Resource.make(
-        F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead))
+        F.pure(
+          EmberConnection(createdAt, keySocket, chunkSize, release, nextBytes, hotRead, nextRead)
+        )
       )(
         _.cleanup
       )
