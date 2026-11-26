@@ -900,11 +900,6 @@ class H2StreamSuite extends Http4sSuite {
         )
       ),
     ),
-    (
-      "sendPushPromise",
-      H2Stream.StreamState.Idle,
-      _.sendPushPromise(3, NonEmptyList.of((":method", "GET", false))),
-    ),
   ).foreach { case (name, streamState, act) =>
     test(s"$name doesn't reopen a stream reset concurrently") {
       assertIO(resetAfterFirstGet(streamState, act), closedOnce)

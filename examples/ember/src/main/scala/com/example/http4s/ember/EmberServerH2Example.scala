@@ -59,14 +59,6 @@ object EmberServerH2Example extends IOApp {
                 .putHeaders("trailer" -> "x-my-data")
                 .withTrailerHeaders(Headers("x-my-data" -> "Hello from trailers!").pure[F])
                 .pure[F]
-          case _ -> Root / "push-promise" =>
-            resp
-              .covary[F] // URI needs authority scheme, etc
-              .withAttribute(
-                org.http4s.ember.core.h2.H2Keys.PushPromises,
-                Request[Pure](Method.GET, uri"https://localhost:8080/foo") :: Nil,
-              )
-              .pure[F]
 
         }
         .orNotFound

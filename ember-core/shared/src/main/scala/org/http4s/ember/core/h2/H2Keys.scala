@@ -25,6 +25,7 @@ object H2Keys {
   val PushPromiseInitialStreamIdentifier: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()
   val StreamIdentifier: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()
 
+  @deprecated(message = "HTTP/2 server push is no longer supported", since = "0.23.40")
   val PushPromises: Key[List[Request[Pure]]] =
     Key.newKey[SyncIO, List[org.http4s.Request[fs2.Pure]]].unsafeRunSync()
 
