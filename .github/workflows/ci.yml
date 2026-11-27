@@ -42,13 +42,13 @@ jobs:
           - scala: 2.12
             java: temurin@17
           - project: rootJS
-            java: temurin@11
+            java: temurin@8
           - project: rootJS
-            java: temurin@17
-          - project: rootNative
             java: temurin@11
           - project: rootNative
-            java: temurin@17
+            java: temurin@8
+          - project: rootNative
+            java: temurin@11
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     steps:
