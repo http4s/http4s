@@ -21,10 +21,10 @@ make sure it belongs in http4s before you put effort into creating a
 pull request. The preferred ways to do that are to either:
 
 * [Create a GitHub issue] describing your idea.
-* Get feedback in the [http4s Gitter room].
+* Get feedback in the `#http4s` channel of the [Typelevel Discord].
 
 [Create a GitHub issue]: https://github.com/http4s/http4s/issues/new
-[http4s Gitter room]: https://gitter.im/http4s/http4s
+[Typelevel Discord]: https://discord.gg/XF3CXcMzqD
 
 ## Let us know you are working on it
 
@@ -42,29 +42,37 @@ First you'll need to checkout a local copy of the code base:
 git clone git@github.com:http4s/http4s.git
 ```
 
-To build http4s, you should have [SBT] and [Hugo] installed.  Run `sbt ci`.
-This runs:
+To build http4s, you should have [SBT] installed. The repository also ships
+a [Nix] flake (`flake.nix`) and a `.envrc` for [direnv] users; running
+`direnv allow` (or `nix develop`) enters a shell with the JDK, Node.js and
+Scala Native toolchain that CI uses.
 
-* `test`: compiles all code and runs the unit tests
-* `makeSite`: compiles the tutorial, generates the scaladoc, and
-  builds the static site.
-* `mimaReportBinaryIssues`: checks for binary compatibility changes,
-  which are relevant past patch release .0.
+The `sbt lint` alias runs the full set of checks that CI runs:
 
-[SBT]: http://www.scala-sbt.org/0.13/tutorial/Setup.html
-[Hugo]: https://gohugo.io/getting-started/installing/
+* `clean` and `+test:compile`: compiles all code across Scala versions
+* `scalafixAll --triggered` and `scalafixAll`: runs Scalafix rules
+* `+scalafmtAll` and `scalafmtSbt`: formats all sources and `.sbt` files
+* `+mimaReportBinaryIssues`: checks for binary compatibility changes
+
+For quicker feedback while iterating locally, `sbt quicklint` runs the same
+Scalafix and Scalafmt checks on a single Scala version without the
+cross-compilation step.
+
+[SBT]: https://www.scala-sbt.org/download.html
+[Nix]: https://nixos.org/download
+[direnv]: https://direnv.net/
 
 ## Coding Standard
 
 ### Formatting
 
-The Travis CI build verifies that code is formatted correctly
+The GitHub Actions build verifies that code is formatted correctly
 according to the [Scalafmt] config and will fail if a diff is found.
+The `sbt lint` and `sbt quicklint` aliases (see above) already check
+formatting. If your PR fails due to formatting, run `sbt scalafmtAll`
+(and `sbt scalafmtSbt` for `.sbt` files).
 
-You can run `validate` to test the formatting before opening a PR.  If
-your PR fails due to formatting, run `;test:scalafmt`.
-
-[Scalafmt]: http://scalameta.org/scalafmt/
+[Scalafmt]: https://scalameta.org/scalafmt/
 
 #### IntelliJ IDEA specific settings
 
@@ -241,11 +249,11 @@ not write any output to disk, it serves the site entirely from memory. And btw: 
 
 ## Submit a Pull Request
 
-Before you open a pull request, you should make sure that `sbt ci` runs
-successfully. Github Actions will run this as well, but it may save you some
-rebasing. Squashing and rebasing can lead to a tidier git history, but
-they can also be a hassle if somebody else has done work based on your
-branch.
+Before you open a pull request, you should make sure that `sbt lint` runs
+successfully. GitHub Actions will run the equivalent checks as well, but
+running locally may save you some rebasing. Squashing and rebasing can lead
+to a tidier git history, but they can also be a hassle if somebody else has
+done work based on your branch.
 
 ----
 
