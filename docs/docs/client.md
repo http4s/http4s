@@ -207,6 +207,35 @@ getGreetings.unsafeRunSync()
 ```
 
 
+### Proxies
+
+The `EmberClientBuilder` can reach origin servers through an HTTP, SOCKS4 or SOCKS5 proxy.
+
+```scala mdoc:silent
+import org.http4s.ember.client.HttpProxy
+
+EmberClientBuilder
+  .default[IO]
+  .withProxy(HttpProxy(Uri.Scheme.http, host"proxy.example", port"3128".some))
+  .build
+```
+
+A proxy can also be taken from the environment, which reads the JVM networking system
+properties and falls back to the conventional `http_proxy`, `https_proxy` and `all_proxy`
+variables:
+
+```scala mdoc:silent
+EmberClientBuilder.default[IO].withEnvironmentProxy.build
+```
+
+A request to an `http` origin is forwarded to an HTTP proxy in absolute form, and every other
+request is tunneled through it with `CONNECT`. Call `withoutProxyForwarding` to tunnel every
+request instead.
+
+Hosts named by `withProxyIgnoredHosts` are reached directly. This defaults to
+`IgnoredHosts.default`, which ignores `localhost` and the IPv4 and IPv6 loopback addresses.
+
+
 ## Constructing a URI
 
 Typically, to construct a `Request`, you use a `Uri` to represent the endpoint you
