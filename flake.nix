@@ -18,6 +18,7 @@
         mkShell = jdk: pkgs.devshell.mkShell {
           imports = [ typelevel-nix.typelevelShell ];
           name = "http4s";
+          devshell.packages = [ pkgs.h2spec ];
           typelevelShell = {
             jdk.package = jdk;
             nodejs.enable = true;
